@@ -1,0 +1,35 @@
+
+class Options:
+	CalculateRho, CalculateP, CalculateT, Unknown=range(4)
+
+result=[]
+CalculationOption=Options.Unknown
+
+
+try:
+	T_H2
+	P_H2
+	CalculationOption=Options.CalculateRho
+except NameError:
+	try:
+		T_H2
+		rho_H2
+		CalculationOption=Options.CalculateP
+	except NameError:
+		try:
+			P_H2
+			rho_H2
+			CalculationOption=Options.CalculateT
+		except NameError:
+			CalculationOption=Options.Unknown
+
+if (CalculationOption==Options.CalculateRho):
+	result.append("rho:" + str(Thermo_wrapper(T=T_H2, P=P_H2))) 
+elif (CalculationOption==Options.CalculateP):
+	result.append("P:" + str(Thermo_wrapper(T=T_H2, rho=rho_H2)))
+elif (CalculationOption==Options.CalculateT):
+	result.append("T:" + str(Thermo_wrapper(P=P_H2, rho=rho_H2)))
+else:
+	result.append("Error:Improper input combination.")
+	
+print ("result={" + str(result) + "}")

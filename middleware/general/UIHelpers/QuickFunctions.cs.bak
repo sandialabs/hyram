@@ -1,0 +1,138 @@
+using System;
+using System.Windows.Forms;
+using IOUtils;
+using JrRegistry;
+
+namespace UIHelpers
+{
+	/// <summary>
+	/// Summary description for QuickFunctions.
+	/// </summary>
+	public class QuickFunctions
+	{
+		public QuickFunctions()
+		{
+			//
+			// TODO: Add constructor logic here
+			//
+		}
+				  
+		
+		
+		public static string SelectSaveAsFilename(string Title, ref string StartingPath, string Extension, string Filter){
+			SaveFileDialog fd=new SaveFileDialog();
+			fd.DefaultExt=Extension;
+			fd.Filter=Filter;
+			fd.InitialDirectory=StartingPath;
+			fd.OverwritePrompt=true;
+			fd.Title=Title;
+			fd.ValidateNames=true;
+			
+			fd.ShowDialog();
+
+			string Result=fd.FileName;
+			fd.Dispose();
+			fd=null;
+			System.GC.Collect();
+			if (Result.Length>0){
+				StartingPath=IOFunctions.GetFileDirectory(Result);
+			}
+			return Result;
+		}
+
+		public static string[] SelectFilenames(string Title, ref string StartingPath, string Filter, bool Multiselect){
+			// Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*" ;
+            if(Filter.Length==5  || Filter.Length==3){
+                Filter = Filter + " Files (" + Filter + ")|" + Filter;
+            }
+			OpenFileDialog fd=new OpenFileDialog();
+
+			fd.Title=Title;
+			fd.InitialDirectory=StartingPath;
+			fd.Filter=Filter;
+			fd.Multiselect=Multiselect;
+			System.Windows.Forms.DialogResult DlgResult=fd.ShowDialog();
+			
+			string[] Result=null;
+
+			if (DlgResult==System.Windows.Forms.DialogResult.OK){
+				Result=fd.FileNames;
+				if (Result!=null){
+					if (Result.Length>0){
+						if (Result[0].Length>0){
+							StartingPath=System.IO.Path.GetDirectoryName(Result[0]);
+						}
+					}
+				}
+			}
+			
+			return Result;
+		}
+
+		public static string SelectFilename(string Title, ref string StartingPath, string Filter){
+			string[] ResultArray=null;
+			string Result="";
+
+			ResultArray=SelectFilenames(Title, ref StartingPath, Filter, false);
+			if (ResultArray!=null){
+                if (ResultArray.Length==1){
+					Result=ResultArray[0];
+				}
+			}
+
+			return Result;
+            			
+		}
+
+		
+		public static string SelectDirectory(string Title, ref string StartingPath){
+			string Result="";
+			string SelectedPath="";
+
+
+			System.Windows.Forms.FolderBrowserDialog fd=new FolderBrowserDialog();
+            fd.InitializeLifetimeService();
+            fd.RootFolder=System.Environment.SpecialFolder.MyComputer;
+            
+            fd.SelectedPath=StartingPath;			
+			fd.Description=Title;
+			System.Windows.Forms.DialogResult dr;
+			
+			dr=fd.ShowDialog();
+			
+			
+			SelectedPath=fd.SelectedPath;
+			fd.Dispose();
+			fd=null;
+			System.GC.Collect();
+
+			if (dr==System.Windows.Forms.DialogResult.OK){
+				if (IOUtils.IOFunctions.DirExists(SelectedPath)){
+					Result=SelectedPath;
+					StartingPath=SelectedPath;
+				}
+			}
+
+			fd=null;
+
+			return Result;
+
+		}
+
+
+
+
+        
+    }
+	public class EventGetter{
+			private bool mEventReceived=false;
+			public bool EventReceived{
+				get{
+					return mEventReceived;
+				}
+			}
+			public void GotSomething(object sender, System.EventArgs e){
+				mEventReceived=true;
+			}
+	}
+}
