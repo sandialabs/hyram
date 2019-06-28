@@ -2,6 +2,8 @@
 # The Hydrogen Risk Assessment Model
 This document describes the Hydrogen Risk Assessment Model ("HyRAM") application development.
 The application comprises a frontend GUI written in C# and a "PyHyRAM" backend module written in Python.
+Additional description and documentation, as well as a Windows installer, can be found at [http://hyram.sandia.gov/](http://hyram.sandia.gov/).
+
 Step-by-step instructions are included for setting up a C# development environment using MS Visual Studio 2017 ("MSVS").
 Similar setup instructions are provided for backend python development.
 In addition, basic usage of the backend as a standalone python module is is provided.
