@@ -1,0 +1,60 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="QRA_Frontend.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="plotSavePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="workspaceSavePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="MFROrificeDiamDistUnit" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Meter</Value>
+    </Setting>
+    <Setting Name="MFRPressureUnit" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Pa</Value>
+    </Setting>
+    <Setting Name="MFRVolumeUnit" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Liter</Value>
+    </Setting>
+    <Setting Name="MFRTempUnit" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Kelvin</Value>
+    </Setting>
+    <Setting Name="TPDTempUnit" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Kelvin</Value>
+    </Setting>
+    <Setting Name="TPDPressureUnit" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Pa</Value>
+    </Setting>
+    <Setting Name="TPDDensitiyUnit" Type="System.String" Scope="User">
+      <Value Profile="(Default)">KilogramCubicMeter</Value>
+    </Setting>
+    <Setting Name="TPDDensityControl" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="TPDPressureControl" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="TPDTempControl" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="OPHorizLines" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="OPMarkDots" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="TMPressureUnit" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Pa</Value>
+    </Setting>
+    <Setting Name="TMTempUnit" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Kelvin</Value>
+    </Setting>
+    <Setting Name="TMMassUnit" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Kilogram</Value>
+    </Setting>
+    <Setting Name="TMVolumeUnit" Type="System.String" Scope="User">
+      <Value Profile="(Default)">CubicMeter</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

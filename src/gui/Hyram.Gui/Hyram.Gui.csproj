@@ -1,0 +1,426 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{534554A2-C9B7-4E59-B77B-A5CD5B5AD330}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SandiaNationalLaboratories.Hyram</RootNamespace>
+    <AssemblyName>Hyram</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\build\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\build\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>HyRAM Logo-32x32-Final.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>SandiaNationalLaboratories.Hyram.Program</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>false</SignManifests>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="MathNet.Numerics, Version=4.12.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MathNet.Numerics.4.12.0\lib\net461\MathNet.Numerics.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ActionPanels\OverpressurePanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ActionPanels\OverpressurePanel.Designer.cs">
+      <DependentUpon>OverpressurePanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ActionPanels\QraOutputNavPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ActionPanels\QraOutputNavPanel.Designer.cs">
+      <DependentUpon>QraOutputNavPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ActionPanels\PlumeDispersionPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ActionPanels\PlumeDispersionPanel.Designer.cs">
+      <DependentUpon>PlumeDispersionPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Qra\ConsequenceModelsForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Qra\ConsequenceModelsForm.Designer.cs">
+      <DependentUpon>ConsequenceModelsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Qra\ProbabilitiesForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Qra\ProbabilitiesForm.Designer.cs">
+      <DependentUpon>ProbabilitiesForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Physics\JetFlameHeatAnalysisForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Physics\JetFlameHeatAnalysisForm.Designer.cs">
+      <DependentUpon>JetFlameHeatAnalysisForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Physics\PlumeForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Physics\PlumeForm.Designer.cs">
+      <DependentUpon>PlumeForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Physics\IndoorReleaseForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Physics\IndoorReleaseForm.Designer.cs">
+      <DependentUpon>IndoorReleaseForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Physics\JetFlameTemperaturePlotForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Physics\JetFlameTemperaturePlotForm.Designer.cs">
+      <DependentUpon>JetFlameTemperaturePlotForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Qra\ScenariosForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Qra\ScenariosForm.Designer.cs">
+      <DependentUpon>ScenariosForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Qra\QraResultsPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Qra\QraResultsPanel.Designer.cs">
+      <DependentUpon>QraResultsPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Qra\SystemDescriptionForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Qra\SystemDescriptionForm.Designer.cs">
+      <DependentUpon>SystemDescriptionForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainFormPanels\ProgressDisplay.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MainFormPanels\ProgressDisplay.Designer.cs">
+      <DependentUpon>ProgressDisplay.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainFormPanels\ContentPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MainFormPanels\ContentPanel.Designer.cs">
+      <DependentUpon>ContentPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CustomControls\NotionalNozzleModelSelector.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="CustomControls\NotionalNozzleModelSelector.Designer.cs">
+      <DependentUpon>NotionalNozzleModelSelector.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CustomControls\PictureBoxWithSave.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CustomControls\PictureBoxWithSave.Designer.cs">
+      <DependentUpon>PictureBoxWithSave.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainFormPanels\AboutForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainFormPanels\FileSaveLoadForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainFormPanels\FileSaveLoadForm.Designer.cs">
+      <DependentUpon>FileSaveLoadForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Etk\MassFlowRateForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Etk\MassFlowRateForm.Designer.cs">
+      <DependentUpon>MassFlowRateForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Etk\TankMassForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Etk\TankMassForm.Designer.cs">
+      <DependentUpon>TankMassForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Etk\TemperaturePressureDensityForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Etk\TemperaturePressureDensityForm.Designer.cs">
+      <DependentUpon>TemperaturePressureDensityForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Etk\TntEquivalenceForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Etk\TntEquivalenceForm.Designer.cs">
+      <DependentUpon>TntEquivalenceForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Etk\EtkMainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Etk\EtkMainForm.Designer.cs">
+      <DependentUpon>EtkMainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Resources\Narratives.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Narratives.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Splashscreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Splashscreen.Designer.cs">
+      <DependentUpon>Splashscreen.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CustomControls\ValueConverterDropdown.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="CustomControls\ValueConverterDropdown.Designer.cs">
+      <DependentUpon>ValueConverterDropdown.cs</DependentUpon>
+    </Compile>
+    <None Include="Resources\BannerInstaller.bmp" />
+    <None Include="Resources\BannerInstaller.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <Content Include="Resources\hyram_bigtitle.jpg" />
+    <Content Include="Resources\CopyrightFormatted.rtf" />
+    <EmbeddedResource Include="ActionPanels\OverpressurePanel.resx">
+      <DependentUpon>OverpressurePanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ActionPanels\QraOutputNavPanel.resx">
+      <DependentUpon>QraOutputNavPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Qra\ConsequenceModelsForm.resx">
+      <DependentUpon>ConsequenceModelsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Qra\ProbabilitiesForm.resx">
+      <DependentUpon>ProbabilitiesForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Physics\JetFlameHeatAnalysisForm.resx">
+      <DependentUpon>JetFlameHeatAnalysisForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Physics\PlumeForm.resx">
+      <DependentUpon>PlumeForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Physics\IndoorReleaseForm.resx">
+      <DependentUpon>IndoorReleaseForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Physics\JetFlameTemperaturePlotForm.resx">
+      <DependentUpon>JetFlameTemperaturePlotForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Qra\ScenariosForm.resx">
+      <DependentUpon>ScenariosForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Qra\QraResultsPanel.resx">
+      <DependentUpon>QraResultsPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Qra\SystemDescriptionForm.resx">
+      <DependentUpon>SystemDescriptionForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainFormPanels\ProgressDisplay.resx">
+      <DependentUpon>ProgressDisplay.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainFormPanels\ContentPanel.resx">
+      <DependentUpon>ContentPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CustomControls\NotionalNozzleModelSelector.resx">
+      <DependentUpon>NotionalNozzleModelSelector.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CustomControls\PictureBoxWithSave.resx">
+      <DependentUpon>PictureBoxWithSave.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Etk\MassFlowRateForm.resx">
+      <DependentUpon>MassFlowRateForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Etk\TankMassForm.resx">
+      <DependentUpon>TankMassForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Etk\TemperaturePressureDensityForm.resx">
+      <DependentUpon>TemperaturePressureDensityForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Etk\TntEquivalenceForm.resx">
+      <DependentUpon>TntEquivalenceForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Etk\EtkMainForm.resx">
+      <DependentUpon>EtkMainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainFormPanels\AboutForm.resx">
+      <DependentUpon>AboutForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainFormPanels\FileSaveLoadForm.resx">
+      <DependentUpon>FileSaveLoadForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Narratives.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Narratives.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Splashscreen.resx">
+      <DependentUpon>Splashscreen.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CustomControls\ValueConverterDropdown.resx">
+      <DependentUpon>ValueConverterDropdown.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Content Include="Resources\ajax-loader.gif" />
+    <Content Include="Resources\ESD_2020.png" />
+    <Content Include="Resources\BannerLogo.jpg" />
+    <Content Include="Resources\0p01pctFT_2020.png" />
+    <Content Include="Resources\0p1pctFT_2020.png" />
+    <Content Include="Resources\1pctFT_2020.png" />
+    <Content Include="Resources\10pctFT_2020.png" />
+    <Content Include="Resources\100pctFT_2020.png" />
+    <Content Include="Resources\geometry of flame.png" />
+    <Content Include="Resources\PhysJetFlameDescrip.rtf" />
+    <Content Include="Resources\PhysOverpressureDescrip.rtf" />
+    <Content Include="Resources\PhysPlumeDescrip.rtf" />
+    <Content Include="Resources\QraConsequenceModelsDescrip.rtf" />
+    <Content Include="Resources\QraProbabilitiesDescrip.rtf" />
+    <Content Include="Resources\QraScenariosDescrip.rtf" />
+    <Content Include="Resources\QraScenarioStatsDescrip.rtf" />
+    <Content Include="Resources\QraSystemDescriptionDescrip.rtf" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.4.5">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 4.5</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\DataSources\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hyram.PythonApi\Hyram.PythonApi.csproj">
+      <Project>{633dd4fe-52c9-4646-8de8-a5c1ef28c141}</Project>
+      <Name>Hyram.PythonApi</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyram.State\Hyram.State.csproj">
+      <Project>{ac649404-0356-4135-8322-2a889bf0c0c6}</Project>
+      <Name>Hyram.State</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyram.Units\Hyram.Units.csproj">
+      <Project>{e33da86b-3f7e-4651-9229-fadde859bcfb}</Project>
+      <Name>Hyram.Units</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyram.Utilities\Hyram.Utilities.csproj">
+      <Project>{09230b90-aeeb-4aba-8368-81fae8bef845}</Project>
+      <Name>Hyram.Utilities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
