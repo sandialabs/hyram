@@ -254,6 +254,69 @@ namespace SandiaNationalLaboratories.Hyram
         }
 
         /// <summary>
+        /// Get TNT equivalence data
+        /// Currently called by ETK.
+        /// </summary>
+        public bool ComputeTntEquivalence(double vaporMass, double yield, double heatOfCombustion,
+            out string statusMsg, out double? tntMass)
+        {
+            bool status = false;
+            statusMsg = "";
+            tntMass = null;
+
+            // Derive path to data dir for temp and data files, e.g. pickling
+            string outputDirPath = StateContainer.UserDataDir;
+
+            Trace.TraceInformation("Acquiring python lock and importing module...");
+            using (Py.GIL())
+            {
+                dynamic pyGC = Py.Import("gc");
+                dynamic pyLib = Py.Import(libName);
+
+                // Activate python logging
+                pyLib.phys.c_api.setup(outputDirPath, isDebug);
+
+                try
+                {
+                    Trace.TraceInformation("Executing python TNT mass call...");
+                    dynamic resultPyObj = pyLib.phys.c_api.etk_compute_equivalent_tnt_mass(
+                        vaporMass, yield, heatOfCombustion, isDebug);
+                    Trace.TraceInformation("Python call complete. Processing results...");
+
+                    // unwrap results
+                    status = (bool)resultPyObj["status"];
+                    statusMsg = (string)resultPyObj["message"];
+
+                    // Verify python func completed without error
+                    if (status)
+                    {
+                        tntMass = (double)resultPyObj["data"];
+                        Trace.TraceInformation("TNT mass query result: " + tntMass + ". Processing...");
+                        resultPyObj.Dispose();
+                    }
+                    else
+                    {
+                        Trace.TraceError(statusMsg);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError(ex.ToString());
+                    status = false;
+                    statusMsg = "Error during TNT mass calculation. Check log for details.";
+                }
+                finally
+                {
+                    pyGC.InvokeMethod("collect");
+                    pyGC.Dispose();
+                    pyLib.Dispose();
+                }
+                return status;
+            }
+        }
+
+
+        /// <summary>
         /// Create plume plot via python
         /// </summary>
         /// <param name="ambPres"></param>

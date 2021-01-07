@@ -20,6 +20,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
+using SandiaNationalLaboratories.Hyram.Resources;
 
 
 namespace SandiaNationalLaboratories.Hyram
@@ -119,7 +120,7 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void jetHeatAnalysisFormButton_Click(object sender, EventArgs e)
         {
-            ChangePanel(sender, new JetFlameHeatAnalysisForm(), Narratives.PhysJetFlameDescrip, new OverpressurePanel());
+            ChangePanel(sender, new JetFlameHeatAnalysisForm(), Narratives.PhysRadHeatDescrip, new OverpressurePanel());
         }
 
         /// <summary>
@@ -227,12 +228,10 @@ namespace SandiaNationalLaboratories.Hyram
 
             if (activeTab == qraModeTab)
             {
-                mainOutputLabel.Text = "Output";
                 activePanel = qraNavPanel;
             }
             else
             {
-                mainOutputLabel.Text = "";
                 activePanel = physicsNavPanel;
             }
 

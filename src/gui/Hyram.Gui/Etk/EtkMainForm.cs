@@ -35,12 +35,12 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void tankMassTabPage_Enter(object sender, System.EventArgs e)
         {
-            tankMassForm.CheckFormValid();
+            tankMassForm.EnteringForm();
         }
 
         private void massFlowRateTabPage_Enter(object sender, System.EventArgs e)
         {
-            massFlowRateForm.CheckFormValid();
+            massFlowRateForm.EnteringForm();
         }
     }
 }

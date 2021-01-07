@@ -62,6 +62,15 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
+        /// <summary>
+        /// Convenience func when tab is entered (via parent EtkMainForm)
+        /// </summary>
+        public void EnteringForm()
+        {
+            fuelPhaseSelector.SelectedItem = StateContainer.GetValue<FluidPhase>("ReleaseFluidPhase");
+            CheckFormValid();
+        }
+
         private void temperatureUnitSelector_OnSelectedIndexChange(object sender, EventArgs e)
         {
             if (temperatureUnitSelector.SelectedItem != null)

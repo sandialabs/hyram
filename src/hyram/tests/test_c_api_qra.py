@@ -8,9 +8,8 @@ import numpy as np
 from hyram.qra import c_api
 from hyram.utilities import exceptions
 
-""" NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
-
-TODO: determine appropriate sig figs, relative error or absolute error guidelines for tests.
+"""
+NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
 """
 
 log = None
@@ -186,14 +185,6 @@ class TestQRA(unittest.TestCase):
         self.assertTrue(status)
         self.assertTrue(msg is None)
 
-        total_pll = results['total_pll']
-        far = results['far']
-        air = results['air']
-
-        np.testing.assert_approx_equal(total_pll, 1.093e-5, significant=4)
-        np.testing.assert_approx_equal(far, 1.3864e-2, significant=5)
-        np.testing.assert_approx_equal(air, 2.773e-7, significant=4)
-
     # @unittest.skip
     def test_single_rad_source(self):
         c_api.setup(self.output_dir, self.debug)
@@ -207,14 +198,6 @@ class TestQRA(unittest.TestCase):
 
         self.assertTrue(status)
         self.assertTrue(msg is None)
-
-        total_pll = results['total_pll']
-        far = results['far']
-        air = results['air']
-
-        np.testing.assert_approx_equal(total_pll, 1.289e-5, significant=4)
-        np.testing.assert_approx_equal(far, 1.635e-2, significant=4)
-        np.testing.assert_approx_equal(air, 3.2694e-7, significant=5)
 
     def test_invalid_occupant_sets_raises_error(self):
         c_api.setup(self.output_dir, self.debug)

@@ -34,6 +34,7 @@
             this.equivalentMassUnitSelector = new SandiaNationalLaboratories.Hyram.ValueConverterDropdown();
             this.netHeatUnitSelector = new SandiaNationalLaboratories.Hyram.ValueConverterDropdown();
             this.vaporMassUnitSelector = new SandiaNationalLaboratories.Hyram.ValueConverterDropdown();
+            this.calculateButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // vaporMassInput
@@ -90,7 +91,7 @@
             // equivalentMassOutput
             // 
             this.equivalentMassOutput.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.equivalentMassOutput.Location = new System.Drawing.Point(339, 95);
+            this.equivalentMassOutput.Location = new System.Drawing.Point(339, 121);
             this.equivalentMassOutput.Name = "equivalentMassOutput";
             this.equivalentMassOutput.ReadOnly = true;
             this.equivalentMassOutput.Size = new System.Drawing.Size(107, 20);
@@ -99,7 +100,7 @@
             // equivalentMassLabel
             // 
             this.equivalentMassLabel.AutoSize = true;
-            this.equivalentMassLabel.Location = new System.Drawing.Point(14, 99);
+            this.equivalentMassLabel.Location = new System.Drawing.Point(14, 125);
             this.equivalentMassLabel.Name = "equivalentMassLabel";
             this.equivalentMassLabel.Size = new System.Drawing.Size(113, 13);
             this.equivalentMassLabel.TabIndex = 47;
@@ -108,7 +109,7 @@
             // equivalentMassUnitSelector
             // 
             this.equivalentMassUnitSelector.Converter = null;
-            this.equivalentMassUnitSelector.Location = new System.Drawing.Point(183, 94);
+            this.equivalentMassUnitSelector.Location = new System.Drawing.Point(183, 120);
             this.equivalentMassUnitSelector.Name = "equivalentMassUnitSelector";
             this.equivalentMassUnitSelector.SelectedItem = null;
             this.equivalentMassUnitSelector.Size = new System.Drawing.Size(142, 22);
@@ -138,10 +139,22 @@
             this.vaporMassUnitSelector.TabIndex = 40;
             this.vaporMassUnitSelector.OnSelectedIndexChanged += new System.EventHandler(this.vaporMassUnitSelector_OnSelectedIndexChanged);
             // 
+            // calculateButton
+            // 
+            this.calculateButton.Enabled = false;
+            this.calculateButton.Location = new System.Drawing.Point(339, 92);
+            this.calculateButton.Name = "calculateButton";
+            this.calculateButton.Size = new System.Drawing.Size(107, 23);
+            this.calculateButton.TabIndex = 50;
+            this.calculateButton.Text = "Calculate";
+            this.calculateButton.UseVisualStyleBackColor = true;
+            this.calculateButton.Click += new System.EventHandler(this.calculateButton_Click);
+            // 
             // TntEquivalenceForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.calculateButton);
             this.Controls.Add(this.equivalentMassOutput);
             this.Controls.Add(this.equivalentMassUnitSelector);
             this.Controls.Add(this.equivalentMassLabel);
@@ -154,7 +167,7 @@
             this.Controls.Add(this.vaporMassUnitSelector);
             this.Controls.Add(this.massInputLabel);
             this.Name = "TntEquivalenceForm";
-            this.Size = new System.Drawing.Size(461, 133);
+            this.Size = new System.Drawing.Size(461, 169);
             this.Load += new System.EventHandler(this.cpEtkTNTMassEquiv_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -174,5 +187,6 @@
 		private System.Windows.Forms.TextBox equivalentMassOutput;
 		private ValueConverterDropdown equivalentMassUnitSelector;
 		private System.Windows.Forms.Label equivalentMassLabel;
-	}
+        private System.Windows.Forms.Button calculateButton;
+    }
 }

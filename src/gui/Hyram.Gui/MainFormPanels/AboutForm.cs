@@ -21,6 +21,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
+using SandiaNationalLaboratories.Hyram.Resources;
 
 namespace SandiaNationalLaboratories.Hyram
 {
@@ -56,23 +57,24 @@ namespace SandiaNationalLaboratories.Hyram
 
         private string CreateVersionString()
         {
-            var components = Application.ProductVersion.Split('.');
-            string result = null;
+            return Application.ProductVersion;
+            //var components = Application.ProductVersion.Split('.');
+            //string result = null;
 
-            for (var index = 0; index < components.Length; index++)
-                if (index == components.Length - 1)
-                {
-                    //result += ", build " + components[index];
-                }
-                else
-                {
-                    if (result == null)
-                        result = components[index];
-                    else
-                        result += "." + components[index];
-                }
+            //for (var index = 0; index < components.Length; index++)
+            //    if (index == components.Length - 1)
+            //    {
+            //        //result += ", build " + components[index];
+            //    }
+            //    else
+            //    {
+            //        if (result == null)
+            //            result = components[index];
+            //        else
+            //            result += "." + components[index];
+            //    }
 
-            return result;
+            //return result;
         }
 
         /// <summary>

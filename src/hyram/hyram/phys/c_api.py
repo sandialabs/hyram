@@ -249,6 +249,56 @@ def etk_compute_thermo_param(species, temp, pres, density, debug):
         return results
 
 
+def etk_compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustion, debug):
+    """
+    Process GUI request for computing equivalent mass of TNT.
+
+    Returns
+    ----------
+    result : dict
+        status : bool
+            True if call successful.
+        message : str or None
+            Contains error message if call fails.
+        data : float
+            Equivalent mass (kg)
+
+    See Also
+    --------
+    api.compute_equivalent_tnt_mass
+
+    """
+    log.info("C API CALL: ETK tank mass...")
+    log.info(misc_utils.params_as_str(locals()))
+    results = {"status": False, "data": None, "message": None}
+
+    try:
+        mass = api.compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustion, debug=debug)
+        results["data"] = mass
+        results["status"] = True
+
+        log.info("API CALL COMPLETED SUCCESSFULLY")
+        log.info("Tank mass: {}".format(mass))
+
+    except exceptions.InputError as exc:
+        msg = "Calculation failed due to invalid inputs: {}".format(exc.message)
+        results["message"] = msg
+        log.error(msg)
+        if debug:
+            log.exception(exc)
+
+    except Exception as exc:
+        msg = "TNT mass calculation failed: {}".format(str(exc))
+        results["message"] = msg
+        log.error(msg)
+        if debug:
+            log.exception(exc)
+
+    finally:
+        gc.collect()
+        return results
+
+
 def analyze_jet_plume(amb_temp, amb_pres,
                       rel_species, rel_temp, rel_pres, rel_phase,
                       orif_diam, rel_angle, dis_coeff, nozzle_model,

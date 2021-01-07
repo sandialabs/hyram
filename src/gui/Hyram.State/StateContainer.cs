@@ -360,6 +360,7 @@ namespace SandiaNationalLaboratories.Hyram
         /// <returns>Storage object holding param value and converter</returns>
         public ConvertibleValue GetStateDefinedValueObject(string key)
         {
+            Debug.WriteLine($"DVO {key}");
             var result =
                 GetStateDefinedValueObject(key, out var throwAwayConverter);
             if (result == null)
@@ -546,25 +547,30 @@ namespace SandiaNationalLaboratories.Hyram
                 new double[] {5}, 0D);
 
             // Discharge coefficient of the hole; 1.0 is a conservative value, 0.6 is suggested value for screening
-            database["DischargeCoefficient"] = new ConvertibleValue(GetConverterByDatabaseKey("DischargeCoefficient"),
-                UnitlessUnit.Unitless, new[] {1D}, 0D);
-            database["numVehicles"] = new ConvertibleValue(GetConverterByDatabaseKey("numVehicles"),
+            database["DischargeCoefficient"] = new ConvertibleValue(
+                    GetConverterByDatabaseKey("DischargeCoefficient"),
+                    UnitlessUnit.Unitless, new[] {1D}, 0D);
+            database["numVehicles"] = new ConvertibleValue(
+                    GetConverterByDatabaseKey("numVehicles"),
                 UnitlessUnit.Unitless, new double[] {20}, 0D);
             database["dailyFuelings"] = new ConvertibleValue(
-                GetConverterByDatabaseKey("dailyFuelings"), UnitlessUnit.Unitless, new double[] {2}, 0D);
-            database["annualDemand"] = new ConvertibleValue(GetConverterByDatabaseKey("annualDemand"), UnitlessUnit.Unitless,
-                new[] {10000D}, 0D);
+                GetConverterByDatabaseKey("dailyFuelings"),
+                UnitlessUnit.Unitless, new double[] {2}, 0D);
+            database["annualDemand"] = new ConvertibleValue(
+                    GetConverterByDatabaseKey("annualDemand"),
+                    UnitlessUnit.Unitless, new[] {10000D}, 0D);
             database["vehicleOperatingDays"] = new ConvertibleValue(
-                GetConverterByDatabaseKey("vehicleOperatingDays"), UnitlessUnit.Unitless, new[] {250D}, 0D,
-                366D);
+                GetConverterByDatabaseKey("vehicleOperatingDays"),
+                UnitlessUnit.Unitless, new[] {250D}, 0D, 366D);
 
-            database["LeakHeight"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter,
-                new[] {0.0D}, 0D);  // lacks input field; used by QRA
-            database["ReleaseAngle"] = new ConvertibleValue(StockConverters.AngleConverter, AngleUnit.Degrees,
-                new[] {0.0D}, 0D, 180.0D);
+            database["LeakHeight"] = new ConvertibleValue(
+                    StockConverters.DistanceConverter,
+                    DistanceUnit.Meter, new[] {0.0D}, 0D);  // lacks input field; used by QRA
+            database["ReleaseAngle"] = new ConvertibleValue(
+                    StockConverters.AngleConverter,
+                    AngleUnit.Degrees, new[] {0.0D}, 0D, 180.0D);
 
-            database["Failure.NozPO"] =
-                new FailureMode("Nozzle", "Pop-off", FailureDistributionType.Beta, 0.5D, 610415.5D);
+            database["Failure.NozPO"] = new FailureMode("Nozzle", "Pop-off", FailureDistributionType.Beta, 0.5D, 610415.5D);
             //Database["Failure.NozFTC"] = new FailureMode("Nozzle", "Failure to close", FailureDistributionType.Beta, 31.5D, 610384.5D);
             database["Failure.NozFTC"] = new FailureMode("Nozzle", "Failure to close",
                 FailureDistributionType.ExpectedValue, 0.002D, 0D);
@@ -686,15 +692,19 @@ namespace SandiaNationalLaboratories.Hyram
                 new ComponentProbability("100%", 0, 0),
             };
 
-            database["tankVolume"] = new ConvertibleValue(StockConverters.VolumeConverter,
-                VolumeUnit.CubicMeter, new[] {3.63 / 1000});
-            database["orificeDischargeCoefficient"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new[] {1D});
+            database["tankVolume"] = new ConvertibleValue(
+                    StockConverters.VolumeConverter,
+                    VolumeUnit.CubicMeter, new[] {3.63 / 1000});
+            database["orificeDischargeCoefficient"] = new ConvertibleValue(
+                    StockConverters.UnitlessConverter,
+                    UnitlessUnit.Unitless, new[] {1D});
 
-            database["releaseDischargeCoefficient"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new[] {1D});
-            database["releaseToWallDistance"] = new ConvertibleValue(StockConverters.DistanceConverter,
-                DistanceUnit.Meter, new[] {2.1255D});
+            database["releaseDischargeCoefficient"] = new ConvertibleValue(
+                    StockConverters.UnitlessConverter,
+                    UnitlessUnit.Unitless, new[] {1D});
+            database["releaseToWallDistance"] = new ConvertibleValue(
+                    StockConverters.DistanceConverter,
+                    DistanceUnit.Meter, new[] {2.1255D});
             database["ceilingVentArea"] = new ConvertibleValue(StockConverters.AreaConverter,
                 AreaUnit.SqMeters, new[] {Math.Pow(0.34, 2) * Math.PI / 4});
             // Floor vent (area?)
@@ -822,16 +832,23 @@ namespace SandiaNationalLaboratories.Hyram
             UnitOfMeasurementConverters result = null;
             var ucKey = key.ToUpper();
 
+            // TODO: update db field names and this lookup to use consistent naming conventions.
+            // Avoid forced uppercase so that search will find names.
+            // Updating the db names will likely break saves.
             switch (ucKey)
             {
                 case "T_EXPOSE_THERMAL":
                 case "OPWRAPPER.SECONDSTOPLOT":
                 case "OPWRAPPER.MAXSIMTIME":
+                case "MAXSIMTIME":
+                case "FLAMEEXPOSURETIME":
                     result = StockConverters.ElapsingTimeConverter;
                     break;
                 case "FLAMEWRAPPER.T_H2":
                 case "SYSPARAM.EXTERNALTEMPC":
                 case "SYSPARAM.INTERNALTEMPC":
+                case "AMBIENTTEMPERATURE":
+                case "FLUIDTEMPERATURE":
                     result = StockConverters.TemperatureConverter;
                     break;
                 case "FLAMEWRAPPER.P_H2":
@@ -840,6 +857,8 @@ namespace SandiaNationalLaboratories.Hyram
                 case "OPWRAPPER.LIMITLINEPRESSURES":
                 case "SYSPARAM.EXTERNALPRESMPA":
                 case "SYSPARAM.INTERNALPRESMPA":
+                case "AMBIENTPRESSURE":
+                case "FLUIDPRESSURE":
                     result = StockConverters.PressureConverter;
                     break;
                 case "FLAMEWRAPPER.D_ORIFICE":
@@ -851,28 +870,38 @@ namespace SandiaNationalLaboratories.Hyram
                 case "PLUMEWRAPPER.XMAX":
                 case "PLUMEWRAPPER.YMIN":
                 case "PLUMEWRAPPER.YMAX":
-                case "COMPONENTS.PIPELENGTH":
-                case "FACILITY.LENGTH":
-                case "FACILITY.WIDTH":
-                case "FACILITY.HEIGHT":
+                case "PLUMEWRAPPER.DISTANCE_TO_WALL":
+                case "ORIFICEDIAMETER":
+                case "PIPELENGTH":
+                case "PIPEDIAMETER":
+                case "PIPETHICKNESS":
+                case "FACILITYLENGTH":
+                case "FACILITYWIDTH":
+                case "FACILITYHEIGHT":
                 case "OPWRAPPER.S0":
                 case "OPWRAPPER.XWALL":
                 case "OPWRAPPER.HV":
                 case "OPWRAPPER.H":
                 case "OPWRAPPER.CVHF":
                 case "OPWRAPPER.FVHF":
-                case "PLUMEWRAPPER.DISTANCE_TO_WALL":
                 case "SYSPARAM.PIPEOD":
                 case "SYSPARAM.PIPEWALLTHICK":
                 case "FLOOR.VENTHEIGHTFROMFLOOR":
                 case "CEILING.VENTHEIGHTFROMFLOOR":
+                case "RELEASETOWALLDISTANCE":
+                case "RELEASEHEIGHT":
+                case "ENCLOSUREHEIGHT":
+                case "LEAKHEIGHT":
+                case "CEILINGVENTHEIGHT":
+                case "FLOORVENTHEIGHT":
+                // used in QRA
                 case "ENCLOSURE.HEIGHT":
                 case "ENCLOSURE.HEIGHTOFRELEASE":
                 case "ENCLOSURE.XWALL":
-                case "LEAKHEIGHT":
                     result = StockConverters.DistanceConverter;
                     break;
                 case "OPWRAPPER.TANKVOLUME":
+                case "TANKVOLUME":
                     result = StockConverters.VolumeConverter;
                     break;
                 case "OPWRAPPER.WINDANGLE":
@@ -889,9 +918,14 @@ namespace SandiaNationalLaboratories.Hyram
                 case "ENCLOSURE.AREAOFFLOORANDCEILING":
                 case "FLOOR.CROSSSECTIONALAREA":
                 case "CEILING.CROSSSECTIONALAREA":
+                case "CEILINGVENTAREA":
+                case "FLOORVENTAREA":
+                case "RELEASEAREA":
+                case "FLOORCEILINGAREA":
                     result = StockConverters.AreaConverter;
                     break;
                 case "OPWRAPPER.VOLUMEFLOWRATE":
+                case "VENTVOLUMETRICFLOWRATE":
                     result = StockConverters.VolumetricFlowConverter;
                     break;
                 case "PLUMEWRAPPER.CO_VOLUME_CONSTANT":
@@ -1151,7 +1185,9 @@ namespace SandiaNationalLaboratories.Hyram
         public static bool FuelTypeIsGaseous()
         {
             FuelType selectedFuel = GetValue<FuelType>("FuelType");
-            return (selectedFuel == FuelType.H2 || selectedFuel == FuelType.CNG);
+            bool isGaseous = (selectedFuel == FuelType.H2 || selectedFuel == FuelType.CNG);
+            Debug.WriteLine($"Fuel {selectedFuel} gaseous? {isGaseous}");
+            return isGaseous;
         }
 
 
@@ -1183,12 +1219,7 @@ namespace SandiaNationalLaboratories.Hyram
 
             return result;
         }
-        public static bool PhysicsReleasePressureIsValid()
-        {
-            return ReleasePressureIsValid("fluidPressure");
-        }
-
-        public static bool QRAReleasePressureIsValid()
+        public static bool ReleasePressureIsValid()
         {
             return ReleasePressureIsValid("fluidPressure");
         }

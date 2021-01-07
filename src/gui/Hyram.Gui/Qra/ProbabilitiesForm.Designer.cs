@@ -31,6 +31,10 @@ namespace SandiaNationalLaboratories.Hyram {
             this.componentLeaksTabControl = new System.Windows.Forms.TabControl();
             this.compressorDistributionsTab = new System.Windows.Forms.TabPage();
             this.compressorDistributionsGrid = new System.Windows.Forms.DataGridView();
+            this.ProbCompLeakSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ProbCompMu = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ProbCompSigma = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ProbCompMean = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.cylinderDistributionsTab = new System.Windows.Forms.TabPage();
             this.cylinderDistributionsGrid = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -105,11 +109,6 @@ namespace SandiaNationalLaboratories.Hyram {
             this.clmCFParameterB = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.gbAccidentProbabilities = new System.Windows.Forms.GroupBox();
             this.accidentProbabilitiesGrid = new System.Windows.Forms.DataGridView();
-            this.clmAPCompName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.clmAPFailMode = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.clmAPDistributionType = new System.Windows.Forms.DataGridViewComboBoxColumn();
-            this.clmAPParameterA = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.clmAPParameterB = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ignitionProbabilitiesTab = new System.Windows.Forms.TabPage();
             this.lblKgPerSec = new System.Windows.Forms.Label();
             this.lblIgnitionFlowRates = new System.Windows.Forms.Label();
@@ -124,10 +123,11 @@ namespace SandiaNationalLaboratories.Hyram {
             this.colHydrogenReleaseRate = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colImmediateIgnitionProbability = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colDelayedIgnitionProbability = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ProbCompLeakSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ProbCompMu = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ProbCompSigma = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ProbCompMean = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.clmAPCompName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.clmAPFailMode = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.clmAPDistributionType = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.clmAPParameterA = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.clmAPParameterB = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataProbabilitiesTabControl.SuspendLayout();
             this.componentLeaksTab.SuspendLayout();
             this.componentLeaksTabControl.SuspendLayout();
@@ -239,6 +239,37 @@ namespace SandiaNationalLaboratories.Hyram {
             this.compressorDistributionsGrid.Name = "compressorDistributionsGrid";
             this.compressorDistributionsGrid.Size = new System.Drawing.Size(952, 510);
             this.compressorDistributionsGrid.TabIndex = 0;
+            // 
+            // ProbCompLeakSize
+            // 
+            this.ProbCompLeakSize.DataPropertyName = "LeakSize";
+            dataGridViewCellStyle1.NullValue = null;
+            this.ProbCompLeakSize.DefaultCellStyle = dataGridViewCellStyle1;
+            this.ProbCompLeakSize.HeaderText = "Leak Size";
+            this.ProbCompLeakSize.Name = "ProbCompLeakSize";
+            this.ProbCompLeakSize.ReadOnly = true;
+            // 
+            // ProbCompMu
+            // 
+            this.ProbCompMu.DataPropertyName = "Mu";
+            dataGridViewCellStyle2.Format = "N4";
+            dataGridViewCellStyle2.NullValue = "N/A";
+            this.ProbCompMu.DefaultCellStyle = dataGridViewCellStyle2;
+            this.ProbCompMu.HeaderText = "Mu";
+            this.ProbCompMu.Name = "ProbCompMu";
+            // 
+            // ProbCompSigma
+            // 
+            this.ProbCompSigma.DataPropertyName = "Sigma";
+            this.ProbCompSigma.HeaderText = "Sigma";
+            this.ProbCompSigma.Name = "ProbCompSigma";
+            // 
+            // ProbCompMean
+            // 
+            this.ProbCompMean.DataPropertyName = "Mean";
+            this.ProbCompMean.HeaderText = "Mean";
+            this.ProbCompMean.Name = "ProbCompMean";
+            this.ProbCompMean.ReadOnly = true;
             // 
             // cylinderDistributionsTab
             // 
@@ -944,40 +975,6 @@ namespace SandiaNationalLaboratories.Hyram {
             this.accidentProbabilitiesGrid.Size = new System.Drawing.Size(948, 201);
             this.accidentProbabilitiesGrid.TabIndex = 0;
             // 
-            // clmAPCompName
-            // 
-            this.clmAPCompName.DataPropertyName = "Name";
-            this.clmAPCompName.HeaderText = "Component";
-            this.clmAPCompName.Name = "clmAPCompName";
-            // 
-            // clmAPFailMode
-            // 
-            this.clmAPFailMode.DataPropertyName = "Mode";
-            this.clmAPFailMode.HeaderText = "Failure Mode";
-            this.clmAPFailMode.Name = "clmAPFailMode";
-            this.clmAPFailMode.Visible = false;
-            // 
-            // clmAPDistributionType
-            // 
-            this.clmAPDistributionType.DataPropertyName = "Dist";
-            this.clmAPDistributionType.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.clmAPDistributionType.HeaderText = "Distribution Type";
-            this.clmAPDistributionType.Name = "clmAPDistributionType";
-            this.clmAPDistributionType.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.clmAPDistributionType.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            // 
-            // clmAPParameterA
-            // 
-            this.clmAPParameterA.DataPropertyName = "ParamA";
-            this.clmAPParameterA.HeaderText = "Parameter A";
-            this.clmAPParameterA.Name = "clmAPParameterA";
-            // 
-            // clmAPParameterB
-            // 
-            this.clmAPParameterB.DataPropertyName = "ParamB";
-            this.clmAPParameterB.HeaderText = "Parameter B";
-            this.clmAPParameterB.Name = "clmAPParameterB";
-            // 
             // ignitionProbabilitiesTab
             // 
             this.ignitionProbabilitiesTab.Controls.Add(this.lblKgPerSec);
@@ -1116,36 +1113,40 @@ namespace SandiaNationalLaboratories.Hyram {
             this.colDelayedIgnitionProbability.HeaderText = "Delayed Ignition Probability";
             this.colDelayedIgnitionProbability.Name = "colDelayedIgnitionProbability";
             // 
-            // ProbCompLeakSize
+            // clmAPCompName
             // 
-            this.ProbCompLeakSize.DataPropertyName = "LeakSize";
-            dataGridViewCellStyle1.NullValue = null;
-            this.ProbCompLeakSize.DefaultCellStyle = dataGridViewCellStyle1;
-            this.ProbCompLeakSize.HeaderText = "Leak Size";
-            this.ProbCompLeakSize.Name = "ProbCompLeakSize";
-            this.ProbCompLeakSize.ReadOnly = true;
+            this.clmAPCompName.DataPropertyName = "Name";
+            this.clmAPCompName.HeaderText = "Component";
+            this.clmAPCompName.Name = "clmAPCompName";
+            this.clmAPCompName.ReadOnly = true;
             // 
-            // ProbCompMu
+            // clmAPFailMode
             // 
-            this.ProbCompMu.DataPropertyName = "Mu";
-            dataGridViewCellStyle2.Format = "N4";
-            dataGridViewCellStyle2.NullValue = "N/A";
-            this.ProbCompMu.DefaultCellStyle = dataGridViewCellStyle2;
-            this.ProbCompMu.HeaderText = "Mu";
-            this.ProbCompMu.Name = "ProbCompMu";
+            this.clmAPFailMode.DataPropertyName = "Mode";
+            this.clmAPFailMode.HeaderText = "Failure Mode";
+            this.clmAPFailMode.Name = "clmAPFailMode";
+            this.clmAPFailMode.Visible = false;
             // 
-            // ProbCompSigma
+            // clmAPDistributionType
             // 
-            this.ProbCompSigma.DataPropertyName = "Sigma";
-            this.ProbCompSigma.HeaderText = "Sigma";
-            this.ProbCompSigma.Name = "ProbCompSigma";
+            this.clmAPDistributionType.DataPropertyName = "Dist";
+            this.clmAPDistributionType.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.clmAPDistributionType.HeaderText = "Distribution Type";
+            this.clmAPDistributionType.Name = "clmAPDistributionType";
+            this.clmAPDistributionType.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.clmAPDistributionType.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             // 
-            // ProbCompMean
+            // clmAPParameterA
             // 
-            this.ProbCompMean.DataPropertyName = "Mean";
-            this.ProbCompMean.HeaderText = "Mean";
-            this.ProbCompMean.Name = "ProbCompMean";
-            this.ProbCompMean.ReadOnly = true;
+            this.clmAPParameterA.DataPropertyName = "ParamA";
+            this.clmAPParameterA.HeaderText = "Parameter A";
+            this.clmAPParameterA.Name = "clmAPParameterA";
+            // 
+            // clmAPParameterB
+            // 
+            this.clmAPParameterB.DataPropertyName = "ParamB";
+            this.clmAPParameterB.HeaderText = "Parameter B";
+            this.clmAPParameterB.Name = "clmAPParameterB";
             // 
             // ProbabilitiesForm
             // 
@@ -1256,11 +1257,6 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.DataGridViewComboBoxColumn clmCFDistributionType;
         private System.Windows.Forms.DataGridViewTextBoxColumn clmCFParameterA;
         private System.Windows.Forms.DataGridViewTextBoxColumn clmCFParameterB;
-        private System.Windows.Forms.DataGridViewTextBoxColumn clmAPCompName;
-        private System.Windows.Forms.DataGridViewTextBoxColumn clmAPFailMode;
-        private System.Windows.Forms.DataGridViewComboBoxColumn clmAPDistributionType;
-        private System.Windows.Forms.DataGridViewTextBoxColumn clmAPParameterA;
-        private System.Windows.Forms.DataGridViewTextBoxColumn clmAPParameterB;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
@@ -1305,5 +1301,10 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.DataGridViewTextBoxColumn ProbCompMu;
         private System.Windows.Forms.DataGridViewTextBoxColumn ProbCompSigma;
         private System.Windows.Forms.DataGridViewTextBoxColumn ProbCompMean;
+        private System.Windows.Forms.DataGridViewTextBoxColumn clmAPCompName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn clmAPFailMode;
+        private System.Windows.Forms.DataGridViewComboBoxColumn clmAPDistributionType;
+        private System.Windows.Forms.DataGridViewTextBoxColumn clmAPParameterA;
+        private System.Windows.Forms.DataGridViewTextBoxColumn clmAPParameterB;
     }
 }

@@ -147,7 +147,7 @@ namespace SandiaNationalLaboratories.Hyram
                 showWarning = true;
             }
 
-            if (!StateContainer.PhysicsReleasePressureIsValid())
+            if (!StateContainer.ReleasePressureIsValid())
             {
                 // if liquid, validate fuel pressure
                 warningText = MessageContainer.LiquidReleasePressureInvalid;

@@ -293,7 +293,7 @@ class CoolProp:
         # U2, rho2 = self._cp.PropsSI(['U', 'D'], 'T', T2, 'P', P2, self.spec)
         # return (rho2*U2 - rho1*U1) / (dm_per_m*rho1*H1)-1
             
-    def a(self, T, P, S = None):
+    def a(self, T = None, P = None, S = None):
         '''
         returns the speed of sound given the temperature and pressure, or temperature and entropy
         
@@ -311,53 +311,72 @@ class CoolProp:
         a: float
             speed of sound (m/s)
         '''
-        try:
-            a = self._cp.PropsSI('A', 'T', T, 'P', P, self.spec)
-            if not np.isfinite(a):
-                P_pterb = 0.1
-                rho = upstream_fluid.therm._cp.PropsSI('D', 'P|'+self.phase,  [P, P + P_pterb], 'T', T, self.spec)
-                a = np.sqrt(P_pterb/np.gradient(rho))[0]
+        def a_wood(T, Q):
+            '''Speed of sound for 2-phase mixture (see Eq. 10 in Chung, Park, Lee: doi:10.1016/j.jsv.2003.07.003)'''
+            [al, rhol], [av, rhov] = self._cp.PropsSI(['A', 'D'], 'P', P, 'Q', [0, 1], self.spec)
+            term = np.sqrt(rhov*av**2/((1-Q)*rhov*av**2+Q*rhol*al**2))
+            a = al*av*term/((1-Q)*av+Q*al*term)
             return a
-        except:
-            csg, rhog = self._cp.PropsSI(['A', 'D'], 'T|gas', T, 'P', P, self.spec)
-            csl, rhol = self._cp.PropsSI(['A', 'D'], 'T|liquid', T, 'P', P, self.spec)
-            rho, quality = self._cp.PropsSI(['D', 'Q'], 'T', T, 'S', S, self.spec)
-             # calculate gas/liquid void fractions
-            void_frac_gas = rho * quality / rhog
-            void_frac_liquid = 1.0 - void_frac_gas
-
-            # calculate mixture sound speed
-            term = np.sqrt(rhog * csg ** 2 / (void_frac_liquid * rhog * csg ** 2 + void_frac_gas * rhol * csl ** 2))
-            cs = csg * csl * term / (void_frac_liquid * csg + void_frac_gas * csl * term)
-            return cs
+        if S == None and P != None and T != None: #CoolProp may error out in this case - system should be defined by S and T or P otherwise can be undefined in 2-phase region    
+            a = self._cp.PropsSI('A', 'T', T, 'P', P, self.spec)
+        elif P == None and S != None and T != None:
+            a, Q = self._cp.PropsSI(['A', 'Q'], 'T', T, 'S', S, self.spec)
+            if Q > 0 and Q < 1:
+                a = a_wood(T, Q)
+        elif T == None and P != None and S != None:
+            a, Q, T = self._cp.PropsSI(['A', 'Q', 'T'], 'P', P, 'S', S, self.spec)
+            if Q > 0 and Q < 1:
+                a = a_wood(T, Q)
+        else:
+            raise warnings.warn('underdefined - need 2 of T, P, S')
+            return None
+        return a
         
-    def h(self, T = None, P = None, rho = None, phase = None):
+    def h(self, **kwargs):
         '''
-        enthalpy (J/kg) of a gas at temperature T (K) and pressure P (Pa)
+        enthalpy (J/kg) of a fluid at temperature T (K) and pressure P (Pa)
         
-        Parameters
+        Parameters 
         ----------
-        T: float
-            tempearture (K)
-        P: float
-            pressure (Pa)
+        those accepted by CoolProp (e.g., T, P, S, D - with the addition of the keyword 'phase')
         
         Returns
         -------
         h: float
             heat capacity (J/kg)
         '''
-        if phase is None:
-            str = '|not_imposed'
+        if 'phase' in kwargs:
+            phase =  kwargs.pop('phase')
         else:
-            str = '|' + phase        
-        if T is not None and P is not None:
-            return self._cp.PropsSI('H', 'T' + str, T, 'P', P, self.spec)
-        elif T is not None and rho is not None:
-            return self._cp.PropsSI('H', 'T', T, 'D', rho, self.spec)
-        elif P is not None and rho is not None:
-            return self._cp.PropsSI('H', 'D', rho, 'P', P, self.spec)
+            phase = ''        
+        try:
+            (k1, v1), (k2, v2)  = kwargs.items()
+            k1 += phase
+            return self._cp.PropsSI('H', k1, v1, k2, v2, self.spec)
+        except:
+            raise warnings.warn('system not properly defined')
+    
+    def PropsSI(self, output, **kwargs):
+        '''wrapper on CoolProps PropsSI
+        
+        Parameters 
+        ----------
+        those accepted by CoolProp.PropsSI (e.g., T, P, S, D - with the addition of the keyword 'phase')
+        
+        Returns
+        -------
+        Outputs from CoolProp listed within output (could be single value or list)
+        '''
+        if 'phase' in kwargs:
+            phase =  kwargs.pop('phase')
         else:
+            phase = ''        
+        try:
+            (k1, v1), (k2, v2)  = kwargs.items()
+            k1 += phase
+            return self._cp.PropsSI(output, k1, v1, k2, v2, self.spec)
+        except:
+            #print(output, kwargs)
             raise warnings.warn('system not properly defined')
             
     def s(self, T = None, P = None, rho = None, phase = None):

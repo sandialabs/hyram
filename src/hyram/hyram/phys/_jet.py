@@ -171,10 +171,10 @@ class DevelopingFlow:
             fluid_out = copy.copy(fluid)
             fluid_out.update(T = T_establish_min, P = fluid_out.P)
             mdot_in = orifice.mdot(fluid)
-            h_in = fluid.therm.h(fluid.T, rho = fluid.rho) + fluid.v**2/2. # assumes mdot_in is pure
-            h_air_in = ambient.therm.h(ambient.T, ambient.P)
-            h_air_out = air_out.therm.h(air_out.T, rho = air_out.rho)
-            h_fluid_out = fluid_out.therm.h(fluid_out.T, rho = fluid_out.rho)
+            h_in = fluid.therm.h(T = fluid.T, D = fluid.rho) + fluid.v**2/2. # assumes mdot_in is pure
+            h_air_in = ambient.therm.h(T = ambient.T, P = ambient.P)
+            h_air_out = air_out.therm.h(T = air_out.T, D = air_out.rho)
+            h_fluid_out = fluid_out.therm.h(T = fluid_out.T, D = fluid_out.rho)
             def errH(Y):
                 h_out = (1-Y)*h_air_out + Y*h_fluid_out
                 rho_out = 1./((1.-Y)/air_out.rho + Y/fluid_out.rho)
@@ -238,32 +238,32 @@ class PlugNode:
         # print(rho_clE)
 # #########################################
         # try:
-            # h_fluid_flow = fluid.therm._cp.PropsSI('H', 'T', self.T, 'P', fluid.P, fluid.therm.spec)
+            # h_fluid_flow = fluid.therm.PropsSI('H', T = self.T, P = fluid.P)
         # except:
-            # h_fluid_flow = fluid.therm._cp.PropsSI('H', 'T', self.T, 'D', fluid.rho, fluid.therm.spec)
+            # h_fluid_flow = fluid.therm.PropsSI('H', T = self.T, D = fluid.rho)
         # if self.Y < 1:
-            # h_amb_flow = ambient.therm._cp.PropsSI('H', 'T', self.T, 'P', fluid.P, ambient.therm.spec)
+            # h_amb_flow = ambient.therm.PropsSI('H', T = self.T, P = fluid.P)
             # h_fluid = h_fluid_flow*self.Y + h_amb_flow*(1-self.Y)
         # else:
             # h_fluid = h_fluid_flow
-        # h_amb = ambient.therm._cp.PropsSI('H', 'T', ambient.T, 'D', ambient.rho, ambient.therm.spec)
+        # h_amb = ambient.therm.PropsSI('H', T = ambient.T, D = ambient.rho)
         # h_clE = (lam**2+1.)/(2.*lam**2)*(h_fluid - h_amb) + h_amb
-        # rho_clE, T_clE = fluid.therm._cp.PropsSI(['D', 'T'], 'H', h_clE*Y_clE, 'P', fluid.P, fluid.therm.spec)
+        # rho_clE, T_clE = fluid.therm.PropsSI(['D', 'T'], H = h_clE*Y_clE, P = fluid.P)
         # print(h_amb*1e-6, h_fluid*1e-6, h_clE*1e-6, T_clE)
         # #print('here', rho_clE, fluid.rho, T_clE, self.T)
 # #######################################################
-        h_amb, cp_ambient = ambient.therm._cp.PropsSI(['H', 'C'], 'T', ambient.T, 'P', ambient.P, ambient.therm.spec)
+        h_amb, cp_ambient = ambient.therm.PropsSI(['H', 'C'], T = ambient.T, P = ambient.P)
         # h_clE = self.Y*h_fluid + (1-self.Y)*h_amb
  # #       h_clE = h_amb + (lam**2+1.)/(2.*lam**2)*(h-h_amb)
         # h_clE_fluid = (h_clE - h_amb*(1-Y_clE))/Y_clE
-        # rho_clE_fluid, T_clE = fluid.therm._cp.PropsSI(['D', 'T'], 'H', h_clE_fluid, 'P', fluid.P, fluid.therm.spec)
+        # rho_clE_fluid, T_clE = fluid.therm.PropsSI(['D', 'T'], H = h_clE_fluid, P = fluid.P)
         # X_clE = Y_clE/fluid.therm.MW/(Y_clE/fluid.therm.MW + (1-Y_clE)/ambient.therm.MW)
         # rho_clE_amb = ambient.rho
-        # #rho_clE_amb = ambient.therm._cp.PropsSI('D', 'T', T_clE, 'P', ambient.P, fluid.therm.spec)
+        # #rho_clE_amb = ambient.therm.PropsSI('D', T = T_clE, P = ambient.P)
         # rho_clE = rho_clE_fluid*X_clE + rho_clE_amb*(1-X_clE)
         # print(fluid.rho, rho_clE)
 
-        cp_gas = fluid.therm._cp.PropsSI('C', 'T', (self.T + ambient.T)/2., 'P', ambient.P, fluid.therm.spec)
+        cp_gas = fluid.therm.PropsSI('C', T = (self.T + ambient.T)/2., P = ambient.P)
         MW_clE = 1.0 / (Y_clE / fluid.therm.MW + (1.0 - Y_clE) / ambient.therm.MW)
         h_amb = ambient.T*cp_ambient
         cp_s3 = self.Y * cp_gas + (1.0 - self.Y) * cp_ambient # this is just cp_gas - using self.Y screws it up
@@ -475,13 +475,12 @@ class Jet:
         # T_min = min(T_cl0, ambient.T, Tcp_min)
         # T_max = max(T_cl0, ambient.T, fluid.T)
         # T_range = np.linspace(T_min, T_max)
-        # h_fluid = fluid.therm._cp.PropsSI('H', 'T', T_range,
-                                           # 'P', ambient.P, fluid.therm.spec)
+        # h_fluid = fluid.therm.PropsSI('H', T = T_range, P = ambient.P)
         # self._h_fluid = interp1d(T_range, h_fluid)
         # self._dh_fluid_dT = interp1d(T_range, np.gradient(h_fluid))
         # plt.figure()
         # plt.plot(T_range, h_fluid)
-        # h_amb = ambient.therm._cp.PropsSI('H', 'T', T_range, 'P', ambient.P, ambient.therm.spec)
+        # h_amb = ambient.therm.PropsSI('H', T = T_range, P = ambient.P)
         # h_ambg = ambient.therm._cp.PropsSI('H', 'T|gas', T_range, 'P', ambient.P, ambient.therm.spec)
         # h_amb[np.isinf(h_amb)] = h_ambg[np.isinf(h_amb)]
         # self._h_amb = interp1d(T_range, h_amb)
@@ -507,8 +506,8 @@ class Jet:
         #####################################################################################################
         # TODO: determine if _Cp_fluid should be at ambient T, or T_cl0
         #self._Cp_fluid = self.fluid.therm._cp.PropsSI('C', 'T', T_cl0, 'P', ambient.P, fluid.therm.spec)
-        self._Cp_fluid = self.fluid.therm._cp.PropsSI('C', 'T', ambient.T, 'P', ambient.P, fluid.therm.spec)
-        self._Cp_air, self._h_amb0 = ambient.therm._cp.PropsSI(['C', 'H'], 'T', ambient.T, 'P', ambient.P, ambient.therm.spec)
+        self._Cp_fluid = self.fluid.therm.PropsSI('C', T = ambient.T, P = ambient.P)
+        self._Cp_air, self._h_amb0 = ambient.therm.PropsSI(['C', 'H'], T = ambient.T, P = ambient.P)
         #print(self._Cp_air, self._Cp_fluid)
 
         

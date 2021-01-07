@@ -264,8 +264,9 @@ class PositionGenerator:
         ax.arrow(0, 0, length/4.0, 0, head_width=0.7, alpha=1.0,
                  head_length=0.7, linewidth=0.3, fc='blue', ec='blue')
         # Plot actual occupant positions
-        heatflux_ln = ax.scatter(self.locs[0,:], self.locs[2,:], s=36, c=qrad, linewidths=0.5,
-                                 cmap=plt.cm.get_cmap('gist_heat'))
+        heatflux_ln = ax.scatter(self.locs[0,:], self.locs[2,:], s=36, c=qrad,
+                                 linewidths=0.5, edgecolors='black',
+                                 cmap=plt.cm.get_cmap('plasma'))
         # Plot formatting, colorbar, and saving
         ax.set_aspect('equal') 
         for spine in ['top', 'bottom', 'left', 'right']:

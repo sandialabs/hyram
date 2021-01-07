@@ -198,7 +198,7 @@ namespace SandiaNationalLaboratories.Hyram
             }
 
             // if liquid, validate fuel pressure
-            if (!StateContainer.PhysicsReleasePressureIsValid())
+            if (!StateContainer.ReleasePressureIsValid())
             {
                 warningText = MessageContainer.LiquidReleasePressureInvalid;
                 showWarning = true;

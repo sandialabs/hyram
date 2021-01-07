@@ -34,7 +34,7 @@
             this.qraResultsButton.Name = "qraResultsButton";
             this.qraResultsButton.Size = new System.Drawing.Size(277, 23);
             this.qraResultsButton.TabIndex = 10;
-            this.qraResultsButton.Text = "Scenario Stats";
+            this.qraResultsButton.Text = "Output";
             this.qraResultsButton.UseVisualStyleBackColor = true;
             this.qraResultsButton.Click += new System.EventHandler(this.qraResultsButton_Click);
             // 

@@ -46,42 +46,42 @@ namespace SandiaNationalLaboratories.Hyram {
             this.componentLeaksTabControl = new System.Windows.Forms.TabControl();
             this.CutSet000d01 = new System.Windows.Forms.TabPage();
             this.CutSetDGV000d01 = new System.Windows.Forms.DataGridView();
-            this.ColRank000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ColCS000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ColProb000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.CutSet000d10 = new System.Windows.Forms.TabPage();
             this.CutSetDGV000d10 = new System.Windows.Forms.DataGridView();
-            this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.CutSet001d00 = new System.Windows.Forms.TabPage();
             this.CutSetDGV001d00 = new System.Windows.Forms.DataGridView();
-            this.dataGridViewTextBoxColumn4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn5 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn6 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.CutSet010d00 = new System.Windows.Forms.TabPage();
             this.CutSetDGV010d00 = new System.Windows.Forms.DataGridView();
-            this.dataGridViewTextBoxColumn7 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn8 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn9 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.CutSet100d00 = new System.Windows.Forms.TabPage();
             this.CutSetDGV100d00 = new System.Windows.Forms.DataGridView();
-            this.dataGridViewTextBoxColumn10 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn11 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn12 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.textBox3 = new System.Windows.Forms.TextBox();
             this.tpPlots = new System.Windows.Forms.TabPage();
             this.tcPositionPlots = new System.Windows.Forms.TabControl();
             this.tpPositionPlot1 = new System.Windows.Forms.TabPage();
-            this.pbPositionPlot000d01 = new PictureBoxWithSave();
+            this.pbPositionPlot000d01 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.tpPositionPlot2 = new System.Windows.Forms.TabPage();
-            this.pbPositionPlot000d10 = new PictureBoxWithSave();
+            this.pbPositionPlot000d10 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.tpPositionPlot3 = new System.Windows.Forms.TabPage();
-            this.pbPositionPlot001d00 = new PictureBoxWithSave();
+            this.pbPositionPlot001d00 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.tpPositionPlot4 = new System.Windows.Forms.TabPage();
-            this.pbPositionPlot010d00 = new PictureBoxWithSave();
+            this.pbPositionPlot010d00 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.tpPositionPlot5 = new System.Windows.Forms.TabPage();
-            this.pbPositionPlot100d00 = new PictureBoxWithSave();
+            this.pbPositionPlot100d00 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.ColRank000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColCS000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColProb000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn5 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn6 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn7 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn8 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn9 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn10 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn11 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn12 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ScenColRanking = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ScenColScenario = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ScenColEndStateType = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -139,7 +139,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             this.tpRiskMetrics.Controls.Add(this.dgRiskMetrics);
             this.tpRiskMetrics.Location = new System.Drawing.Point(4, 26);
-            this.tpRiskMetrics.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tpRiskMetrics.Margin = new System.Windows.Forms.Padding(2);
             this.tpRiskMetrics.Name = "tpRiskMetrics";
             this.tpRiskMetrics.Size = new System.Drawing.Size(859, 589);
             this.tpRiskMetrics.TabIndex = 6;
@@ -253,7 +253,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tableLayoutPanel1.Controls.Add(this.textBox3, 0, 0);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
-            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(2);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 2;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 4.275862F));
@@ -306,31 +306,12 @@ namespace SandiaNationalLaboratories.Hyram {
             this.CutSetDGV000d01.Size = new System.Drawing.Size(845, 527);
             this.CutSetDGV000d01.TabIndex = 0;
             // 
-            // ColRank000d01
-            // 
-            this.ColRank000d01.HeaderText = "Ranking";
-            this.ColRank000d01.Name = "ColRank000d01";
-            this.ColRank000d01.ReadOnly = true;
-            this.ColRank000d01.Visible = false;
-            // 
-            // ColCS000d01
-            // 
-            this.ColCS000d01.HeaderText = "Cut Set";
-            this.ColCS000d01.Name = "ColCS000d01";
-            this.ColCS000d01.ReadOnly = true;
-            // 
-            // ColProb000d01
-            // 
-            this.ColProb000d01.HeaderText = "Frequency";
-            this.ColProb000d01.Name = "ColProb000d01";
-            this.ColProb000d01.ReadOnly = true;
-            // 
             // CutSet000d10
             // 
             this.CutSet000d10.Controls.Add(this.CutSetDGV000d10);
             this.CutSet000d10.Location = new System.Drawing.Point(4, 24);
             this.CutSet000d10.Name = "CutSet000d10";
-            this.CutSet000d10.Size = new System.Drawing.Size(130, 18);
+            this.CutSet000d10.Size = new System.Drawing.Size(845, 527);
             this.CutSet000d10.TabIndex = 1;
             this.CutSet000d10.Text = "0.1% Leak";
             this.CutSet000d10.UseVisualStyleBackColor = true;
@@ -351,34 +332,15 @@ namespace SandiaNationalLaboratories.Hyram {
             this.CutSetDGV000d10.Location = new System.Drawing.Point(0, 0);
             this.CutSetDGV000d10.Name = "CutSetDGV000d10";
             this.CutSetDGV000d10.ReadOnly = true;
-            this.CutSetDGV000d10.Size = new System.Drawing.Size(130, 18);
+            this.CutSetDGV000d10.Size = new System.Drawing.Size(845, 527);
             this.CutSetDGV000d10.TabIndex = 1;
-            // 
-            // dataGridViewTextBoxColumn1
-            // 
-            this.dataGridViewTextBoxColumn1.HeaderText = "Ranking";
-            this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
-            this.dataGridViewTextBoxColumn1.ReadOnly = true;
-            this.dataGridViewTextBoxColumn1.Visible = false;
-            // 
-            // dataGridViewTextBoxColumn2
-            // 
-            this.dataGridViewTextBoxColumn2.HeaderText = "Cut Set";
-            this.dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
-            this.dataGridViewTextBoxColumn2.ReadOnly = true;
-            // 
-            // dataGridViewTextBoxColumn3
-            // 
-            this.dataGridViewTextBoxColumn3.HeaderText = "Frequency";
-            this.dataGridViewTextBoxColumn3.Name = "dataGridViewTextBoxColumn3";
-            this.dataGridViewTextBoxColumn3.ReadOnly = true;
             // 
             // CutSet001d00
             // 
             this.CutSet001d00.Controls.Add(this.CutSetDGV001d00);
             this.CutSet001d00.Location = new System.Drawing.Point(4, 24);
             this.CutSet001d00.Name = "CutSet001d00";
-            this.CutSet001d00.Size = new System.Drawing.Size(130, 18);
+            this.CutSet001d00.Size = new System.Drawing.Size(845, 527);
             this.CutSet001d00.TabIndex = 2;
             this.CutSet001d00.Text = "1% Leak";
             this.CutSet001d00.UseVisualStyleBackColor = true;
@@ -399,34 +361,15 @@ namespace SandiaNationalLaboratories.Hyram {
             this.CutSetDGV001d00.Location = new System.Drawing.Point(0, 0);
             this.CutSetDGV001d00.Name = "CutSetDGV001d00";
             this.CutSetDGV001d00.ReadOnly = true;
-            this.CutSetDGV001d00.Size = new System.Drawing.Size(130, 18);
+            this.CutSetDGV001d00.Size = new System.Drawing.Size(845, 527);
             this.CutSetDGV001d00.TabIndex = 2;
-            // 
-            // dataGridViewTextBoxColumn4
-            // 
-            this.dataGridViewTextBoxColumn4.HeaderText = "Ranking";
-            this.dataGridViewTextBoxColumn4.Name = "dataGridViewTextBoxColumn4";
-            this.dataGridViewTextBoxColumn4.ReadOnly = true;
-            this.dataGridViewTextBoxColumn4.Visible = false;
-            // 
-            // dataGridViewTextBoxColumn5
-            // 
-            this.dataGridViewTextBoxColumn5.HeaderText = "Cut Set";
-            this.dataGridViewTextBoxColumn5.Name = "dataGridViewTextBoxColumn5";
-            this.dataGridViewTextBoxColumn5.ReadOnly = true;
-            // 
-            // dataGridViewTextBoxColumn6
-            // 
-            this.dataGridViewTextBoxColumn6.HeaderText = "Frequency";
-            this.dataGridViewTextBoxColumn6.Name = "dataGridViewTextBoxColumn6";
-            this.dataGridViewTextBoxColumn6.ReadOnly = true;
             // 
             // CutSet010d00
             // 
             this.CutSet010d00.Controls.Add(this.CutSetDGV010d00);
             this.CutSet010d00.Location = new System.Drawing.Point(4, 24);
             this.CutSet010d00.Name = "CutSet010d00";
-            this.CutSet010d00.Size = new System.Drawing.Size(130, 18);
+            this.CutSet010d00.Size = new System.Drawing.Size(845, 527);
             this.CutSet010d00.TabIndex = 3;
             this.CutSet010d00.Text = "10% Leak";
             this.CutSet010d00.UseVisualStyleBackColor = true;
@@ -447,34 +390,15 @@ namespace SandiaNationalLaboratories.Hyram {
             this.CutSetDGV010d00.Location = new System.Drawing.Point(0, 0);
             this.CutSetDGV010d00.Name = "CutSetDGV010d00";
             this.CutSetDGV010d00.ReadOnly = true;
-            this.CutSetDGV010d00.Size = new System.Drawing.Size(130, 18);
+            this.CutSetDGV010d00.Size = new System.Drawing.Size(845, 527);
             this.CutSetDGV010d00.TabIndex = 2;
-            // 
-            // dataGridViewTextBoxColumn7
-            // 
-            this.dataGridViewTextBoxColumn7.HeaderText = "Ranking";
-            this.dataGridViewTextBoxColumn7.Name = "dataGridViewTextBoxColumn7";
-            this.dataGridViewTextBoxColumn7.ReadOnly = true;
-            this.dataGridViewTextBoxColumn7.Visible = false;
-            // 
-            // dataGridViewTextBoxColumn8
-            // 
-            this.dataGridViewTextBoxColumn8.HeaderText = "Cut Set";
-            this.dataGridViewTextBoxColumn8.Name = "dataGridViewTextBoxColumn8";
-            this.dataGridViewTextBoxColumn8.ReadOnly = true;
-            // 
-            // dataGridViewTextBoxColumn9
-            // 
-            this.dataGridViewTextBoxColumn9.HeaderText = "Frequency";
-            this.dataGridViewTextBoxColumn9.Name = "dataGridViewTextBoxColumn9";
-            this.dataGridViewTextBoxColumn9.ReadOnly = true;
             // 
             // CutSet100d00
             // 
             this.CutSet100d00.Controls.Add(this.CutSetDGV100d00);
             this.CutSet100d00.Location = new System.Drawing.Point(4, 24);
             this.CutSet100d00.Name = "CutSet100d00";
-            this.CutSet100d00.Size = new System.Drawing.Size(130, 18);
+            this.CutSet100d00.Size = new System.Drawing.Size(845, 527);
             this.CutSet100d00.TabIndex = 4;
             this.CutSet100d00.Text = "100% Leak";
             this.CutSet100d00.UseVisualStyleBackColor = true;
@@ -495,45 +419,26 @@ namespace SandiaNationalLaboratories.Hyram {
             this.CutSetDGV100d00.Location = new System.Drawing.Point(0, 0);
             this.CutSetDGV100d00.Name = "CutSetDGV100d00";
             this.CutSetDGV100d00.ReadOnly = true;
-            this.CutSetDGV100d00.Size = new System.Drawing.Size(130, 18);
+            this.CutSetDGV100d00.Size = new System.Drawing.Size(845, 527);
             this.CutSetDGV100d00.TabIndex = 2;
-            // 
-            // dataGridViewTextBoxColumn10
-            // 
-            this.dataGridViewTextBoxColumn10.HeaderText = "Ranking";
-            this.dataGridViewTextBoxColumn10.Name = "dataGridViewTextBoxColumn10";
-            this.dataGridViewTextBoxColumn10.ReadOnly = true;
-            this.dataGridViewTextBoxColumn10.Visible = false;
-            // 
-            // dataGridViewTextBoxColumn11
-            // 
-            this.dataGridViewTextBoxColumn11.HeaderText = "Cut Set";
-            this.dataGridViewTextBoxColumn11.Name = "dataGridViewTextBoxColumn11";
-            this.dataGridViewTextBoxColumn11.ReadOnly = true;
-            // 
-            // dataGridViewTextBoxColumn12
-            // 
-            this.dataGridViewTextBoxColumn12.HeaderText = "Frequency";
-            this.dataGridViewTextBoxColumn12.Name = "dataGridViewTextBoxColumn12";
-            this.dataGridViewTextBoxColumn12.ReadOnly = true;
             // 
             // textBox3
             // 
             this.textBox3.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.textBox3.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox3.Location = new System.Drawing.Point(2, 2);
-            this.textBox3.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox3.Margin = new System.Windows.Forms.Padding(2);
             this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(140, 17);
+            this.textBox3.Size = new System.Drawing.Size(783, 17);
             this.textBox3.TabIndex = 2;
-            this.textBox3.Text = "Component leak frequencies for each release size";
+            this.textBox3.Text = "Annual frequencies for specific components or failures for each leak size.";
             // 
             // tpPlots
             // 
             this.tpPlots.Controls.Add(this.tcPositionPlots);
             this.tpPlots.Location = new System.Drawing.Point(4, 26);
             this.tpPlots.Name = "tpPlots";
-            this.tpPlots.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tpPlots.Padding = new System.Windows.Forms.Padding(3);
             this.tpPlots.Size = new System.Drawing.Size(859, 589);
             this.tpPlots.TabIndex = 5;
             this.tpPlots.Text = "Plots";
@@ -558,7 +463,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tpPositionPlot1.Controls.Add(this.pbPositionPlot000d01);
             this.tpPositionPlot1.Location = new System.Drawing.Point(4, 24);
             this.tpPositionPlot1.Name = "tpPositionPlot1";
-            this.tpPositionPlot1.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tpPositionPlot1.Padding = new System.Windows.Forms.Padding(3);
             this.tpPositionPlot1.Size = new System.Drawing.Size(845, 555);
             this.tpPositionPlot1.TabIndex = 0;
             this.tpPositionPlot1.Text = "Position Plot for 0.01% Leak";
@@ -568,7 +473,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             this.pbPositionPlot000d01.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pbPositionPlot000d01.Location = new System.Drawing.Point(3, 3);
-            this.pbPositionPlot000d01.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.pbPositionPlot000d01.Margin = new System.Windows.Forms.Padding(4);
             this.pbPositionPlot000d01.Name = "pbPositionPlot000d01";
             this.pbPositionPlot000d01.Size = new System.Drawing.Size(839, 549);
             this.pbPositionPlot000d01.TabIndex = 0;
@@ -579,8 +484,8 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tpPositionPlot2.Controls.Add(this.pbPositionPlot000d10);
             this.tpPositionPlot2.Location = new System.Drawing.Point(4, 24);
             this.tpPositionPlot2.Name = "tpPositionPlot2";
-            this.tpPositionPlot2.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
-            this.tpPositionPlot2.Size = new System.Drawing.Size(130, 22);
+            this.tpPositionPlot2.Padding = new System.Windows.Forms.Padding(3);
+            this.tpPositionPlot2.Size = new System.Drawing.Size(178, 36);
             this.tpPositionPlot2.TabIndex = 1;
             this.tpPositionPlot2.Text = "Position Plot for 0.1% Leak";
             this.tpPositionPlot2.UseVisualStyleBackColor = true;
@@ -589,9 +494,9 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             this.pbPositionPlot000d10.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pbPositionPlot000d10.Location = new System.Drawing.Point(3, 3);
-            this.pbPositionPlot000d10.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.pbPositionPlot000d10.Margin = new System.Windows.Forms.Padding(4);
             this.pbPositionPlot000d10.Name = "pbPositionPlot000d10";
-            this.pbPositionPlot000d10.Size = new System.Drawing.Size(124, 16);
+            this.pbPositionPlot000d10.Size = new System.Drawing.Size(172, 30);
             this.pbPositionPlot000d10.TabIndex = 1;
             this.pbPositionPlot000d10.TabStop = false;
             // 
@@ -600,7 +505,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tpPositionPlot3.Controls.Add(this.pbPositionPlot001d00);
             this.tpPositionPlot3.Location = new System.Drawing.Point(4, 24);
             this.tpPositionPlot3.Name = "tpPositionPlot3";
-            this.tpPositionPlot3.Size = new System.Drawing.Size(130, 22);
+            this.tpPositionPlot3.Size = new System.Drawing.Size(178, 36);
             this.tpPositionPlot3.TabIndex = 2;
             this.tpPositionPlot3.Text = "Position Plot for 1% Leak";
             this.tpPositionPlot3.UseVisualStyleBackColor = true;
@@ -609,9 +514,9 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             this.pbPositionPlot001d00.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pbPositionPlot001d00.Location = new System.Drawing.Point(0, 0);
-            this.pbPositionPlot001d00.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.pbPositionPlot001d00.Margin = new System.Windows.Forms.Padding(4);
             this.pbPositionPlot001d00.Name = "pbPositionPlot001d00";
-            this.pbPositionPlot001d00.Size = new System.Drawing.Size(130, 22);
+            this.pbPositionPlot001d00.Size = new System.Drawing.Size(178, 36);
             this.pbPositionPlot001d00.TabIndex = 1;
             this.pbPositionPlot001d00.TabStop = false;
             // 
@@ -620,7 +525,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tpPositionPlot4.Controls.Add(this.pbPositionPlot010d00);
             this.tpPositionPlot4.Location = new System.Drawing.Point(4, 24);
             this.tpPositionPlot4.Name = "tpPositionPlot4";
-            this.tpPositionPlot4.Size = new System.Drawing.Size(130, 22);
+            this.tpPositionPlot4.Size = new System.Drawing.Size(178, 36);
             this.tpPositionPlot4.TabIndex = 3;
             this.tpPositionPlot4.Text = "Position Plot for 10% Leak";
             this.tpPositionPlot4.UseVisualStyleBackColor = true;
@@ -629,9 +534,9 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             this.pbPositionPlot010d00.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pbPositionPlot010d00.Location = new System.Drawing.Point(0, 0);
-            this.pbPositionPlot010d00.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.pbPositionPlot010d00.Margin = new System.Windows.Forms.Padding(4);
             this.pbPositionPlot010d00.Name = "pbPositionPlot010d00";
-            this.pbPositionPlot010d00.Size = new System.Drawing.Size(130, 22);
+            this.pbPositionPlot010d00.Size = new System.Drawing.Size(178, 36);
             this.pbPositionPlot010d00.TabIndex = 1;
             this.pbPositionPlot010d00.TabStop = false;
             // 
@@ -640,7 +545,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tpPositionPlot5.Controls.Add(this.pbPositionPlot100d00);
             this.tpPositionPlot5.Location = new System.Drawing.Point(4, 24);
             this.tpPositionPlot5.Name = "tpPositionPlot5";
-            this.tpPositionPlot5.Size = new System.Drawing.Size(130, 22);
+            this.tpPositionPlot5.Size = new System.Drawing.Size(178, 36);
             this.tpPositionPlot5.TabIndex = 4;
             this.tpPositionPlot5.Text = "Position Plot for 100% Leak";
             this.tpPositionPlot5.UseVisualStyleBackColor = true;
@@ -649,11 +554,106 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             this.pbPositionPlot100d00.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pbPositionPlot100d00.Location = new System.Drawing.Point(0, 0);
-            this.pbPositionPlot100d00.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.pbPositionPlot100d00.Margin = new System.Windows.Forms.Padding(4);
             this.pbPositionPlot100d00.Name = "pbPositionPlot100d00";
-            this.pbPositionPlot100d00.Size = new System.Drawing.Size(130, 22);
+            this.pbPositionPlot100d00.Size = new System.Drawing.Size(178, 36);
             this.pbPositionPlot100d00.TabIndex = 1;
             this.pbPositionPlot100d00.TabStop = false;
+            // 
+            // ColRank000d01
+            // 
+            this.ColRank000d01.HeaderText = "Ranking";
+            this.ColRank000d01.Name = "ColRank000d01";
+            this.ColRank000d01.ReadOnly = true;
+            this.ColRank000d01.Visible = false;
+            // 
+            // ColCS000d01
+            // 
+            this.ColCS000d01.HeaderText = "Cut Set";
+            this.ColCS000d01.Name = "ColCS000d01";
+            this.ColCS000d01.ReadOnly = true;
+            // 
+            // ColProb000d01
+            // 
+            this.ColProb000d01.HeaderText = "Annual Frequency";
+            this.ColProb000d01.Name = "ColProb000d01";
+            this.ColProb000d01.ReadOnly = true;
+            // 
+            // dataGridViewTextBoxColumn1
+            // 
+            this.dataGridViewTextBoxColumn1.HeaderText = "Ranking";
+            this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
+            this.dataGridViewTextBoxColumn1.ReadOnly = true;
+            this.dataGridViewTextBoxColumn1.Visible = false;
+            // 
+            // dataGridViewTextBoxColumn2
+            // 
+            this.dataGridViewTextBoxColumn2.HeaderText = "Cut Set";
+            this.dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
+            this.dataGridViewTextBoxColumn2.ReadOnly = true;
+            // 
+            // dataGridViewTextBoxColumn3
+            // 
+            this.dataGridViewTextBoxColumn3.HeaderText = "Annual Frequency";
+            this.dataGridViewTextBoxColumn3.Name = "dataGridViewTextBoxColumn3";
+            this.dataGridViewTextBoxColumn3.ReadOnly = true;
+            // 
+            // dataGridViewTextBoxColumn4
+            // 
+            this.dataGridViewTextBoxColumn4.HeaderText = "Ranking";
+            this.dataGridViewTextBoxColumn4.Name = "dataGridViewTextBoxColumn4";
+            this.dataGridViewTextBoxColumn4.ReadOnly = true;
+            this.dataGridViewTextBoxColumn4.Visible = false;
+            // 
+            // dataGridViewTextBoxColumn5
+            // 
+            this.dataGridViewTextBoxColumn5.HeaderText = "Cut Set";
+            this.dataGridViewTextBoxColumn5.Name = "dataGridViewTextBoxColumn5";
+            this.dataGridViewTextBoxColumn5.ReadOnly = true;
+            // 
+            // dataGridViewTextBoxColumn6
+            // 
+            this.dataGridViewTextBoxColumn6.HeaderText = "Annual Frequency";
+            this.dataGridViewTextBoxColumn6.Name = "dataGridViewTextBoxColumn6";
+            this.dataGridViewTextBoxColumn6.ReadOnly = true;
+            // 
+            // dataGridViewTextBoxColumn7
+            // 
+            this.dataGridViewTextBoxColumn7.HeaderText = "Ranking";
+            this.dataGridViewTextBoxColumn7.Name = "dataGridViewTextBoxColumn7";
+            this.dataGridViewTextBoxColumn7.ReadOnly = true;
+            this.dataGridViewTextBoxColumn7.Visible = false;
+            // 
+            // dataGridViewTextBoxColumn8
+            // 
+            this.dataGridViewTextBoxColumn8.HeaderText = "Cut Set";
+            this.dataGridViewTextBoxColumn8.Name = "dataGridViewTextBoxColumn8";
+            this.dataGridViewTextBoxColumn8.ReadOnly = true;
+            // 
+            // dataGridViewTextBoxColumn9
+            // 
+            this.dataGridViewTextBoxColumn9.HeaderText = "Annual Frequency";
+            this.dataGridViewTextBoxColumn9.Name = "dataGridViewTextBoxColumn9";
+            this.dataGridViewTextBoxColumn9.ReadOnly = true;
+            // 
+            // dataGridViewTextBoxColumn10
+            // 
+            this.dataGridViewTextBoxColumn10.HeaderText = "Ranking";
+            this.dataGridViewTextBoxColumn10.Name = "dataGridViewTextBoxColumn10";
+            this.dataGridViewTextBoxColumn10.ReadOnly = true;
+            this.dataGridViewTextBoxColumn10.Visible = false;
+            // 
+            // dataGridViewTextBoxColumn11
+            // 
+            this.dataGridViewTextBoxColumn11.HeaderText = "Cut Set";
+            this.dataGridViewTextBoxColumn11.Name = "dataGridViewTextBoxColumn11";
+            this.dataGridViewTextBoxColumn11.ReadOnly = true;
+            // 
+            // dataGridViewTextBoxColumn12
+            // 
+            this.dataGridViewTextBoxColumn12.HeaderText = "Annual Frequency";
+            this.dataGridViewTextBoxColumn12.Name = "dataGridViewTextBoxColumn12";
+            this.dataGridViewTextBoxColumn12.ReadOnly = true;
             // 
             // ScenColRanking
             // 
@@ -683,10 +683,10 @@ namespace SandiaNationalLaboratories.Hyram {
             dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             this.ScenColEndStateType.DefaultCellStyle = dataGridViewCellStyle6;
             this.ScenColEndStateType.FillWeight = 59.01513F;
-            this.ScenColEndStateType.HeaderText = "End StateContainer Type";
+            this.ScenColEndStateType.HeaderText = "Scenario Outcome";
             this.ScenColEndStateType.Name = "ScenColEndStateType";
             this.ScenColEndStateType.ReadOnly = true;
-            this.ScenColEndStateType.Width = 114;
+            this.ScenColEndStateType.Width = 134;
             // 
             // ScenColAvgEvents
             // 
@@ -694,10 +694,10 @@ namespace SandiaNationalLaboratories.Hyram {
             dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
             this.ScenColAvgEvents.DefaultCellStyle = dataGridViewCellStyle7;
             this.ScenColAvgEvents.FillWeight = 59.01513F;
-            this.ScenColAvgEvents.HeaderText = "Avg. Events/Year";
+            this.ScenColAvgEvents.HeaderText = "Average Events / Year";
             this.ScenColAvgEvents.Name = "ScenColAvgEvents";
             this.ScenColAvgEvents.ReadOnly = true;
-            this.ScenColAvgEvents.Width = 111;
+            this.ScenColAvgEvents.Width = 114;
             // 
             // ScenColBranchLineProb
             // 
@@ -716,10 +716,10 @@ namespace SandiaNationalLaboratories.Hyram {
             dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
             this.ScenColPLL.DefaultCellStyle = dataGridViewCellStyle9;
             this.ScenColPLL.FillWeight = 59.01513F;
-            this.ScenColPLL.HeaderText = "PLL Contribution";
+            this.ScenColPLL.HeaderText = "Risk (PLL) Contribution";
             this.ScenColPLL.Name = "ScenColPLL";
             this.ScenColPLL.ReadOnly = true;
-            this.ScenColPLL.Width = 113;
+            this.ScenColPLL.Width = 144;
             // 
             // QraResultsPanel
             // 

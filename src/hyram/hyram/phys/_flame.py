@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division
 import os
 import sys
 import warnings
+import copy
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -254,11 +255,13 @@ class Flame:
 
         # Compute the flame Froude number
         Frf = (gas1.v * fs ** 1.5) / (((rhoeff / rhoair) ** 0.25) * np.sqrt(((Tad - Tamb) / Tamb) * const.g * Deff))
+        self.Frf = Frf
 
         # Compute visible flame length
         Lstar = ((13.5 * Frf ** 0.4) / (1 + 0.07 * Frf ** 2) ** 0.2) * (Frf < 5) + 23 * (Frf >= 5)
 
         dstar = Deff * (rhoeff / rhoair) ** 0.5
+        self.dstar = dstar
 
         self.Lvis = Lstar * dstar / fs  # visible flame length [m]
         self.Wf = 0.17 * self.Lvis
@@ -290,13 +293,13 @@ class Flame:
         w /= np.sum(w)
 
         try:
-            S = np.linspace(self.S[0], self.S[-1], N)
+            S = np.linspace(self.S[0], min([self.S[-1], self.Lvis]), N)
             X = interpolate.interp1d(self.S, self.x)(S)
             Y = interpolate.interp1d(self.S, self.y)(S)
         except:
             warnings.warn('running flame model with default parameters')
             self.solve()
-            S = np.linspace(self.S[0], self.S[-1], N)
+            S = np.linspace(self.S[0], min([self.S[-1], self.Lvis]), N)
             X = interpolate.interp1d(self.S, self.x)(S)
             Y = interpolate.interp1d(self.S, self.y)(S)
 
@@ -645,7 +648,7 @@ class Flame:
                 fxz = self.Qrad_single(x_y, flameCen[1] * np.ones_like(x_y), z_y, flameCen, RH)
                 fzy = self.Qrad_single(flameCen[0] * np.ones_like(z_x), y_x, z_x, flameCen, RH)
 
-            ClrMap = plt.cm.get_cmap('RdYlGn_r')
+            ClrMap = copy.copy(plt.cm.get_cmap('RdYlGn_r'))
             ClrMap.set_under('white')
 
             # xy axis:

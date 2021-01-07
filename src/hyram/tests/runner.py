@@ -8,7 +8,6 @@ For test discovery, all tests will be located in this "tests" directory and will
 
 import unittest
 # Be careful about shadowing GUI tests pkg; added 'hyram.' for this
-from tests import test_validation_blowdown, test_validation_jetplume
 from tests import test_c_api_etk, test_c_api_phys, test_api_flux, test_c_api_jet_plume, test_c_api_qra
 from tests import test_api_flux
 
@@ -24,14 +23,8 @@ def suite():
     suite = unittest.TestSuite()
 
     # TESTS USING REFERENCE/PAPER DATA
-    # TODO: determine and add better numerical fit tests
-    # suite.addTest(unittest.makeSuite(test_validation_blowdown.BlowdownEkoto2012))
-    # suite.addTest(unittest.makeSuite(test_validation_blowdown.BlowdownSchefer2007))
-    # suite.addTest(unittest.makeSuite(test_validation_blowdown.BlowdownProust2011))
-    # suite.addTest(unittest.makeSuite(test_validation_blowdown.BlowdownSchefer2006))
-    # suite.addTest(unittest.makeSuite(test_validation_jetplume.JetPlumeHoufSchefer2008))
-    # suite.addTest(unittest.makeSuite(test_validation_jetplume.JetPlumeRugglesEkoto2012))
-    # suite.addTest(unittest.makeSuite(test_validation_jetplume.JetPlumeHan2013))
+    # TODO: add validation tests for blowdown
+    # TODO: add validation tests for jet plume
     # TODO: add validation tests for jet flame
     # TODO: add validation tests for overpressure/accumulation
 

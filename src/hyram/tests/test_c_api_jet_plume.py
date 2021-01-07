@@ -6,9 +6,8 @@ import unittest
 from hyram.phys import c_api, Jet, Orifice, Fluid
 from hyram.utilities import misc_utils, exceptions, constants
 
-""" NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
-
-TODO: determine appropriate sig figs, relative error or absolute error guidelines for tests.
+"""
+NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
 """
 
 
@@ -57,15 +56,6 @@ class H2JetPlumeTestCase(unittest.TestCase):
 
         self.assertTrue(wrapped['status'])
         data_dict = wrapped['data']
-        # TODO: validate slices of 2D data
-        print(data_dict['xs'].shape)
-        print(data_dict['ys'].shape)
-        print(data_dict['vs'].shape)
-        print(data_dict['mole_fracs'].shape)
-        print(data_dict['mass_fracs'].shape)
-        print(data_dict['temps'].shape)
-
-        # Ensure plot file exists
         filepath = data_dict["plot"]
         self.assertTrue(filepath is not None)
         self.assertTrue(os.path.isfile(filepath))
@@ -97,7 +87,7 @@ class H2JetPlumeTestCase(unittest.TestCase):
                                           orif_diam, rel_angle, dis_coeff, nozzle_model,
                                           contour, xmin, xmax, ymin, ymax,
                                           plot_title, self.output_dir, self.verbose, self.debug)
-        data_dict = wrapped['data']
+
         self.assertFalse(wrapped['status'])
         self.assertTrue(len(wrapped['message']))
 
@@ -128,7 +118,7 @@ class H2JetPlumeTestCase(unittest.TestCase):
                                           orif_diam, rel_angle, dis_coeff, nozzle_model,
                                           contour, xmin, xmax, ymin, ymax,
                                           plot_title, self.output_dir, self.verbose, self.debug)
-        data_dict = wrapped['data']
+
         self.assertFalse(wrapped['status'])
         self.assertTrue(len(wrapped['message']))
 

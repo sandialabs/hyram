@@ -6,9 +6,8 @@ import unittest
 from hyram.phys import c_api
 from hyram.utilities import misc_utils, constants
 
-""" NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
-
-TODO: determine appropriate sig figs, relative error or absolute error guidelines for tests.
+"""
+NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
 """
 
 
@@ -309,7 +308,6 @@ class TestRadHeatAnalysis(unittest.TestCase):
         flux_filepath = data["flux_plot_filepath"]
         temp_filepath = data["temp_plot_filepath"]
 
-        print(flux)
         self.assertTrue(flux_filepath is not None)
         self.assertTrue(os.path.isfile(flux_filepath))
         self.assertTrue(os.path.isfile(temp_filepath))
@@ -352,7 +350,6 @@ class TestRadHeatAnalysis(unittest.TestCase):
         flux_filepath = data["flux_plot_filepath"]
         temp_filepath = data["temp_plot_filepath"]
 
-        print(flux)
         self.assertTrue(flux_filepath is not None)
         self.assertTrue(os.path.isfile(flux_filepath))
         self.assertTrue(os.path.isfile(temp_filepath))
@@ -395,7 +392,6 @@ class TestRadHeatAnalysis(unittest.TestCase):
         flux_filepath = data["flux_plot_filepath"]
         temp_filepath = data["temp_plot_filepath"]
 
-        print(flux)
         self.assertTrue(flux_filepath is not None)
         self.assertTrue(os.path.isfile(flux_filepath))
         self.assertTrue(os.path.isfile(temp_filepath))

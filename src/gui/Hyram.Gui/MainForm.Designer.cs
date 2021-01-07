@@ -46,8 +46,6 @@
             this.plumeFormButton = new System.Windows.Forms.Button();
             this.mainOutputPanel = new System.Windows.Forms.Panel();
             this.mainOutputNavPanel = new System.Windows.Forms.Panel();
-            this.mainOutputGroupBox = new System.Windows.Forms.GroupBox();
-            this.mainOutputLabel = new System.Windows.Forms.Label();
             this.mainFormPanel = new System.Windows.Forms.Panel();
             this.mainMenuStrip = new System.Windows.Forms.MenuStrip();
             this.fileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -74,7 +72,6 @@
             this.physicsModeTab.SuspendLayout();
             this.physicsNavPanel.SuspendLayout();
             this.mainOutputPanel.SuspendLayout();
-            this.mainOutputGroupBox.SuspendLayout();
             this.mainMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -340,7 +337,6 @@
             // 
             this.mainOutputPanel.AutoScroll = true;
             this.mainOutputPanel.Controls.Add(this.mainOutputNavPanel);
-            this.mainOutputPanel.Controls.Add(this.mainOutputGroupBox);
             this.mainOutputPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mainOutputPanel.Location = new System.Drawing.Point(0, 0);
             this.mainOutputPanel.Margin = new System.Windows.Forms.Padding(3, 3, 0, 3);
@@ -351,33 +347,10 @@
             // mainOutputNavPanel
             // 
             this.mainOutputNavPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mainOutputNavPanel.Location = new System.Drawing.Point(0, 59);
+            this.mainOutputNavPanel.Location = new System.Drawing.Point(0, 0);
             this.mainOutputNavPanel.Name = "mainOutputNavPanel";
-            this.mainOutputNavPanel.Size = new System.Drawing.Size(183, 379);
+            this.mainOutputNavPanel.Size = new System.Drawing.Size(183, 438);
             this.mainOutputNavPanel.TabIndex = 1;
-            // 
-            // mainOutputGroupBox
-            // 
-            this.mainOutputGroupBox.Controls.Add(this.mainOutputLabel);
-            this.mainOutputGroupBox.Dock = System.Windows.Forms.DockStyle.Top;
-            this.mainOutputGroupBox.Location = new System.Drawing.Point(0, 0);
-            this.mainOutputGroupBox.Name = "mainOutputGroupBox";
-            this.mainOutputGroupBox.Padding = new System.Windows.Forms.Padding(0);
-            this.mainOutputGroupBox.Size = new System.Drawing.Size(183, 59);
-            this.mainOutputGroupBox.TabIndex = 0;
-            this.mainOutputGroupBox.TabStop = false;
-            // 
-            // mainOutputLabel
-            // 
-            this.mainOutputLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mainOutputLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.mainOutputLabel.Location = new System.Drawing.Point(0, 13);
-            this.mainOutputLabel.Margin = new System.Windows.Forms.Padding(0);
-            this.mainOutputLabel.Name = "mainOutputLabel";
-            this.mainOutputLabel.Size = new System.Drawing.Size(183, 46);
-            this.mainOutputLabel.TabIndex = 0;
-            this.mainOutputLabel.Text = "Output";
-            this.mainOutputLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // mainFormPanel
             // 
@@ -510,7 +483,6 @@
             this.physicsNavPanel.ResumeLayout(false);
             this.physicsNavPanel.PerformLayout();
             this.mainOutputPanel.ResumeLayout(false);
-            this.mainOutputGroupBox.ResumeLayout(false);
             this.mainMenuStrip.ResumeLayout(false);
             this.mainMenuStrip.PerformLayout();
             this.ResumeLayout(false);
@@ -523,9 +495,7 @@
 		private System.Windows.Forms.SplitContainer mainContainer;
 		private System.Windows.Forms.SplitContainer navContainer;
 		private System.Windows.Forms.Panel mainOutputPanel;
-        private System.Windows.Forms.GroupBox mainOutputGroupBox;
         private System.Windows.Forms.Panel mainFormPanel;
-		private System.Windows.Forms.Label mainOutputLabel;
 		private System.Windows.Forms.Panel mainOutputNavPanel;
 		private System.Windows.Forms.TabControl modeTabs;
 		private System.Windows.Forms.TabPage qraModeTab;

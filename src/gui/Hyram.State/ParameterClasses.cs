@@ -76,6 +76,64 @@ namespace SandiaNationalLaboratories.Hyram
                     return YuceilOtugen;
             }
         }
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as NozzleModel);
+        }
+
+        public bool Equals(NozzleModel f)
+        {
+            // If parameter is null, return false.
+            if (f is null)
+            {
+                return false;
+            }
+
+            // Optimization for a common success case.
+            if (ReferenceEquals(this, f))
+            {
+                return true;
+            }
+
+            // If run-time types are not exactly the same, return false.
+            if (GetType() != f.GetType())
+            {
+                return false;
+            }
+
+            // Return true if the fields match.
+            // Note that the base class is not invoked because it is
+            // System.Object, which defines Equals as reference equality.
+            return (_value == f._value);
+        }
+
+        public override int GetHashCode()
+        {
+            return _value;
+        }
+
+        public static bool operator ==(NozzleModel lhs, NozzleModel rhs)
+        {
+            // Check for null on left side.
+            if (lhs is null)
+            {
+                if (rhs is null)
+                {
+                    // null == null = true.
+                    return true;
+                }
+
+                // Only the left side is null.
+                return false;
+            }
+            // Equals handles case of null on right side.
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(NozzleModel lhs, NozzleModel rhs)
+        {
+            return !(lhs == rhs);
+        }
     }
 
     /// <summary>
@@ -115,6 +173,61 @@ namespace SandiaNationalLaboratories.Hyram
         {
             return _crit_ratio;
         }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as FuelType);
+        }
+
+        public bool Equals(FuelType f)
+        {
+            if (f is null)
+            {
+                return false;
+            }
+
+            // Optimization for a common success case.
+            if (ReferenceEquals(this, f))
+            {
+                return true;
+            }
+
+            // If run-time types are not exactly the same, return false.
+            if (GetType() != f.GetType())
+            {
+                return false;
+            }
+
+            // Return true if the fields match.
+            // Note that the base class is not invoked because it is
+            // System.Object, which defines Equals as reference equality.
+            return (_value == f._value);
+        }
+
+        public override int GetHashCode()
+        {
+            return _value;
+        }
+
+        public static bool operator ==(FuelType lhs, FuelType rhs)
+        {
+            if (lhs is null)
+            {
+                if (rhs is null)
+                {
+                    // null == null = true.
+                    return true;
+                }
+                return false;
+            }
+            // Equals handles case of null on right side.
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(FuelType lhs, FuelType rhs)
+        {
+            return !(lhs == rhs);
+        }
     }
 
     /// <summary>
@@ -147,6 +260,60 @@ namespace SandiaNationalLaboratories.Hyram
         public string GetKey()
         {
             return _key;
+        }
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as ThermalProbitModel);
+        }
+
+        public bool Equals(ThermalProbitModel f)
+        {
+            if (f is null)
+            {
+                return false;
+            }
+
+            // Optimization for a common success case.
+            if (ReferenceEquals(this, f))
+            {
+                return true;
+            }
+
+            // If run-time types are not exactly the same, return false.
+            if (GetType() != f.GetType())
+            {
+                return false;
+            }
+
+            // Return true if the fields match.
+            // Note that the base class is not invoked because it is
+            // System.Object, which defines Equals as reference equality.
+            return (_value == f._value);
+        }
+
+        public override int GetHashCode()
+        {
+            return _value;
+        }
+
+        public static bool operator ==(ThermalProbitModel lhs, ThermalProbitModel rhs)
+        {
+            if (lhs is null)
+            {
+                if (rhs is null)
+                {
+                    // null == null = true.
+                    return true;
+                }
+                return false;
+            }
+            // Equals handles case of null on right side.
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(ThermalProbitModel lhs, ThermalProbitModel rhs)
+        {
+            return !(lhs == rhs);
         }
     }
 
@@ -184,6 +351,60 @@ namespace SandiaNationalLaboratories.Hyram
         public string GetKey()
         {
             return _key;
+        }
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as OverpressureProbitModel);
+        }
+
+        public bool Equals(OverpressureProbitModel f)
+        {
+            if (f is null)
+            {
+                return false;
+            }
+
+            // Optimization for a common success case.
+            if (ReferenceEquals(this, f))
+            {
+                return true;
+            }
+
+            // If run-time types are not exactly the same, return false.
+            if (GetType() != f.GetType())
+            {
+                return false;
+            }
+
+            // Return true if the fields match.
+            // Note that the base class is not invoked because it is
+            // System.Object, which defines Equals as reference equality.
+            return (_value == f._value);
+        }
+
+        public override int GetHashCode()
+        {
+            return _value;
+        }
+
+        public static bool operator ==(OverpressureProbitModel lhs, OverpressureProbitModel rhs)
+        {
+            if (lhs is null)
+            {
+                if (rhs is null)
+                {
+                    // null == null = true.
+                    return true;
+                }
+                return false;
+            }
+            // Equals handles case of null on right side.
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(OverpressureProbitModel lhs, OverpressureProbitModel rhs)
+        {
+            return !(lhs == rhs);
         }
     }
 
@@ -232,6 +453,60 @@ namespace SandiaNationalLaboratories.Hyram
             FluidPhase selectedPhase = StateContainer.GetValue<FluidPhase>("ReleaseFluidPhase");
             return (selectedPhase.GetIndex() == 0);
         }
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as FluidPhase);
+        }
+
+        public bool Equals(FluidPhase f)
+        {
+            if (f is null)
+            {
+                return false;
+            }
+
+            // Optimization for a common success case.
+            if (ReferenceEquals(this, f))
+            {
+                return true;
+            }
+
+            // If run-time types are not exactly the same, return false.
+            if (GetType() != f.GetType())
+            {
+                return false;
+            }
+
+            // Return true if the fields match.
+            // Note that the base class is not invoked because it is
+            // System.Object, which defines Equals as reference equality.
+            return (_index == f._index);
+        }
+
+        public override int GetHashCode()
+        {
+            return _index;
+        }
+
+        public static bool operator ==(FluidPhase lhs, FluidPhase rhs)
+        {
+            if (lhs is null)
+            {
+                if (rhs is null)
+                {
+                    // null == null = true.
+                    return true;
+                }
+                return false;
+            }
+            // Equals handles case of null on right side.
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(FluidPhase lhs, FluidPhase rhs)
+        {
+            return !(lhs == rhs);
+        }
     }
 
 
@@ -263,6 +538,60 @@ namespace SandiaNationalLaboratories.Hyram
         {
             return _key;
         }
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as DeflagrationModel);
+        }
+
+        public bool Equals(DeflagrationModel f)
+        {
+            if (f is null)
+            {
+                return false;
+            }
+
+            // Optimization for a common success case.
+            if (ReferenceEquals(this, f))
+            {
+                return true;
+            }
+
+            // If run-time types are not exactly the same, return false.
+            if (GetType() != f.GetType())
+            {
+                return false;
+            }
+
+            // Return true if the fields match.
+            // Note that the base class is not invoked because it is
+            // System.Object, which defines Equals as reference equality.
+            return (_value == f._value);
+        }
+
+        public override int GetHashCode()
+        {
+            return _value;
+        }
+
+        public static bool operator ==(DeflagrationModel lhs, DeflagrationModel rhs)
+        {
+            if (lhs is null)
+            {
+                if (rhs is null)
+                {
+                    // null == null = true.
+                    return true;
+                }
+                return false;
+            }
+            // Equals handles case of null on right side.
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(DeflagrationModel lhs, DeflagrationModel rhs)
+        {
+            return !(lhs == rhs);
+        }
     }
 
     /// <summary>
@@ -271,6 +600,9 @@ namespace SandiaNationalLaboratories.Hyram
     [Serializable]
     public class FailureMode
     {
+        private double _paramA;
+        private double _paramB;
+
         public FailureMode(string name, string mode, FailureDistributionType dist, double paramA, double paramB)
         {
             Name = name;
@@ -282,8 +614,26 @@ namespace SandiaNationalLaboratories.Hyram
         public string Name { get; set; }
         public string Mode { get; set; }
         public FailureDistributionType Dist { get; set; }
-        public double ParamA { get; set; }
-        public double ParamB { get; set; }
+
+        public double ParamA
+        {
+            get => _paramA;
+            set
+            {
+                if (Dist == FailureDistributionType.Beta && value == 0.0f) return;
+                _paramA = value;
+            }
+        }
+
+        public double ParamB
+        {
+            get => _paramB;
+            set
+            {
+                if (Dist == FailureDistributionType.Beta && value == 0.0f) return;
+                _paramB = value;
+            }
+        }
     }
 
 

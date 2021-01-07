@@ -226,6 +226,38 @@ def compute_thermo_param(species='H2', temp=None, pres=None, density=None, debug
     return result
 
 
+def compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustion, debug=False):
+    """
+    Calculate equivalent mass of TNT.
+
+    Parameters
+    ----------
+    vapor_mass : float
+    Mass of flammable vapor released (kg)
+
+    percent_yield : float
+        Explosive energy yield (0 to 100)
+
+    heat_of_combustion : float
+        Net heat of combustion (kJ/kg)
+
+    debug : bool
+        Whether debug mode is active
+
+    Returns
+    ----------
+    result : float
+        Equivalent mass of TNT (kg)
+
+    """
+    log.info("TNT mass calculation: vapor mass {:,.4f} kg, yield {:,.1f}%, heat of combustion {:,.5f} kj/kg".format(
+            vapor_mass, percent_yield, heat_of_combustion))
+    result = vapor_mass * (percent_yield / 100.) * heat_of_combustion / 4500.
+
+    log.info("TNT mass calculation complete")
+    return result
+
+
 def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam,
                       rel_angle=0., dis_coeff=1., nozzle_model='yuce',
                       create_plot=True, contour=0.04, contour_min=0., contour_max=0.1,

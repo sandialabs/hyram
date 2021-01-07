@@ -19,6 +19,7 @@
 using System;
 using System.Diagnostics;
 using System.Windows.Forms;
+using SandiaNationalLaboratories.Hyram.Resources;
 
 
 namespace SandiaNationalLaboratories.Hyram
@@ -75,6 +76,7 @@ namespace SandiaNationalLaboratories.Hyram
             GenerateResults();
 
             dgRanking.ScrollBars = ScrollBars.Both;
+            //dgRanking.Columns[3].HeaderText = "";
 
             ScenColEndStateType.SortMode = DataGridViewColumnSortMode.Automatic;
 
@@ -83,7 +85,7 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void GenerateResults()
         {
-            ContentPanel.SetNarrative(this, Narratives.QraScenarioStatsDescrip);
+            ContentPanel.SetNarrative(this, Narratives.QraOutputDescrip);
             var result = StateContainer.GetValue<QraResult>("Result");
 
             // Set risk metrics

@@ -63,6 +63,15 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
+        /// <summary>
+        /// Convenience func when tab is entered (via parent EtkMainForm)
+        /// </summary>
+        public void EnteringForm()
+        {
+            fuelPhaseSelector.SelectedItem = StateContainer.GetValue<FluidPhase>("ReleaseFluidPhase");
+            CheckFormValid();
+        }
+
         public MassFlowRateForm()
         {
             InitializeComponent();
@@ -74,6 +83,9 @@ namespace SandiaNationalLaboratories.Hyram
             set => isSteadySelector.Checked = value;
         }
 
+        /// <summary>
+        /// Verify inputs and enable submission button.
+        /// </summary>
         public void CheckFormValid()
         {
             bool formReady;

@@ -365,8 +365,9 @@
     <Content Include="Resources\QraConsequenceModelsDescrip.rtf" />
     <Content Include="Resources\QraProbabilitiesDescrip.rtf" />
     <Content Include="Resources\QraScenariosDescrip.rtf" />
-    <Content Include="Resources\QraScenarioStatsDescrip.rtf" />
+    <Content Include="Resources\QraOutputDescrip.rtf" />
     <Content Include="Resources\QraSystemDescriptionDescrip.rtf" />
+    <None Include="Resources\PhysRadHeatDescrip.rtf" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">

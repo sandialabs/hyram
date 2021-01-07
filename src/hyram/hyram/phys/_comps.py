@@ -133,23 +133,17 @@ class Orifice:
         -------
         Fluid object containing T, P, rho, v at the throat (orifice)
         '''
-        h0 = upstream_fluid.therm.h(T = upstream_fluid.T, rho = upstream_fluid.rho, phase = upstream_fluid.phase)
+        h0 = upstream_fluid.therm.h(T = upstream_fluid.T, D = upstream_fluid.rho)
         h0 += upstream_fluid.v**2/2
-        if upstream_fluid.phase is None:
-            str = '|not_imposed'
-        else:
-            str = '|' + upstream_fluid.phase
         if upstream_fluid.v > 0:
-            s0 = upstream_fluid.therm._cp.PropsSI('S', 'H' + str, h0, 'D', np.round(upstream_fluid.rho, 12), upstream_fluid.species)
+            s0 = upstream_fluid.therm.PropsSI('S', H = h0, D = np.round(upstream_fluid.rho, 12))
         else: #LH2 simulations were giving weird results when calculating entropy from enthalpy
-            s0 = upstream_fluid.therm._cp.PropsSI('S', 'D', upstream_fluid.rho, 'T', upstream_fluid.T, upstream_fluid.species)
+            s0 = upstream_fluid.therm.PropsSI('S', D = upstream_fluid.rho, T = upstream_fluid.T)
         
         fluid = copy.copy(upstream_fluid)
-        P_pterb = 0.1
-        rho, T, ht, a = upstream_fluid.therm._cp.PropsSI(['D', 'T', 'H', 'A'], 'P', [downstream_P, downstream_P + P_pterb], 'S', s0, upstream_fluid.species).T
-        a2 = np.sqrt(P_pterb/np.gradient(rho))[0]
-        rho, T, ht, a = rho[0], T[0], ht[0], a2
-
+        a = upstream_fluid.therm.a(P = downstream_P, S = s0)
+        ht, rho = upstream_fluid.therm.PropsSI(['H', 'D'], P = downstream_P, S = s0)
+        
         if h0 >= ht:
             if a >= np.sqrt(2 * (h0 - ht)):  # unchoked
                 P = downstream_P
@@ -163,32 +157,31 @@ class Orifice:
             return fluid
 
         def err_P_sonic(P):
-            rho, h = upstream_fluid.therm._cp.PropsSI(['D', 'H'], 'P', [P, P + P_pterb], 'S', s0, upstream_fluid.species).T
-            h = h[0]
-            a = np.sqrt(P_pterb/np.gradient(rho))[0]
-            v = np.sqrt(2 * (h0 + upstream_fluid.v ** 2 / 2. - h))
+            a = upstream_fluid.therm.a(P = P, S = s0)
+            h = upstream_fluid.therm.h(P = P, S = s0)
+            if 2 * (h0 + upstream_fluid.v ** 2 / 2. - h) > 0:
+                v = np.sqrt(2 * (h0 + upstream_fluid.v ** 2 / 2. - h))
+            else:
+                v = 0
             return v - a
 
         try:
-            P = optimize.newton(err_P_sonic, (upstream_fluid.P+downstream_P)/2, maxiter = 1000)
-            if P <= downstream_P:
+            #P = optimize.newton(err_P_sonic, (upstream_fluid.P+downstream_P)/2, maxiter = 1000)
+            P = optimize.brentq(err_P_sonic, upstream_fluid.P, downstream_P)
+            if P <= downstream_P: # This shouldn't happen since there was a check above...
                 P = downstream_P
-                rho, T, ht = upstream_fluid.therm._cp.PropsSI(['D', 'T', 'H'], 'P', P, 'S', s0, upstream_fluid.species)
-                # print(rho, P, h0, ht, h0-ht)
+                rho, T, ht = upstream_fluid.therm.PropsSI(['D', 'T', 'H'], P = P, S = s0)
                 fluid.update(rho=rho, P=P, v=np.sqrt(2 * (h0 - ht)))
                 fluid._choked = False
             else:
-                rho = upstream_fluid.therm._cp.PropsSI('D', 'P',  [P, P + P_pterb], 'S', s0, upstream_fluid.species)
-                a = np.sqrt(P_pterb/np.gradient(rho))[0]
-                rho = rho[0]
+                a = upstream_fluid.therm.a(P = P, S = s0)
+                rho = upstream_fluid.therm.PropsSI('D', P = P, S = s0)
                 fluid.update(rho=rho, P=P, v=a)
                 fluid._choked = True
         except:
-            # print('exception', upstream_fluid.P)
-            P = downstream_P
-            rho, T, ht = upstream_fluid.therm._cp.PropsSI(['D', 'T', 'H'], 'P', P, 'S', s0, upstream_fluid.species)
-            # print(rho, P, h0, ht, h0-ht)
-            fluid.update(rho=rho, P=P, v=np.sqrt(2 * (h0 - ht)))
+            #print('exception', upstream_fluid.P)
+            rho, T, ht = upstream_fluid.therm.PropsSI(['D', 'T', 'H'], P = downstream_P, S = s0)
+            fluid.update(rho=rho, P=downstream_P, v=np.sqrt(2 * (h0 - ht)))
             fluid._choked = False
         return fluid
 
@@ -302,11 +295,11 @@ class Source(object):
         m, U = ind_vars
         m, U = float(m), float(U)
         rho = m / Vol
-        T = therm._cp.PropsSI('T', 'U', U, 'D', rho, therm.spec)
+        T = therm.PropsSI('T', U = U, D = np.round(rho, 10))
         fluid = copy.copy(self.fluid)
         fluid.update(T=T, rho=rho)
         throat = orifice.flow(fluid, ambient_P)
-        h = therm.h(fluid.T, rho = fluid.rho)
+        h = therm.h(T = fluid.T, D = fluid.rho)
         # h = therm.h(throat.T, throat.P)
         dm_dt = -orifice.mdot(throat)
         du_dt = 1. / m * (heat_flux + (h - U) * dm_dt)
@@ -338,7 +331,7 @@ class Source(object):
         volume = self.V
         A_orifice = orifice.A * orifice.Cd
         T0, rho0, P = self.fluid.T, self.fluid.rho, self.fluid.P
-        u0 = therm._cp.PropsSI('U', 'T|'+self.fluid.phase, T0, 'D', rho0, therm.spec)
+        u0 = therm.PropsSI('U', T = T0, D = rho0)
         r = integrate.ode(self._blowdown_gov_eqns).set_integrator('dopri5')
         r.set_initial_value([m0, u0]).set_f_params(volume, orifice, heat_flux, ambient_P)
         throat = orifice.flow(self.fluid, ambient_P)
@@ -351,7 +344,7 @@ class Source(object):
                 if times[-1] == t:
                     return
             rho = y[0] / volume
-            T = therm._cp.PropsSI('T', 'U', y[1], 'D', rho, therm.spec)
+            T = therm.PropsSI('T', U = y[1], D = np.round(rho, 10))
             fluid = copy.copy(self.fluid)
             fluid.update(T=T, rho=rho)
             throat = orifice.flow(fluid, ambient_P)

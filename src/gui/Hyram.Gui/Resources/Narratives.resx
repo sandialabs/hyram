@@ -136,13 +136,16 @@
   <data name="QraScenariosDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>QraScenariosDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
-  <data name="QraScenarioStatsDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>QraScenarioStatsDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
   <data name="QraSystemDescriptionDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>QraSystemDescriptionDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
   <data name="CopyrightFormatted" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>CopyrightFormatted.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="QraOutputDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>QraOutputDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="PhysRadHeatDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>PhysRadHeatDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
 </root>

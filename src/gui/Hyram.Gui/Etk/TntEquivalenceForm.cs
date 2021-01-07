@@ -23,14 +23,14 @@ namespace SandiaNationalLaboratories.Hyram
 {
     public partial class TntEquivalenceForm : UserControl
     {
-        private MassUnit _mActiveMassOfFlammableVaporUnit = MassUnit.Kilogram;
-
-        private SpecificEnergyUnit _mActiveSpecificEnergyUnit = SpecificEnergyUnit.JouleKg;
-        private MassUnit _mActiveTntMassUnit = MassUnit.Kilogram;
-        private double _mHeatOfCombustion = double.NaN;
-        private double _mMassOfFlammableVapor = double.NaN;
-        private double _mTntMassEquivalent = double.NaN;
-        private double _mYieldPercentage = double.NaN; // Needs to be converted to fraction before call
+        private MassUnit _vaporMassDisplayUnit = MassUnit.Kilogram;
+        private SpecificEnergyUnit _specificEnergyDisplayUnit = SpecificEnergyUnit.JouleKg;
+        private MassUnit _tntMassDisplayUnit = MassUnit.Kilogram;
+        // values stored with standard units at all times
+        private double _heatOfCombustion = double.NaN;  // kJ/kg
+        private double _vaporMass = double.NaN;  // kg
+        private double _tntMass = double.NaN;  // kg
+        private double _mYieldPercentage = double.NaN; // [0 to 100] Needs to be converted to fraction before call
 
         public TntEquivalenceForm()
         {
@@ -53,9 +53,9 @@ namespace SandiaNationalLaboratories.Hyram
             if (!DesignMode)
             {
                 netHeatUnitSelector.Converter = StockConverters.GetConverterByName("SpecificEnergy");
-                //_mActiveSpecificEnergyUnit = GetDefaultActiveSpecificEnergyUnit();
-                _mActiveSpecificEnergyUnit = SpecificEnergyUnit.JouleKg;
-                netHeatUnitSelector.SelectedItem = _mActiveSpecificEnergyUnit;
+                //_specificEnergyDisplayUnit = GetDefaultActiveSpecificEnergyUnit();
+                _specificEnergyDisplayUnit = SpecificEnergyUnit.JouleKg;
+                netHeatUnitSelector.SelectedItem = _specificEnergyDisplayUnit;
 
                 vaporMassUnitSelector.Converter = StockConverters.GetConverterByName("Mass");
                 vaporMassUnitSelector.SelectedItem = GetDefaultActiveMassUnit();
@@ -65,15 +65,25 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
+        public void CheckFormValid()
+        {
+            bool formReady;
+            formReady = ParseUtility.IsParseableNumber(yieldInput.Text) &&
+                        ParseUtility.IsParseableNumber(vaporMassInput.Text) &&
+                        ParseUtility.IsParseableNumber(netHeatInput.Text);
+
+            calculateButton.Enabled = formReady;
+        }
+
+
         private void equivalentMassUnitSelector_OnSelectedIndexChanged(object sender, EventArgs e)
         {
             if (equivalentMassUnitSelector.SelectedItem != null)
             {
-                var newUnit = UnitParser.ParseMassUnit((string) equivalentMassUnitSelector.SelectedItem);
-                _mTntMassEquivalent = equivalentMassUnitSelector.ConvertValue(_mActiveTntMassUnit, newUnit, _mTntMassEquivalent);
-                _mActiveTntMassUnit = newUnit;
-                if (!double.IsNaN(_mTntMassEquivalent))
-                    equivalentMassOutput.Text = ParseUtility.DoubleToString(_mTntMassEquivalent, "E4");
+                _tntMassDisplayUnit = UnitParser.ParseMassUnit((string) equivalentMassUnitSelector.SelectedItem);
+                double displayValue = equivalentMassUnitSelector.ConvertValue(MassUnit.Kilogram, _tntMassDisplayUnit, _tntMass);
+                if (!double.IsNaN(displayValue))
+                    equivalentMassOutput.Text = ParseUtility.DoubleToString(displayValue, "E4");
             }
         }
 
@@ -81,13 +91,10 @@ namespace SandiaNationalLaboratories.Hyram
         {
             if (vaporMassUnitSelector.SelectedItem != null)
             {
-                var newUnit = UnitParser.ParseMassUnit((string) vaporMassUnitSelector.SelectedItem);
-
-                _mMassOfFlammableVapor = vaporMassUnitSelector.ConvertValue(_mActiveMassOfFlammableVaporUnit,
-                    newUnit, _mMassOfFlammableVapor);
-                _mActiveMassOfFlammableVaporUnit = newUnit;
-                if (!double.IsNaN(_mMassOfFlammableVapor))
-                    vaporMassInput.Text = ParseUtility.DoubleToString(_mMassOfFlammableVapor);
+                _vaporMassDisplayUnit = UnitParser.ParseMassUnit((string) vaporMassUnitSelector.SelectedItem);
+                double displayValue = vaporMassUnitSelector.ConvertValue(MassUnit.Kilogram, _vaporMassDisplayUnit, _vaporMass);
+                if (!double.IsNaN(displayValue))
+                    vaporMassInput.Text = ParseUtility.DoubleToString(displayValue);
             }
         }
 
@@ -96,59 +103,32 @@ namespace SandiaNationalLaboratories.Hyram
         {
             if (netHeatUnitSelector.SelectedItem != null)
             {
-                var newUnit =
+                _specificEnergyDisplayUnit =
                     UnitParser.ParseSpecificEnergyUnit((string) netHeatUnitSelector.SelectedItem);
 
-                _mHeatOfCombustion =
-                    netHeatUnitSelector.ConvertValue(_mActiveSpecificEnergyUnit, newUnit, _mHeatOfCombustion);
-                _mActiveSpecificEnergyUnit = newUnit;
-                if (!double.IsNaN(_mHeatOfCombustion))
-                    netHeatInput.Text = ParseUtility.DoubleToString(_mHeatOfCombustion);
-
-                //SetDefaultActiveSpecificEnergyUnit(_mActiveSpecificEnergyUnit);
+                double displayValue = netHeatUnitSelector.ConvertValue(SpecificEnergyUnit.KjKg,
+                        _specificEnergyDisplayUnit, _heatOfCombustion);
+                if (!double.IsNaN(displayValue)) netHeatInput.Text = ParseUtility.DoubleToString(displayValue);
             }
         }
-
 
         private void vaporMassInput_TextChanged(object sender, EventArgs e)
         {
-            _mMassOfFlammableVapor = double.NaN;
-            ParseUtility.TryParseDouble(vaporMassInput.Text, out _mMassOfFlammableVapor);
-            TryCalculate();
+            _vaporMass = double.NaN;
+            double newValue = double.NaN;
+            ParseUtility.TryParseDouble(vaporMassInput.Text, out newValue);
+            _vaporMass = vaporMassUnitSelector.ConvertValue(_vaporMassDisplayUnit, MassUnit.Kilogram, newValue);
+            CheckFormValid();
         }
-
-
-        private void TryCalculate()
-        {
-            var fail = double.IsNaN(_mMassOfFlammableVapor) || double.IsNaN(_mYieldPercentage) ||
-                       double.IsNaN(_mHeatOfCombustion);
-
-            if (!fail)
-            {
-                var massOfFlammableVaporCu = vaporMassUnitSelector.ConvertValue(_mActiveMassOfFlammableVaporUnit,
-                    MassUnit.Kilogram, _mMassOfFlammableVapor);
-                var heatOfCombustionCu = netHeatUnitSelector.ConvertValue(_mActiveSpecificEnergyUnit,
-                    SpecificEnergyUnit.KjKg, _mHeatOfCombustion);
-
-                _mTntMassEquivalent = massOfFlammableVaporCu * (_mYieldPercentage / 100) * heatOfCombustionCu / 4500;
-
-                if (!double.IsNaN(_mTntMassEquivalent))
-                    equivalentMassOutput.Text = ParseUtility.DoubleToString(_mTntMassEquivalent, "E4");
-                else
-                    equivalentMassOutput.Text = "NaN";
-            }
-            else
-            {
-                equivalentMassOutput.Text = "NaN";
-            }
-        }
-
 
         private void temperatureInput_TextChanged(object sender, EventArgs e)
         {
-            _mHeatOfCombustion = double.NaN;
-            ParseUtility.TryParseDouble(netHeatInput.Text, out _mHeatOfCombustion);
-            TryCalculate();
+            _heatOfCombustion = double.NaN;
+            double newValue = double.NaN;
+            ParseUtility.TryParseDouble(netHeatInput.Text, out newValue);
+            _heatOfCombustion = netHeatUnitSelector.ConvertValue(
+                _specificEnergyDisplayUnit, SpecificEnergyUnit.KjKg, newValue);
+            CheckFormValid();
         }
 
 
@@ -156,7 +136,36 @@ namespace SandiaNationalLaboratories.Hyram
         {
             _mYieldPercentage = double.NaN;
             ParseUtility.TryParseDouble(yieldInput.Text, out _mYieldPercentage);
-            TryCalculate();
+            CheckFormValid();
+        }
+
+        private void calculateButton_Click(object sender, EventArgs e)
+        {
+            var fail = double.IsNaN(_vaporMass) || double.IsNaN(_mYieldPercentage) ||
+                       double.IsNaN(_heatOfCombustion);
+
+            if (!fail)
+            {
+                var physApi = new PhysicsInterface();
+                bool status = physApi.ComputeTntEquivalence(_vaporMass, _mYieldPercentage, _heatOfCombustion, out string statusMsg, out var mass);
+
+                if (!status || mass == null)
+                {
+                    equivalentMassOutput.Text = "Error";
+                    MessageBox.Show(statusMsg);
+                }
+                else
+                {
+                    _tntMass = (double)mass;
+                    var displayMass = equivalentMassUnitSelector.ConvertValue(
+                        MassUnit.Kilogram, _tntMassDisplayUnit, _tntMass);
+                    equivalentMassOutput.Text = displayMass.ToString();
+                }
+            }
+            else
+            {
+                equivalentMassOutput.Text = "NaN";
+            }
         }
     }
 }

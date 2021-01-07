@@ -266,7 +266,7 @@ namespace SandiaNationalLaboratories.Hyram
                 messageText =
                     "Default data for leaks, failures, and ignition were generated for high pressure gaseous hydrogen systems and may not be appropriate for the selected phase";
             }
-            if (!StateContainer.QRAReleasePressureIsValid())
+            if (!StateContainer.ReleasePressureIsValid())
             {
                 // if liquid, validate fuel pressure
                 messageText = MessageContainer.LiquidReleasePressureInvalid;
