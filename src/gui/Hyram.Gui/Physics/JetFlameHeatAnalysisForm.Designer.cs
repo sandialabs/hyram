@@ -34,8 +34,6 @@ namespace SandiaNationalLaboratories.Hyram {
             this.inputWarning = new System.Windows.Forms.Label();
             this.fuelPhaseSelector = new System.Windows.Forms.ComboBox();
             this.phaseLabel = new System.Windows.Forms.Label();
-            this.radiativeSourceSelector = new System.Windows.Forms.ComboBox();
-            this.label2 = new System.Windows.Forms.Label();
             this.notionalNozzleSelector = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.spinnerPictureBox = new System.Windows.Forms.PictureBox();
@@ -104,8 +102,6 @@ namespace SandiaNationalLaboratories.Hyram {
             this.inputTab.Controls.Add(this.inputWarning);
             this.inputTab.Controls.Add(this.fuelPhaseSelector);
             this.inputTab.Controls.Add(this.phaseLabel);
-            this.inputTab.Controls.Add(this.radiativeSourceSelector);
-            this.inputTab.Controls.Add(this.label2);
             this.inputTab.Controls.Add(this.notionalNozzleSelector);
             this.inputTab.Controls.Add(this.label1);
             this.inputTab.Controls.Add(this.spinnerPictureBox);
@@ -151,7 +147,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             this.fuelPhaseSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.fuelPhaseSelector.FormattingEnabled = true;
-            this.fuelPhaseSelector.Location = new System.Drawing.Point(175, 61);
+            this.fuelPhaseSelector.Location = new System.Drawing.Point(175, 34);
             this.fuelPhaseSelector.Name = "fuelPhaseSelector";
             this.fuelPhaseSelector.Size = new System.Drawing.Size(275, 21);
             this.fuelPhaseSelector.TabIndex = 58;
@@ -161,30 +157,11 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             this.phaseLabel.AutoSize = true;
             this.phaseLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.phaseLabel.Location = new System.Drawing.Point(13, 61);
+            this.phaseLabel.Location = new System.Drawing.Point(13, 34);
             this.phaseLabel.Name = "phaseLabel";
             this.phaseLabel.Size = new System.Drawing.Size(71, 15);
             this.phaseLabel.TabIndex = 57;
             this.phaseLabel.Text = "Fluid phase";
-            // 
-            // radiativeSourceSelector
-            // 
-            this.radiativeSourceSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.radiativeSourceSelector.FormattingEnabled = true;
-            this.radiativeSourceSelector.Location = new System.Drawing.Point(175, 34);
-            this.radiativeSourceSelector.Name = "radiativeSourceSelector";
-            this.radiativeSourceSelector.Size = new System.Drawing.Size(275, 21);
-            this.radiativeSourceSelector.TabIndex = 24;
-            this.radiativeSourceSelector.SelectionChangeCommitted += new System.EventHandler(this.radiativeSourceSelector_SelectionChangeCommitted);
-            // 
-            // label2
-            // 
-            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(13, 34);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(156, 18);
-            this.label2.TabIndex = 23;
-            this.label2.Text = "Radiative source model";
             // 
             // notionalNozzleSelector
             // 
@@ -359,9 +336,9 @@ namespace SandiaNationalLaboratories.Hyram {
             | System.Windows.Forms.AnchorStyles.Left)));
             this.dgInput.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgInput.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgInput.Location = new System.Drawing.Point(6, 87);
+            this.dgInput.Location = new System.Drawing.Point(6, 61);
             this.dgInput.Name = "dgInput";
-            this.dgInput.Size = new System.Drawing.Size(444, 209);
+            this.dgInput.Size = new System.Drawing.Size(444, 235);
             this.dgInput.TabIndex = 0;
             this.dgInput.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgInput_CellValueChanged);
             // 
@@ -601,8 +578,6 @@ namespace SandiaNationalLaboratories.Hyram {
         private PictureBox spinnerPictureBox;
         private ComboBox notionalNozzleSelector;
         private Label label1;
-        private ComboBox radiativeSourceSelector;
-        private Label label2;
         private SplitContainer splitContainer1;
         private Label outputWarning;
         private ComboBox fuelPhaseSelector;

@@ -1,20 +1,36 @@
-﻿// Copyright 2016 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
-// Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
-// 
-// This file is part of HyRAM (Hydrogen Risk Assessment Models).
-// 
-// HyRAM is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// HyRAM is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with HyRAM.  If not, see <https://www.gnu.org/licenses/>.
+﻿/*
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+*/
 
 using System;
 
@@ -85,7 +101,6 @@ namespace SandiaNationalLaboratories.Hyram
         private static readonly UnitsOfMeasurement _mUnits = new UnitsOfMeasurement();
         private static readonly double _paConversionFactor = MpaConversionFactor / 1000000;
         private static readonly double _kpaConversionFactor = _paConversionFactor * 1000;
-        private static readonly double _psiGConversionFactor = PsiConversionFactor;
         private static readonly double _jpCmConversionFactor = _paConversionFactor; // joules/m**3
         private static readonly double _botuConversionUnit = KwhConversionUnit;
         private static readonly double _inchConversionFactor = FootConversionFactor / 12D;
@@ -361,10 +376,10 @@ namespace SandiaNationalLaboratories.Hyram
             _mUnits.Populate(StockConverterName.Density.ToString(),
                 new[]
                 {
-                    DensityUnit.KilogramCubicMeter.ToString(), DensityUnit.GramCubicMeter.ToString(),
-                    DensityUnit.GramCubicCentimeter.ToString(),
-                    DensityUnit.MilligramLiter.ToString(), DensityUnit.OunceCubicFoot.ToString(),
-                    DensityUnit.OunceGallonUk.ToString(), DensityUnit.OunceGallonUs.ToString()
+                    DensityUnit.KilogramPerCubicMeter.ToString(), DensityUnit.GramPerCubicMeter.ToString(),
+                    DensityUnit.GramPerCubicCentimeter.ToString(),
+                    DensityUnit.MilligramPerLiter.ToString(), DensityUnit.OuncePerCubicFoot.ToString(),
+                    DensityUnit.OuncePerGallonUK.ToString(), DensityUnit.OuncePerGallonUS.ToString()
                 },
                 new[] {1D, .001, 1000, .001, 1.001153956601D, 6.236023291419D, 7.489151675466}
             );
@@ -376,12 +391,12 @@ namespace SandiaNationalLaboratories.Hyram
                 new[]
                 {
                     PressureUnit.MPa.ToString(), PressureUnit.kPa.ToString(), PressureUnit.Pa.ToString(),
-                    PressureUnit.Psig.ToString(), PressureUnit.Psi.ToString(),
+                    PressureUnit.Psi.ToString(),
                     PressureUnit.Atm.ToString(), PressureUnit.Bar.ToString(), PressureUnit.JoulePerCubicMeter.ToString()
                 },
                 new[]
                 {
-                    MpaConversionFactor, _kpaConversionFactor, _paConversionFactor, _psiGConversionFactor,
+                    MpaConversionFactor, _kpaConversionFactor, _paConversionFactor,
                     PsiConversionFactor, AtmConversionFactor, BarConversionFactor, _jpCmConversionFactor
                 }
             );
@@ -513,17 +528,17 @@ namespace SandiaNationalLaboratories.Hyram
             var conversionProvider = new DualConversionProvider();
             conversionProvider.ConversionObject = new ConversionData();
             conversionProvider.ConversionObject.ConversionFactor = 1D; // Base unit
-            converters.Add(SpecificEnergyUnit.JouleKg.ToString(), conversionProvider);
+            converters.Add(SpecificEnergyUnit.JoulePerKilogram.ToString(), conversionProvider);
 
             conversionProvider = new DualConversionProvider();
             conversionProvider.ConversionObject = new ConversionData();
             conversionProvider.ConversionObject.ConversionFactor = 1000D;
-            converters.Add(SpecificEnergyUnit.JouleG.ToString(), conversionProvider);
+            converters.Add(SpecificEnergyUnit.JoulePerGram.ToString(), conversionProvider);
 
             conversionProvider = new DualConversionProvider();
             conversionProvider.ConversionObject = new ConversionData();
             conversionProvider.ConversionObject.ConversionFactor = 1000000D;
-            converters.Add(SpecificEnergyUnit.KjKg.ToString(), conversionProvider);
+            converters.Add(SpecificEnergyUnit.KiloJoulePerKilogram.ToString(), conversionProvider);
         }
 
         private static void InitAngleConverters()

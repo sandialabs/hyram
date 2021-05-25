@@ -16,9 +16,9 @@ Anyone who wants to contribute to the development of the open-source HyRAM proje
 
 &nbsp;
 ## Documentation
-The [HyRAM 3.0 Technical Reference Manual](https://hyram.sandia.gov/) contains descriptions of the models and calculations used within HyRAM. It also contains references to the original works that these models and calculations are based on.
+The [HyRAM 3.1 Technical Reference Manual](https://hyram.sandia.gov/) contains descriptions of the models and calculations used within HyRAM. It also contains references to the original works that these models and calculations are based on.
 
-The [HyRAM 2.0 User Guide](https://energy.sandia.gov/download/44669/) contains details and examples on how to use the HyRAM software through the graphical user interface (GUI), with example calculations updated with changes to the interface and improved calculation options. This document more references how to use the software interface, rather than specifics on the models and calculations themselves. While there have been many changes to the HyRAM 3.0 version of the code, many of the examples are still applicable even though the User Guide is based on the previous version; a new version of the User Guide will be published in the future. 
+The [HyRAM 2.0 User Guide](https://energy.sandia.gov/download/44669/) contains details and examples on how to use the HyRAM software through the graphical user interface (GUI), with example calculations updated with changes to the interface and improved calculation options. This document more references how to use the software interface, rather than specifics on the models and calculations themselves. While there have been many changes to the current HyRAM version of the code, many of the examples are still applicable even though the User Guide is based on the previous version; a new version of the User Guide will be published in the future. 
 
 &nbsp;
 ## Repository Layout
@@ -42,7 +42,6 @@ $
             ├───phys
             ├───qra
             └───utilities
-
 ```
 
 * `src` - Project source code, including C# GUI and python module(s)

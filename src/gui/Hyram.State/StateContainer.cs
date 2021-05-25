@@ -1,20 +1,36 @@
-﻿// Copyright 2016 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
-// Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
-// 
-// This file is part of HyRAM (Hydrogen Risk Assessment Models).
-// 
-// HyRAM is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// HyRAM is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with HyRAM.  If not, see <https://www.gnu.org/licenses/>.
+﻿/*
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+*/
 
 using System;
 using System.Collections.Generic;
@@ -148,9 +164,9 @@ namespace SandiaNationalLaboratories.Hyram
         };
 
         // AppData/HyRAM dir for non-user-specific output
-        public static string AppDataDir =
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                "HyRAM");
+        //public static string AppDataDir =
+        //    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+        //        "HyRAM");
 
         // User AppData/HyRAM dir for user-specific output like logs, plots, etc.
         public static string UserDataDir =
@@ -360,7 +376,7 @@ namespace SandiaNationalLaboratories.Hyram
         /// <returns>Storage object holding param value and converter</returns>
         public ConvertibleValue GetStateDefinedValueObject(string key)
         {
-            Debug.WriteLine($"DVO {key}");
+            // Debug.WriteLine($"DVO {key}");
             var result =
                 GetStateDefinedValueObject(key, out var throwAwayConverter);
             if (result == null)
@@ -395,6 +411,41 @@ namespace SandiaNationalLaboratories.Hyram
 
         }
 
+        public void RefreshLeakFrequencyData(FuelType fuel = null)
+        {
+            // update params on Instance based on selected fuel
+            if (fuel is null)
+            {
+                fuel = GetValue<FuelType>("FuelType");
+            }
+            ComponentProbabilitySet probabilities = FuelData.H2LeakFrequencies;
+
+            if (fuel == FuelType.H2)
+            {
+                probabilities = FuelData.H2LeakFrequencies;
+            }
+            else if (fuel == FuelType.CNG)
+            {
+                probabilities = FuelData.CngLeakFrequencies;
+            }
+            else if (fuel == FuelType.LNG)
+            {
+                probabilities = FuelData.H2LeakFrequencies;
+            }
+
+            SetValue("Prob.Compressor", probabilities.Compressor);
+            SetValue("Prob.Cylinder", probabilities.Cylinder);
+            SetValue("Prob.Filter", probabilities.Filter);
+            SetValue("Prob.Flange", probabilities.Flange);
+            SetValue("Prob.Hose", probabilities.Hose);
+            SetValue("Prob.Joint", probabilities.Joint);
+            SetValue("Prob.Pipe", probabilities.Pipe);
+            SetValue("Prob.Valve", probabilities.Valve);
+            SetValue("Prob.Instrument", probabilities.Instrument);
+            SetValue("Prob.Extra1", probabilities.Extra1);
+            SetValue("Prob.Extra2", probabilities.Extra2);
+        }
+
         public ElapsingTimeConversionUnit ExposureTimeUnit
         {
             get => _mExposureTimeUnit;
@@ -414,6 +465,8 @@ namespace SandiaNationalLaboratories.Hyram
             Database[DefaultsTableName] = new ParameterDatabase();
 
             Database[ParamTableName] = InitDefaults();
+            RefreshLeakFrequencyData();
+
             Database[DefaultsTableName] = InitDefaults();
             InitOccupantDistributions();
         }
@@ -479,7 +532,7 @@ namespace SandiaNationalLaboratories.Hyram
             database["ThermalProbit"] = ThermalProbitModel.Eisenberg;
             database["OverpressureProbit"] = OverpressureProbitModel.Collapse;
 
-            database["RadiativeSourceModel"] = RadiativeSourceModels.Multi;
+            database["RadiativeSourceModel"] = RadiativeSourceModels.Multi;  // unused as of 3.1
 
             // Overpressure consequences
             database["OverpressureConsequences"] = new ConvertibleValue(GetConverterByDatabaseKey("OverpressureConsequences"), PressureUnit.Pa,
@@ -590,107 +643,20 @@ namespace SandiaNationalLaboratories.Hyram
             database["Failure.CouplingFTC"] = new FailureMode("Breakaway coupling", "Failure to close",
                 FailureDistributionType.Beta, 0.5D, 5031.0D);
 
-            // Component leak probabilities stored in lists of objects for easy data-binding
-            // Current types are: Compressors, Cylinders, Filters, Flanges, Hoses, Joints, Pipes, Valves, Instruments, extra 1, extra 2
+            // Component leak probabilities stored in lists of objects for easy data-binding.
+            // Note that func above will refresh these depending on selected fuel. (They're refreshed after initialization.)
             // Array elements are leak size, Mu, Sigma, Mean, Variance, in order.
-            database["Prob.Compressor"] = new List<ComponentProbability>
-            {
-                new ComponentProbability("0.01%", -1.73, 0.22),
-                new ComponentProbability("0.10%", -3.95, 0.50),
-                new ComponentProbability("1%", -5.16, 0.8),
-                new ComponentProbability("10%", -8.84, 0.84),
-                new ComponentProbability("100%", -11.34, 1.37),
-            };
-
-            database["Prob.Cylinder"] = new List<ComponentProbability>
-            {
-                new ComponentProbability("0.01%", -13.92, 0.67),
-                new ComponentProbability("0.10%", -14.06, 0.65),
-                new ComponentProbability("1%", -14.44, 0.65),
-                new ComponentProbability("10%", -14.99, 0.65),
-                new ComponentProbability("100%", -15.62, 0.68),
-            };
-
-            database["Prob.Filter"] = new List<ComponentProbability>
-            {
-                new ComponentProbability("0.01%", -5.25, 1.99),
-                new ComponentProbability("0.10%", -5.29, 1.52),
-                new ComponentProbability("1%", -5.34, 1.48),
-                new ComponentProbability("10%", -5.38, 0.89),
-                new ComponentProbability("100%", -5.43, 0.95),
-            };
-
-            database["Prob.Flange"] = new List<ComponentProbability>
-            {
-                new ComponentProbability("0.01%", -3.92, 1.66),
-                new ComponentProbability("0.10%", -6.12, 1.25),
-                new ComponentProbability("1%", -8.33, 2.20),
-                new ComponentProbability("10%", -10.54, 0.83),
-                new ComponentProbability("100%", -12.75, 1.83),
-            };
-
-            database["Prob.Hose"] = new List<ComponentProbability>
-            {
-                new ComponentProbability("0.01%", -6.83, 0.28),
-                new ComponentProbability("0.10%", -8.73, 0.61),
-                new ComponentProbability("1%", -8.85, 0.59),
-                new ComponentProbability("10%", -8.96, 0.59),
-                new ComponentProbability("100%", -9.91, 0.88),
-            };
-
-            database["Prob.Joint"] = new List<ComponentProbability>
-            {
-                new ComponentProbability("0.01%", -9.58, 0.17),
-                new ComponentProbability("0.10%", -12.92, 0.81),
-                new ComponentProbability("1%", -11.93, 0.51),
-                new ComponentProbability("10%", -12.09, 0.58),
-                new ComponentProbability("100%", -12.22, 0.61),
-            };
-
-            database["Prob.Pipe"] = new List<ComponentProbability>
-            {
-                new ComponentProbability("0.01%", -11.91, 0.69),
-                new ComponentProbability("0.10%", -12.57, 0.71),
-                new ComponentProbability("1%", -13.88, 1.14),
-                new ComponentProbability("10%", -14.59, 1.16),
-                new ComponentProbability("100%", -15.73, 1.72),
-            };
-
-            database["Prob.Valve"] = new List<ComponentProbability>
-            {
-                new ComponentProbability("0.01%", -5.19, 0.18),
-                new ComponentProbability("0.10%", -7.31, 0.42),
-                new ComponentProbability("1%", -9.71, 0.98),
-                new ComponentProbability("10%", -10.34, 0.69),
-                new ComponentProbability("100%", -12.0, 1.33),
-            };
-
-            database["Prob.Instrument"] = new List<ComponentProbability>
-            {
-                new ComponentProbability("0.01%", -7.38, 0.71),
-                new ComponentProbability("0.10%", -8.54, 0.82),
-                new ComponentProbability("1%", -9.10, 0.92),
-                new ComponentProbability("10%", -9.21, 1.09),
-                new ComponentProbability("100%", -10.21, 1.49),
-            };
-
-            database["Prob.Extra1"] = new List<ComponentProbability>
-            {
-                new ComponentProbability("0.01%", 0, 0),
-                new ComponentProbability("0.10%", 0, 0),
-                new ComponentProbability("1%", 0, 0),
-                new ComponentProbability("10%", 0, 0),
-                new ComponentProbability("100%", 0, 0),
-            };
-
-            database["Prob.Extra2"] = new List<ComponentProbability>
-            {
-                new ComponentProbability("0.01%", 0, 0),
-                new ComponentProbability("0.10%", 0, 0),
-                new ComponentProbability("1%", 0, 0),
-                new ComponentProbability("10%", 0, 0),
-                new ComponentProbability("100%", 0, 0),
-            };
+            database["Prob.Compressor"] = FuelData.H2LeakFrequencies.Compressor;
+            database["Prob.Cylinder"] = FuelData.H2LeakFrequencies.Cylinder;
+            database["Prob.Filter"] = FuelData.H2LeakFrequencies.Filter;
+            database["Prob.Flange"] = FuelData.H2LeakFrequencies.Flange;
+            database["Prob.Hose"] = FuelData.H2LeakFrequencies.Hose;
+            database["Prob.Joint"] = FuelData.H2LeakFrequencies.Joint;
+            database["Prob.Pipe"] = FuelData.H2LeakFrequencies.Pipe;
+            database["Prob.Valve"] = FuelData.H2LeakFrequencies.Valve;
+            database["Prob.Instrument"] = FuelData.H2LeakFrequencies.Instrument;
+            database["Prob.Extra1"] = FuelData.H2LeakFrequencies.Extra1;
+            database["Prob.Extra2"] = FuelData.H2LeakFrequencies.Extra2;
 
             database["tankVolume"] = new ConvertibleValue(
                     StockConverters.VolumeConverter,
@@ -750,7 +716,7 @@ namespace SandiaNationalLaboratories.Hyram
                 UnitlessUnit.Unitless, new[] {0.04});
 
             database["PlumeWrapper.co_volume_constant"] = new ConvertibleValue(
-                GetConverterByDatabaseKey("PlumeWrapper.co_volume_constant"), DensityUnit.KilogramCubicMeter,
+                GetConverterByDatabaseKey("PlumeWrapper.co_volume_constant"), DensityUnit.KilogramPerCubicMeter,
                 new[] {7.6921e-3});
             database["PlumeWrapper.distance_to_wall"] = new ConvertibleValue(
                 GetConverterByDatabaseKey("PlumeWrapper.distance_to_wall"), DistanceUnit.Meter, new[] {100D});
@@ -963,6 +929,7 @@ namespace SandiaNationalLaboratories.Hyram
             SetValue("ResultsAreStale", true);
             SetValue<object>("Result", null);
             var result = Deserialize(filename);
+            result.RefreshLeakFrequencyData();
             return result;
         }
 
@@ -1186,7 +1153,7 @@ namespace SandiaNationalLaboratories.Hyram
         {
             FuelType selectedFuel = GetValue<FuelType>("FuelType");
             bool isGaseous = (selectedFuel == FuelType.H2 || selectedFuel == FuelType.CNG);
-            Debug.WriteLine($"Fuel {selectedFuel} gaseous? {isGaseous}");
+            //Debug.WriteLine($"Fuel {selectedFuel} gaseous? {isGaseous}");
             return isGaseous;
         }
 
@@ -1224,7 +1191,7 @@ namespace SandiaNationalLaboratories.Hyram
             return ReleasePressureIsValid("fluidPressure");
         }
 
-        public static bool FuelFlowChoked()
+        public static bool FuelFlowUnchoked()
         {
             var ambPres= GetNdValue("ambientPressure", PressureUnit.Pa);
             var fuelPres = GetNdValue("fluidPressure", PressureUnit.Pa);

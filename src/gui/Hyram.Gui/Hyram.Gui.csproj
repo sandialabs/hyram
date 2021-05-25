@@ -54,7 +54,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>HyRAM Logo-32x32-Final.ico</ApplicationIcon>
+    <ApplicationIcon>icon-32x32.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>SandiaNationalLaboratories.Hyram.Program</StartupObject>
@@ -62,12 +62,19 @@
   <PropertyGroup>
     <SignManifests>false</SignManifests>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="MathNet.Numerics, Version=4.12.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.4.12.0\lib\net461\MathNet.Numerics.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />
+    <Reference Include="Python.Runtime, Version=2.5.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Hyram.PythonDirectory\python\Lib\site-packages\Python.Runtime.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
@@ -248,6 +255,7 @@
     <None Include="Resources\BannerInstaller.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="icon-32x32.ico" />
     <Content Include="Resources\hyram_bigtitle.jpg" />
     <Content Include="Resources\CopyrightFormatted.rtf" />
     <EmbeddedResource Include="ActionPanels\OverpressurePanel.resx">
@@ -353,11 +361,21 @@
     <Content Include="Resources\ajax-loader.gif" />
     <Content Include="Resources\ESD_2020.png" />
     <Content Include="Resources\BannerLogo.jpg" />
-    <Content Include="Resources\0p01pctFT_2020.png" />
-    <Content Include="Resources\0p1pctFT_2020.png" />
-    <Content Include="Resources\1pctFT_2020.png" />
-    <Content Include="Resources\10pctFT_2020.png" />
-    <Content Include="Resources\100pctFT_2020.png" />
+    <Content Include="Resources\0p01pctFT_2020.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\0p1pctFT_2020.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\1pctFT_2020.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\10pctFT_2020.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\100pctFT_2020.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\geometry of flame.png" />
     <Content Include="Resources\PhysJetFlameDescrip.rtf" />
     <Content Include="Resources\PhysOverpressureDescrip.rtf" />

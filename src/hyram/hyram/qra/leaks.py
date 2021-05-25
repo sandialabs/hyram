@@ -1,20 +1,36 @@
-#  Copyright 2016 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
-#  Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
-#  .
-#  This file is part of HyRAM (Hydrogen Risk Assessment Models).
-#  .
-#  HyRAM is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#  .
-#  HyRAM is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#  .
-#  You should have received a copy of the GNU General Public License
-#  along with HyRAM.  If not, see <https://www.gnu.org/licenses/>.
+"""
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+"""
 
 import logging
 from collections import OrderedDict
@@ -23,13 +39,178 @@ import numpy as np
 import pandas as pd
 
 from .distributions import LogNormDistribution
-from ..utilities import constants
 
-#pd.set_option('max_colwidth', None)
 log = logging.getLogger('hyram.qra')
 
 
-class Leak(object):
+class LeakSizeResult:
+    """ Convenience class to hold analysis results for specific leak size (e.g. 1%)
+    """
+
+    def __init__(self, leak_size):
+        self.leak_size = leak_size
+        self.descrip = "{:06.2f}% Release".format(leak_size)
+
+        # User-provided frequency value for vehicle fueling failures. Used in 100% release only.
+        # All other releases should be set to 'None'. If no override, should be -1.
+        self.fueling_fail_freq_override = None
+
+        # User-provided value for frequency of this release. -1 if not used
+        self.release_freq_override = -1.
+
+        # Other failures. Currently used in 100% release only
+        self.p_overp_rupture = None
+        self.f_overp_rupture = None
+
+        self.p_driveoff = None
+        self.f_driveoff = None
+
+        self.p_nozzle_release = None
+        self.f_nozzle_release = None
+
+        self.p_sol_valves_ftc = None
+        self.f_sol_valves_ftc = None
+
+        self.p_mvalve_ftc = None
+        self.f_mvalve_ftc = None
+
+        self.p_jetfire = None
+        self.p_explos = None
+        self.p_no_ign = None
+        self.p_shutdown = None
+
+        self.shutdown_avg_events = None
+        self.jetfire_avg_events = None
+        self.explos_avg_events = None
+        self.no_ign_avg_events = None
+
+        self.jetfire_pll_contrib = None
+        self.explos_pll_contrib = None
+
+        self.fueling_fail_freq = None
+        self.component_leak_freqs = {}
+        self.total_release_freq = 0.
+
+    def _set_rounded_attr(self, attr_name, val):
+        """ Helper func to assign probability parameters """
+        if val is not None:
+            setattr(self, attr_name, np.around(val, 20))
+
+    def set_failures(self, failure_set):
+        """
+        Parameters
+        ----------
+        failure_set : ComponentFailureSet
+
+        """
+        if not failure_set.use_override:
+            self.p_overp_rupture = failure_set.p_overp_rupture
+            self.f_overp_rupture = failure_set.f_overp_rupture
+            self.p_driveoff = failure_set.p_driveoff
+            self.f_driveoff = failure_set.f_driveoff
+            self.p_nozzle_release = failure_set.p_nozzle_release
+            self.f_nozzle_release = failure_set.f_nozzle_release
+            self.p_sol_valves_ftc = failure_set.p_sol_valves_ftc
+            self.f_sol_valves_ftc = failure_set.f_sol_valves_ftc
+            self.p_mvalve_ftc = failure_set.p_mvalve_ftc
+            self.f_mvalve_ftc = failure_set.f_mvalve_ftc
+
+        self.fueling_fail_freq = failure_set.f_fueling_fail
+        self.total_release_freq += failure_set.f_fueling_fail
+
+    def get_component_freqs_str(self):
+        return "\n".join(["{}: {:.3g}".format(key, val) for key, val in self.component_leak_freqs.items()])
+
+    def sum_probabilities(self):
+        return self.p_shutdown + self.p_jetfire + self.p_explos + self.p_no_ign
+
+    def sum_events(self):
+        return self.shutdown_avg_events + self.jetfire_avg_events + self.explos_avg_events + self.no_ign_avg_events
+
+    def sum_plls(self):
+        return self.explos_pll_contrib + self.jetfire_pll_contrib
+
+    def get_result_dicts(self):
+        """ Get dict of event data (for pretty-printing in table) """
+        return [
+            {'label': 'Shutdown', 'prob': self.p_shutdown, 'events': self.shutdown_avg_events, 'pll': 0},
+            {'label': 'Jetfire', 'prob': self.p_jetfire, 'events': self.jetfire_avg_events,
+             'pll': self.jetfire_pll_contrib},
+            {'label': 'Explosion', 'prob': self.p_explos, 'events': self.explos_avg_events,
+             'pll': self.explos_pll_contrib},
+            {'label': 'No ignition', 'prob': self.p_no_ign, 'events': self.no_ign_avg_events, 'pll': 0},
+            {'label': 'TOTAL', 'prob': self.sum_probabilities(), 'events': self.sum_events(), 'pll': self.sum_plls()}
+        ]
+
+    def get_vehicle_fail_probabilities(self):
+        return [
+            {'label': 'Overpressure rupture', 'prob': self.p_overp_rupture},
+            {'label': 'Driveoff', 'prob': self.p_driveoff},
+            {'label': 'Nozzle release', 'prob': self.p_nozzle_release},
+            {'label': 'Solenoid valve FTC', 'prob': self.p_sol_valves_ftc},
+            {'label': 'Manual valve FTC', 'prob': self.p_mvalve_ftc},
+        ]
+
+    def get_vehicle_failure_prob_table_string(self):
+        """ Generate vehicle failure probability string in tabular format """
+        tmpl_hdr = "{label:<20} | {prob:>15}"
+        str = '{}\n'.format(tmpl_hdr.format(label="Failure", prob="Probability"))
+
+        template = "{label:<20} | {prob:>15.10f}\n"
+        for item in self.get_vehicle_fail_probabilities():
+            str += template.format(**item)
+        return str
+
+    def get_result_table_string(self):
+        """ Generate leak result data string in tabular format """
+        tmpl_hdr = "{label:<12} | {events:>15} | {prob:>15} | {pll:>15}"
+        str = '{}\n'.format(tmpl_hdr.format(label="Type", events="Avg Events", prob="Branch line P", pll="PLL Contrib"))
+
+        template = "{label:<12} | {events:>15.10f} | {prob:>15.10f} | {pll:>15.10f}\n"
+        for entry in self.get_result_dicts():
+            str += template.format(**entry)
+        return str
+
+    def get_comp_freq_table_string(self):
+        """ Generate component leak freq data string in tabular format """
+        tmpl_hdr = "{label:<12} | {freq:>15}"
+        str = '{}\n'.format(tmpl_hdr.format(label="Component", freq="Leak Freq"))
+
+        template = "{label:<12} | {freq:>15.10f}\n"
+        for key, val in self.component_leak_freqs.items():
+            str += template.format(label=key, freq=val)
+        return str
+
+    def __repr__(self):
+        return "{:06.2f}% Leak Release".format(self.leak_size)
+
+    def __str__(self):
+        result_table = self.get_result_table_string()
+
+        if int(self.release_freq_override) == -1:
+            msg = ("{:06.2f}% LEAK RELEASE\n" + "{}" +
+                   "Total Leak Frequency: {:.3g}\n\n" +
+                   "{}\n"
+                   ).format(self.leak_size, self.get_comp_freq_table_string(), self.total_release_freq, result_table)
+        else:
+            msg = ("{:06.2f}% LEAK RELEASE\n" +
+                   "H2 release frequency (override): {}\n" +
+                   "Total leak frequency: {:.3g}\n" +
+                   "{}\n"
+                   ).format(self.leak_size, self.release_freq_override, self.total_release_freq, result_table)
+
+        if self.fueling_fail_freq_override is not None:
+            if int(self.fueling_fail_freq_override) == -1:
+                # Display calculated vehicle failure frequencies
+                msg += "Vehicle failure probabilities:\n{}\n".format(self.get_vehicle_failure_prob_table_string())
+            else:
+                # Display user-provided override
+                msg += "\nVehicle failure parameter (override): {:.10f}".format(self.fueling_fail_freq_override)
+
+        return msg
+
+
+class Leak:
     """
     Random Hydrogen release (leak) chance, defined by an orifice diameter and probability of occurrence.
 
@@ -64,12 +245,15 @@ class Leak(object):
     """
 
     def __init__(self, size, mu, sigma, description=''):
-        self.description = str(description)
+        if size < 0. or size > 100.:
+            raise ValueError("Leak size {} is not valid. Size must be between 0 and 100%".format(size))
+        if mu in [None, "", np.nan] or sigma in [None, "", np.nan]:
+            msg = ("Leak probability parameters for size {}% invalid. Must include valid mu and sigma."
+                   "Passed values for mu/sigma/mean/variance are {}, {}."
+                   ).format(size, mu, sigma)
+            raise ValueError(msg)
 
-        valid, error_msg = self.parameters_valid(size, mu, sigma)
-        if not valid:
-            log.error(error_msg)
-            raise ValueError(error_msg)
+        self.description = str(description)
 
         # Log normal distribution object for this leak size if mean/variance not given
         self.size = size
@@ -79,143 +263,21 @@ class Leak(object):
         self.mean = self.prob.mean
         self.variance = self.prob.variance
 
-    def parameters_valid(self, size, mu, sigma):
-        """ Check whether incoming parameters are valid. """
-        valid = True
-        msg = ""
-        if size < 0. or size > 100.:
-            valid = False
-            msg = "Leak size {} is not valid. Size must be between 0 and 100%".format(size)
-        elif mu in [None, "", np.nan] or sigma in [None, "", np.nan]:
-            valid = False
-            msg = ("Leak probability parameters for size {}% invalid. Must include valid mu and sigma."
-                   "Passed values for mu/sigma/mean/variance are {}, {}."
-                   ).format(size, mu, sigma)
-
-        return valid, msg
-
-    def __str__(self):
-        return 'Leak {} mu, {} sigma, {} mean, {} var'.format(self.mu, self.sigma, self.mean, self.variance)
-
-    def _get_df(self):
-        """
-        Output leak params as dataframe.
-
-        Returns
-        -------
-        df : pandas DataFrame
-            frame of leak properties
-        """
-        df = pd.DataFrame(columns=['description', 'size (%)', 'probability'])
-        # Set dataframe data
-        df.loc[0] = [self.description, self.size, self.prob]
-        return df
-
     def _repr_html_(self):
         """
         Output leak parameters as string in HTML format (via dataframe).
         """
-        df = self._get_df()
+        df = pd.DataFrame(columns=['description', 'size (%)', 'probability'])
+        df.loc[0] = [self.description, self.size, self.prob]
         return df.to_html(index=False)
 
     def __str__(self):
         """
         Output leak as string structured by dataframe.
         """
-        df = self._get_df()
-        return df.to_string(index=False)
-
-
-class LeakSet(object):
-    """
-    Instantiate and store multiple leak objects for single component.
-
-    Parameters
-    ----------
-    component_leak_probs : list
-        List of dicts containing probability data for this component in order of increasing leak size
-        [{mu, sigma}, ...]
-
-    leak_sizes: list
-        List of five leak sizes as floats
-
-    Attributes
-    ----------
-    leaks
-        dict of leaks accessed by size, in percentage. 0.01, 0.1, 1, 10, 100
-
-    """
-
-    def __init__(self, parent, component_leak_probs, leak_sizes=None):
-        self.leaks = OrderedDict()
-        self.parent = parent
-
-        if leak_sizes is None:
-            leak_sizes = constants.LEAK_SIZES
-
-        # Create leak representations for each size
-        for i, leak_size in enumerate(leak_sizes):
-            component_probability = component_leak_probs[i]
-            leak = Leak(leak_size, component_probability['mu'], component_probability['sigma'])
-            self.leaks[leak.size] = leak
-
-    def get_leak(self, leak_size):
-        """ Get leak object corresponding to leak size. """
-        if leak_size in self.leaks.keys():
-            return self.leaks[leak_size]
-        else:
-            raise KeyError('Leak of specified size not found')
-
-    def get_means(self):
-        """
-        Gather means from all leaks into ndarray
-
-        Returns
-        -------
-        means : ndarray
-            Means from distribution of all leaks, in order of ascending leak size.
-        """
-        leaks_list = self._as_list()
-        return np.array([leak.mean for leak in leaks_list])
-
-    def get_variances(self):
-        """
-        Gather variances from all leaks into ndarray
-
-        Returns
-        -------
-        variances : ndarray
-            Variances from distribution of all leaks, in order of ascending leak size.
-        """
-        leaks_list = self._as_list()
-        return np.array([leak.variance for leak in leaks_list])
-
-    def _as_list(self):
-        """
-        Return leaks in list format, sorted by leak size.
-        """
-        return sorted(self.leaks.values(), key=lambda x: x.size)
-
-    def _get_df(self):
-        """
-        Get all leaks in single dataframe.
-        """
-        df = pd.DataFrame(columns=['size (%)', 'probability'])
-        leak_list = self._as_list()
-        for i, leak in enumerate(leak_list):
-            df.loc[i] = [leak.size, leak.prob]
-        return df
-
-    def _repr_html_(self):
-        """
-        Output all leak parameters as string in HTML format (via dataframe).
-        """
-        df = self._get_df()
-        return df.to_html(index=False)
-
-    def __str__(self):
-        """
-        Output all leak as string structured by dataframe.
-        """
-        df = self._get_df()
-        return df.to_string(index=False)
+        df = pd.DataFrame(columns=['description', 'size (%)', 'probability'])
+        df.loc[0] = [self.description, self.size, self.prob]
+        param_str = 'Leak {}: {} mu, {} sigma, {} mean, {} var'.format(self.size, self.mu, self.sigma,
+                                                                       self.mean, self.variance)
+        df_str = df.to_string(index=False)
+        return "{}\n{}".format(param_str, df_str)

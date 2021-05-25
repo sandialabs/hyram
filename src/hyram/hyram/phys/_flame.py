@@ -1,7 +1,40 @@
+"""
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+"""
+
 from __future__ import print_function, absolute_import, division
 
 import os
-import sys
 import warnings
 import copy
 
@@ -10,15 +43,16 @@ import numpy as np
 from mpl_toolkits.axes_grid1 import ImageGrid
 from scipy import constants as const
 from scipy import integrate, interpolate, optimize
-# TODO remove skimage dependency?
 from skimage import measure
 
 from ._jet import DevelopingFlow
 from ._therm import Combustion
+from ._comps import Fluid
+from ..utilities.custom_warnings import PhysicsWarning
 
 
 class Flame:
-    def __init__(self, fluid, orifice, ambient, nC=0, mdot=None,
+    def __init__(self, fluid, orifice, ambient, mdot=None,
                  theta0=0., x0=0, y0=0,
                  nn_conserve_momentum=True, nn_T='solve_energy',
                  chem=None,
@@ -103,7 +137,6 @@ class Flame:
         self.theta0, self.lamf, self.lamv, self.alpha_buoy = theta0, lamf, lamv, alpha_buoy
         self.chem = chem
         self.af = af
-        self.nC = nC
         self.x0, self.y0, self.S0 = x0, y0, self.initial_node.S
         self.verbose = verbose
         self.solve(Smax, dS, tol, max_steps, numB, n_pts_integral)
@@ -132,7 +165,7 @@ class Flame:
             rho = self.chem.rho_prod(f)
             drhodf = self.chem.drhodf(f)
         except:
-            warnings.warn('clipping f - something has gone wrong')
+            warnings.warn('Clipping f - something has gone wrong.', category=PhysicsWarning)
             f = np.clip(f, 0, 1)
             rho = self.chem.rho_prod(f)
             drhodf = self.chem.drhodf(f)
@@ -149,7 +182,6 @@ class Flame:
                         integrate.trapz((self.ambient.rho - rho) * const.g * r, r),  # y-momentum
                         0])  # mixture fraction
 
-        # some terms that are needed
         zero = np.zeros_like(r)
         dfdS = np.array([zero, 2 * r ** 2 / self.lamf ** 2 / B ** 3 * f, zero, f / f_cl])
         dVdS = np.array([V / V_cl, 2 * r ** 2 / self.lamv ** 2 / B ** 3 * V, zero, zero])
@@ -184,11 +216,12 @@ class Flame:
         res : dict
             dictionary of flame results
         '''
+        #ESH note: self.developing_flow.fluid_exp is at a much lower temperature than ambient and gives funky heat flux numbers if used in the Combustion object, hence initilization at ambient T and P - could be improved. 
         try:
             if self.chem.Treac != self.ambient.T or abs(self.chem.P / self.ambient.P - 1) > 1e-10:
-                self.chem.reinitilize(self.ambient.T, self.nC, self.ambient.P)
+                self.chem.reinitilize(Fluid(T = self.ambient.T, P = self.ambient.P, species = self.fluid.species))
         except:
-            self.chem = Combustion(self.ambient.T, self.nC, self.ambient.P)
+            self.chem = Combustion(Fluid(T = self.ambient.T, P = self.ambient.P, species = self.fluid.species))
 
         if self.verbose:
             print('solving for the flame...', end='')
@@ -244,9 +277,9 @@ class Flame:
         '''
         try:
             if self.chem.Treac != self.ambient.T or abs(self.chem.P / self.ambient.P - 1) > 1e-10:
-                self.chem.reinitilize(self.ambient.T, self.nC, self.ambient.P)
+                self.chem.reinitilize(Fluid(T = self.ambient.T, P = self.ambient.P, species = self.fluid.species))
         except:
-            self.chem = Combustion(self.ambient.T, self.nC, self.ambient.P, self.numpts)
+            self.chem = Combustion(Fluid(T = self.ambient.T, P = self.ambient.P, species = self.fluid.species))
         fs, Tad = self.chem.fstoich, self.chem.T_prod(self.chem.fstoich)
         Tamb = self.ambient.T
         rhoair, rhof = self.ambient.rho, self.chem.rho_prod(self.chem.fstoich)
@@ -297,7 +330,7 @@ class Flame:
             X = interpolate.interp1d(self.S, self.x)(S)
             Y = interpolate.interp1d(self.S, self.y)(S)
         except:
-            warnings.warn('running flame model with default parameters')
+            warnings.warn('Running flame model with default parameters.', category=PhysicsWarning)
             self.solve()
             S = np.linspace(self.S[0], min([self.S[-1], self.Lvis]), N)
             X = interpolate.interp1d(self.S, self.x)(S)
@@ -467,9 +500,8 @@ class Flame:
             fig = ax.figure
 
         x, y, T = self._contourdata()
-        # clrmap = 'Spectral_r'
         clrmap = 'plasma'
-        ax.set_facecolor(plt.cm.get_cmap(clrmap)(0))  # old matplotlib: ax.set_axis_bgcolor
+        ax.set_facecolor(plt.cm.get_cmap(clrmap)(0))
         cp = ax.contourf(x, y, T, levels, cmap=clrmap, **cp_params)
         if mark is not None:
             cp2 = ax.contour(x, y, T, levels=mark, colors=mcolors, linewidths=1.5, **cp_params)
@@ -597,7 +629,6 @@ class Flame:
             ax.set_xlim3d(x.min(), x.max())
             ax.set_ylim3d(y.min(), y.max())
             ax.set_zlim3d(z.min(), z.max())
-            # ax.set_aspect(1)
             ax.contourf(x_y, fluxy0, z_y, zdir='y', offset=y.min(), alpha=.3,
                         levels=np.append(0, contours))
             fig_iso.tight_layout()
@@ -606,7 +637,6 @@ class Flame:
                 plt.savefig(plot3d_filepath, dpi=200)
 
         else:
-            # flux = np.array([])
             if smodel == 'multi':
                 flux = self.Qrad_multi(x, y, z, RH)
                 fluxy0 = self.Qrad_multi(x_y, np.ones_like(x_y) * y.min(), z_y, RH)
@@ -628,8 +658,7 @@ class Flame:
                              cbar_mode='edge',
                              cbar_location='bottom',
                              cbar_size='10%',
-                             cbar_pad=-1.5
-                             )
+                             cbar_pad=-1.5)
             ax_xy, ax_zy, ax_xz = grid[0], grid[1], grid[2]
             for ax in [ax_xy, ax_zy, ax_xz]:
                 ax.cax.set_visible(False)
@@ -685,7 +714,6 @@ class Flame:
                 ax.set_aspect(1)
 
             plot2d_filepath = os.path.join(directory, plot2d_filename)
-            # for some reason, bottom axis label was getting cut off without rect within tight_layout
             # fig.tight_layout(rect = [0, .08, 1, 1]) # tightlayout not compatable with ImageGrid
             if savefigs:
                 plt.savefig(plot2d_filepath, dpi=200)
@@ -734,4 +762,3 @@ class Flame:
             flux = self.Qrad_single(x, y, z, flame_center, rel_humid)
 
         return flux
-

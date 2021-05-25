@@ -121,7 +121,7 @@ namespace SandiaNationalLaboratories.Hyram {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("KilogramCubicMeter")]
+        [global::System.Configuration.DefaultSettingValueAttribute("KilogramPerCubicMeter")]
         public string TPDDensitiyUnit {
             get {
                 return ((string)(this["TPDDensitiyUnit"]));

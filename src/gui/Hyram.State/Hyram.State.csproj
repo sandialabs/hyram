@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ComponentProbability.cs" />
     <Compile Include="MessageContainer.cs" />
     <Compile Include="ndPressureAtTime.cs" />
     <Compile Include="OccupantDistributionInfo.cs" />

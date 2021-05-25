@@ -1,3 +1,38 @@
+"""
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+"""
+
+
 from __future__ import print_function, absolute_import, division
 
 import logging
@@ -10,11 +45,11 @@ import scipy.constants as const
 from matplotlib.collections import LineCollection
 from scipy import interpolate
 
-from ..utilities import misc_utils, custom_warnings
+from ..utilities import misc_utils
 from ._comps import Fluid, Orifice
 from ._layer import LayeringJet
-from ._overpressure import dP_expansion
-
+from ._therm import Combustion
+from ..utilities.custom_warnings import PhysicsWarning
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +65,7 @@ class IndoorRelease:
                  heat_flux = 0, nmax = 1000, m_empty = 1e-6, p_empty_percent = 1e-2,
                  release_area = None, theta0 = 0, x0 = 0, y0 = 0,
                  nn_conserve_momentum=True, nn_T='solve_energy',
-                 lam = 1.16, X_lean = 0.04, X_rich = 0.75, tol = 1e-5, layerMod = 'Lowesmith',
+                 lam = 1.16, X_lean = 0.04, X_rich = 0.75, tol = 1e-5,
                  max_steps = 1e5, steady = False, nsteady = 5,
                  verbose = True):
         '''
@@ -73,8 +108,6 @@ class IndoorRelease:
             molar upper flammability limit, default is 0.75 (for H2)
         tol : float (optional)
             Tolerance for h2_jet integration, default is 1e-5
-        layerMod : string (optional)
-            Layer model to use, default is 'Lowesmith'
         max_steps : integer (optional)
             Maximum steps along the S axis for h2_jet integration
             Default is 1e5
@@ -87,8 +120,6 @@ class IndoorRelease:
         params = locals()
         log.info(misc_utils.params_as_str(params))
 
-        # warnings.warn('Test indoor release warning', custom_warnings.PhysicsWarning)
-
         if verbose:
             print('Performing indoor release calculations...')
         
@@ -96,7 +127,7 @@ class IndoorRelease:
         if steady:
             # Single jet/plume for steady release, so single time step
             if tmax is None:
-                tmax = 30 # this is an arbitrary number - should be long enough to see if steady state has been reached
+                tmax = 30 # this is an arbitrary number - should be long enough to ensure steady-state has been reached
             ts = np.linspace(0, tmax, nsteady) 
             steady_mdot = source.mdot(orifice, ambient.P)
             mdots = np.ones(len(ts)) * steady_mdot
@@ -117,6 +148,8 @@ class IndoorRelease:
                     mdots = mdots[:i]
         # Source fluid at ambient conditions
         gas = Fluid(T = ambient.T, P = ambient.P, species = source.fluid.species)
+        self.comb = Combustion(gas)
+        self.enclosure = enclosure
         
         if release_area is not None:
             if release_area > orifice.A:
@@ -124,7 +157,8 @@ class IndoorRelease:
                 gas_list = len(gas_list)*[gas]
                 orifice = Orifice(np.sqrt(release_area*4/const.pi))
             else:
-                warnings.warn('secondary containment release area must be bigger than orifice area - assuming single orifice')
+                warnings.warn('Secondary containment release area must be bigger than orifice area - assuming single orifice.',
+                              category=PhysicsWarning)
         jets = []
         LIM = enclosure.Xwall + enclosure.H # Limit of maximum distance jet can extend
         Ymin = X_lean*gas.therm.MW/(X_lean*gas.therm.MW + (1-X_lean)*ambient.therm.MW)
@@ -147,11 +181,11 @@ class IndoorRelease:
         x_layer, H_layer, m_jet, m_layer, dP_layer, dP_tot = 6*[np.array([0])]
         Vol_layer, t_layer = 2*[np.array([0])]
         
+        jet_mass_last = jets[0].m_flammable(X_lean = X_lean, X_rich = X_rich, Hmax = enclosure.H)
         # Run layer model at each time step for each plume
         for i in range(0, len(jets)-1):
             # Compute volumetric distribution of gas along the ceiling
-            t, vol_layer, c = jets[i].layer_accumulation([ts[i], ts[i+1]], Vol_conc0,
-                                                         enclosure, model = layerMod)
+            t, vol_layer, c = jets[i].layer_accumulation([ts[i], ts[i+1]], Vol_conc0, enclosure)
             # Ensure volume and mole fraction values are realistic
             if np.any(vol_layer < 0): raise ValueError('Layer volume has returned a negative value')
             if np.any(vol_layer > enclosure.V): raise ValueError('Layer volume has exceeded enclosure volume')
@@ -168,32 +202,33 @@ class IndoorRelease:
             layer_height = vol_layer / enclosure.A
 
             # Calculate flammable mass in jet
-            jet_mass = jets[i].m_flammable(X_lean = X_lean, X_rich = X_rich, Hmax = enclosure.H - layer_height)
+            jet_mass = jets[i+1].m_flammable(X_lean = X_lean, X_rich = X_rich, Hmax = enclosure.H - layer_height[-1])
+            jet_mass_array = np.interp(t, [ts[i], ts[i+1]], [jet_mass_last, jet_mass])
+            jet_mass_last = jet_mass
 
             # Calculate total overpressure
-            dP_total = dP_expansion(enclosure, jet_mass + layer_mass, gas)
+            dP_total = self.dP_expansion(jet_mass_array + layer_mass, gas)
 
             # Calculate overpressure in layer
-            dP_lay = dP_expansion(enclosure, layer_mass, gas)
+            dP_lay = self.dP_expansion(layer_mass, gas)
 
             # Assign outputs for this plume-timestep
-            x_layer = np.append(x_layer, c)
-            Vol_layer = np.append(Vol_layer, vol_layer)
-            m_layer = np.append(m_layer, layer_mass)
-            H_layer = np.append(H_layer, layer_height)
-            m_jet = np.append(m_jet, jet_mass)
-            dP_tot = np.append(dP_tot, dP_total)
-            dP_layer = np.append(dP_layer, dP_lay)
-            t_layer = np.append(t_layer, t)
+            x_layer = np.append(x_layer, c[1:])
+            Vol_layer = np.append(Vol_layer, vol_layer[1:])
+            m_layer = np.append(m_layer, layer_mass[1:])
+            H_layer = np.append(H_layer, layer_height[1:])
+            m_jet = np.append(m_jet, jet_mass_array[1:])
+            dP_tot = np.append(dP_tot, dP_total[1:])
+            dP_layer = np.append(dP_layer, dP_lay[1:])
+            t_layer = np.append(t_layer, t[1:])
 
             # Update initial volume and concentration for layer model
-            Vol_conc0 = np.array([vol_layer, c])
+            Vol_conc0 = np.array([vol_layer[-1], c[-1]])
         
         if verbose:
             print('done')
         
         # Assign outputs
-        self.enclosure = enclosure
         self.ts, self.mdots = ts, mdots
         self.t_layer = t_layer
         self.x_layer, self.H_layer = x_layer, H_layer
@@ -223,34 +258,16 @@ class IndoorRelease:
         return fig
 
     def plot_layer(self):
-        fig, ax = plt.subplots()
-        l1 = ax.plot(self.t_layer, np.array(self.x_layer)*100,
-                     label = 'Mole Fraction Hydrogen')
-        ax.set_ylabel(r'% (Molar or Volume)')
-        ax.set_xlabel('Time [s]')
+        fig, ax = plt.subplots(2, 1, sharex = True)
+        l1 = ax[0].plot(self.t_layer, np.array(self.x_layer)*100,
+                     label = 'Mole Fraction H$_2$')
+        ax[0].set_ylabel('%H$_2$ in Layer\n(Molar or Volume)')
         i = np.argmin(np.abs(self.t_layer - (np.max(self.t_layer)
                                         - np.min(self.t_layer)) / 2.0))
-        ax.annotate('', xy = (self.t_layer[i], self.x_layer[i]*100),
-                    xycoords = 'data', xytext = (-30, -10),
-                    textcoords = 'offset points',
-                    arrowprops = dict(arrowstyle = '<-', 
-                                      connectionstyle="angle,angleA=0,angleB=45,rad=5",
-                                      color = 'b'))
-        ax2 = ax.twinx()
-        l2 = ax2.plot(self.t_layer, self.enclosure.H - np.array(self.H_layer),
+        l2 = ax[1].plot(self.t_layer, self.H_layer,
                       'g', label="Height of Layer")
-        ax2.set_ylabel('Height From Floor of Layer  [m]', color = 'g',
-                       rotation = -90, va = 'bottom')
-        ax2.annotate('', xy = (self.t_layer[i], self.enclosure.H - self.H_layer[i]),
-                     xycoords = 'data', xytext = (30, 10), 
-                     textcoords = 'offset points',
-                     arrowprops = dict(arrowstyle = '<-', 
-                                       connectionstyle="angle,angleA=0,angleB=45,rad=5",
-                                       color = 'g'))
-        lns = l1 + l2
-        labs = [l.get_label() for l in lns]
-        ax.legend(lns, labs, ncol=2, loc='lower center',
-                  bbox_to_anchor=(0.5, 1.0), fancybox=True)
+        ax[1].set_ylabel('Layer Thickness  [m]\n(From Ceiling)')
+        ax[1].set_xlabel('Time [s]')
         return fig
 
     def plot_mass(self):
@@ -346,3 +363,29 @@ class IndoorRelease:
         '''
         imax = np.argmax(self.dP_tot)
         return self.dP_tot[imax], self.t_layer[imax]
+        
+    def dP_expansion(self, mass, fluid):
+        '''
+        Pressure due to the expansion of gas from combustion in an enclosure
+        
+        Parameters
+        ----------
+        mass : float
+           mass of combustible gas in enclosure
+        fluid : object
+           gas being combusted (at the temperature and pressure of the gas in the enclosure)
+           
+        Returns
+        -------
+        P : float
+           pressure upon expansion
+        '''
+        Vol_total = self.enclosure.V
+        Vol_gas   = mass/fluid.rho
+        
+        X_u, sigma, gamma = self.comb.X_reac_stoich, self.comb.sigma, self.comb.gamma_reac
+        
+        VolStoich = Vol_gas/X_u
+
+        deltaP  = fluid.P*((((Vol_total+Vol_gas)/Vol_total)*((Vol_total+VolStoich*(sigma-1))/Vol_total))**gamma-1)
+        return deltaP

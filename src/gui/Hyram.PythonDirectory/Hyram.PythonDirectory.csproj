@@ -37,6 +37,10 @@
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Python.Runtime, Version=2.5.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>python\Lib\site-packages\Python.Runtime.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -62,9 +66,9 @@ if "$(ConfigurationName)" == "DebugOFF" (
 )
 
 echo "Copying Python.Runtime DLL"
-if "$(ConfigurationName)" == "Debug" (
+if "$(ConfigurationName)" == "DebugOFF" (
     xcopy "$(ProjectDir)python\Lib\site-packages\Python.Runtime.dll" "$(TargetDir)" /y /D
-) else if "$(ConfigurationName)" == "Release" (
+) else if "$(ConfigurationName)" == "ReleaseOFF" (
     xcopy "$(ProjectDir)python\Lib\site-packages\Python.Runtime.dll" "$(TargetDir)" /y /D
 ) else (
     echo "skipping Python.Runtime DLL copy".

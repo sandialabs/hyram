@@ -47,7 +47,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.temperaturePressureDensityTabPage.Padding = new System.Windows.Forms.Padding(3);
             this.temperaturePressureDensityTabPage.Size = new System.Drawing.Size(527, 431);
             this.temperaturePressureDensityTabPage.TabIndex = 1;
-            this.temperaturePressureDensityTabPage.Text = "Temperature, Pressure and Density";
+            this.temperaturePressureDensityTabPage.Text = "Temperature, Pressure, and Density";
             this.temperaturePressureDensityTabPage.UseVisualStyleBackColor = true;
             // 
             // temperaturePressureDensityForm
@@ -119,7 +119,6 @@ namespace SandiaNationalLaboratories.Hyram {
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(535, 457);
             this.Controls.Add(this.etkTabControl);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.Name = "EtkMainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Engineering Toolkit";

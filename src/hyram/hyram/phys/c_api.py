@@ -1,14 +1,49 @@
-import datetime
+"""
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+"""
+
 import logging
 import os
 import warnings
-from logging.config import dictConfig
 
 import gc
 import numpy as np
 
 from . import api
-from ..utilities import c_utils, misc_utils, exceptions, custom_warnings, constants
+from ..utilities import c_utils, misc_utils, exceptions, custom_warnings
+
+
+log = logging.getLogger(__name__)
 
 """
 The C API provides access to the physics module with suitable pre-processing for the C# GUI inputs.
@@ -29,58 +64,21 @@ To ensure errors are handled in GUI, all return parameters are wrapped in dict:
 
 
 def setup(output_dir, verbose):
-    """ Set up module logging globally. Called by C# GUI.
+    """ Set up module logging globally.
 
     Parameters
     ----------
     output_dir : str
-        Path to directory for e.g. logging
+        Path to log directory
 
-    debug : bool
-        whether debug mode active
+    verbose : bool
+        Determine level of logging
     """
-    logfile = os.path.join(output_dir, 'log_hyram.txt')
-    # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    logging_config = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'f': {'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'}
-        },
-        'handlers': {
-            'h': {'class': 'logging.StreamHandler',
-                  'formatter': 'f',
-                  'level': logging.INFO},
-            'fh': {'class': 'logging.handlers.RotatingFileHandler',
-                   'formatter': 'f',
-                   'level': logging.INFO,
-                   'filename': logfile,
-                   'mode': 'a',
-                   'maxBytes': 4096000,
-                   'backupCount': 10,
-                   },
-        },
-        'root': {
-            'handlers': ['h', 'fh'],
-            'level': logging.INFO,
-        },
-    }
-    dictConfig(logging_config)
-    global log  # todo: cleaner way to set this up.
-    log = logging.getLogger('hyram.phys.c_api')
-
-    # Do this in separate step to keep descendant loggers at their original level
-    if verbose:
-        log.setLevel(logging.DEBUG)  # open-source now so expand logging
-    else:
-        log.setLevel(logging.ERROR)
-
-    logging.getLogger('matplotlib.font_manager').disabled = True
-    log.info("PYTHON LOGGING ACTIVATED")
+    misc_utils.setup_file_log(output_dir, verbose=verbose, logname=__name__)
 
 
 def etk_compute_mass_flow_rate(species, temp, pres, phase, orif_diam,
-                               is_steady, tank_vol, dis_coeff, output_dir, debug):
+                               is_steady, tank_vol, dis_coeff, output_dir):
     """
     Process GUI request for mass flow calculation.
 
@@ -108,7 +106,7 @@ def etk_compute_mass_flow_rate(species, temp, pres, phase, orif_diam,
     api.compute_mass_flow_rate
 
     """
-    log.info("C API CALL: ETK mass flow analysis...")
+    log.info("Initializing CAPI: ETK mass flow analysis...")
     params = locals()
     log.info(misc_utils.params_as_str(params))
     amb_pres = 101325.
@@ -123,31 +121,27 @@ def etk_compute_mass_flow_rate(species, temp, pres, phase, orif_diam,
     try:
         fluid = api.create_fluid(species, temp, pres, None, phase)
         result_dict = api.compute_mass_flow(fluid, orif_diam, amb_pres,
-                                            is_steady, tank_vol, dis_coeff, output_dir, debug)
+                                            is_steady, tank_vol, dis_coeff, output_dir)
         results["data"] = result_dict
         results["status"] = True
-
-        log.info("API CALL COMPLETED SUCCESSFULLY")
-        log.info("Results: {}".format(result_dict))
+        log.info("RESULTS: {}".format(result_dict))
 
     except exceptions.InputError as exc:
         msg = "calculation failed due to invalid inputs: {}".format(exc.message)
         results["message"] = msg
         log.error(msg)
-        log.exception(exc)
 
     except Exception as exc:
         msg = "Mass flow calculation failed: {}".format(str(exc))
         results["message"] = msg
         log.error(msg)
-        log.exception(exc)
 
     finally:
         gc.collect()
         return results
 
 
-def etk_compute_tank_mass(species, temp, pres, phase, tank_vol, debug):
+def etk_compute_tank_mass(species, temp, pres, phase, tank_vol):
     """
     Process GUI request for tank mass calculation.
 
@@ -167,39 +161,34 @@ def etk_compute_tank_mass(species, temp, pres, phase, tank_vol, debug):
     api.compute_tank_mass
 
     """
-    log.info("C API CALL: ETK tank mass...")
+    log.info("Initializing CAPI: ETK tank mass...")
     log.info(misc_utils.params_as_str(locals()))
     results = {"status": False, "data": None, "message": None}
 
     try:
         fluid = api.create_fluid(species, temp, pres, density=None, phase=phase)
-        mass = api.compute_tank_mass(fluid, tank_vol, debug=debug)
+        mass = api.compute_tank_mass(fluid, tank_vol)
         results["data"] = mass
         results["status"] = True
 
-        log.info("API CALL COMPLETED SUCCESSFULLY")
-        log.info("Tank mass: {}".format(mass))
+        log.info("RESULTS: {}".format(mass))
 
     except exceptions.InputError as exc:
         msg = "Calculation failed due to invalid inputs: {}".format(exc.message)
         results["message"] = msg
         log.error(msg)
-        if debug:
-            log.exception(exc)
 
     except Exception as exc:
         msg = "Tank mass calculation failed: {}".format(str(exc))
         results["message"] = msg
-        log.error(msg)
-        if debug:
-            log.exception(exc)
+        log.error(exc)
 
     finally:
         gc.collect()
         return results
 
 
-def etk_compute_thermo_param(species, temp, pres, density, debug):
+def etk_compute_thermo_param(species, temp, pres, density):
     """
     Process GUI request for various thermo calculations, e.g. pressure.
 
@@ -218,14 +207,13 @@ def etk_compute_thermo_param(species, temp, pres, density, debug):
     api.compute_thermo_param
 
     """
-    log.info("C API CALL: ETK TPD calculation...")
+    log.info("Initializing CAPI: ETK TPD calculation...")
     params = locals()
     log.info(misc_utils.params_as_str(params))
     results = {"status": False, "data": None, "message": None}
 
     try:
-        param_value = api.compute_thermo_param(species, temp, pres, density, debug=debug)
-        log.info("API CALL COMPLETED SUCCESSFULLY")
+        param_value = api.compute_thermo_param(species, temp, pres, density)
         log.info("Result: {}".format(param_value))
         results["data"] = param_value
         results["status"] = True
@@ -234,22 +222,18 @@ def etk_compute_thermo_param(species, temp, pres, density, debug):
         msg = "TPD calculation failed due to InputError: {}".format(str(exc))
         results["message"] = msg
         log.error(msg)
-        if debug:
-            log.exception(exc)
 
     except Exception as exc:
         msg = "TPD calculation failed: {}".format(str(exc))
         results["message"] = msg
         log.error(msg)
-        if debug:
-            log.exception(exc)
 
     finally:
         gc.collect()
         return results
 
 
-def etk_compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustion, debug):
+def etk_compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustion):
     """
     Process GUI request for computing equivalent mass of TNT.
 
@@ -268,31 +252,26 @@ def etk_compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustio
     api.compute_equivalent_tnt_mass
 
     """
-    log.info("C API CALL: ETK tank mass...")
+    log.info("Initializing CAPI: ETK TNT mass...")
     log.info(misc_utils.params_as_str(locals()))
     results = {"status": False, "data": None, "message": None}
 
     try:
-        mass = api.compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustion, debug=debug)
+        mass = api.compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustion)
         results["data"] = mass
         results["status"] = True
 
-        log.info("API CALL COMPLETED SUCCESSFULLY")
-        log.info("Tank mass: {}".format(mass))
+        log.info("RESULT: {}".format(mass))
 
     except exceptions.InputError as exc:
         msg = "Calculation failed due to invalid inputs: {}".format(exc.message)
         results["message"] = msg
         log.error(msg)
-        if debug:
-            log.exception(exc)
 
     except Exception as exc:
         msg = "TNT mass calculation failed: {}".format(str(exc))
         results["message"] = msg
         log.error(msg)
-        if debug:
-            log.exception(exc)
 
     finally:
         gc.collect()
@@ -303,7 +282,7 @@ def analyze_jet_plume(amb_temp, amb_pres,
                       rel_species, rel_temp, rel_pres, rel_phase,
                       orif_diam, rel_angle, dis_coeff, nozzle_model,
                       contour, xmin, xmax, ymin, ymax,
-                      plot_title, output_dir, verbose, debug):
+                      plot_title, output_dir, verbose):
     """
     Create plume plot for leak.
 
@@ -323,7 +302,7 @@ def analyze_jet_plume(amb_temp, amb_pres,
     api.analyze_jet_plume
 
     """
-    log.info("C API CALL: plume plot generation...")
+    log.info("Initializing CAPI: plume plot generation...")
     params = locals()
     log.info(misc_utils.params_as_str(params))
     results = {"status": False, "data": None, "message": None, "warning": ""}
@@ -339,9 +318,8 @@ def analyze_jet_plume(amb_temp, amb_pres,
                                               rel_angle=rel_angle, dis_coeff=dis_coeff, nozzle_model=nozzle_model,
                                               create_plot=True, contour=contour,
                                               xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_title=plot_title,
-                                              output_dir=output_dir, verbose=verbose, debug=debug)
+                                              output_dir=output_dir, verbose=verbose)
 
-            log.info("API CALL COMPLETED SUCCESSFULLY")
             log.info("File path: {}".format(data_dict['plot']))
             results["data"] = data_dict
             results["status"] = True
@@ -354,18 +332,15 @@ def analyze_jet_plume(amb_temp, amb_pres,
         msg = "Plume plot generation failed due to InputError: {}".format(exc.message)
         results["message"] = msg
         log.error(msg)
-        log.exception(exc)
 
     except ValueError as exc:
         results["message"] = exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG
         log.error(exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG)
-        log.exception(exc)
 
     except Exception as exc:
         msg = "Plume plot generation failed: {}".format(str(exc))
         results["message"] = msg
         log.error(msg)
-        log.exception(exc)
 
     finally:
         gc.collect()
@@ -383,7 +358,7 @@ def overpressure_indoor_release(amb_temp, amb_pres,
                                 vol_flow_rate, dist_rel_to_wall,
                                 tmax, rel_area, rel_angle, nozzle_key,
                                 pt_pressures, pt_times, pres_ticks,
-                                output_dir=None, verbose=False, debug=False):
+                                output_dir=None, verbose=False):
     """ Conduct indoor release analysis. See indoor_release for input descriptions.
 
     Returns
@@ -401,7 +376,7 @@ def overpressure_indoor_release(amb_temp, amb_pres,
     api.create_fluid
     api.analyze_indoor_release
     """
-    log.info("C API CALL: Overpressure indoor release analysis...")
+    log.info("Initializing CAPI: Overpressure indoor release analysis...")
     params = locals()
     log.info(misc_utils.params_as_str(params))
 
@@ -447,7 +422,6 @@ def overpressure_indoor_release(amb_temp, amb_pres,
                                                      nozzle_key=nozzle_key,
                                                      temp_pres_points=temp_pres_points, pres_ticks=pres_ticks,
                                                      create_plots=True, output_dir=output_dir, verbose=verbose)
-            log.info("API CALL COMPLETED SUCCESSFULLY")
             results["data"] = result_dict
             results["status"] = True
 
@@ -463,21 +437,15 @@ def overpressure_indoor_release(amb_temp, amb_pres,
         msg = "Indoor release analysis failed due to InputError: {}".format(str(exc))
         results["message"] = msg
         log.error(msg)
-        if debug:
-            log.exception(exc)
 
     except ValueError as exc:
         results["message"] = exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG
         log.error(exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG)
-        if debug:
-            log.exception(exc)
 
     except Exception as exc:
         msg = "Indoor release analysis failed: {}".format(str(exc))
         results["message"] = msg
         log.error(msg)
-        if debug:
-            log.exception(exc)
 
     finally:
         gc.collect()
@@ -492,12 +460,12 @@ def jet_flame_analysis(amb_temp, amb_pres,
                        xpos, ypos, zpos,
                        contours,
                        analyze_flux=True,
-                       output_dir=None, debug=False, verbose=False):
+                       output_dir=None, verbose=False):
     """
     Analyze heat flux and generate corresponding plots.
     See analyses.rad_heat_flux_analysis for parameter descriptions.
     """
-    log.info("C API CALL: jet flame analysis...")
+    log.info("Initializing CAPI: jet flame analysis...")
     params = locals()
     log.info(misc_utils.params_as_str(params))
 
@@ -545,7 +513,7 @@ def jet_flame_analysis(amb_temp, amb_pres,
                     create_temp_plot=True, analyze_flux=analyze_flux, create_3dplot=False,
                     xpos=xpos, ypos=ypos, zpos=zpos,
                     chem_filepath=chem_filepath,
-                    output_dir=output_dir, debug=debug, verbose=verbose)
+                    output_dir=output_dir, verbose=verbose)
 
             output_dict = {
                 'flux_data': flux_data,
@@ -556,7 +524,6 @@ def jet_flame_analysis(amb_temp, amb_pres,
             log.info("Result: {}".format(output_dict))
             results['data'] = output_dict
             results["status"] = True
-            log.info("API CALL COMPLETED SUCCESSFULLY")
 
             for wrng in warning_list:
                 if wrng.category is custom_warnings.PhysicsWarning:
@@ -566,21 +533,15 @@ def jet_flame_analysis(amb_temp, amb_pres,
         msg = "jet flame analysis failed due to InputError: {}".format(str(exc))
         results["message"] = msg
         log.error(msg)
-        if debug:
-            log.exception(exc)
 
     except ValueError as exc:
         results["message"] = exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG
         log.error(exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG)
-        if debug:
-            log.exception(exc)
 
     except Exception as exc:
         msg = "jet flame analysis failed: {}".format(str(exc))
         results["message"] = msg
         log.error(msg)
-        if debug:
-            log.exception(exc)
 
     finally:
         gc.collect()

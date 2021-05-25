@@ -1,14 +1,48 @@
-import datetime
+"""
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+"""
+
 import logging
 import os
 import warnings
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from . import _comps, _therm, _flame, _flux, _jet
 from ._indoor_release import IndoorRelease
-from ..utilities import misc_utils, custom_warnings, exceptions
+from ..utilities import misc_utils, exceptions
+from ..utilities.custom_warnings import PhysicsWarning
 
 """
 The API file provides external access to common analysis functions within the physics module.
@@ -59,13 +93,12 @@ def create_fluid(species, temp=None, pres=None, density=None, phase=None):
     if not misc_utils.is_fluid_specified(temp, pres, density, phase):
         raise exceptions.FluidSpecificationError(function='API')
 
-    print(temp, pres, density, phase)
     fluid = _comps.Fluid(species=species.upper(), T=temp, P=pres, rho=density, phase=phase)
     return fluid
 
 
 def compute_mass_flow(fluid, orif_diam, amb_pres=101325.,
-                      is_steady=True, tank_vol=None, dis_coeff=1., output_dir=None, debug=False):
+                      is_steady=True, tank_vol=None, dis_coeff=1., output_dir=None):
     """
     Calculate mass flow rate based on given conditions.
 
@@ -121,31 +154,29 @@ def compute_mass_flow(fluid, orif_diam, amb_pres=101325.,
         result['mass_flow_rate'] = orif.mdot(orif.flow(fluid, amb_pres))
 
     else:
-        # create MFR vs time plot
         source = _comps.Source(tank_vol, fluid)
-
         mdots, fluid_list, t, sol = source.empty(orif, amb_pres)
 
-        filename = os.path.join(output_dir, "time-to-empty.png")
-        fig, ax = plt.subplots(4, 1, sharex=True, squeeze=True, figsize=(4, 7))
-        ax[0].plot(t, sol[0])
-        ax[0].set_ylabel('mass [kg]')
-        ax[1].plot(t, np.array([f.P for f in fluid_list]) * 1e-5)
-        ax[1].set_ylabel('pressure [bar]')
-        ax[2].plot(t, mdots);
-        ax[2].set_ylabel('$\dot{m}$ (kg/s)')
-        ax[3].plot(t, [f.T for f in fluid_list])
-        ax[3].set_ylabel('temperature [K]')
-        ax[3].set_xlabel('time [s]')
-        [a.minorticks_on() for a in ax]
-        [a.grid(which='major', color='k', dashes=(2, 2), alpha=.5) for a in ax]
-        [a.grid(which='minor', color='k', alpha=.1) for a in ax]
-        plt.savefig(filename, bbox_inches='tight')
+        filename = "time-to-empty-{}.png".format(misc_utils.get_now_str())
+        filepath = os.path.join(output_dir, filename)
+        fig, axs = plt.subplots(4, 1, sharex=True, squeeze=True, figsize=(4, 7))
+        axs[0].plot(t, sol[0])
+        axs[0].set_ylabel('Mass [kg]')
+        axs[1].plot(t, np.array([f.P for f in fluid_list]) * 1e-5)
+        axs[1].set_ylabel('Pressure [bar]')
+        axs[2].plot(t, mdots)
+        axs[2].set_ylabel('Flow Rate [kg/s]')
+        axs[3].plot(t, [f.T for f in fluid_list])
+        axs[3].set_ylabel('Temperature [K]')
+        axs[3].set_xlabel('Time [s]')
+        [a.minorticks_on() for a in axs]
+        [a.grid(which='major', color='k', dashes=(2, 2), alpha=.5) for a in axs]
+        [a.grid(which='minor', color='k', alpha=.1) for a in axs]
+        fig.savefig(filepath, bbox_inches='tight')
         plt.close()
 
         result["time_to_empty"] = t[-1]
-        result['plot'] = filename
-        # also return data for easier testing
+        result['plot'] = filepath
         result["times"] = t
         result["rates"] = mdots
 
@@ -153,7 +184,7 @@ def compute_mass_flow(fluid, orif_diam, amb_pres=101325.,
     return result
 
 
-def compute_tank_mass(fluid, tank_vol, debug=False):
+def compute_tank_mass(fluid, tank_vol):
     """
     Tank mass calculation.
     Two of temp, pressure, phase are required.
@@ -165,9 +196,6 @@ def compute_tank_mass(fluid, tank_vol, debug=False):
 
     tank_vol : float
         Volume of source in tank (m^3).
-
-    debug : bool
-        Whether debug mode is active
 
     Returns
     ----------
@@ -182,7 +210,7 @@ def compute_tank_mass(fluid, tank_vol, debug=False):
     return mass
 
 
-def compute_thermo_param(species='H2', temp=None, pres=None, density=None, debug=False):
+def compute_thermo_param(species='H2', temp=None, pres=None, density=None):
     """
     Calculate temperature, pressure or density of species.
 
@@ -200,9 +228,6 @@ def compute_thermo_param(species='H2', temp=None, pres=None, density=None, debug
     density : float
         Fluid density (kg/m^3).
 
-    debug : bool
-        Whether debug mode is active
-
     Returns
     ----------
     result : float
@@ -213,11 +238,11 @@ def compute_thermo_param(species='H2', temp=None, pres=None, density=None, debug
 
     fluid = create_fluid(species, temp, pres, density, phase=None)
 
-    if temp != None and pres != None:
+    if temp is not None and pres is not None:
         result = fluid.rho
-    elif temp != None and density != None:
+    elif temp is not None and density is not None:
         result = fluid.P
-    elif pres != None and density != None:
+    elif pres is not None and density is not None:
         result = fluid.T
     else:
         # TODO: best return val here?
@@ -226,7 +251,7 @@ def compute_thermo_param(species='H2', temp=None, pres=None, density=None, debug
     return result
 
 
-def compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustion, debug=False):
+def compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustion):
     """
     Calculate equivalent mass of TNT.
 
@@ -240,9 +265,6 @@ def compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustion, d
 
     heat_of_combustion : float
         Net heat of combustion (kJ/kg)
-
-    debug : bool
-        Whether debug mode is active
 
     Returns
     ----------
@@ -262,7 +284,7 @@ def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam,
                       rel_angle=0., dis_coeff=1., nozzle_model='yuce',
                       create_plot=True, contour=0.04, contour_min=0., contour_max=0.1,
                       xmin=-2.5, xmax=2.5, ymin=0., ymax=10., plot_title="Mole Fraction of Leak",
-                      filename=None, output_dir=None, verbose=False, debug=False):
+                      filename=None, output_dir=None, verbose=False):
     """
     Simulate jet plume for leak and generate plume positional data, including mass and mole fractions, plume plot.
 
@@ -320,8 +342,6 @@ def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam,
         Directory in which to place plot file.
 
     verbose : bool, False
-
-    debug : bool, False
 
     Returns
     -------
@@ -583,7 +603,7 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam,
                        plot2d_filename=None,
                        xpos=None, ypos=None, zpos=None,
                        chem_filepath=None,
-                       output_dir=None, debug=False, verbose=False):
+                       output_dir=None, verbose=False):
     """
     Assess jet flame behavior and flux data and create corresponding plots.
 
@@ -680,14 +700,15 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam,
 
     log.info('Creating components')
     orifice = _comps.Orifice(orif_diam, Cd=dis_coeff)
-    num_c_atoms = misc_utils.get_num_carbon_atoms_from_species(rel_fluid.species)
 
-    # Load chemistry class, if given
-    chem_obj = _therm.Combustion(Treac=amb_fluid.T, nC=num_c_atoms, P=amb_fluid.P) if chem_filepath else None
+    if chem_filepath:
+        chem_obj = _therm.Combustion(_comps.Fluid(T=amb_fluid.T, P=amb_fluid.P, species=rel_fluid.species))
+    else:
+        chem_obj = None
 
     conserve_momentum, notional_nozzle_t = misc_utils.convert_nozzle_model_to_params(nozzle_key, rel_fluid)
     flame_obj = _flame.Flame(rel_fluid, orifice, amb_fluid,
-                             nC=num_c_atoms, theta0=rel_angle, y0=rel_height,
+                             theta0=rel_angle, y0=rel_height,
                              nn_conserve_momentum=conserve_momentum, nn_T=notional_nozzle_t, chem=chem_obj,
                              verbose=verbose)
 
@@ -696,7 +717,7 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam,
         if temp_plot_filename is None:
             temp_plot_filename = 'flame_temp_plot_{}.png'.format(now_str)
         temp_plot_filepath = os.path.join(output_dir, temp_plot_filename)
-        fig, colorbar = flame_obj.plot_Ts()
+        fig, _ = flame_obj.plot_Ts()
         fig.savefig(temp_plot_filepath, bbox_inches='tight')
     else:
         log.info("Skipping temp plot")
@@ -726,7 +747,7 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam,
     return temp_plot_filepath, flux3d_filepath, slice_filepath, pos_flux
 
 
-def compute_discharge_rate(fluid, orif_diam, dis_coeff=1., verbose=False):
+def compute_discharge_rate(fluid, orif_diam, dis_coeff=1.):
     """
     Returns the mass flow rate through an orifice of diameter d from gas at a temperature T and pressure P.
 
@@ -761,7 +782,7 @@ def flux_analysis(amb_fluid, rel_fluid,
                   rad_src_key, not_nozzle_key,
                   loc_distributions,
                   excl_radius, rand_seed,
-                  verbose=False, create_plots=True, chem_file=None, output_dir=None):
+                  create_plots=True, output_dir=None, verbose=False):
     """
     QRA flux analysis for designated positions.
 
@@ -809,9 +830,6 @@ def flux_analysis(amb_fluid, rel_fluid,
     create_plots : bool
         Whether plot files should be created.
 
-    chem_file : file
-        Chem object as file, currently unused.
-
     output_dir : str
         File path to directory in which to create files and plots.
 
@@ -847,7 +865,6 @@ def flux_analysis(amb_fluid, rel_fluid,
 
         positions : ndarray
             3d positions
-
     """
     log.info("Flux Analysis requested")
     params = locals()
@@ -856,14 +873,13 @@ def flux_analysis(amb_fluid, rel_fluid,
     if output_dir is None:
         output_dir = os.getcwd()
 
-    num_sizes = len(orif_diams)
     result_dict = _flux.positional_flux_analysis(amb_fluid, rel_fluid, rel_angle, rel_height,
                                                  site_length, site_width,
                                                  orif_diams, rel_humid, dis_coeff,
                                                  rad_src_key, not_nozzle_key,
                                                  loc_distributions, excl_radius, rand_seed,
-                                                 create_plots=create_plots, chem_file=chem_file,
-                                                 output_dir=output_dir, verbose=False)
+                                                 create_plots=create_plots,
+                                                 output_dir=output_dir, verbose=verbose)
 
     log.info("Flux Analysis complete")
     return result_dict

@@ -9,9 +9,11 @@ namespace SandiaNationalLaboratories.Hyram {
 		#region Component Designer generated code
         private void InitializeComponent() {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(IndoorReleaseForm));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.IOTabs = new System.Windows.Forms.TabControl();
             this.InputTab = new System.Windows.Forms.TabPage();
+            this.notionalNozzleSelector = new System.Windows.Forms.ComboBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.PhaseSelection = new System.Windows.Forms.ComboBox();
             this.PhaseLabel = new System.Windows.Forms.Label();
             this.OverpressureSpinner = new System.Windows.Forms.PictureBox();
@@ -50,13 +52,11 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tbMaxPressure = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.overpressureResultGrid = new System.Windows.Forms.DataGridView();
-            this.outputWarning = new System.Windows.Forms.Label();
-            this.notionalNozzleSelector = new System.Windows.Forms.ComboBox();
-            this.label3 = new System.Windows.Forms.Label();
             this.colTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colPressure = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colDepth2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colConcentration2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.outputWarning = new System.Windows.Forms.Label();
             this.pbPressure = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.pbFlammableMass = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.pbLayer = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
@@ -120,6 +120,26 @@ namespace SandiaNationalLaboratories.Hyram {
             this.InputTab.TabIndex = 0;
             this.InputTab.Text = "Input";
             this.InputTab.UseVisualStyleBackColor = true;
+            // 
+            // notionalNozzleSelector
+            // 
+            this.notionalNozzleSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.notionalNozzleSelector.DropDownWidth = 170;
+            this.notionalNozzleSelector.FormattingEnabled = true;
+            this.notionalNozzleSelector.Location = new System.Drawing.Point(167, 13);
+            this.notionalNozzleSelector.Name = "notionalNozzleSelector";
+            this.notionalNozzleSelector.Size = new System.Drawing.Size(176, 21);
+            this.notionalNozzleSelector.TabIndex = 60;
+            this.notionalNozzleSelector.SelectionChangeCommitted += new System.EventHandler(this.notionalNozzleSelector_SelectionChangeCommitted);
+            // 
+            // label3
+            // 
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Location = new System.Drawing.Point(7, 14);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(153, 15);
+            this.label3.TabIndex = 59;
+            this.label3.Text = "Notional nozzle model:";
             // 
             // PhaseSelection
             // 
@@ -198,14 +218,11 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // GeometryPicture
             // 
-            this.GeometryPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.GeometryPicture.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("GeometryPicture.BackgroundImage")));
             this.GeometryPicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.GeometryPicture.Location = new System.Drawing.Point(539, 6);
+            this.GeometryPicture.Location = new System.Drawing.Point(536, 6);
             this.GeometryPicture.Name = "GeometryPicture";
-            this.GeometryPicture.Size = new System.Drawing.Size(255, 526);
+            this.GeometryPicture.Size = new System.Drawing.Size(391, 331);
             this.GeometryPicture.TabIndex = 1;
             this.GeometryPicture.TabStop = false;
             // 
@@ -547,14 +564,14 @@ namespace SandiaNationalLaboratories.Hyram {
             this.overpressureResultGrid.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.overpressureResultGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.overpressureResultGrid.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.overpressureResultGrid.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.overpressureResultGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.overpressureResultGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colTime,
@@ -566,40 +583,6 @@ namespace SandiaNationalLaboratories.Hyram {
             this.overpressureResultGrid.RowHeadersVisible = false;
             this.overpressureResultGrid.Size = new System.Drawing.Size(536, 399);
             this.overpressureResultGrid.TabIndex = 2;
-            // 
-            // outputWarning
-            // 
-            this.outputWarning.BackColor = System.Drawing.Color.PaleGoldenrod;
-            this.outputWarning.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.outputWarning.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.outputWarning.ForeColor = System.Drawing.Color.DarkGoldenrod;
-            this.outputWarning.Location = new System.Drawing.Point(0, 0);
-            this.outputWarning.Name = "outputWarning";
-            this.outputWarning.Size = new System.Drawing.Size(924, 25);
-            this.outputWarning.TabIndex = 18;
-            this.outputWarning.Text = "blank";
-            this.outputWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.outputWarning.Visible = false;
-            // 
-            // notionalNozzleSelector
-            // 
-            this.notionalNozzleSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.notionalNozzleSelector.DropDownWidth = 170;
-            this.notionalNozzleSelector.FormattingEnabled = true;
-            this.notionalNozzleSelector.Location = new System.Drawing.Point(167, 13);
-            this.notionalNozzleSelector.Name = "notionalNozzleSelector";
-            this.notionalNozzleSelector.Size = new System.Drawing.Size(176, 21);
-            this.notionalNozzleSelector.TabIndex = 60;
-            this.notionalNozzleSelector.SelectionChangeCommitted += new System.EventHandler(this.notionalNozzleSelector_SelectionChangeCommitted);
-            // 
-            // label3
-            // 
-            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(7, 14);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(153, 15);
-            this.label3.TabIndex = 59;
-            this.label3.Text = "Notional nozzle model:";
             // 
             // colTime
             // 
@@ -624,6 +607,20 @@ namespace SandiaNationalLaboratories.Hyram {
             this.colConcentration2.HeaderText = "Concentration (%)";
             this.colConcentration2.Name = "colConcentration2";
             this.colConcentration2.ReadOnly = true;
+            // 
+            // outputWarning
+            // 
+            this.outputWarning.BackColor = System.Drawing.Color.PaleGoldenrod;
+            this.outputWarning.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.outputWarning.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.outputWarning.ForeColor = System.Drawing.Color.DarkGoldenrod;
+            this.outputWarning.Location = new System.Drawing.Point(0, 0);
+            this.outputWarning.Name = "outputWarning";
+            this.outputWarning.Size = new System.Drawing.Size(924, 25);
+            this.outputWarning.TabIndex = 18;
+            this.outputWarning.Text = "blank";
+            this.outputWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.outputWarning.Visible = false;
             // 
             // pbPressure
             // 

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/*
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+*/
+-->
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="603B8FCD-DB3A-4F56-B7EF-59AC7CE61022"
+           Name="HyRAM"
+           Language="1033"
+           Version="3.1.0"
+           Manufacturer="Sandia National Laboratories"
+           UpgradeCode="A6256A13-D1FE-4D2E-9BB8-DEE9FF314047"
+           >
+           <!--UpgradeCode="738f862e-3e09-4806-85c4-fc241cb88230"-->
+
+    <Package Id="*"
+             Keywords="Installer" Description="HyRAM Installer" Platform="x64"
+             InstallerVersion="200" Compressed="yes" InstallScope="perMachine"
+             />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <!--<PropertyRef Id="WIX_IS_NETFRAMEWORK_461_OR_LATER_INSTALLED" />
+    <Condition Message="HyRAM requires .NET Framework 4.6.1 or higher.">
+      <![CDATA[Installed OR WIX_IS_NETFRAMEWORK_461_OR_LATER_INSTALLED]]>
+    </Condition>-->
+
+    <!--<MediaTemplate />-->
+
+    <Media Id="1" Cabinet="hyram.cab" EmbedCab="yes" />
+    <!--<UIRef Id="WixUI_Mondo" />-->
+
+    <Feature Id="Complete" Level="1">
+      <!--Tells Windows what to actually install-->
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="PythonComponentGroup" />
+      <ComponentGroupRef Id="PythonLibsComponentGroup" />
+      <ComponentRef Id='ProgramMenuDir' />
+    </Feature>
+    <Icon Id="HyRAM.exe" SourceFile="$(var.Hyram.Gui.ProjectDir)icon-32x32.ico" />
+    <Property Id="ARPPRODUCTICON" Value="HyRAM.exe" />
+  </Product>
+
+    <Fragment>
+      <Directory Id="TARGETDIR" Name="SourceDir">
+
+        <Directory Id="DesktopFolder" Name="Desktop" />
+
+        <Directory Id="ProgramFiles64Folder">
+          <Directory Id="CompanyFolder" Name="Sandia National Laboratories">
+            <Directory Id="INSTALLFOLDER" Name="HyRAM">
+
+              <Directory Id="python" Name="python"
+                         ComponentGuidGenerationSeed="{3CD9FCBD-65A6-456E-908B-045EDD6353E6}"/>
+              <Directory Id="PythonComponentGroup" ></Directory>
+
+              <Directory Id="pylibs" Name="pylibs"
+                         ComponentGuidGenerationSeed="{DC95B353-47C5-41C6-88D9-93460E4918BA}">
+                <Directory Id="HyramPythonLib" Name="hyram"
+                           ComponentGuidGenerationSeed="{6660035D-36BD-4C46-9253-29AD90CBB24C}"/>
+                <Directory Id="PythonLibsComponentGroup" ></Directory>
+              </Directory>
+            </Directory>
+          </Directory>
+        </Directory>
+
+        <Directory Id="ProgramMenuFolder" Name="Programs">
+          <Directory Id="ProgramMenuDir" Name="HyRAM">
+            <Component Id="ProgramMenuDir" Guid="{8B4BEFF0-8618-4129-9E53-50DF5437E7CF}">
+              <RemoveFolder Id='ProgramMenuDir' On='uninstall' />
+              <RegistryValue Root='HKCU' Key='Software\[Manufacturer]\[ProductName]' Type='string' Value='' KeyPath='yes' />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+    </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <!--<Component Id="Shortcuts" Guid="{C49F1B53-51CF-46BC-97A8-93B347CCDDD1}" KeyPath="yes">-->
+      <!--</Component>-->
+      <Component Id="HyramUnits">
+        <File Source="$(var.Hyram.Units.TargetPath)" />
+      </Component>
+      <Component Id="HyramUtilities">
+        <File Source="$(var.Hyram.Utilities.TargetPath)" />
+      </Component>
+      <Component Id="HyramState">
+        <File Source="$(var.Hyram.State.TargetPath)" />
+      </Component>
+      <Component Id="HyramPythonApi">
+        <File Source="$(var.Hyram.PythonApi.TargetPath)" />
+      </Component>
+      <Component Id="HyramGui">
+        <Shortcut Id="startmenuShortcut" Directory="ProgramMenuDir" Name="HyRAM"
+                  WorkingDirectory='INSTALLDIR' Icon="HyRAM.exe" IconIndex="0" Advertise="yes" />
+        <Shortcut Id="desktopShortcut" Directory="DesktopFolder" Name="HyRAM"
+                  WorkingDirectory='INSTALLDIR' Icon="HyRAM.exe" IconIndex="0" Advertise="yes" />
+        <File Source="$(var.Hyram.Gui.TargetPath)" />
+      </Component>
+      <Component Id="MathNet.Numerics.dll" Guid="*">
+        <File Id="MathNet.Numerics.dll" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)MathNet.Numerics.dll" />
+      </Component>
+      <Component Id="Newtonsoft.Json.dll" Guid="*">
+        <File Id="Newtonsoft.Json.dll" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)Newtonsoft.Json.dll" />
+      </Component>
+      <Component Id="Python.Runtime.dll" Guid="*">
+        <File Id="Python.Runtime.dll" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)Python.Runtime.dll" />
+      </Component>
+
+    </ComponentGroup>
+  </Fragment>
+
+</Wix>

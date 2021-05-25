@@ -1,4 +1,38 @@
-﻿using Python.Runtime;
+﻿/*
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+*/
+
+using Python.Runtime;
 using System;
 using System.Diagnostics;
 
@@ -9,7 +43,6 @@ namespace SandiaNationalLaboratories.Hyram
     {
         private readonly string libName = "hyram";
         private readonly bool isVerbose = true;
-        private readonly bool isDebug = false;
 
         /// <summary>
         /// Calculate mass flow rate (kg/m3) or time to empty tank.
@@ -50,7 +83,7 @@ namespace SandiaNationalLaboratories.Hyram
                 dynamic pyLib = Py.Import(libName);
 
                 // Activate python logging
-                pyLib.phys.c_api.setup(outputDirPath, isDebug);
+                pyLib.phys.c_api.setup(outputDirPath, isVerbose);
 
                 // Generic try/catch with Exception handler due to python.net interfacing, which can yield ambiguous bugs
                 try
@@ -60,8 +93,7 @@ namespace SandiaNationalLaboratories.Hyram
                     dynamic resultPyObj;
                     resultPyObj = pyLib.phys.c_api.etk_compute_mass_flow_rate(
                         species, temp, pressure, phaseKey, orifDiam,
-                        isSteady, tankVolume, dischargeCoeff, outputDirPath, isDebug
-                        );
+                        isSteady, tankVolume, dischargeCoeff, outputDirPath);
                     Trace.TraceInformation("Python call complete. Processing results...");
 
                     // unwrap result status before actual results
@@ -138,13 +170,13 @@ namespace SandiaNationalLaboratories.Hyram
                 dynamic pyLib = Py.Import(libName);
 
                 // Activate python logging
-                pyLib.phys.c_api.setup(outputDirPath, isDebug);
+                pyLib.phys.c_api.setup(outputDirPath, isVerbose);
 
                 try
                 {
                     Trace.TraceInformation("Executing python tank mass call...");
                     dynamic resultPyObj = pyLib.phys.c_api.etk_compute_tank_mass(
-                        species, temp, pressure, phaseKey, tankVolume, isDebug);
+                        species, temp, pressure, phaseKey, tankVolume);
                     Trace.TraceInformation("Python call complete. Processing results...");
 
                     // unwrap results
@@ -208,13 +240,13 @@ namespace SandiaNationalLaboratories.Hyram
                 dynamic pyLib = Py.Import(libName);
 
                 // Activate python logging
-                pyLib.phys.c_api.setup(outputDirPath, isDebug);
+                pyLib.phys.c_api.setup(outputDirPath, isVerbose);
 
                 try
                 {
                     // Execute python analysis. Will return PyObject containing results.
                     Trace.TraceInformation("Executing python TPD call...");
-                    dynamic resultPyObj = pyLib.phys.c_api.etk_compute_thermo_param(species, temp, pressure, density, isDebug);
+                    dynamic resultPyObj = pyLib.phys.c_api.etk_compute_thermo_param(species, temp, pressure, density);
                     Trace.TraceInformation("Python call complete. Processing results...");
 
                     // unwrap results
@@ -274,13 +306,13 @@ namespace SandiaNationalLaboratories.Hyram
                 dynamic pyLib = Py.Import(libName);
 
                 // Activate python logging
-                pyLib.phys.c_api.setup(outputDirPath, isDebug);
+                pyLib.phys.c_api.setup(outputDirPath, isVerbose);
 
                 try
                 {
                     Trace.TraceInformation("Executing python TNT mass call...");
                     dynamic resultPyObj = pyLib.phys.c_api.etk_compute_equivalent_tnt_mass(
-                        vaporMass, yield, heatOfCombustion, isDebug);
+                        vaporMass, yield, heatOfCombustion);
                     Trace.TraceInformation("Python call complete. Processing results...");
 
                     // unwrap results
@@ -355,7 +387,7 @@ namespace SandiaNationalLaboratories.Hyram
 
             string outputDirPath = StateContainer.UserDataDir;
 
-            Trace.TraceInformation($"Output directory: {outputDirPath}, Debug {isDebug}, Verbose {isVerbose}");
+            Trace.TraceInformation($"Output directory: {outputDirPath}, Verbose {isVerbose}");
             Trace.TraceInformation("Acquiring python lock and importing module...");
 
             using (Py.GIL())
@@ -376,8 +408,7 @@ namespace SandiaNationalLaboratories.Hyram
                         relSpecies, relTemp, relPres, phaseKey,
                         orifDiam, relAngle, dischargeCoeff, nozzleModel,
                         contours, xMin, xMax, yMin, yMax,
-                        plotTitle, outputDirPath, isVerbose, isDebug
-                    );
+                        plotTitle, outputDirPath, isVerbose);
                     Trace.TraceInformation("Python call complete. Processing results...");
 
                     status = (bool)resultPyObj["status"];
@@ -508,8 +539,7 @@ namespace SandiaNationalLaboratories.Hyram
                         flowRate, distReleaseToWall,
                         maxSimTime, relArea, relAngle, nozzleModelKey,
                         ptPressures, ptTimes, presTicks,
-                        outputDirPath, isVerbose, isDebug
-                        );
+                        outputDirPath, isVerbose);
                     Trace.TraceInformation("Python call complete. Processing results...");
 
                     status = (bool)resultPyObj["status"];
@@ -596,8 +626,7 @@ namespace SandiaNationalLaboratories.Hyram
                         relAngle, relHeight,
                         nozzleModelKey, radSourceModel, relHumid,
                         null, null, null, null, analyzeFlux,
-                        outputDirPath, isDebug
-                    );
+                        outputDirPath, isVerbose);
 
                     Trace.TraceInformation("Python call complete. Processing results...");
 
@@ -680,8 +709,7 @@ namespace SandiaNationalLaboratories.Hyram
                         radHeatFluxX, radHeatFluxY, radHeatFluxZ,
                         contourLevels,
                         analyzeFlux,
-                        outputDirPath, isDebug
-                    );
+                        outputDirPath, isVerbose);
 
                     Trace.TraceInformation("Python call complete. Processing results...");
 

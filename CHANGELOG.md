@@ -4,6 +4,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2021-05-11
+
+### Added
+- Jet _radial_profile method outputs temperatures
+- Input label clarification that pressure units are absolute, not gauge
+- Input checks in both GUI and Python to ensure valid probability distribution parameter values
+
+### Changed
+- New Windows installer, uses WiX Toolset
+- Distributed Python updated to 3.9
+- All distributed Python packages now installed as-is from PyPI except for CoolProp (now setup as a wheel)
+- Distributed NumPy built with OpenBLAS (previously the Gohlke wheel used MKL)
+- AppData HyRAM folder now cleared on application launch
+- Separated overpressure layer plot onto stacked axes
+- Isentropic expansion factor and other properties for overpressure calculations come from CoolProp instead of hard-coded heat capacity tables
+- Made heat of combustion values consistent throughout code and with sources cited in Technical Reference Manual
+- Clarified use of verbosity parameter for logging
+- Unchoked flows can be simulated, with a warning in the results that the flowrate should be verified as realistic
+
+### Removed
+- Removed unused image files in GUI
+- Removed unused layer model, unused functions in _jet.py, and commented code
+- Radiative source model choice was removed (hidden) from GUI, will now always use multi-radiation source (not single)
+- Removed "PSIG" unit as an option for pressure, this was previously no different than "PSI" and all pressure units are absolute
+- Removed unused fuel properties from data file
+- Removed unused constants module after changing usage to local variables or scipy.constants
+
+### Fixed
+- 2-phase speed of sound calculation corrected to use volume fraction instead of quality (which is mass fraction)
+- Super-script in position plot colorbar label
+- Position plot point coloring was not incorporating previous change
+- Improved time resolution in overpressure plots
+- Indoor Release plot now correctly handles max times beyond 30 seconds
+
+
 ## [3.0.1] - 2021-01-05
 
 ### Changed

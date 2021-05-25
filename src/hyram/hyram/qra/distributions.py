@@ -1,24 +1,41 @@
 """
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+"""
+
+"""
 Probability distribution classes and helper funcs for convenience.
 This file should NOT import from any QRA-specific code.
 """
-#  Copyright 2016 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
-#  Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
-#  .
-#  This file is part of HyRAM (Hydrogen Risk Assessment Models).
-#  .
-#  HyRAM is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#  .
-#  HyRAM is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#  .
-#  You should have received a copy of the GNU General Public License
-#  along with HyRAM.  If not, see <https://www.gnu.org/licenses/>.
 
 import numpy as np
 from scipy.stats import beta, lognorm, uniform, norm
@@ -63,6 +80,8 @@ class BetaDistribution(DistributionWrapper):
     """ Beta distribution setup """
 
     def __init__(self, a, b, loc=0, scale=1):
+        if a <= 0. or b <= 0.:
+            raise ValueError('Invalid beta distribution - parameters must be greater than 0')
         super().__init__(a, b, loc=loc, scale=scale, distr_class=beta)
         self.name = "Beta"
 
@@ -74,6 +93,8 @@ class UniformDistribution(DistributionWrapper):
     """
 
     def __init__(self, a, b):
+        if a >= b:
+            raise ValueError('Uniform distribution parameter b must be >= a')
         super().__init__(a, b, distr_class=uniform)
         self.name = "Uniform"
 
@@ -82,6 +103,8 @@ class NormalDistribution(DistributionWrapper):
     """ Normal distribution setup """
 
     def __init__(self, a, b, loc=0, scale=1):
+        if b <= 0.:
+            raise ValueError('Normal distribution parameter b must be > 0')
         super().__init__(a, b, loc=loc, scale=scale, distr_class=norm)
         self.name = "Normal"
 
@@ -155,11 +178,6 @@ class LogNormDistribution(object):
         self.mean = np.exp(self.mu)
         self.var = self.variance = (np.exp(self.sigma ** 2) - 1) * np.exp(2 * self.mu + self.sigma ** 2.)
         self.rvs = None
-
-        # self.distribution = lognorm(s=self.sigma, scale=np.exp(self.mu))
-        # self.mean = float(self.distribution.mean())
-        # self.var = self.variance = float(self.distribution.var())
-        # self.rvs = self.distribution.rvs
 
     def __str__(self):
         return 'Lognormal, mu={:.3f}, sigma={:.3f}'.format(self.mu, self.sigma)

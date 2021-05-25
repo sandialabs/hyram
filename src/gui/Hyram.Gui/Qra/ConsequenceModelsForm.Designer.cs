@@ -109,6 +109,7 @@
             this.radiativeSourceSelector.Name = "radiativeSourceSelector";
             this.radiativeSourceSelector.Size = new System.Drawing.Size(248, 23);
             this.radiativeSourceSelector.TabIndex = 26;
+            this.radiativeSourceSelector.Visible = false;
             this.radiativeSourceSelector.SelectionChangeCommitted += new System.EventHandler(this.radiativeSourceSelector_SelectionChangeCommitted);
             // 
             // label2
@@ -118,12 +119,13 @@
             this.label2.Size = new System.Drawing.Size(173, 18);
             this.label2.TabIndex = 25;
             this.label2.Text = "Radiative source model:";
+            this.label2.Visible = false;
             // 
             // consequenceInputsGroupBox
             // 
             this.consequenceInputsGroupBox.Controls.Add(this.consequenceInputUnitSelector);
             this.consequenceInputsGroupBox.Controls.Add(this.consequenceInputGrid);
-            this.consequenceInputsGroupBox.Location = new System.Drawing.Point(13, 108);
+            this.consequenceInputsGroupBox.Location = new System.Drawing.Point(13, 88);
             this.consequenceInputsGroupBox.Name = "consequenceInputsGroupBox";
             this.consequenceInputsGroupBox.Size = new System.Drawing.Size(662, 229);
             this.consequenceInputsGroupBox.TabIndex = 9;

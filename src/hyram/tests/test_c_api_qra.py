@@ -1,3 +1,37 @@
+"""
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+"""
+
 import copy
 import json
 import os
@@ -13,6 +47,7 @@ NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/te
 """
 
 log = None
+VERBOSE = False
 
 
 # @unittest.skip
@@ -24,8 +59,6 @@ class TestQRA(unittest.TestCase):
     def setUp(self):
         self.dir_path = os.path.dirname(os.path.realpath(__file__))
         self.output_dir = os.path.join(self.dir_path, 'temp')
-        self.debug = True
-        self.verbose = False
 
         # distr_labels = ['norm', 'unif', 'dete']  are 0, 1, 2
         occupant_dicts = [
@@ -86,6 +119,7 @@ class TestQRA(unittest.TestCase):
             'pipe_outer_diam': .00952501905,
             'pipe_thickness': 0.001650033,
 
+            'rel_species': 'H2',
             'rel_temp': 288.15,
             'rel_pres': 35000000,
             'rel_phase': 'default',
@@ -111,7 +145,6 @@ class TestQRA(unittest.TestCase):
             'overp_velocity': 0.,
             'overp_total_mass': 0.,
 
-            'rad_source_model': 'multi',
             'nozzle_model': 'yuce',
             'leak_height': 0.,
             'release_angle': 0.,
@@ -160,15 +193,14 @@ class TestQRA(unittest.TestCase):
             'coupling_ftc_dist': 'Beta',
             'coupling_ftc_a': .5,
             'coupling_ftc_b': 5031.,
-            'release_freq_000d01': -1.,
-            'release_freq_000d10': -1.,
-            'release_freq_001d00': -1.,
-            'release_freq_010d00': -1.,
-            'release_freq_100d00': -1.,
+            'rel_freq_000d01': -1.,
+            'rel_freq_000d10': -1.,
+            'rel_freq_001d00': -1.,
+            'rel_freq_010d00': -1.,
+            'rel_freq_100d00': -1.,
             'fueling_fail_freq_override': -1.,
             'output_dir': self.output_dir,
-            'print_results': False,
-            'debug': self.debug
+            'verbose': VERBOSE,
         }
 
     def tearDown(self):
@@ -176,31 +208,21 @@ class TestQRA(unittest.TestCase):
 
     # @unittest.skip
     def test_default(self):
-        c_api.setup(self.output_dir, self.debug)
+        c_api.setup(self.output_dir, VERBOSE)
         result_dict = c_api.qra_analysis(**self.qra_params)
         status = result_dict['status']
         results = result_dict['data']
         msg = result_dict['message']
 
+        np.testing.assert_almost_equal(results['total_pll'], 1.1e-5, decimal=6)
+        np.testing.assert_almost_equal(results['far'], 0.01395, decimal=5)
+        np.testing.assert_almost_equal(results['air'], 2.8e-7, decimal=8)
         self.assertTrue(status)
         self.assertTrue(msg is None)
 
     # @unittest.skip
-    def test_single_rad_source(self):
-        c_api.setup(self.output_dir, self.debug)
-        this_params = copy.deepcopy(self.qra_params)
-        this_params['rad_source_model'] = 'single'
-        result_dict = c_api.qra_analysis(**this_params)
-
-        status = result_dict['status']
-        results = result_dict['data']
-        msg = result_dict['message']
-
-        self.assertTrue(status)
-        self.assertTrue(msg is None)
-
     def test_invalid_occupant_sets_raises_error(self):
-        c_api.setup(self.output_dir, self.debug)
+        c_api.setup(self.output_dir, VERBOSE)
         occupant_dicts = [
             {"NumTargets": 9, "Desc": "Group 1", "ZLocDistribution": 1, "XLocDistribution": 1, "XLocParamA": 1.0,
              "XLocParamB": 20.0, "YLocDistribution": 2, "YLocParamA": 1.0, "YLocParamB": 0.0, "ZLocParamA": 1.0,

@@ -63,10 +63,10 @@
             // tankVolumeUnitSelector
             // 
             this.tankVolumeUnitSelector.Converter = null;
-            this.tankVolumeUnitSelector.Location = new System.Drawing.Point(113, 105);
+            this.tankVolumeUnitSelector.Location = new System.Drawing.Point(124, 105);
             this.tankVolumeUnitSelector.Name = "tankVolumeUnitSelector";
             this.tankVolumeUnitSelector.SelectedItem = null;
-            this.tankVolumeUnitSelector.Size = new System.Drawing.Size(189, 22);
+            this.tankVolumeUnitSelector.Size = new System.Drawing.Size(178, 22);
             this.tankVolumeUnitSelector.StoredValue = new double[0];
             this.tankVolumeUnitSelector.TabIndex = 31;
             this.tankVolumeUnitSelector.OnSelectedIndexChanged += new System.EventHandler(this.ddVolume_OnSelectedIndexChange);
@@ -74,10 +74,10 @@
             // pressureUnitSelector
             // 
             this.pressureUnitSelector.Converter = null;
-            this.pressureUnitSelector.Location = new System.Drawing.Point(113, 75);
+            this.pressureUnitSelector.Location = new System.Drawing.Point(124, 75);
             this.pressureUnitSelector.Name = "pressureUnitSelector";
             this.pressureUnitSelector.SelectedItem = null;
-            this.pressureUnitSelector.Size = new System.Drawing.Size(189, 22);
+            this.pressureUnitSelector.Size = new System.Drawing.Size(178, 22);
             this.pressureUnitSelector.StoredValue = new double[0];
             this.pressureUnitSelector.TabIndex = 30;
             this.pressureUnitSelector.OnSelectedIndexChanged += new System.EventHandler(this.pressureUnitSelector_OnSelectedIndexChange);
@@ -85,10 +85,10 @@
             // temperatureUnitSelector
             // 
             this.temperatureUnitSelector.Converter = null;
-            this.temperatureUnitSelector.Location = new System.Drawing.Point(113, 45);
+            this.temperatureUnitSelector.Location = new System.Drawing.Point(124, 45);
             this.temperatureUnitSelector.Name = "temperatureUnitSelector";
             this.temperatureUnitSelector.SelectedItem = null;
-            this.temperatureUnitSelector.Size = new System.Drawing.Size(189, 22);
+            this.temperatureUnitSelector.Size = new System.Drawing.Size(178, 22);
             this.temperatureUnitSelector.StoredValue = new double[0];
             this.temperatureUnitSelector.TabIndex = 29;
             this.temperatureUnitSelector.OnSelectedIndexChanged += new System.EventHandler(this.temperatureUnitSelector_OnSelectedIndexChange);
@@ -107,9 +107,9 @@
             this.pressureInputLabel.AutoSize = true;
             this.pressureInputLabel.Location = new System.Drawing.Point(23, 80);
             this.pressureInputLabel.Name = "pressureInputLabel";
-            this.pressureInputLabel.Size = new System.Drawing.Size(48, 13);
+            this.pressureInputLabel.Size = new System.Drawing.Size(97, 13);
             this.pressureInputLabel.TabIndex = 27;
-            this.pressureInputLabel.Text = "Pressure";
+            this.pressureInputLabel.Text = "Pressure (absolute)";
             // 
             // temperatureInputLabel
             // 
@@ -123,10 +123,10 @@
             // massUnitSelector
             // 
             this.massUnitSelector.Converter = null;
-            this.massUnitSelector.Location = new System.Drawing.Point(113, 167);
+            this.massUnitSelector.Location = new System.Drawing.Point(124, 167);
             this.massUnitSelector.Name = "massUnitSelector";
             this.massUnitSelector.SelectedItem = null;
-            this.massUnitSelector.Size = new System.Drawing.Size(189, 22);
+            this.massUnitSelector.Size = new System.Drawing.Size(178, 22);
             this.massUnitSelector.StoredValue = new double[0];
             this.massUnitSelector.TabIndex = 37;
             this.massUnitSelector.Visible = false;

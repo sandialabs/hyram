@@ -175,29 +175,31 @@
             // 
             this.fuelTypeLabel2.AutoSize = true;
             this.fuelTypeLabel2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.fuelTypeLabel2.Location = new System.Drawing.Point(-1, 181);
+            this.fuelTypeLabel2.Location = new System.Drawing.Point(10, 11);
             this.fuelTypeLabel2.Name = "fuelTypeLabel2";
-            this.fuelTypeLabel2.Size = new System.Drawing.Size(76, 16);
+            this.fuelTypeLabel2.Size = new System.Drawing.Size(42, 16);
             this.fuelTypeLabel2.TabIndex = 13;
-            this.fuelTypeLabel2.Text = "Fuel type:";
+            this.fuelTypeLabel2.Text = "Fuel:";
+            this.fuelTypeLabel2.Visible = false;
             // 
             // qraFuelTypeSelector
             // 
             this.qraFuelTypeSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.qraFuelTypeSelector.FormattingEnabled = true;
-            this.qraFuelTypeSelector.Location = new System.Drawing.Point(2, 200);
+            this.qraFuelTypeSelector.Location = new System.Drawing.Point(58, 9);
             this.qraFuelTypeSelector.Name = "qraFuelTypeSelector";
             this.qraFuelTypeSelector.Size = new System.Drawing.Size(114, 21);
             this.qraFuelTypeSelector.TabIndex = 12;
+            this.qraFuelTypeSelector.Visible = false;
             this.qraFuelTypeSelector.SelectionChangeCommitted += new System.EventHandler(this.qraFuelTypeSelector_SelectionChangeCommitted);
             // 
             // scenariosFormButton
             // 
             this.scenariosFormButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.scenariosFormButton.Location = new System.Drawing.Point(0, 32);
+            this.scenariosFormButton.Location = new System.Drawing.Point(0, 68);
             this.scenariosFormButton.Name = "scenariosFormButton";
-            this.scenariosFormButton.Size = new System.Drawing.Size(172, 23);
+            this.scenariosFormButton.Size = new System.Drawing.Size(172, 26);
             this.scenariosFormButton.TabIndex = 2;
             this.scenariosFormButton.Text = "Scenarios";
             this.scenariosFormButton.UseVisualStyleBackColor = true;
@@ -207,9 +209,9 @@
             // 
             this.systemDescriptionFormButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.systemDescriptionFormButton.Location = new System.Drawing.Point(0, 3);
+            this.systemDescriptionFormButton.Location = new System.Drawing.Point(0, 36);
             this.systemDescriptionFormButton.Name = "systemDescriptionFormButton";
-            this.systemDescriptionFormButton.Size = new System.Drawing.Size(172, 23);
+            this.systemDescriptionFormButton.Size = new System.Drawing.Size(172, 26);
             this.systemDescriptionFormButton.TabIndex = 1;
             this.systemDescriptionFormButton.Text = "System Description";
             this.systemDescriptionFormButton.UseVisualStyleBackColor = true;
@@ -219,9 +221,9 @@
             // 
             this.probabilitiesFormButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.probabilitiesFormButton.Location = new System.Drawing.Point(0, 61);
+            this.probabilitiesFormButton.Location = new System.Drawing.Point(-1, 100);
             this.probabilitiesFormButton.Name = "probabilitiesFormButton";
-            this.probabilitiesFormButton.Size = new System.Drawing.Size(172, 23);
+            this.probabilitiesFormButton.Size = new System.Drawing.Size(172, 26);
             this.probabilitiesFormButton.TabIndex = 3;
             this.probabilitiesFormButton.Text = "Data / Probabilities";
             this.probabilitiesFormButton.UseVisualStyleBackColor = true;
@@ -231,9 +233,9 @@
             // 
             this.consequenceModelsFormButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.consequenceModelsFormButton.Location = new System.Drawing.Point(0, 90);
+            this.consequenceModelsFormButton.Location = new System.Drawing.Point(-1, 132);
             this.consequenceModelsFormButton.Name = "consequenceModelsFormButton";
-            this.consequenceModelsFormButton.Size = new System.Drawing.Size(172, 23);
+            this.consequenceModelsFormButton.Size = new System.Drawing.Size(172, 26);
             this.consequenceModelsFormButton.TabIndex = 4;
             this.consequenceModelsFormButton.Text = "Consequence Models";
             this.consequenceModelsFormButton.UseVisualStyleBackColor = true;
@@ -269,7 +271,7 @@
             // 
             this.jetHeatAnalysisFormButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.jetHeatAnalysisFormButton.Location = new System.Drawing.Point(0, 99);
+            this.jetHeatAnalysisFormButton.Location = new System.Drawing.Point(0, 132);
             this.jetHeatAnalysisFormButton.Name = "jetHeatAnalysisFormButton";
             this.jetHeatAnalysisFormButton.Size = new System.Drawing.Size(171, 26);
             this.jetHeatAnalysisFormButton.TabIndex = 13;
@@ -281,7 +283,7 @@
             // 
             this.jetPlotTempFormButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.jetPlotTempFormButton.Location = new System.Drawing.Point(0, 67);
+            this.jetPlotTempFormButton.Location = new System.Drawing.Point(0, 100);
             this.jetPlotTempFormButton.Name = "jetPlotTempFormButton";
             this.jetPlotTempFormButton.Size = new System.Drawing.Size(171, 26);
             this.jetPlotTempFormButton.TabIndex = 12;
@@ -293,27 +295,29 @@
             // 
             this.fuelTypeLabel1.AutoSize = true;
             this.fuelTypeLabel1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.fuelTypeLabel1.Location = new System.Drawing.Point(3, 190);
+            this.fuelTypeLabel1.Location = new System.Drawing.Point(10, 11);
             this.fuelTypeLabel1.Name = "fuelTypeLabel1";
-            this.fuelTypeLabel1.Size = new System.Drawing.Size(76, 16);
+            this.fuelTypeLabel1.Size = new System.Drawing.Size(42, 16);
             this.fuelTypeLabel1.TabIndex = 11;
-            this.fuelTypeLabel1.Text = "Fuel type:";
+            this.fuelTypeLabel1.Text = "Fuel:";
+            this.fuelTypeLabel1.Visible = false;
             // 
             // physicsFuelTypeSelector
             // 
             this.physicsFuelTypeSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.physicsFuelTypeSelector.FormattingEnabled = true;
-            this.physicsFuelTypeSelector.Location = new System.Drawing.Point(6, 209);
+            this.physicsFuelTypeSelector.Location = new System.Drawing.Point(57, 9);
             this.physicsFuelTypeSelector.Name = "physicsFuelTypeSelector";
             this.physicsFuelTypeSelector.Size = new System.Drawing.Size(114, 21);
             this.physicsFuelTypeSelector.TabIndex = 10;
+            this.physicsFuelTypeSelector.Visible = false;
             this.physicsFuelTypeSelector.SelectionChangeCommitted += new System.EventHandler(this.physicsFuelTypeSelector_SelectionChangeCommitted);
             // 
             // overpressureFormButton
             // 
             this.overpressureFormButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.overpressureFormButton.Location = new System.Drawing.Point(0, 35);
+            this.overpressureFormButton.Location = new System.Drawing.Point(0, 68);
             this.overpressureFormButton.Name = "overpressureFormButton";
             this.overpressureFormButton.Size = new System.Drawing.Size(171, 26);
             this.overpressureFormButton.TabIndex = 9;
@@ -325,7 +329,7 @@
             // 
             this.plumeFormButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.plumeFormButton.Location = new System.Drawing.Point(0, 3);
+            this.plumeFormButton.Location = new System.Drawing.Point(0, 36);
             this.plumeFormButton.Name = "plumeFormButton";
             this.plumeFormButton.Size = new System.Drawing.Size(171, 26);
             this.plumeFormButton.TabIndex = 6;

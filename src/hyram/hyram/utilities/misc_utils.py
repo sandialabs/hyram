@@ -1,3 +1,37 @@
+"""
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+"""
+
 import logging
 from logging.config import dictConfig
 import os
@@ -7,7 +41,6 @@ import re
 import numpy as np
 
 from .exceptions import InputError
-from . import constants
 
 try:
     import cPickle as pickle  # C module
@@ -144,21 +177,21 @@ def get_now_str():
     return now.strftime('%Y%m%d-%H%M')
 
 
-def setup_file_log(output_dir, debug, logfile='hyram.log', logname='hyram'):
-    """
-    Set up module logging. Called by C# GUI.
+def setup_file_log(output_dir, verbose=False, logfile='log_hyram.txt', logname='hyram'):
+    """ Set up module logging.
 
     Parameters
     ----------
     output_dir : str
-        Path to directory for e.g. logging
+        Path to logfile directory
 
     """
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
 
     logfile = os.path.join(output_dir, logfile)
-    # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    level = logging.INFO if verbose else logging.ERROR
+
     logging_config = {
         'version': 1,
         'disable_existing_loggers': False,
@@ -168,72 +201,31 @@ def setup_file_log(output_dir, debug, logfile='hyram.log', logname='hyram'):
         'handlers': {
             'h': {'class': 'logging.StreamHandler',
                   'formatter': 'f',
-                  'level': logging.DEBUG},
+                  'level': level},
             'fh': {'class': 'logging.handlers.RotatingFileHandler',
                    'formatter': 'f',
-                   'level': logging.DEBUG,
+                   'level': level,
                    'filename': logfile,
                    'mode': 'a',
                    'maxBytes': 4096000,
                    'backupCount': 10,
                    },
-
-        },
-        'loggers': {
-            logname: {
-                'level': logging.DEBUG,
-                'handlers': ['h', 'fh'],
-            }
         },
         'root': {
             'handlers': ['h', 'fh'],
-            'level': logging.DEBUG,
+            'level': level,
         },
     }
     dictConfig(logging_config)
     log = logging.getLogger(logname)
-    # log = logging.getLogger().addHandler(logging.NullHandler())
+    logging.getLogger('matplotlib.font_manager').disabled = True
 
-    if debug:
-        # Do this in separate step to keep descendant loggers at their original level
-        log.setLevel(logging.DEBUG)
-    else:
-        log.setLevel(logging.ERROR)
+    # Can set level in separate step to keep descendant loggers at their original level
+    # log.setLevel(level)
+    # for handler in log.handlers:
+    #     handler.setLevel(level)
 
-    log.info("PYTHON LOGGING ACTIVATED")
-
-
-def convert_component_prob_lists_to_dicts(leak_prob_sets):
-    """
-    Convert probability sets for single component to lists of dicts. Inner lists become {mu, sigma, mean, var}.
-    Note that Python.NET converter func can't currently convert nullable list (e.g. double?) to numpy array.
-    If mu/sigma or mean/variance are null in C#, they're set to -1000D.
-
-    Parameters
-    ----------
-    leak_prob_sets : list
-    List of lists of probability data. Inner list is ordered: mu, sigma, mean, variance.
-
-    Returns
-    -------
-    prob_dicts : list
-    List of dicts where inner list is dict. {mu, sigma, mean, variance}
-
-    """
-    prob_dicts = []
-    if type(leak_prob_sets) == np.ndarray:
-        leak_prob_sets = list(leak_prob_sets)
-
-    for prob_set in leak_prob_sets:
-        mu, sigma = prob_set
-
-        prob_dict = {
-            'mu': mu,
-            'sigma': sigma,
-        }
-        prob_dicts.append(prob_dict)
-
-    return prob_dicts
+    log.info("Log setup complete")
 
 
 def convert_ign_prob_lists_to_dicts(immed_ign_probs, delayed_ign_probs, thresholds):
@@ -341,4 +333,4 @@ def parse_phase_key(key):
     str or None
 
     """
-    return key if key in constants.PHASE_IDS else None
+    return key if key in ['gas', 'liquid'] else None

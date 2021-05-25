@@ -94,9 +94,9 @@
             this.pressureInputLabel.AutoSize = true;
             this.pressureInputLabel.Location = new System.Drawing.Point(19, 74);
             this.pressureInputLabel.Name = "pressureInputLabel";
-            this.pressureInputLabel.Size = new System.Drawing.Size(48, 13);
+            this.pressureInputLabel.Size = new System.Drawing.Size(97, 13);
             this.pressureInputLabel.TabIndex = 36;
-            this.pressureInputLabel.Text = "Pressure";
+            this.pressureInputLabel.Text = "Pressure (absolute)";
             // 
             // temperatureInputLabel
             // 
@@ -141,7 +141,7 @@
             // isSteadySelector
             // 
             this.isSteadySelector.AutoSize = true;
-            this.isSteadySelector.Location = new System.Drawing.Point(113, 169);
+            this.isSteadySelector.Location = new System.Drawing.Point(123, 169);
             this.isSteadySelector.Name = "isSteadySelector";
             this.isSteadySelector.Size = new System.Drawing.Size(58, 17);
             this.isSteadySelector.TabIndex = 48;
@@ -153,7 +153,7 @@
             // 
             this.isBlowdownSelector.AutoSize = true;
             this.isBlowdownSelector.Checked = true;
-            this.isBlowdownSelector.Location = new System.Drawing.Point(175, 169);
+            this.isBlowdownSelector.Location = new System.Drawing.Point(185, 169);
             this.isBlowdownSelector.Name = "isBlowdownSelector";
             this.isBlowdownSelector.Size = new System.Drawing.Size(74, 17);
             this.isBlowdownSelector.TabIndex = 49;
@@ -250,11 +250,11 @@
             // pressureUnitSelector
             // 
             this.pressureUnitSelector.Converter = null;
-            this.pressureUnitSelector.Location = new System.Drawing.Point(112, 69);
+            this.pressureUnitSelector.Location = new System.Drawing.Point(123, 69);
             this.pressureUnitSelector.Margin = new System.Windows.Forms.Padding(4);
             this.pressureUnitSelector.Name = "pressureUnitSelector";
             this.pressureUnitSelector.SelectedItem = null;
-            this.pressureUnitSelector.Size = new System.Drawing.Size(189, 22);
+            this.pressureUnitSelector.Size = new System.Drawing.Size(178, 22);
             this.pressureUnitSelector.StoredValue = new double[0];
             this.pressureUnitSelector.TabIndex = 39;
             this.pressureUnitSelector.OnSelectedIndexChanged += new System.EventHandler(this.pressureUnitSelector_OnSelectedIndexChange);
@@ -262,11 +262,11 @@
             // temperatureUnitSelector
             // 
             this.temperatureUnitSelector.Converter = null;
-            this.temperatureUnitSelector.Location = new System.Drawing.Point(112, 40);
+            this.temperatureUnitSelector.Location = new System.Drawing.Point(123, 40);
             this.temperatureUnitSelector.Margin = new System.Windows.Forms.Padding(4);
             this.temperatureUnitSelector.Name = "temperatureUnitSelector";
             this.temperatureUnitSelector.SelectedItem = null;
-            this.temperatureUnitSelector.Size = new System.Drawing.Size(189, 22);
+            this.temperatureUnitSelector.Size = new System.Drawing.Size(178, 22);
             this.temperatureUnitSelector.StoredValue = new double[0];
             this.temperatureUnitSelector.TabIndex = 38;
             this.temperatureUnitSelector.OnSelectedIndexChanged += new System.EventHandler(this.temperatureUnitSelector_OnSelectedIndexChange);
@@ -274,11 +274,11 @@
             // tankVolumeUnitSelector
             // 
             this.tankVolumeUnitSelector.Converter = null;
-            this.tankVolumeUnitSelector.Location = new System.Drawing.Point(112, 99);
+            this.tankVolumeUnitSelector.Location = new System.Drawing.Point(123, 99);
             this.tankVolumeUnitSelector.Margin = new System.Windows.Forms.Padding(4);
             this.tankVolumeUnitSelector.Name = "tankVolumeUnitSelector";
             this.tankVolumeUnitSelector.SelectedItem = null;
-            this.tankVolumeUnitSelector.Size = new System.Drawing.Size(189, 22);
+            this.tankVolumeUnitSelector.Size = new System.Drawing.Size(178, 22);
             this.tankVolumeUnitSelector.StoredValue = new double[0];
             this.tankVolumeUnitSelector.TabIndex = 40;
             this.tankVolumeUnitSelector.OnSelectedIndexChanged += new System.EventHandler(this.ddVolume_OnSelectedIndexChange);
@@ -286,11 +286,11 @@
             // orificeDiameterUnitSelector
             // 
             this.orificeDiameterUnitSelector.Converter = null;
-            this.orificeDiameterUnitSelector.Location = new System.Drawing.Point(112, 128);
+            this.orificeDiameterUnitSelector.Location = new System.Drawing.Point(123, 128);
             this.orificeDiameterUnitSelector.Margin = new System.Windows.Forms.Padding(4);
             this.orificeDiameterUnitSelector.Name = "orificeDiameterUnitSelector";
             this.orificeDiameterUnitSelector.SelectedItem = null;
-            this.orificeDiameterUnitSelector.Size = new System.Drawing.Size(189, 22);
+            this.orificeDiameterUnitSelector.Size = new System.Drawing.Size(178, 22);
             this.orificeDiameterUnitSelector.StoredValue = new double[0];
             this.orificeDiameterUnitSelector.TabIndex = 46;
             this.orificeDiameterUnitSelector.OnSelectedIndexChanged += new System.EventHandler(this.orificeDiameterUnitSelector_OnSelectedIndexChanged);

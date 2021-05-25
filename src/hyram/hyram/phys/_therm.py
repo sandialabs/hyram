@@ -1,26 +1,63 @@
-# coding: utf-8
+"""
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+"""
+
 from __future__ import print_function, absolute_import, division
 
-import abc
-import sys
+import warnings
+import pkg_resources
+import logging
 
 import numpy as np
 from scipy import optimize, interpolate
+from CoolProp import CoolProp
 
 from scipy import constants as const
 import dill as pickle
-import warnings
-import pkg_resources
 import pandas as pd
 
-class CoolProp:
+from hyram.utilities.custom_warnings import PhysicsWarning
+
+log = logging.getLogger(__name__)
+
+
+class CoolPropWrapper:
     def __init__(self, species = 'hydrogen'):
         '''
         Class that uses CoolProp for equation of state calculations.
         
         phase: 'gas' or 'liquid' for fluid at saturated vapor pressure
         '''
-        from CoolProp import CoolProp
         self._cp = CoolProp
         self.spec = species
         self.MW = self._cp.PropsSI(self.spec, 'molemass')        
@@ -88,10 +125,12 @@ class CoolProp:
             return rho
         except:
             try:
-                warnings.warn('using %s phase information to calculate density'%self.phase)
+                warnings.warn('Using {} phase information to calculate density.'.format(self.phase),
+                              category=PhysicsWarning)
             except:
-                warnings.warn('assuming gas phase to calculate density')
+                warnings.warn('Assuming gas phase to calculate density.', category=PhysicsWarning)
                 self.phase = 'gas'
+
             return self._cp.PropsSI('D', 'T|'+self.phase, T, 'P', P, self.spec)
             
     def rho_P(self, T, phase):
@@ -267,32 +306,6 @@ class CoolProp:
         MW_other = self._cp.PropsSI('M', other)
         return Y/MW/(Y/MW + (1-Y)/MW_other)
     
-    # def _err_adiabatic_out(self, T1, P1, T2, P2, dm_per_m):
-        # '''
-        # returns the difference in internal energy (J/kg) between 2 states specified by the 
-        # temperatures and pressures.
-        
-        # Parameters
-        # ----------
-        # T1: float
-            # temperature of gas at point 1 (K)
-        # P1: float
-            # pressure of gas at point 1 (Pa)
-        # T2: float
-            # temperature of gas at point 2 (K)
-        # P2: float
-            # Pressure of gas at point 2 (Pa)
-        # dm_per_m: float
-            # relative mass difference between state 2 and 1 (m2 - m1)/m1
-        # Returns
-        # -------
-        # err_adiabatic: float
-            # error in energy balance between the two different states
-        # '''
-        # U1, H1, rho1 = self._cp.PropsSI(['U', 'H', 'D'], 'T', T1, 'P', P1, self.spec)
-        # U2, rho2 = self._cp.PropsSI(['U', 'D'], 'T', T2, 'P', P2, self.spec)
-        # return (rho2*U2 - rho1*U1) / (dm_per_m*rho1*H1)-1
-            
     def a(self, T = None, P = None, S = None):
         '''
         returns the speed of sound given the temperature and pressure, or temperature and entropy
@@ -311,24 +324,26 @@ class CoolProp:
         a: float
             speed of sound (m/s)
         '''
-        def a_wood(T, Q):
+        def a_2phase(T, Q):
             '''Speed of sound for 2-phase mixture (see Eq. 10 in Chung, Park, Lee: doi:10.1016/j.jsv.2003.07.003)'''
             [al, rhol], [av, rhov] = self._cp.PropsSI(['A', 'D'], 'P', P, 'Q', [0, 1], self.spec)
-            term = np.sqrt(rhov*av**2/((1-Q)*rhov*av**2+Q*rhol*al**2))
-            a = al*av*term/((1-Q)*av+Q*al*term)
+            rho = self._cp.PropsSI('D', 'P', P, 'Q', Q, self.spec)
+            alpha = rho*Q/rhov # volume fraction - Q is mass fraction
+            term = np.sqrt(rhov*av**2/((1-alpha)*rhov*av**2+alpha*rhol*al**2))
+            a = al*av*term/((1-alpha)*av+alpha*al*term)
             return a
         if S == None and P != None and T != None: #CoolProp may error out in this case - system should be defined by S and T or P otherwise can be undefined in 2-phase region    
             a = self._cp.PropsSI('A', 'T', T, 'P', P, self.spec)
         elif P == None and S != None and T != None:
             a, Q = self._cp.PropsSI(['A', 'Q'], 'T', T, 'S', S, self.spec)
             if Q > 0 and Q < 1:
-                a = a_wood(T, Q)
+                a = a_2phase(T, Q)
         elif T == None and P != None and S != None:
             a, Q, T = self._cp.PropsSI(['A', 'Q', 'T'], 'P', P, 'S', S, self.spec)
             if Q > 0 and Q < 1:
-                a = a_wood(T, Q)
+                a = a_2phase(T, Q)
         else:
-            raise warnings.warn('underdefined - need 2 of T, P, S')
+            raise warnings.warn('Under-defined - need 2 of T, P, S', category=PhysicsWarning)
             return None
         return a
         
@@ -408,24 +423,10 @@ class CoolProp:
         else:
             raise warnings.warn('system not properly defined')
 
-    # def critical_ratio(self):
-        # '''
-        # calculates the critical ratio for choked flow
-        
-        # Returns
-        # -------
-        # CR: float
-            # critical ratio of upstream to downstream pressures (dimensionless)
-        # '''
-        # gamma =self._cp.PropsSI('CPMASS', 'P', const.atm, 'T', 295.,  self.spec
-                                # )/self._cp.PropsSI('CVMASS', 'P', const.atm, 'T', 295.,  self.spec)
-        # CR = (2 / (gamma + 1)) ** (-gamma / (gamma - 1))
-        # return CR
-
             
-#########################################################################################            
+
 class Combustion:
-    def __init__(self, Treac, nC = 0,  P = 101325., numpoints = 100,
+    def __init__(self, fluid, numpoints = 100,
                  verbose = False):
         '''
         Class that performs combustion chemistry calculations.
@@ -455,6 +456,12 @@ class Combustion:
         self.MW_prod:
             mixture averaged molecular weight of products (g/mol) at a mixture fraction, f 
         '''
+        import pkg_resources
+        import pandas as pd
+        stream = pkg_resources.resource_stream('hyram', 'phys/data/fuel_prop.dat') # note: when this is within hyram, 'hyram' can be changed to __name__
+        fuel_props = pd.read_csv(stream, index_col = 0, skipinitialspace=True)
+        nC = np.argwhere((fluid.species.lower() == fuel_props.other_name.values) | (fluid.species == fuel_props.index.values))[0][0]
+        Treac, P = fluid.T, fluid.P
         if verbose:
             print('initializing chemistry...', end = '')
         from CoolProp.CoolProp import PropsSI
@@ -464,7 +471,9 @@ class Combustion:
         self._nC = nC
         stream = pkg_resources.resource_stream(__name__, 'data/fuel_prop.dat') 
         fuel_props = pd.read_csv(stream, index_col = 0, skipinitialspace=True)
-        self.DHc = fuel_props.dHc[reac] # heat of combustion
+        stream.close()
+
+        self.DHc = fuel_props.dHc[reac] # heat of combustion, J/kg
 
         self.Treac, self.P = Treac, P
         MW = dict([[spec, PropsSI('M', spec)] for spec in ['O2', 'N2', 'H2O', 'CO2', reac]])
@@ -475,6 +484,8 @@ class Combustion:
                           np.linspace(self.fstoich, 1, int(max(numpoints*(1-self.fstoich), 5))));
         T = self._T_combustion(Treac, fvals)
         MWvals = self._MWmix(self._Yprod(fvals))
+        
+        
         self.MW_prod = lambda f: self._MWmix(self._Yprod(f))
         # Creates a couple of interpolating functions
         # Only create them once during initialization, to use as a lookup value
@@ -486,14 +497,20 @@ class Combustion:
                                                           np.append(np.gradient(T[:ifstoich], fvals[:ifstoich]),
                                                           np.gradient(T[ifstoich:], fvals[ifstoich:]))/T*MWvals))
 
+        
+        self.X_reac_stoich = self._Yreac(self.fstoich)[self.reac]*self._MWmix(self._Yreac(self.fstoich))/self.MW[self.reac]
+        self.sigma = ((self._MWmix(self._Yreac(self.fstoich))/Treac) /
+                      (self._MWmix(self._Yprod(self.fstoich))/self.T_prod(self.fstoich)))
+        cp, cv = PropsSI(['CPMASS', 'CVMASS'], 'T', Treac, 'P', P, reac)
+        self.gamma_reac = cp/cv
         if verbose:
             print('done.')
 
-    def reinitilize(self, Treac, nC = 0, P = 101325., numpoints = 100):
+    def reinitilize(self, fluid, numpoints = 100):
         '''
         Reinitilizes class to new temperature, pressure, etc.  Can be used rather 
         than creating a new instance taking up additional memory.'''
-        self.__init__(Treac, nC, P, numpoints)
+        self.__init__(fluid, numpoints)
 
     def _MWmix(self, Y):
         '''returns the mixture averaged molecular weight, given a mass fraction'''
@@ -528,7 +545,7 @@ class Combustion:
              'H2O':(nC+1)*(eta*(nC+1 >= eta*(nC+1)) + (nC+1 < eta*(nC+1)))*self.MW['H2O'],
              'O2':((eta-1)/2.*(3*nC+1)*((eta-1)/2.*(3.*nC+1) > 0))*self.MW['O2'],
              'N2':eta/2.*(3*nC+1)*3.76*self.MW['N2']}
-        s = sum(Y.values())
+        s = sum(list(Y.values()))
         for k in Y.keys():
             Y[k] /= s
         return Y
@@ -543,7 +560,7 @@ class Combustion:
              'H2O':0.*f, 
              'O2':self._eta(f)/2.*(3*self._nC+1)*self.MW['O2'],
              'N2':self._eta(f)/2*(3*self._nC+1)*3.76*self.MW['N2']}
-        s = sum(Y.values())
+        s = sum(list(Y.values()))
         for k in Y.keys():
             Y[k] /= s
         return Y

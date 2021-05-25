@@ -1,11 +1,49 @@
-# coding: utf-8
+"""
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
 
-# ### Components in HC Behaviors Models
+Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
+for use of this work by or on behalf of the U.S. Government.  Export of this
+data may require a license from the United States Government. For five (5)
+years from 2/16/2016, the United States Government is granted for itself and
+others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+license in this data to reproduce, prepare derivative works, and perform
+publicly and display publicly, by or on behalf of the Government. There
+is provision for the possible extension of the term of this license. Subsequent
+to that period or any extension granted, the United States Government is
+granted for itself and others acting on its behalf a paid-up, nonexclusive,
+irrevocable worldwide license in this data to reproduce, prepare derivative
+works, distribute copies to the public, perform publicly and display publicly,
+and to permit others to do so. The specific term of the license can be
+identified by inquiry made to NTESS or DOE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
+ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
+OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
+OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
+REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+obligation and responsibility to abide by the applicable export control laws,
+regulations, and general prohibitions relating to the export of technical data.
+Failure to obtain an export control license or other authority from the
+Government may result in criminal liability under U.S. laws.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM. If not, see <https://www.gnu.org/licenses/>.
+"""
+
 from __future__ import print_function, absolute_import, division
+
+import copy
+import warnings
+import logging
+
 import numpy as np
 from scipy import integrate, optimize
-from ._therm import CoolProp
-import copy
+from ._therm import CoolPropWrapper
+
+
+log = logging.getLogger(__name__)
 
 
 class Fluid:
@@ -33,7 +71,7 @@ class Fluid:
             either 'gas' or 'liquid' if fluid is at the satrated state
         '''
         if therm is None:
-            therm = CoolProp(species)
+            therm = CoolPropWrapper(species)
 
         if phase is not None:
             if T is not None and P is None and rho is None:
@@ -151,7 +189,6 @@ class Orifice:
                 fluid._choked = False
                 return fluid
         else:  # unable to calculate flow rate - enthalpy of upstream fluid greater than enthalpy at throat pressure
-            # print('aarg', upstream_fluid.P)
             fluid.update(rho=rho, P=downstream_P, v=np.nan)
             fluid._choked = None  # None rather than true/false may cause error - need to monitor
             return fluid
@@ -166,7 +203,6 @@ class Orifice:
             return v - a
 
         try:
-            #P = optimize.newton(err_P_sonic, (upstream_fluid.P+downstream_P)/2, maxiter = 1000)
             P = optimize.brentq(err_P_sonic, upstream_fluid.P, downstream_P)
             if P <= downstream_P: # This shouldn't happen since there was a check above...
                 P = downstream_P
@@ -179,7 +215,6 @@ class Orifice:
                 fluid.update(rho=rho, P=P, v=a)
                 fluid._choked = True
         except:
-            #print('exception', upstream_fluid.P)
             rho, T, ht = upstream_fluid.therm.PropsSI(['D', 'T', 'H'], P = downstream_P, S = s0)
             fluid.update(rho=rho, P=downstream_P, v=np.sqrt(2 * (h0 - ht)))
             fluid._choked = False
@@ -300,7 +335,6 @@ class Source(object):
         fluid.update(T=T, rho=rho)
         throat = orifice.flow(fluid, ambient_P)
         h = therm.h(T = fluid.T, D = fluid.rho)
-        # h = therm.h(throat.T, throat.P)
         dm_dt = -orifice.mdot(throat)
         du_dt = 1. / m * (heat_flux + (h - U) * dm_dt)
         return np.array([dm_dt, du_dt])
@@ -422,5 +456,4 @@ class Vent:
         vol_flow_rate: volumetric flow rate through the vent (m^3/s)
         '''
         self.A, self.H, self.Cd, self.vol_flow_rate = A, H, Cd, vol_flow_rate
-        # self.Qw = Cd*A*U_wind/np.sqrt(2) #See Lowesmith et al IJHE 2009
         self.Qw = Cd * vol_flow_rate / np.sqrt(2)  # See Lowesmith et al IJHE 2009
