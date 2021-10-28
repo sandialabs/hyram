@@ -1,35 +1,9 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
-
-You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with HyRAM+.
+If not, see https://www.gnu.org/licenses/.
 """
 
 import os
@@ -46,7 +20,6 @@ NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/te
 VERBOSE = False
 
 
-# @unittest.skip
 class H2JetPlumeTestCase(unittest.TestCase):
     """
     Test plume analysis.
@@ -59,7 +32,6 @@ class H2JetPlumeTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
-    # @unittest.skip
     def test_default(self):
         wrapped = c_api.analyze_jet_plume(
                 amb_temp=288.15,
@@ -89,7 +61,6 @@ class H2JetPlumeTestCase(unittest.TestCase):
         self.assertTrue(os.path.isfile(filepath))
         self.assertTrue(not warning)
 
-    # @unittest.skip
     def test_too_many_fluid_params_fails(self):
         wrapped = c_api.analyze_jet_plume(
                 amb_temp=288.15,
@@ -114,7 +85,6 @@ class H2JetPlumeTestCase(unittest.TestCase):
         self.assertFalse(wrapped['status'])
         self.assertTrue(len(wrapped['message']))
 
-    # @unittest.skip
     def test_too_few_fluid_params_fails(self):
         wrapped = c_api.analyze_jet_plume(
                 amb_temp=288.15,
@@ -139,7 +109,6 @@ class H2JetPlumeTestCase(unittest.TestCase):
         self.assertFalse(wrapped['status'])
         self.assertTrue(len(wrapped['message']))
 
-    # @unittest.skip
     def test_unchoked_flow_returns_warning(self):
         wrapped = c_api.analyze_jet_plume(
                 amb_temp=288.15,
@@ -184,7 +153,6 @@ class LH2JetPlumeTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
-    # @unittest.skip
     def test_default_LH2(self):
         amb_temp = 288.15
         amb_pres = 101325.

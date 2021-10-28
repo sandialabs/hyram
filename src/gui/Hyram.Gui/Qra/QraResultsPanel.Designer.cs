@@ -33,6 +33,8 @@ namespace SandiaNationalLaboratories.Hyram {
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
             this.tcScenario = new System.Windows.Forms.TabControl();
             this.tpRiskMetrics = new System.Windows.Forms.TabPage();
             this.dgRiskMetrics = new System.Windows.Forms.DataGridView();
@@ -41,19 +43,55 @@ namespace SandiaNationalLaboratories.Hyram {
             this.colRmUnit = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tpScenarioRanking = new System.Windows.Forms.TabPage();
             this.dgRanking = new System.Windows.Forms.DataGridView();
+            this.ScenColRanking = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ScenColScenario = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ScenColEndStateType = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ScenColAvgEvents = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ScenColBranchLineProb = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ScenColPLL = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.tbScenarioDetails = new System.Windows.Forms.TabPage();
+            this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+            this.detailsLeakGrid = new System.Windows.Forms.DataGridView();
+            this.leakSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.massFlowRate = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.leakDiameter = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.detailsOutcomeGrid = new System.Windows.Forms.DataGridView();
+            this.outcome = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.leak000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.leak000d10 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.leak001d00 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.leak010d00 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.leak100d00 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
             this.tpCutSet = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.componentLeaksTabControl = new System.Windows.Forms.TabControl();
             this.CutSet000d01 = new System.Windows.Forms.TabPage();
             this.CutSetDGV000d01 = new System.Windows.Forms.DataGridView();
+            this.ColRank000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColCS000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColProb000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.CutSet000d10 = new System.Windows.Forms.TabPage();
             this.CutSetDGV000d10 = new System.Windows.Forms.DataGridView();
+            this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.CutSet001d00 = new System.Windows.Forms.TabPage();
             this.CutSetDGV001d00 = new System.Windows.Forms.DataGridView();
+            this.dataGridViewTextBoxColumn4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn5 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn6 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.CutSet010d00 = new System.Windows.Forms.TabPage();
             this.CutSetDGV010d00 = new System.Windows.Forms.DataGridView();
+            this.dataGridViewTextBoxColumn7 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn8 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn9 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.CutSet100d00 = new System.Windows.Forms.TabPage();
             this.CutSetDGV100d00 = new System.Windows.Forms.DataGridView();
+            this.dataGridViewTextBoxColumn10 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn11 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewTextBoxColumn12 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.textBox3 = new System.Windows.Forms.TextBox();
             this.tpPlots = new System.Windows.Forms.TabPage();
             this.tcPositionPlots = new System.Windows.Forms.TabControl();
@@ -67,32 +105,27 @@ namespace SandiaNationalLaboratories.Hyram {
             this.pbPositionPlot010d00 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.tpPositionPlot5 = new System.Windows.Forms.TabPage();
             this.pbPositionPlot100d00 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
-            this.ColRank000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ColCS000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ColProb000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn5 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn6 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn7 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn8 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn9 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn10 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn11 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataGridViewTextBoxColumn12 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ScenColRanking = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ScenColScenario = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ScenColEndStateType = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ScenColAvgEvents = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ScenColBranchLineProb = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ScenColPLL = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.positionData = new System.Windows.Forms.TabPage();
+            this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
+            this.positionDataGrid = new System.Windows.Forms.DataGridView();
+            this.position = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.x = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.y = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.z = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.flux000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.flux000d10 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.flux001d00 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.flux010d00 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.flux100d00 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tcScenario.SuspendLayout();
             this.tpRiskMetrics.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgRiskMetrics)).BeginInit();
             this.tpScenarioRanking.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgRanking)).BeginInit();
+            this.tbScenarioDetails.SuspendLayout();
+            this.tableLayoutPanel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.detailsLeakGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.detailsOutcomeGrid)).BeginInit();
             this.tpCutSet.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.componentLeaksTabControl.SuspendLayout();
@@ -118,12 +151,16 @@ namespace SandiaNationalLaboratories.Hyram {
             ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot010d00)).BeginInit();
             this.tpPositionPlot5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot100d00)).BeginInit();
+            this.positionData.SuspendLayout();
+            this.tableLayoutPanel3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.positionDataGrid)).BeginInit();
             this.SuspendLayout();
             // 
             // tcScenario
             // 
             this.tcScenario.Controls.Add(this.tpRiskMetrics);
             this.tcScenario.Controls.Add(this.tpScenarioRanking);
+            this.tcScenario.Controls.Add(this.tbScenarioDetails);
             this.tcScenario.Controls.Add(this.tpCutSet);
             this.tcScenario.Controls.Add(this.tpPlots);
             this.tcScenario.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -234,6 +271,216 @@ namespace SandiaNationalLaboratories.Hyram {
             this.dgRanking.TabIndex = 0;
             this.dgRanking.SortCompare += new System.Windows.Forms.DataGridViewSortCompareEventHandler(this.dgRanking_SortCompare);
             // 
+            // ScenColRanking
+            // 
+            this.ScenColRanking.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            this.ScenColRanking.DefaultCellStyle = dataGridViewCellStyle4;
+            this.ScenColRanking.FillWeight = 162.6401F;
+            this.ScenColRanking.HeaderText = "Rank";
+            this.ScenColRanking.Name = "ScenColRanking";
+            this.ScenColRanking.ReadOnly = true;
+            this.ScenColRanking.Visible = false;
+            // 
+            // ScenColScenario
+            // 
+            this.ScenColScenario.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            this.ScenColScenario.DefaultCellStyle = dataGridViewCellStyle5;
+            this.ScenColScenario.FillWeight = 59.01513F;
+            this.ScenColScenario.HeaderText = "Scenario";
+            this.ScenColScenario.Name = "ScenColScenario";
+            this.ScenColScenario.ReadOnly = true;
+            // 
+            // ScenColEndStateType
+            // 
+            this.ScenColEndStateType.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            this.ScenColEndStateType.DefaultCellStyle = dataGridViewCellStyle6;
+            this.ScenColEndStateType.FillWeight = 59.01513F;
+            this.ScenColEndStateType.HeaderText = "Scenario Outcome";
+            this.ScenColEndStateType.Name = "ScenColEndStateType";
+            this.ScenColEndStateType.ReadOnly = true;
+            this.ScenColEndStateType.Width = 123;
+            // 
+            // ScenColAvgEvents
+            // 
+            this.ScenColAvgEvents.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.ScenColAvgEvents.DefaultCellStyle = dataGridViewCellStyle7;
+            this.ScenColAvgEvents.FillWeight = 59.01513F;
+            this.ScenColAvgEvents.HeaderText = "Average Events / Year";
+            this.ScenColAvgEvents.Name = "ScenColAvgEvents";
+            this.ScenColAvgEvents.ReadOnly = true;
+            this.ScenColAvgEvents.Width = 114;
+            // 
+            // ScenColBranchLineProb
+            // 
+            this.ScenColBranchLineProb.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.ScenColBranchLineProb.DefaultCellStyle = dataGridViewCellStyle8;
+            this.ScenColBranchLineProb.FillWeight = 59.01513F;
+            this.ScenColBranchLineProb.HeaderText = "Branch Line Probability";
+            this.ScenColBranchLineProb.Name = "ScenColBranchLineProb";
+            this.ScenColBranchLineProb.ReadOnly = true;
+            this.ScenColBranchLineProb.Width = 144;
+            // 
+            // ScenColPLL
+            // 
+            this.ScenColPLL.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.ScenColPLL.DefaultCellStyle = dataGridViewCellStyle9;
+            this.ScenColPLL.FillWeight = 59.01513F;
+            this.ScenColPLL.HeaderText = "Risk (PLL) Contribution";
+            this.ScenColPLL.Name = "ScenColPLL";
+            this.ScenColPLL.ReadOnly = true;
+            this.ScenColPLL.Width = 144;
+            // 
+            // tbScenarioDetails
+            // 
+            this.tbScenarioDetails.Controls.Add(this.tableLayoutPanel2);
+            this.tbScenarioDetails.Location = new System.Drawing.Point(4, 26);
+            this.tbScenarioDetails.Name = "tbScenarioDetails";
+            this.tbScenarioDetails.Size = new System.Drawing.Size(859, 589);
+            this.tbScenarioDetails.TabIndex = 7;
+            this.tbScenarioDetails.Text = "Scenario Details";
+            this.tbScenarioDetails.UseVisualStyleBackColor = true;
+            // 
+            // tableLayoutPanel2
+            // 
+            this.tableLayoutPanel2.ColumnCount = 1;
+            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.tableLayoutPanel2.Controls.Add(this.detailsLeakGrid, 0, 1);
+            this.tableLayoutPanel2.Controls.Add(this.detailsOutcomeGrid, 0, 4);
+            this.tableLayoutPanel2.Controls.Add(this.label1, 0, 0);
+            this.tableLayoutPanel2.Controls.Add(this.label2, 0, 3);
+            this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(0, 0);
+            this.tableLayoutPanel2.Name = "tableLayoutPanel2";
+            this.tableLayoutPanel2.RowCount = 6;
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 5F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 30F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 5F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 5F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 30F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(859, 589);
+            this.tableLayoutPanel2.TabIndex = 0;
+            // 
+            // detailsLeakGrid
+            // 
+            this.detailsLeakGrid.AllowUserToAddRows = false;
+            this.detailsLeakGrid.AllowUserToDeleteRows = false;
+            this.detailsLeakGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.detailsLeakGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.detailsLeakGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.leakSize,
+            this.massFlowRate,
+            this.leakDiameter});
+            this.detailsLeakGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.detailsLeakGrid.Location = new System.Drawing.Point(3, 32);
+            this.detailsLeakGrid.Name = "detailsLeakGrid";
+            this.detailsLeakGrid.ReadOnly = true;
+            this.detailsLeakGrid.Size = new System.Drawing.Size(853, 170);
+            this.detailsLeakGrid.TabIndex = 0;
+            // 
+            // leakSize
+            // 
+            dataGridViewCellStyle10.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.leakSize.DefaultCellStyle = dataGridViewCellStyle10;
+            this.leakSize.HeaderText = "Leak Size";
+            this.leakSize.Name = "leakSize";
+            this.leakSize.ReadOnly = true;
+            // 
+            // massFlowRate
+            // 
+            this.massFlowRate.HeaderText = "Mass Flow Rate (kg/s)";
+            this.massFlowRate.Name = "massFlowRate";
+            this.massFlowRate.ReadOnly = true;
+            // 
+            // leakDiameter
+            // 
+            this.leakDiameter.HeaderText = "Leak Diameter (m)";
+            this.leakDiameter.Name = "leakDiameter";
+            this.leakDiameter.ReadOnly = true;
+            // 
+            // detailsOutcomeGrid
+            // 
+            this.detailsOutcomeGrid.AllowUserToAddRows = false;
+            this.detailsOutcomeGrid.AllowUserToDeleteRows = false;
+            this.detailsOutcomeGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.detailsOutcomeGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.detailsOutcomeGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.outcome,
+            this.leak000d01,
+            this.leak000d10,
+            this.leak001d00,
+            this.leak010d00,
+            this.leak100d00});
+            this.detailsOutcomeGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.detailsOutcomeGrid.Location = new System.Drawing.Point(3, 266);
+            this.detailsOutcomeGrid.Name = "detailsOutcomeGrid";
+            this.detailsOutcomeGrid.Size = new System.Drawing.Size(853, 170);
+            this.detailsOutcomeGrid.TabIndex = 1;
+            // 
+            // outcome
+            // 
+            dataGridViewCellStyle11.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.outcome.DefaultCellStyle = dataGridViewCellStyle11;
+            this.outcome.HeaderText = "Scenario Outcome";
+            this.outcome.Name = "outcome";
+            this.outcome.ReadOnly = true;
+            // 
+            // leak000d01
+            // 
+            this.leak000d01.HeaderText = "0.01% Release";
+            this.leak000d01.Name = "leak000d01";
+            this.leak000d01.ReadOnly = true;
+            // 
+            // leak000d10
+            // 
+            this.leak000d10.HeaderText = "0.10% Release";
+            this.leak000d10.Name = "leak000d10";
+            this.leak000d10.ReadOnly = true;
+            // 
+            // leak001d00
+            // 
+            this.leak001d00.HeaderText = "1.00% Release";
+            this.leak001d00.Name = "leak001d00";
+            this.leak001d00.ReadOnly = true;
+            // 
+            // leak010d00
+            // 
+            this.leak010d00.HeaderText = "10.00% Release";
+            this.leak010d00.Name = "leak010d00";
+            this.leak010d00.ReadOnly = true;
+            // 
+            // leak100d00
+            // 
+            this.leak100d00.HeaderText = "100.00% Release";
+            this.leak100d00.Name = "leak100d00";
+            this.leak100d00.ReadOnly = true;
+            // 
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(3, 14);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(127, 15);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "Leak Scenario Details";
+            // 
+            // label2
+            // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(3, 248);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(158, 15);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "Leak Outcome Probabilities";
+            // 
             // tpCutSet
             // 
             this.tpCutSet.Controls.Add(this.tableLayoutPanel1);
@@ -306,12 +553,31 @@ namespace SandiaNationalLaboratories.Hyram {
             this.CutSetDGV000d01.Size = new System.Drawing.Size(845, 527);
             this.CutSetDGV000d01.TabIndex = 0;
             // 
+            // ColRank000d01
+            // 
+            this.ColRank000d01.HeaderText = "Ranking";
+            this.ColRank000d01.Name = "ColRank000d01";
+            this.ColRank000d01.ReadOnly = true;
+            this.ColRank000d01.Visible = false;
+            // 
+            // ColCS000d01
+            // 
+            this.ColCS000d01.HeaderText = "Cut Set";
+            this.ColCS000d01.Name = "ColCS000d01";
+            this.ColCS000d01.ReadOnly = true;
+            // 
+            // ColProb000d01
+            // 
+            this.ColProb000d01.HeaderText = "Annual Frequency";
+            this.ColProb000d01.Name = "ColProb000d01";
+            this.ColProb000d01.ReadOnly = true;
+            // 
             // CutSet000d10
             // 
             this.CutSet000d10.Controls.Add(this.CutSetDGV000d10);
             this.CutSet000d10.Location = new System.Drawing.Point(4, 24);
             this.CutSet000d10.Name = "CutSet000d10";
-            this.CutSet000d10.Size = new System.Drawing.Size(845, 527);
+            this.CutSet000d10.Size = new System.Drawing.Size(178, 31);
             this.CutSet000d10.TabIndex = 1;
             this.CutSet000d10.Text = "0.1% Leak";
             this.CutSet000d10.UseVisualStyleBackColor = true;
@@ -332,15 +598,34 @@ namespace SandiaNationalLaboratories.Hyram {
             this.CutSetDGV000d10.Location = new System.Drawing.Point(0, 0);
             this.CutSetDGV000d10.Name = "CutSetDGV000d10";
             this.CutSetDGV000d10.ReadOnly = true;
-            this.CutSetDGV000d10.Size = new System.Drawing.Size(845, 527);
+            this.CutSetDGV000d10.Size = new System.Drawing.Size(178, 31);
             this.CutSetDGV000d10.TabIndex = 1;
+            // 
+            // dataGridViewTextBoxColumn1
+            // 
+            this.dataGridViewTextBoxColumn1.HeaderText = "Ranking";
+            this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
+            this.dataGridViewTextBoxColumn1.ReadOnly = true;
+            this.dataGridViewTextBoxColumn1.Visible = false;
+            // 
+            // dataGridViewTextBoxColumn2
+            // 
+            this.dataGridViewTextBoxColumn2.HeaderText = "Cut Set";
+            this.dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
+            this.dataGridViewTextBoxColumn2.ReadOnly = true;
+            // 
+            // dataGridViewTextBoxColumn3
+            // 
+            this.dataGridViewTextBoxColumn3.HeaderText = "Annual Frequency";
+            this.dataGridViewTextBoxColumn3.Name = "dataGridViewTextBoxColumn3";
+            this.dataGridViewTextBoxColumn3.ReadOnly = true;
             // 
             // CutSet001d00
             // 
             this.CutSet001d00.Controls.Add(this.CutSetDGV001d00);
             this.CutSet001d00.Location = new System.Drawing.Point(4, 24);
             this.CutSet001d00.Name = "CutSet001d00";
-            this.CutSet001d00.Size = new System.Drawing.Size(845, 527);
+            this.CutSet001d00.Size = new System.Drawing.Size(178, 31);
             this.CutSet001d00.TabIndex = 2;
             this.CutSet001d00.Text = "1% Leak";
             this.CutSet001d00.UseVisualStyleBackColor = true;
@@ -361,15 +646,34 @@ namespace SandiaNationalLaboratories.Hyram {
             this.CutSetDGV001d00.Location = new System.Drawing.Point(0, 0);
             this.CutSetDGV001d00.Name = "CutSetDGV001d00";
             this.CutSetDGV001d00.ReadOnly = true;
-            this.CutSetDGV001d00.Size = new System.Drawing.Size(845, 527);
+            this.CutSetDGV001d00.Size = new System.Drawing.Size(178, 31);
             this.CutSetDGV001d00.TabIndex = 2;
+            // 
+            // dataGridViewTextBoxColumn4
+            // 
+            this.dataGridViewTextBoxColumn4.HeaderText = "Ranking";
+            this.dataGridViewTextBoxColumn4.Name = "dataGridViewTextBoxColumn4";
+            this.dataGridViewTextBoxColumn4.ReadOnly = true;
+            this.dataGridViewTextBoxColumn4.Visible = false;
+            // 
+            // dataGridViewTextBoxColumn5
+            // 
+            this.dataGridViewTextBoxColumn5.HeaderText = "Cut Set";
+            this.dataGridViewTextBoxColumn5.Name = "dataGridViewTextBoxColumn5";
+            this.dataGridViewTextBoxColumn5.ReadOnly = true;
+            // 
+            // dataGridViewTextBoxColumn6
+            // 
+            this.dataGridViewTextBoxColumn6.HeaderText = "Annual Frequency";
+            this.dataGridViewTextBoxColumn6.Name = "dataGridViewTextBoxColumn6";
+            this.dataGridViewTextBoxColumn6.ReadOnly = true;
             // 
             // CutSet010d00
             // 
             this.CutSet010d00.Controls.Add(this.CutSetDGV010d00);
             this.CutSet010d00.Location = new System.Drawing.Point(4, 24);
             this.CutSet010d00.Name = "CutSet010d00";
-            this.CutSet010d00.Size = new System.Drawing.Size(845, 527);
+            this.CutSet010d00.Size = new System.Drawing.Size(178, 31);
             this.CutSet010d00.TabIndex = 3;
             this.CutSet010d00.Text = "10% Leak";
             this.CutSet010d00.UseVisualStyleBackColor = true;
@@ -390,15 +694,34 @@ namespace SandiaNationalLaboratories.Hyram {
             this.CutSetDGV010d00.Location = new System.Drawing.Point(0, 0);
             this.CutSetDGV010d00.Name = "CutSetDGV010d00";
             this.CutSetDGV010d00.ReadOnly = true;
-            this.CutSetDGV010d00.Size = new System.Drawing.Size(845, 527);
+            this.CutSetDGV010d00.Size = new System.Drawing.Size(178, 31);
             this.CutSetDGV010d00.TabIndex = 2;
+            // 
+            // dataGridViewTextBoxColumn7
+            // 
+            this.dataGridViewTextBoxColumn7.HeaderText = "Ranking";
+            this.dataGridViewTextBoxColumn7.Name = "dataGridViewTextBoxColumn7";
+            this.dataGridViewTextBoxColumn7.ReadOnly = true;
+            this.dataGridViewTextBoxColumn7.Visible = false;
+            // 
+            // dataGridViewTextBoxColumn8
+            // 
+            this.dataGridViewTextBoxColumn8.HeaderText = "Cut Set";
+            this.dataGridViewTextBoxColumn8.Name = "dataGridViewTextBoxColumn8";
+            this.dataGridViewTextBoxColumn8.ReadOnly = true;
+            // 
+            // dataGridViewTextBoxColumn9
+            // 
+            this.dataGridViewTextBoxColumn9.HeaderText = "Annual Frequency";
+            this.dataGridViewTextBoxColumn9.Name = "dataGridViewTextBoxColumn9";
+            this.dataGridViewTextBoxColumn9.ReadOnly = true;
             // 
             // CutSet100d00
             // 
             this.CutSet100d00.Controls.Add(this.CutSetDGV100d00);
             this.CutSet100d00.Location = new System.Drawing.Point(4, 24);
             this.CutSet100d00.Name = "CutSet100d00";
-            this.CutSet100d00.Size = new System.Drawing.Size(845, 527);
+            this.CutSet100d00.Size = new System.Drawing.Size(178, 31);
             this.CutSet100d00.TabIndex = 4;
             this.CutSet100d00.Text = "100% Leak";
             this.CutSet100d00.UseVisualStyleBackColor = true;
@@ -419,8 +742,27 @@ namespace SandiaNationalLaboratories.Hyram {
             this.CutSetDGV100d00.Location = new System.Drawing.Point(0, 0);
             this.CutSetDGV100d00.Name = "CutSetDGV100d00";
             this.CutSetDGV100d00.ReadOnly = true;
-            this.CutSetDGV100d00.Size = new System.Drawing.Size(845, 527);
+            this.CutSetDGV100d00.Size = new System.Drawing.Size(178, 31);
             this.CutSetDGV100d00.TabIndex = 2;
+            // 
+            // dataGridViewTextBoxColumn10
+            // 
+            this.dataGridViewTextBoxColumn10.HeaderText = "Ranking";
+            this.dataGridViewTextBoxColumn10.Name = "dataGridViewTextBoxColumn10";
+            this.dataGridViewTextBoxColumn10.ReadOnly = true;
+            this.dataGridViewTextBoxColumn10.Visible = false;
+            // 
+            // dataGridViewTextBoxColumn11
+            // 
+            this.dataGridViewTextBoxColumn11.HeaderText = "Cut Set";
+            this.dataGridViewTextBoxColumn11.Name = "dataGridViewTextBoxColumn11";
+            this.dataGridViewTextBoxColumn11.ReadOnly = true;
+            // 
+            // dataGridViewTextBoxColumn12
+            // 
+            this.dataGridViewTextBoxColumn12.HeaderText = "Annual Frequency";
+            this.dataGridViewTextBoxColumn12.Name = "dataGridViewTextBoxColumn12";
+            this.dataGridViewTextBoxColumn12.ReadOnly = true;
             // 
             // textBox3
             // 
@@ -441,7 +783,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tpPlots.Padding = new System.Windows.Forms.Padding(3);
             this.tpPlots.Size = new System.Drawing.Size(859, 589);
             this.tpPlots.TabIndex = 5;
-            this.tpPlots.Text = "Plots";
+            this.tpPlots.Text = "Thermal Effects";
             this.tpPlots.UseVisualStyleBackColor = true;
             // 
             // tcPositionPlots
@@ -451,6 +793,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tcPositionPlots.Controls.Add(this.tpPositionPlot3);
             this.tcPositionPlots.Controls.Add(this.tpPositionPlot4);
             this.tcPositionPlots.Controls.Add(this.tpPositionPlot5);
+            this.tcPositionPlots.Controls.Add(this.positionData);
             this.tcPositionPlots.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tcPositionPlots.Location = new System.Drawing.Point(3, 3);
             this.tcPositionPlots.Name = "tcPositionPlots";
@@ -560,166 +903,114 @@ namespace SandiaNationalLaboratories.Hyram {
             this.pbPositionPlot100d00.TabIndex = 1;
             this.pbPositionPlot100d00.TabStop = false;
             // 
-            // ColRank000d01
+            // positionData
             // 
-            this.ColRank000d01.HeaderText = "Ranking";
-            this.ColRank000d01.Name = "ColRank000d01";
-            this.ColRank000d01.ReadOnly = true;
-            this.ColRank000d01.Visible = false;
+            this.positionData.Controls.Add(this.tableLayoutPanel3);
+            this.positionData.Location = new System.Drawing.Point(4, 24);
+            this.positionData.Name = "positionData";
+            this.positionData.Padding = new System.Windows.Forms.Padding(3);
+            this.positionData.Size = new System.Drawing.Size(178, 36);
+            this.positionData.TabIndex = 5;
+            this.positionData.Text = "Position Data";
+            this.positionData.UseVisualStyleBackColor = true;
             // 
-            // ColCS000d01
+            // tableLayoutPanel3
             // 
-            this.ColCS000d01.HeaderText = "Cut Set";
-            this.ColCS000d01.Name = "ColCS000d01";
-            this.ColCS000d01.ReadOnly = true;
+            this.tableLayoutPanel3.ColumnCount = 1;
+            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel3.Controls.Add(this.positionDataGrid, 0, 1);
+            this.tableLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel3.Location = new System.Drawing.Point(3, 3);
+            this.tableLayoutPanel3.Name = "tableLayoutPanel3";
+            this.tableLayoutPanel3.RowCount = 3;
+            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 5F));
+            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 70F));
+            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableLayoutPanel3.Size = new System.Drawing.Size(172, 30);
+            this.tableLayoutPanel3.TabIndex = 0;
             // 
-            // ColProb000d01
+            // positionDataGrid
             // 
-            this.ColProb000d01.HeaderText = "Annual Frequency";
-            this.ColProb000d01.Name = "ColProb000d01";
-            this.ColProb000d01.ReadOnly = true;
+            this.positionDataGrid.AllowUserToAddRows = false;
+            this.positionDataGrid.AllowUserToDeleteRows = false;
+            this.positionDataGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.positionDataGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.positionDataGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.position,
+            this.x,
+            this.y,
+            this.z,
+            this.flux000d01,
+            this.flux000d10,
+            this.flux001d00,
+            this.flux010d00,
+            this.flux100d00});
+            this.positionDataGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.positionDataGrid.Location = new System.Drawing.Point(3, 4);
+            this.positionDataGrid.Name = "positionDataGrid";
+            this.positionDataGrid.ReadOnly = true;
+            this.positionDataGrid.Size = new System.Drawing.Size(166, 15);
+            this.positionDataGrid.TabIndex = 0;
             // 
-            // dataGridViewTextBoxColumn1
+            // position
             // 
-            this.dataGridViewTextBoxColumn1.HeaderText = "Ranking";
-            this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
-            this.dataGridViewTextBoxColumn1.ReadOnly = true;
-            this.dataGridViewTextBoxColumn1.Visible = false;
+            this.position.HeaderText = "Position";
+            this.position.Name = "position";
+            this.position.ReadOnly = true;
             // 
-            // dataGridViewTextBoxColumn2
+            // x
             // 
-            this.dataGridViewTextBoxColumn2.HeaderText = "Cut Set";
-            this.dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
-            this.dataGridViewTextBoxColumn2.ReadOnly = true;
+            this.x.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.x.HeaderText = "x (m)";
+            this.x.Name = "x";
+            this.x.ReadOnly = true;
+            this.x.Width = 56;
             // 
-            // dataGridViewTextBoxColumn3
+            // y
             // 
-            this.dataGridViewTextBoxColumn3.HeaderText = "Annual Frequency";
-            this.dataGridViewTextBoxColumn3.Name = "dataGridViewTextBoxColumn3";
-            this.dataGridViewTextBoxColumn3.ReadOnly = true;
+            this.y.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.y.HeaderText = "y (m)";
+            this.y.Name = "y";
+            this.y.ReadOnly = true;
+            this.y.Width = 55;
             // 
-            // dataGridViewTextBoxColumn4
+            // z
             // 
-            this.dataGridViewTextBoxColumn4.HeaderText = "Ranking";
-            this.dataGridViewTextBoxColumn4.Name = "dataGridViewTextBoxColumn4";
-            this.dataGridViewTextBoxColumn4.ReadOnly = true;
-            this.dataGridViewTextBoxColumn4.Visible = false;
+            this.z.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.z.HeaderText = "z (m)";
+            this.z.Name = "z";
+            this.z.ReadOnly = true;
+            this.z.Width = 56;
             // 
-            // dataGridViewTextBoxColumn5
+            // flux000d01
             // 
-            this.dataGridViewTextBoxColumn5.HeaderText = "Cut Set";
-            this.dataGridViewTextBoxColumn5.Name = "dataGridViewTextBoxColumn5";
-            this.dataGridViewTextBoxColumn5.ReadOnly = true;
+            this.flux000d01.HeaderText = "0.01% Leak Heat Flux (kW/m2)";
+            this.flux000d01.Name = "flux000d01";
+            this.flux000d01.ReadOnly = true;
             // 
-            // dataGridViewTextBoxColumn6
+            // flux000d10
             // 
-            this.dataGridViewTextBoxColumn6.HeaderText = "Annual Frequency";
-            this.dataGridViewTextBoxColumn6.Name = "dataGridViewTextBoxColumn6";
-            this.dataGridViewTextBoxColumn6.ReadOnly = true;
+            this.flux000d10.HeaderText = "0.1% Leak Heat Flux (kW/m2)";
+            this.flux000d10.Name = "flux000d10";
+            this.flux000d10.ReadOnly = true;
             // 
-            // dataGridViewTextBoxColumn7
+            // flux001d00
             // 
-            this.dataGridViewTextBoxColumn7.HeaderText = "Ranking";
-            this.dataGridViewTextBoxColumn7.Name = "dataGridViewTextBoxColumn7";
-            this.dataGridViewTextBoxColumn7.ReadOnly = true;
-            this.dataGridViewTextBoxColumn7.Visible = false;
+            this.flux001d00.HeaderText = "1% Leak Heat Flux (kW/m2)";
+            this.flux001d00.Name = "flux001d00";
+            this.flux001d00.ReadOnly = true;
             // 
-            // dataGridViewTextBoxColumn8
+            // flux010d00
             // 
-            this.dataGridViewTextBoxColumn8.HeaderText = "Cut Set";
-            this.dataGridViewTextBoxColumn8.Name = "dataGridViewTextBoxColumn8";
-            this.dataGridViewTextBoxColumn8.ReadOnly = true;
+            this.flux010d00.HeaderText = "10% Leak Heat Flux (kW/m2)";
+            this.flux010d00.Name = "flux010d00";
+            this.flux010d00.ReadOnly = true;
             // 
-            // dataGridViewTextBoxColumn9
+            // flux100d00
             // 
-            this.dataGridViewTextBoxColumn9.HeaderText = "Annual Frequency";
-            this.dataGridViewTextBoxColumn9.Name = "dataGridViewTextBoxColumn9";
-            this.dataGridViewTextBoxColumn9.ReadOnly = true;
-            // 
-            // dataGridViewTextBoxColumn10
-            // 
-            this.dataGridViewTextBoxColumn10.HeaderText = "Ranking";
-            this.dataGridViewTextBoxColumn10.Name = "dataGridViewTextBoxColumn10";
-            this.dataGridViewTextBoxColumn10.ReadOnly = true;
-            this.dataGridViewTextBoxColumn10.Visible = false;
-            // 
-            // dataGridViewTextBoxColumn11
-            // 
-            this.dataGridViewTextBoxColumn11.HeaderText = "Cut Set";
-            this.dataGridViewTextBoxColumn11.Name = "dataGridViewTextBoxColumn11";
-            this.dataGridViewTextBoxColumn11.ReadOnly = true;
-            // 
-            // dataGridViewTextBoxColumn12
-            // 
-            this.dataGridViewTextBoxColumn12.HeaderText = "Annual Frequency";
-            this.dataGridViewTextBoxColumn12.Name = "dataGridViewTextBoxColumn12";
-            this.dataGridViewTextBoxColumn12.ReadOnly = true;
-            // 
-            // ScenColRanking
-            // 
-            this.ScenColRanking.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            this.ScenColRanking.DefaultCellStyle = dataGridViewCellStyle4;
-            this.ScenColRanking.FillWeight = 162.6401F;
-            this.ScenColRanking.HeaderText = "Rank";
-            this.ScenColRanking.Name = "ScenColRanking";
-            this.ScenColRanking.ReadOnly = true;
-            this.ScenColRanking.Visible = false;
-            this.ScenColRanking.Width = 61;
-            // 
-            // ScenColScenario
-            // 
-            this.ScenColScenario.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            this.ScenColScenario.DefaultCellStyle = dataGridViewCellStyle5;
-            this.ScenColScenario.FillWeight = 59.01513F;
-            this.ScenColScenario.HeaderText = "Scenario";
-            this.ScenColScenario.Name = "ScenColScenario";
-            this.ScenColScenario.ReadOnly = true;
-            // 
-            // ScenColEndStateType
-            // 
-            this.ScenColEndStateType.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            this.ScenColEndStateType.DefaultCellStyle = dataGridViewCellStyle6;
-            this.ScenColEndStateType.FillWeight = 59.01513F;
-            this.ScenColEndStateType.HeaderText = "Scenario Outcome";
-            this.ScenColEndStateType.Name = "ScenColEndStateType";
-            this.ScenColEndStateType.ReadOnly = true;
-            this.ScenColEndStateType.Width = 134;
-            // 
-            // ScenColAvgEvents
-            // 
-            this.ScenColAvgEvents.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.ScenColAvgEvents.DefaultCellStyle = dataGridViewCellStyle7;
-            this.ScenColAvgEvents.FillWeight = 59.01513F;
-            this.ScenColAvgEvents.HeaderText = "Average Events / Year";
-            this.ScenColAvgEvents.Name = "ScenColAvgEvents";
-            this.ScenColAvgEvents.ReadOnly = true;
-            this.ScenColAvgEvents.Width = 114;
-            // 
-            // ScenColBranchLineProb
-            // 
-            this.ScenColBranchLineProb.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.ScenColBranchLineProb.DefaultCellStyle = dataGridViewCellStyle8;
-            this.ScenColBranchLineProb.FillWeight = 59.01513F;
-            this.ScenColBranchLineProb.HeaderText = "Branch Line Probability";
-            this.ScenColBranchLineProb.Name = "ScenColBranchLineProb";
-            this.ScenColBranchLineProb.ReadOnly = true;
-            this.ScenColBranchLineProb.Width = 144;
-            // 
-            // ScenColPLL
-            // 
-            this.ScenColPLL.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.ScenColPLL.DefaultCellStyle = dataGridViewCellStyle9;
-            this.ScenColPLL.FillWeight = 59.01513F;
-            this.ScenColPLL.HeaderText = "Risk (PLL) Contribution";
-            this.ScenColPLL.Name = "ScenColPLL";
-            this.ScenColPLL.ReadOnly = true;
-            this.ScenColPLL.Width = 144;
+            this.flux100d00.HeaderText = "100% Leak Heat Flux (kW/m2)";
+            this.flux100d00.Name = "flux100d00";
+            this.flux100d00.ReadOnly = true;
             // 
             // QraResultsPanel
             // 
@@ -733,6 +1024,11 @@ namespace SandiaNationalLaboratories.Hyram {
             ((System.ComponentModel.ISupportInitialize)(this.dgRiskMetrics)).EndInit();
             this.tpScenarioRanking.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgRanking)).EndInit();
+            this.tbScenarioDetails.ResumeLayout(false);
+            this.tableLayoutPanel2.ResumeLayout(false);
+            this.tableLayoutPanel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.detailsLeakGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.detailsOutcomeGrid)).EndInit();
             this.tpCutSet.ResumeLayout(false);
             this.tpCutSet.PerformLayout();
             this.tableLayoutPanel1.ResumeLayout(false);
@@ -760,6 +1056,9 @@ namespace SandiaNationalLaboratories.Hyram {
             ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot010d00)).EndInit();
             this.tpPositionPlot5.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot100d00)).EndInit();
+            this.positionData.ResumeLayout(false);
+            this.tableLayoutPanel3.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.positionDataGrid)).EndInit();
             this.ResumeLayout(false);
 
 		}
@@ -821,5 +1120,32 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.DataGridViewTextBoxColumn ScenColAvgEvents;
         private System.Windows.Forms.DataGridViewTextBoxColumn ScenColBranchLineProb;
         private System.Windows.Forms.DataGridViewTextBoxColumn ScenColPLL;
+        private System.Windows.Forms.TabPage tbScenarioDetails;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
+        private System.Windows.Forms.DataGridView detailsLeakGrid;
+        private System.Windows.Forms.DataGridView detailsOutcomeGrid;
+        private System.Windows.Forms.DataGridViewTextBoxColumn leakSize;
+        private System.Windows.Forms.DataGridViewTextBoxColumn massFlowRate;
+        private System.Windows.Forms.DataGridViewTextBoxColumn leakDiameter;
+        private System.Windows.Forms.DataGridViewTextBoxColumn outcome;
+        private System.Windows.Forms.DataGridViewTextBoxColumn leak000d01;
+        private System.Windows.Forms.DataGridViewTextBoxColumn leak000d10;
+        private System.Windows.Forms.DataGridViewTextBoxColumn leak001d00;
+        private System.Windows.Forms.DataGridViewTextBoxColumn leak010d00;
+        private System.Windows.Forms.DataGridViewTextBoxColumn leak100d00;
+        private System.Windows.Forms.TabPage positionData;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
+        private System.Windows.Forms.DataGridView positionDataGrid;
+        private System.Windows.Forms.DataGridViewTextBoxColumn position;
+        private System.Windows.Forms.DataGridViewTextBoxColumn x;
+        private System.Windows.Forms.DataGridViewTextBoxColumn y;
+        private System.Windows.Forms.DataGridViewTextBoxColumn z;
+        private System.Windows.Forms.DataGridViewTextBoxColumn flux000d01;
+        private System.Windows.Forms.DataGridViewTextBoxColumn flux000d10;
+        private System.Windows.Forms.DataGridViewTextBoxColumn flux001d00;
+        private System.Windows.Forms.DataGridViewTextBoxColumn flux010d00;
+        private System.Windows.Forms.DataGridViewTextBoxColumn flux100d00;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
     }
 }

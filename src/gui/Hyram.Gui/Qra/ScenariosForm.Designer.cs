@@ -39,6 +39,7 @@
             this.tpFTLeak100d00 = new System.Windows.Forms.TabPage();
             this.pictureBox4 = new System.Windows.Forms.PictureBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.formWarning = new System.Windows.Forms.Label();
             this.tcScenarios.SuspendLayout();
             this.tpEventSequenceDiagrams.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbGenericESD)).BeginInit();
@@ -58,15 +59,17 @@
             // 
             // tcScenarios
             // 
+            this.tcScenarios.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tcScenarios.Controls.Add(this.tpEventSequenceDiagrams);
             this.tcScenarios.Controls.Add(this.tpFaultTrees);
-            this.tcScenarios.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tcScenarios.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tcScenarios.Location = new System.Drawing.Point(0, 0);
             this.tcScenarios.Name = "tcScenarios";
             this.tcScenarios.Padding = new System.Drawing.Point(8, 4);
             this.tcScenarios.SelectedIndex = 0;
-            this.tcScenarios.Size = new System.Drawing.Size(983, 605);
+            this.tcScenarios.Size = new System.Drawing.Size(990, 517);
             this.tcScenarios.TabIndex = 3;
             // 
             // tpEventSequenceDiagrams
@@ -76,7 +79,7 @@
             this.tpEventSequenceDiagrams.Location = new System.Drawing.Point(4, 26);
             this.tpEventSequenceDiagrams.Name = "tpEventSequenceDiagrams";
             this.tpEventSequenceDiagrams.Padding = new System.Windows.Forms.Padding(3);
-            this.tpEventSequenceDiagrams.Size = new System.Drawing.Size(975, 575);
+            this.tpEventSequenceDiagrams.Size = new System.Drawing.Size(982, 487);
             this.tpEventSequenceDiagrams.TabIndex = 0;
             this.tpEventSequenceDiagrams.Text = "Event Tree";
             this.tpEventSequenceDiagrams.UseVisualStyleBackColor = true;
@@ -87,8 +90,8 @@
             this.pbGenericESD.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ESD_2020;
             this.pbGenericESD.Location = new System.Drawing.Point(3, 3);
             this.pbGenericESD.Name = "pbGenericESD";
-            this.pbGenericESD.Size = new System.Drawing.Size(969, 569);
-            this.pbGenericESD.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pbGenericESD.Size = new System.Drawing.Size(976, 481);
+            this.pbGenericESD.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pbGenericESD.TabIndex = 0;
             this.pbGenericESD.TabStop = false;
             // 
@@ -101,7 +104,7 @@
             this.tpFaultTrees.Location = new System.Drawing.Point(4, 26);
             this.tpFaultTrees.Name = "tpFaultTrees";
             this.tpFaultTrees.Padding = new System.Windows.Forms.Padding(3);
-            this.tpFaultTrees.Size = new System.Drawing.Size(975, 575);
+            this.tpFaultTrees.Size = new System.Drawing.Size(982, 487);
             this.tpFaultTrees.TabIndex = 1;
             this.tpFaultTrees.Text = "Fault Trees";
             // 
@@ -120,7 +123,7 @@
             this.tcFaultTrees.Name = "tcFaultTrees";
             this.tcFaultTrees.Padding = new System.Drawing.Point(6, 4);
             this.tcFaultTrees.SelectedIndex = 0;
-            this.tcFaultTrees.Size = new System.Drawing.Size(969, 542);
+            this.tcFaultTrees.Size = new System.Drawing.Size(976, 454);
             this.tcFaultTrees.TabIndex = 0;
             // 
             // tpFTLeak000d01
@@ -130,7 +133,7 @@
             this.tpFTLeak000d01.Location = new System.Drawing.Point(4, 26);
             this.tpFTLeak000d01.Margin = new System.Windows.Forms.Padding(2);
             this.tpFTLeak000d01.Name = "tpFTLeak000d01";
-            this.tpFTLeak000d01.Size = new System.Drawing.Size(961, 512);
+            this.tpFTLeak000d01.Size = new System.Drawing.Size(968, 424);
             this.tpFTLeak000d01.TabIndex = 8;
             this.tpFTLeak000d01.Text = "0.01% Leak";
             // 
@@ -140,7 +143,7 @@
             this.pictureBox1.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ft0p01pct_2020;
             this.pictureBox1.Location = new System.Drawing.Point(0, 0);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(961, 512);
+            this.pictureBox1.Size = new System.Drawing.Size(968, 424);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 4;
             this.pictureBox1.TabStop = false;
@@ -247,13 +250,31 @@
             this.label1.TabIndex = 1;
             this.label1.Text = "Fault Trees for each leak size";
             // 
+            // formWarning
+            // 
+            this.formWarning.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.formWarning.AutoSize = true;
+            this.formWarning.BackColor = System.Drawing.Color.Cornsilk;
+            this.formWarning.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.formWarning.ForeColor = System.Drawing.Color.DarkGoldenrod;
+            this.formWarning.Location = new System.Drawing.Point(4, 516);
+            this.formWarning.MaximumSize = new System.Drawing.Size(700, 0);
+            this.formWarning.Name = "formWarning";
+            this.formWarning.Padding = new System.Windows.Forms.Padding(4);
+            this.formWarning.Size = new System.Drawing.Size(177, 23);
+            this.formWarning.TabIndex = 19;
+            this.formWarning.Text = "Errors and warnings here";
+            this.formWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.formWarning.Visible = false;
+            // 
             // ScenariosForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.formWarning);
             this.Controls.Add(this.tcScenarios);
             this.Name = "ScenariosForm";
-            this.Size = new System.Drawing.Size(983, 605);
+            this.Size = new System.Drawing.Size(990, 595);
             this.tcScenarios.ResumeLayout(false);
             this.tpEventSequenceDiagrams.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pbGenericESD)).EndInit();
@@ -271,6 +292,7 @@
             this.tpFTLeak100d00.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox4)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
 		}
 
@@ -292,5 +314,6 @@
         private System.Windows.Forms.PictureBox pictureBox6;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.Label formWarning;
     }
 }

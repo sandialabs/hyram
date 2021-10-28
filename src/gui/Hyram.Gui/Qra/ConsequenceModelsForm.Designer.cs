@@ -46,6 +46,7 @@
             this.exposureTimeLabel = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.overpressureProbitSelector = new System.Windows.Forms.ComboBox();
+            this.formWarning = new System.Windows.Forms.Label();
             this.modelSelectionTabControl.SuspendLayout();
             this.physicalConsequenceTab.SuspendLayout();
             this.consequenceInputsGroupBox.SuspendLayout();
@@ -76,14 +77,16 @@
             // 
             // modelSelectionTabControl
             // 
+            this.modelSelectionTabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.modelSelectionTabControl.Controls.Add(this.physicalConsequenceTab);
             this.modelSelectionTabControl.Controls.Add(this.fatalityConsequenceTab);
-            this.modelSelectionTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.modelSelectionTabControl.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.modelSelectionTabControl.Location = new System.Drawing.Point(0, 0);
             this.modelSelectionTabControl.Name = "modelSelectionTabControl";
             this.modelSelectionTabControl.SelectedIndex = 0;
-            this.modelSelectionTabControl.Size = new System.Drawing.Size(699, 645);
+            this.modelSelectionTabControl.Size = new System.Drawing.Size(990, 517);
             this.modelSelectionTabControl.TabIndex = 9;
             // 
             // physicalConsequenceTab
@@ -96,7 +99,7 @@
             this.physicalConsequenceTab.Location = new System.Drawing.Point(4, 24);
             this.physicalConsequenceTab.Name = "physicalConsequenceTab";
             this.physicalConsequenceTab.Padding = new System.Windows.Forms.Padding(3);
-            this.physicalConsequenceTab.Size = new System.Drawing.Size(691, 617);
+            this.physicalConsequenceTab.Size = new System.Drawing.Size(982, 489);
             this.physicalConsequenceTab.TabIndex = 0;
             this.physicalConsequenceTab.Text = "Physical Consequence Models";
             this.physicalConsequenceTab.UseVisualStyleBackColor = true;
@@ -291,13 +294,30 @@
             this.overpressureProbitSelector.TabIndex = 16;
             this.overpressureProbitSelector.SelectionChangeCommitted += new System.EventHandler(this.overpressureProbitSelector_SelectionChangeCommotted);
             // 
+            // formWarning
+            // 
+            this.formWarning.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.formWarning.AutoSize = true;
+            this.formWarning.BackColor = System.Drawing.Color.MistyRose;
+            this.formWarning.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.formWarning.ForeColor = System.Drawing.Color.Maroon;
+            this.formWarning.Location = new System.Drawing.Point(3, 520);
+            this.formWarning.MaximumSize = new System.Drawing.Size(700, 0);
+            this.formWarning.Name = "formWarning";
+            this.formWarning.Padding = new System.Windows.Forms.Padding(4);
+            this.formWarning.Size = new System.Drawing.Size(177, 23);
+            this.formWarning.TabIndex = 19;
+            this.formWarning.Text = "Errors and warnings here";
+            this.formWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // ConsequenceModelsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.formWarning);
             this.Controls.Add(this.modelSelectionTabControl);
             this.Name = "ConsequenceModelsForm";
-            this.Size = new System.Drawing.Size(699, 645);
+            this.Size = new System.Drawing.Size(990, 595);
             this.modelSelectionTabControl.ResumeLayout(false);
             this.physicalConsequenceTab.ResumeLayout(false);
             this.physicalConsequenceTab.PerformLayout();
@@ -306,6 +326,7 @@
             this.fatalityConsequenceTab.ResumeLayout(false);
             this.fatalityConsequenceTab.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
 		}
 
@@ -334,5 +355,6 @@
         private System.Windows.Forms.Label exposureTimeLabel;
         private System.Windows.Forms.ComboBox radiativeSourceSelector;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label formWarning;
     }
 }

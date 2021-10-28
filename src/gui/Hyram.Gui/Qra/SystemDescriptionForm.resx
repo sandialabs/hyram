@@ -173,7 +173,7 @@
   </metadata>
   <data name="textBox2.Text" xml:space="preserve">
     <value>
-Optional parameter overrides for leak-size hydrogen release and gas credit. If used, the release value override will supercede component-specific leak calculations.
+Optional parameter overrides for leak-size fuel release and gas credit. If used, the release value override will supercede component-specific leak calculations.
 The shutdown failure override replaces the shutdown and accident failure probabilities.
 Enter a value of -1 to disable the override and enable the default calculation method.
 </value>

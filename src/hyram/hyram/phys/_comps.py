@@ -1,35 +1,9 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
-
-You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with HyRAM+.
+If not, see https://www.gnu.org/licenses/.
 """
 
 from __future__ import print_function, absolute_import, division
@@ -67,8 +41,8 @@ class Fluid:
             velocity (m/s)
         species: string
             species (either formula or name - see CoolProp documentation)
-        phase: string
-            either 'gas' or 'liquid' if fluid is at the satrated state
+        phase: {None, 'gas', 'liquid'}
+            either 'gas' or 'liquid' if fluid is at the satrated state.
         '''
         if therm is None:
             therm = CoolPropWrapper(species)
@@ -118,7 +92,6 @@ class Fluid:
     def __repr__(self):
         return 'Gas\n%s\n  P = %.3f bar\n  T = %0.1f K\n  rho = %.3f kg/m^3)\n  v = %.1f m/s' % (
             30 * '-', self.P * 1e-5, self.T, self.rho, self.v)
-
 
 class Orifice:
     def __init__(self, d, Cd=1.):
@@ -171,7 +144,7 @@ class Orifice:
         -------
         Fluid object containing T, P, rho, v at the throat (orifice)
         '''
-        h0 = upstream_fluid.therm.h(T = upstream_fluid.T, D = upstream_fluid.rho)
+        h0 = upstream_fluid.therm.PropsSI('H', T = upstream_fluid.T, D = upstream_fluid.rho)
         h0 += upstream_fluid.v**2/2
         if upstream_fluid.v > 0:
             s0 = upstream_fluid.therm.PropsSI('S', H = h0, D = np.round(upstream_fluid.rho, 12))
@@ -195,7 +168,7 @@ class Orifice:
 
         def err_P_sonic(P):
             a = upstream_fluid.therm.a(P = P, S = s0)
-            h = upstream_fluid.therm.h(P = P, S = s0)
+            h = upstream_fluid.therm.PropsSI('H', P = P, S = s0)
             if 2 * (h0 + upstream_fluid.v ** 2 / 2. - h) > 0:
                 v = np.sqrt(2 * (h0 + upstream_fluid.v ** 2 / 2. - h))
             else:
@@ -220,6 +193,28 @@ class Orifice:
             fluid._choked = False
         return fluid
 
+    def compute_steady_state_mass_flow(self, fluid, amb_pres=101325.):
+        """
+        Calculate mass flow rate based on given conditions.
+
+        Parameters
+        ----------
+        fluid : Fluid
+            Release fluid object
+
+        amb_pres : float, optional
+            Ambient fluid pressure (Pa).
+
+        dis_coeff : float
+            Discharge coefficient to account for non-plug flow (always <=1, assumed to be 1 for plug flow).
+
+        Returns
+        ----------
+        mass_flow_rate : float
+            Mass flow rate (kg/s) of steady release.
+
+        """
+        return self.mdot(self.flow(fluid, amb_pres))
 
 class Source(object):
     """
@@ -308,7 +303,7 @@ class Source(object):
 
     def mdot(self, orifice, downstream_P=101325.):
         '''returns the mass flow rate through an orifice, from the current tank conditions'''
-        return orifice.mdot(orifice.flow(self.fluid, downstream_P))
+        return orifice.compute_steady_state_mass_flow(self.fluid, downstream_P)
 
     def _blowdown_gov_eqns(self, t, ind_vars, Vol, orifice, heat_flux, ambient_P):
         '''governing equations for energy balance on a tank (https://doi.org/10.1016/j.ijhydene.2011.12.047)
@@ -334,7 +329,8 @@ class Source(object):
         fluid = copy.copy(self.fluid)
         fluid.update(T=T, rho=rho)
         throat = orifice.flow(fluid, ambient_P)
-        h = therm.h(T = fluid.T, D = fluid.rho)
+        # h = therm.h(T = fluid.T, D = fluid.rho)
+        h = therm.PropsSI('H', T=fluid.T, D=fluid.rho)
         dm_dt = -orifice.mdot(throat)
         du_dt = 1. / m * (heat_flux + (h - U) * dm_dt)
         return np.array([dm_dt, du_dt])

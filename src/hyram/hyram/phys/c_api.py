@@ -1,35 +1,9 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
-
-You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with HyRAM+.
+If not, see https://www.gnu.org/licenses/.
 """
 
 import logging
@@ -121,7 +95,7 @@ def etk_compute_mass_flow_rate(species, temp, pres, phase, orif_diam,
     try:
         fluid = api.create_fluid(species, temp, pres, None, phase)
         result_dict = api.compute_mass_flow(fluid, orif_diam, amb_pres,
-                                            is_steady, tank_vol, dis_coeff, output_dir)
+                                            is_steady, tank_vol, dis_coeff, output_dir, create_plot=True)
         results["data"] = result_dict
         results["status"] = True
         log.info("RESULTS: {}".format(result_dict))
@@ -233,7 +207,7 @@ def etk_compute_thermo_param(species, temp, pres, density):
         return results
 
 
-def etk_compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustion):
+def etk_compute_equivalent_tnt_mass(vapor_mass, percent_yield, fuel):
     """
     Process GUI request for computing equivalent mass of TNT.
 
@@ -257,7 +231,7 @@ def etk_compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustio
     results = {"status": False, "data": None, "message": None}
 
     try:
-        mass = api.compute_equivalent_tnt_mass(vapor_mass, percent_yield, heat_of_combustion)
+        mass = api.compute_equivalent_tnt_mass(vapor_mass, percent_yield, fuel)
         results["data"] = mass
         results["status"] = True
 
@@ -347,18 +321,19 @@ def analyze_jet_plume(amb_temp, amb_pres,
         return results
 
 
-def overpressure_indoor_release(amb_temp, amb_pres,
-                                rel_species, rel_temp, rel_pres, rel_phase,
-                                tank_volume, orif_diam, rel_height,
-                                enclos_height, floor_ceil_area,
-                                ceil_vent_xarea, ceil_vent_height,
-                                floor_vent_xarea, floor_vent_height,
-                                times,
-                                orif_dis_coeff, rel_dis_coeff,
-                                vol_flow_rate, dist_rel_to_wall,
-                                tmax, rel_area, rel_angle, nozzle_key,
-                                pt_pressures, pt_times, pres_ticks,
-                                output_dir=None, verbose=False):
+def analyze_accumulation(amb_temp, amb_pres,
+                         rel_species, rel_temp, rel_pres, rel_phase,
+                         tank_volume, orif_diam, rel_height,
+                         enclos_height, floor_ceil_area,
+                         ceil_vent_xarea, ceil_vent_height,
+                         floor_vent_xarea, floor_vent_height,
+                         times,
+                         orif_dis_coeff,
+                         vol_flow_rate, dist_rel_to_wall,
+                         tmax, rel_angle, nozzle_key,
+                         pt_pressures, pt_times, pres_ticks,
+                         is_steady,
+                         output_dir=None, verbose=False):
     """ Conduct indoor release analysis. See indoor_release for input descriptions.
 
     Returns
@@ -376,7 +351,7 @@ def overpressure_indoor_release(amb_temp, amb_pres,
     api.create_fluid
     api.analyze_indoor_release
     """
-    log.info("Initializing CAPI: Overpressure indoor release analysis...")
+    log.info("Initializing CAPI: Accumulation analysis...")
     params = locals()
     log.info(misc_utils.params_as_str(params))
 
@@ -410,18 +385,18 @@ def overpressure_indoor_release(amb_temp, amb_pres,
             amb_fluid = api.create_fluid('AIR', amb_temp, amb_pres)
             rel_fluid = api.create_fluid(rel_species, rel_temp, rel_pres, density=None, phase=rel_phase)
 
-            result_dict = api.analyze_indoor_release(amb_fluid, rel_fluid,
-                                                     tank_volume, orif_diam, rel_height,
-                                                     enclos_height, floor_ceil_area,
-                                                     ceil_vent_xarea, ceil_vent_height,
-                                                     floor_vent_xarea, floor_vent_height,
-                                                     times, orif_dis_coeff=orif_dis_coeff,
-                                                     ceil_vent_coeff=rel_dis_coeff, floor_vent_coeff=rel_dis_coeff,
-                                                     vol_flow_rate=vol_flow_rate, dist_rel_to_wall=dist_rel_to_wall,
-                                                     tmax=tmax, rel_area=rel_area, rel_angle=rel_angle,
-                                                     nozzle_key=nozzle_key,
-                                                     temp_pres_points=temp_pres_points, pres_ticks=pres_ticks,
-                                                     create_plots=True, output_dir=output_dir, verbose=verbose)
+            result_dict = api.analyze_accumulation(amb_fluid, rel_fluid,
+                                                   tank_volume, orif_diam, rel_height,
+                                                   enclos_height, floor_ceil_area,
+                                                   ceil_vent_xarea, ceil_vent_height,
+                                                   floor_vent_xarea, floor_vent_height,
+                                                   times, orif_dis_coeff=orif_dis_coeff,
+                                                   vol_flow_rate=vol_flow_rate, dist_rel_to_wall=dist_rel_to_wall,
+                                                   tmax=tmax, rel_area=None, rel_angle=rel_angle,
+                                                   nozzle_key=nozzle_key,
+                                                   temp_pres_points=temp_pres_points, pres_ticks=pres_ticks,
+                                                   is_steady=is_steady,
+                                                   create_plots=True, output_dir=output_dir, verbose=verbose)
             results["data"] = result_dict
             results["status"] = True
 
@@ -434,16 +409,16 @@ def overpressure_indoor_release(amb_temp, amb_pres,
                     results["warning"] = str(wrng.message)
 
     except exceptions.InputError as exc:
-        msg = "Indoor release analysis failed due to InputError: {}".format(str(exc))
+        msg = "Accumulation analysis failed due to InputError: {}".format(str(exc))
         results["message"] = msg
         log.error(msg)
 
     except ValueError as exc:
         results["message"] = exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG
-        log.error(exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG)
+        log.exception(exc)
 
     except Exception as exc:
-        msg = "Indoor release analysis failed: {}".format(str(exc))
+        msg = "Accumulation analysis failed: {}".format(str(exc))
         results["message"] = msg
         log.error(msg)
 
@@ -506,7 +481,8 @@ def jet_flame_analysis(amb_temp, amb_pres,
             amb_fluid = api.create_fluid('AIR', amb_temp, amb_pres)
             rel_fluid = api.create_fluid(rel_species, rel_temp, rel_pres, density=None, phase=rel_phase)
 
-            temp_plot_filepath, _, flux2d_filepath, flux_data = api.jet_flame_analysis(
+            (temp_plot_filepath, _, flux2d_filepath, flux_data,
+             mass_flow, srad) = api.jet_flame_analysis(
                     amb_fluid, rel_fluid, orif_diam,
                     rel_angle=rel_angle, rel_height=rel_height,
                     nozzle_key=nozzle_key, rad_src_key=rad_src_key, rel_humid=rel_humid, contours=contours,
@@ -519,6 +495,8 @@ def jet_flame_analysis(amb_temp, amb_pres,
                 'flux_data': flux_data,
                 'flux_plot_filepath': flux2d_filepath,
                 'temp_plot_filepath': temp_plot_filepath,
+                'mass_flow_rate': mass_flow,
+                'srad': srad
             }
 
             log.info("Result: {}".format(output_dict))
@@ -546,3 +524,84 @@ def jet_flame_analysis(amb_temp, amb_pres,
     finally:
         gc.collect()
         return results
+
+
+def unconfined_overpressure_analysis(amb_temp, amb_pres,
+                                     rel_species, rel_temp, rel_pres, rel_phase,
+                                     orif_diam, rel_angle, discharge_coeff, nozzle_model, method,
+                                     xlocs, ylocs, zlocs,
+                                     bst_flame_speed, tnt_factor,
+                                     output_dir=None, verbose=False):
+    """
+    Calculate the overpressure and impulse at specified x,y,z locations
+
+    Returns
+    ----------
+    result : dict
+        status : bool
+            True if call successful.
+        message : str or None
+            Contains error message if call fails.
+        data : dict
+            overpressure value(s) [Pa]
+            impulse value(s) [Pa*s]
+
+    See Also
+    --------
+    api.compute_overpressure
+
+    """
+    log.info("C API CALL: overpressure calculation ...")
+    params = locals()
+    log.info(misc_utils.params_as_str(params))
+    results = {"status": False, "data": None, "message": None, "warning": ""}
+
+    xlocs = c_utils.convert_to_numpy_array(xlocs)
+    ylocs = c_utils.convert_to_numpy_array(ylocs)
+    zlocs = c_utils.convert_to_numpy_array(zlocs)
+    method = method.lower()
+    
+    try:
+        with warnings.catch_warnings(record=True) as warning_list:
+            amb_fluid = api.create_fluid('AIR', amb_temp, amb_pres)
+            rel_fluid = api.create_fluid(rel_species, rel_temp, rel_pres, density=None, phase=rel_phase)
+            locations = np.array([xlocs, ylocs, zlocs]).T
+
+            data = api.compute_overpressure(method=method, locations=locations,
+                                            ambient_fluid=amb_fluid, release_fluid=rel_fluid,
+                                            orifice_diameter=orif_diam, release_angle=rel_angle,
+                                            discharge_coefficient=discharge_coeff, nozzle_model=nozzle_model,
+                                            heat_of_combustion=None,
+                                            BST_mach_flame_speed=bst_flame_speed, TNT_equivalence_factor=tnt_factor,
+                                            create_overpressure_plot=True, output_dir=output_dir, verbose=verbose
+                                            )
+
+            log.info("API CALL COMPLETED SUCCESSFULLY")
+            log.info("Result: {}".format(data))
+            results["data"] = data
+            results["status"] = True
+
+            for wrng in warning_list:
+                if wrng.category is custom_warnings.PhysicsWarning:
+                    results["warning"] = str(wrng.message)
+
+    except exceptions.InputError as exc:
+        msg = "Overpressure calculation failed due to InputError: {}".format(str(exc))
+        results["message"] = msg
+        log.error(msg)
+
+    except Exception as exc:
+        msg = "Overpressure calculation failed: {}".format(str(exc))
+        results["message"] = msg
+        log.error(msg)
+
+    finally:
+        gc.collect()
+        return results
+
+
+
+
+
+
+

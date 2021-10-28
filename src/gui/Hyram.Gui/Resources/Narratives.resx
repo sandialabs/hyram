@@ -121,9 +121,6 @@
   <data name="PhysJetFlameDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>PhysJetFlameDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
-  <data name="PhysOverpressureDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>PhysOverpressureDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
   <data name="PhysPlumeDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>PhysPlumeDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
@@ -147,5 +144,11 @@
   </data>
   <data name="PhysRadHeatDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>PhysRadHeatDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="PhysAccumulationDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>PhysAccumulationDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="PhysUnconfinedOverpressureDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>PhysUnconfinedOverpressureDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
 </root>

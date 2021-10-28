@@ -1,38 +1,14 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
-
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
+rights in this software.
 
 You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
@@ -57,72 +33,31 @@ namespace SandiaNationalLaboratories.Hyram
         ExposureHours
     }
 
-    public partial class SystemDescriptionForm : UserControl
+    public partial class SystemDescriptionForm : AnalysisForm
     {
         private bool _mCurrentlyIgnoringGridChangeEvents = true;
         private bool _ignoreRandomSeedChangeEvent;
 
-        public SystemDescriptionForm()
+
+        public SystemDescriptionForm(MainForm mainForm)
         {
+            MainForm = mainForm;
+            _mCurrentlyIgnoringGridChangeEvents = true;
             InitializeComponent();
             dgSystemParameters_Vehicles.CellEndEdit += dgSystemParameters_Vehicles_CellEndEdit;
 
-            _mCurrentlyIgnoringGridChangeEvents = true;
-            // Set up component grid
-            var vdColl = new ParameterWrapperCollection(new[]
-            {
-                new ParameterWrapper("numCompressors", "# Compressors"),
-                new ParameterWrapper("numCylinders", "# Cylinders"),
-                new ParameterWrapper("numValves", "# Valves"),
-                new ParameterWrapper("numInstruments", "# Instruments"),
-                new ParameterWrapper("numJoints", "# Joints"),
-                new ParameterWrapper("numHoses", "# Hoses"),
-                new ParameterWrapper("pipeLength", "Pipes (length)", DistanceUnit.Meter,
-                    StockConverters.DistanceConverter),
-                new ParameterWrapper("numFilters", "# Filters"),
-                new ParameterWrapper("numFlanges", "# Flanges"),
-                new ParameterWrapper("numExtraComponent1", "# Extra Component 1"),
-                new ParameterWrapper("numExtraComponent2", "# Extra Component 2")
-            });
-            StaticGridHelperRoutines.InitInteractiveGrid(dgComponents, vdColl, false);
-
             fuelPhaseSelector.DataSource = StateContainer.Instance.FluidPhases;
-            fuelPhaseSelector.SelectedItem = StateContainer.Instance.GetFluidPhase();
-            // Set up system params grid
-            PopulateSystemParametersPiping();
 
-            // Vehicle grid
-            StaticGridHelperRoutines.InitInteractiveGrid(dgSystemParameters_Vehicles, new ParameterWrapperCollection(
-                new[]
-                {
-                    new ParameterWrapper("numVehicles", "Number of Vehicles"),
-                    new ParameterWrapper("dailyFuelings", "Number of Fuelings Per Vehicle Day"),
-                    new ParameterWrapper("vehicleOperatingDays", "Number of Vehicle Operating Days per Year"),
-                    new ParameterWrapper("annualDemand", "Annual Demands (calculated)", UnitlessUnit.Unitless,
-                        StockConverters.UnitlessConverter)
-                }
-            ), false);
+            RefreshParameters();
+            RefreshSystemParametersPipingDataTable();
 
-            // Make annual demands read-only. Hacky...
-            dgSystemParameters_Vehicles.Rows[3].Cells[1].ReadOnly = true;
-            dgSystemParameters_Vehicles.Rows[3].Cells[1].Style.BackColor = Color.LightGray;
+            dgComponents.Columns[0].Width = 220;
+            dgComponents.Columns[1].Width = 100;
+            dgComponents.Columns[2].Width = 100;
 
             dgSystemParameters_Vehicles.Columns[0].Width = 400;
             dgSystemParameters_Vehicles.Columns[1].Width = 200;
             dgSystemParameters_Vehicles.Columns[2].Width = 200;
-
-            // Set up facility grid
-            StaticGridHelperRoutines.InitInteractiveGrid(dgFacilityParameters, new ParameterWrapperCollection(
-                new[]
-                {
-                    new ParameterWrapper("facilityLength", "Length (x-direction)", DistanceUnit.Meter,
-                        StockConverters.DistanceConverter),
-                    new ParameterWrapper("facilityWidth", "Width (z-direction)", DistanceUnit.Meter,
-                        StockConverters.DistanceConverter),
-                    new ParameterWrapper("facilityHeight", "Height (y-direction)", DistanceUnit.Meter,
-                        StockConverters.DistanceConverter)
-                }
-            ), false);
 
             // Set up occupants input grid
             var distXColumn =
@@ -147,8 +82,8 @@ namespace SandiaNationalLaboratories.Hyram
                 (DataGridViewComboBoxColumn) dgOccupantInputDetails.Columns[(int) OccupantColumns.Unit];
             unitClm.DataSource = typeof(DistanceUnit).GetEnumValues();
             unitClm.ValueType = typeof(DistanceUnit);
-            OccupantDistributionInfoCollection distributions = null;
 
+            OccupantDistributionInfoCollection distributions = null;
             try
             {
                 distributions = StateContainer.Instance.OccupantDistributionInfoCollection;
@@ -195,19 +130,9 @@ namespace SandiaNationalLaboratories.Hyram
                 dgOccupantInputDetails.Rows.Add(newRow);
             }
 
-            // Override grid
-            var overrideColl = new ParameterWrapperCollection(new[]
-            {
-                new ParameterWrapper("H2Release.000d01", "0.01% H2 Release"),
-                new ParameterWrapper("H2Release.000d10", "0.10% H2 Release"),
-                new ParameterWrapper("H2Release.001d00", "1% H2 Release"),
-                new ParameterWrapper("H2Release.010d00", "10% H2 Release"),
-                new ParameterWrapper("H2Release.100d00", "100% H2 Release"),
-                new ParameterWrapper("Failure.ManualOverride", "100% H2 Release (accidents and shutdown failures)"),
-                new ParameterWrapper("Pdetectisolate", "Gas detection credit")
-            });
-            StaticGridHelperRoutines.InitInteractiveGrid(dgManualOverrides, overrideColl, false);
-
+            // Set up exclusion textbox
+            var exclusionRadius = StateContainer.GetNdValue("exclusionRadius");
+            tbExclusionRadius.Text = ParseUtility.DoubleToString(exclusionRadius);
 
             // Set up random seed textbox
             var saveIgnoreValue = _ignoreRandomSeedChangeEvent;
@@ -224,25 +149,173 @@ namespace SandiaNationalLaboratories.Hyram
                 _ignoreRandomSeedChangeEvent = saveIgnoreValue;
             }
 
-            // Set up exclusion textbox
+            StateContainer.Instance.FuelTypeChangedEvent += delegate{RefreshParameters();};
+
+            UpdateParameterCellVisibility();
+
+            StateContainer.SetValue("ResultsAreStale", true);
+            CheckFormValid();
+            _mCurrentlyIgnoringGridChangeEvents = false;
+        }
+
+        /// <summary>
+        /// QRA forms update when user clicks form button again
+        /// </summary>
+        public override void OnFormDisplay()
+        {
+            _mCurrentlyIgnoringGridChangeEvents = true;
+            RefreshParameters();
+            RefreshSystemParametersPipingDataTable();
+            CheckFormValid();
+            _mCurrentlyIgnoringGridChangeEvents = false;
+        }
+
+
+        private void RefreshParameters()
+        {
+            _mCurrentlyIgnoringGridChangeEvents = true;
+
+            fuelPhaseSelector.SelectedItem = StateContainer.Instance.GetFluidPhase();
+
+            dgComponents.Rows.Clear();
+            var vdColl = new ParameterWrapperCollection(new[]
+            {
+                new ParameterWrapper("numCompressors", "# Compressors"),
+                new ParameterWrapper("numVessels", "# Vessels (cylinders, tanks)"),
+                new ParameterWrapper("numValves", "# Valves"),
+                new ParameterWrapper("numInstruments", "# Instruments"),
+                new ParameterWrapper("numJoints", "# Joints"),
+                new ParameterWrapper("numHoses", "# Hoses"),
+                new ParameterWrapper("pipeLength", "Pipes (length)", DistanceUnit.Meter,
+                    StockConverters.DistanceConverter),
+                new ParameterWrapper("numFilters", "# Filters"),
+                new ParameterWrapper("numFlanges", "# Flanges"),
+                new ParameterWrapper("numExchangers", "# Heat Exchangers"),
+                new ParameterWrapper("numVaporizers", "# Vaporizers"),
+                new ParameterWrapper("numArms", "# Loading Arms"),
+                new ParameterWrapper("numExtraComponent1", "# Extra Component 1"),
+                new ParameterWrapper("numExtraComponent2", "# Extra Component 2")
+            });
+            StaticGridHelperRoutines.InitInteractiveGrid(dgComponents, vdColl, false);
+            dgComponents.Columns[0].Width = 220;
+            dgComponents.Columns[1].Width = 100;
+            dgComponents.Columns[2].Width = 100;
+
+            // Vehicle grid
+            dgSystemParameters_Vehicles.Rows.Clear();
+            StaticGridHelperRoutines.InitInteractiveGrid(dgSystemParameters_Vehicles, new ParameterWrapperCollection(
+                new[]
+                {
+                    new ParameterWrapper("numVehicles", "Number of Vehicles"),
+                    new ParameterWrapper("dailyFuelings", "Number of Fuelings Per Vehicle Day"),
+                    new ParameterWrapper("vehicleOperatingDays", "Number of Vehicle Operating Days per Year"),
+                    new ParameterWrapper("annualDemand", "Annual Demands (calculated)", UnitlessUnit.Unitless,
+                        StockConverters.UnitlessConverter)
+                }
+            ), false);
+            dgSystemParameters_Vehicles.Rows[3].Cells[1].ReadOnly = true;
+            dgSystemParameters_Vehicles.Rows[3].Cells[1].Style.BackColor = Color.LightGray;
+
+            // Set up facility grid
+            dgFacilityParameters.Rows.Clear();
+            StaticGridHelperRoutines.InitInteractiveGrid(dgFacilityParameters, new ParameterWrapperCollection(
+                new[]
+                {
+                    new ParameterWrapper("facilityLength", "Length (x-direction)", DistanceUnit.Meter,
+                        StockConverters.DistanceConverter),
+                    new ParameterWrapper("facilityWidth", "Width (z-direction)", DistanceUnit.Meter,
+                        StockConverters.DistanceConverter),
+                    new ParameterWrapper("facilityHeight", "Height (y-direction)", DistanceUnit.Meter,
+                        StockConverters.DistanceConverter)
+                }
+            ), false);
+
+            OccupantDistributionInfoCollection distributions = null;
+            try
+            {
+                distributions = StateContainer.Instance.OccupantDistributionInfoCollection;
+            }
+            catch (InvalidCastException ex)
+            {
+                MessageBox.Show(
+                    "You loaded an occupant distribution collection from a file saved using a previous version of HyRAM. That collection " +
+                    "is not compatible with the extended type HyRAM now uses. A new default distribution will be created for you, but your old settings " +
+                    "were lost.");
+                StateContainer.Instance.InitOccupantDistributions(true);
+                distributions = StateContainer.Instance.OccupantDistributionInfoCollection;
+                Debug.Write(ex.Message);
+            }
+
+            dgOccupantInputDetails.Rows.Clear();
+            foreach (var dist in distributions)
+            {
+                var newRow = new DataGridViewRow();
+                newRow.CreateCells(dgOccupantInputDetails, dist.NumTargets, dist.Desc,
+                    dist.ParamUnitType,
+                    dist.XLocDistribution, dist.XLocParamA, dist.XLocParamB,
+                    dist.YLocDistribution, dist.YLocParamA, dist.YLocParamB,
+                    dist.ZLocDistribution, dist.ZLocParamA, dist.ZLocParamB,
+                    dist.ExposureHours);
+                newRow.Tag = dist;
+
+                if ((EWorkerDistribution) dist.XLocDistribution == EWorkerDistribution.Constant)
+                {
+                    var thisCell = newRow.Cells[(int) OccupantColumns.XDistParmB];
+                    thisCell.Value = null;
+                    thisCell.ReadOnly = true;
+                    thisCell.Style.BackColor = Color.LightGray;
+                    thisCell.Style.ForeColor = Color.DarkGray;
+                }
+
+                if ((EWorkerDistribution) dist.ZLocDistribution == EWorkerDistribution.Constant)
+                {
+                    var thisCell = newRow.Cells[(int) OccupantColumns.ZDistParmB];
+                    thisCell.Value = null;
+                    thisCell.ReadOnly = true;
+                    thisCell.Style.BackColor = Color.LightGray;
+                    thisCell.Style.ForeColor = Color.DarkGray;
+                }
+                dgOccupantInputDetails.Rows.Add(newRow);
+            }
+
+            // Override grid
+            dgManualOverrides.Rows.Clear();
+            var overrideColl = new ParameterWrapperCollection(new[]
+            {
+                new ParameterWrapper("H2Release.000d01", "0.01% Release"),
+                new ParameterWrapper("H2Release.000d10", "0.10% Release"),
+                new ParameterWrapper("H2Release.001d00", "1% Release"),
+                new ParameterWrapper("H2Release.010d00", "10% Release"),
+                new ParameterWrapper("H2Release.100d00", "100% Release"),
+                new ParameterWrapper("Failure.ManualOverride", "100% Release (accidents and shutdown failures)"),
+                new ParameterWrapper("Pdetectisolate", "Gas detection credit")
+            });
+            StaticGridHelperRoutines.InitInteractiveGrid(dgManualOverrides, overrideColl, false);
+
             var exclusionRadius = StateContainer.GetNdValue("exclusionRadius");
             tbExclusionRadius.Text = ParseUtility.DoubleToString(exclusionRadius);
+
+            var savedVal = _ignoreRandomSeedChangeEvent;
+            _ignoreRandomSeedChangeEvent = true;
+            var cv = GetRandomSeedFromDatabase();
+            cv.EnsureBaseValueIsTruncatedInt();
+            var newValue = Math.Truncate(cv.GetValue(UnitlessUnit.Unitless)[0]);
+            tbRandomSeed.Text = ParseUtility.DoubleToString(Math.Truncate(newValue));
+            _ignoreRandomSeedChangeEvent = savedVal;
 
             UpdateParameterCellVisibility();
 
             _mCurrentlyIgnoringGridChangeEvents = false;
-
-            // If check is enabled in analysis, this ensures analysis will be re-run
-            StateContainer.SetValue("ResultsAreStale", true);
         }
 
         /// <summary>
         /// Add interactive rows to system parameters table.
         /// Fluid temp contingent on fluid phase selection.
         /// </summary>
-        private void PopulateSystemParametersPiping()
+        private void RefreshSystemParametersPipingDataTable()
         {
             dgSystemParameters_Piping.Rows.Clear();
+
             var vdColl2 = new ParameterWrapperCollection(
                 new[]
                 {
@@ -252,63 +325,55 @@ namespace SandiaNationalLaboratories.Hyram
                         StockConverters.DistanceConverter),
                 }
             );
+
             if (FluidPhase.DisplayTemperature())
             {
                 vdColl2.Add("fluidTemperature",
                             new ParameterWrapper("fluidTemperature", "Fluid Temperature", TempUnit.Celsius, StockConverters.TemperatureConverter) );
             }
+
             vdColl2.Add("fluidPressure",
-                new ParameterWrapper("fluidPressure", "Fluid Pressure (absolute)", PressureUnit.MPa, StockConverters.PressureConverter));
+                new ParameterWrapper("fluidPressure", "Fluid Pressure (absolute)", PressureUnit.MPa,
+                    StockConverters.PressureConverter));
+
             vdColl2.Add("ambientTemperature",
-                new ParameterWrapper("ambientTemperature", "Ambient Temperature", TempUnit.Celsius, StockConverters.TemperatureConverter));
+                new ParameterWrapper("ambientTemperature", "Ambient Temperature", TempUnit.Celsius,
+                    StockConverters.TemperatureConverter));
             vdColl2.Add("ambientPressure",
-                new ParameterWrapper("ambientPressure", "Ambient Pressure", PressureUnit.MPa, StockConverters.PressureConverter));
+                new ParameterWrapper("ambientPressure", "Ambient Pressure", PressureUnit.MPa,
+                    StockConverters.PressureConverter));
 
             StaticGridHelperRoutines.InitInteractiveGrid(dgSystemParameters_Piping, vdColl2, false);
             dgSystemParameters_Piping.Columns[0].Width = 200;
-            CheckPipeFormValid();
+            CheckFormValid();
         }
 
-        private void CheckPipeFormValid()
+        public override void CheckFormValid()
         {
-            bool showWarning = false;
-            bool showError = false;
-            string messageText = "";
-
-            if (StateContainer.FuelPhaseIsSaturated())
-            {
-                showError = false;
-                showWarning = true;
-                messageText =
-                    "Default data for leaks, failures, and ignition were generated for high pressure gaseous hydrogen systems and may not be appropriate for the selected phase";
-            }
+            AlertType = 0;
+            AlertMessage = "";
+            AlertDisplayed = false;
+        //if (StateContainer.FuelPhaseIsSaturated())
+        //{
+        //    AlertType = 1;
+        //    AlertMessage =
+        //        "Default data for leaks, failures, and ignition were generated for high pressure gaseous hydrogen systems and may not be appropriate for the selected phase";
+        //    AlertDisplayed = true;
+        //}
             if (!StateContainer.ReleasePressureIsValid())
             {
                 // if liquid, validate fuel pressure
-                messageText = MessageContainer.LiquidReleasePressureInvalid;
-                showError = true;
-                showWarning = false;
+                AlertType = 2;
+                AlertMessage = MessageContainer.GetAlertMessageReleasePressureInvalid();
+                AlertDisplayed = true;
             }
 
+            formWarning.Visible = AlertDisplayed;
+            formWarning.Text = AlertMessage;
+            formWarning.BackColor = AlertType == 1 ? MainForm.WarningBackColor : MainForm.ErrorBackColor;
+            formWarning.ForeColor = AlertType == 1 ? MainForm.WarningForeColor : MainForm.ErrorForeColor;
 
-            if (showWarning)
-            {
-                inputWarning.Visible = true;
-                inputWarning.BackColor = Color.PaleGoldenrod;
-                inputWarning.ForeColor = Color.DarkGoldenrod;
-            } else if (showError)
-            {
-                inputWarning.Visible = true;
-                inputWarning.BackColor = Color.MistyRose;
-                inputWarning.ForeColor = Color.Maroon;
-            }
-            else
-            {
-                inputWarning.Visible = false;
-                messageText = "";
-            }
-
-            inputWarning.Text = messageText;
+            MainForm.NotifyOfChildPublicStateChange();
         }
 
 
@@ -327,7 +392,7 @@ namespace SandiaNationalLaboratories.Hyram
         private void dgSystemParameters_Piping_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             GridValueChanged(sender, e);
-            CheckPipeFormValid();
+            CheckFormValid();
         }
 
         private void dgManualOverrides_CellValueChanged(object sender, DataGridViewCellEventArgs e)
@@ -627,8 +692,15 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void fuelPhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            StateContainer.SetValue("ReleaseFluidPhase", fuelPhaseSelector.SelectedItem);
-            PopulateSystemParametersPiping();
+            StateContainer.SetReleasePhase((FluidPhase)fuelPhaseSelector.SelectedItem);
+            RefreshSystemParametersPipingDataTable();
+        }
+
+        private void tcSystemDescription_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            RefreshParameters();
+            RefreshSystemParametersPipingDataTable();
+            CheckFormValid();
         }
     }
 }

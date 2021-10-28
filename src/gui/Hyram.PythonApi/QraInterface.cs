@@ -1,65 +1,48 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
-
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
+rights in this software.
 
 You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using Python.Runtime;
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace SandiaNationalLaboratories.Hyram
 {
     public class QraInterface
     {
+#if DEBUG
+            bool isVerbose = true;
+#else
+            bool isVerbose = false;
+#endif
+
         public void Execute()
         {
             var inst = StateContainer.Instance;
 
             var resultsAreStale = StateContainer.GetValue<bool>("ResultsAreStale");
             // Just return stored result if no inputs have changed
-            if (!resultsAreStale) return;
+            //if (!resultsAreStale) return;
 
             // Gather inputs
             var pipeLength = StateContainer.GetNdValue("pipeLength", DistanceUnit.Meter);
             var numCompressors = (int)StateContainer.GetNdValue("numCompressors");
-            var numCylinders = (int)StateContainer.GetNdValue("numCylinders");
+            var numVessels = (int)StateContainer.GetNdValue("numVessels");
             var numValves = (int)StateContainer.GetNdValue("numValves");
             var numInstruments = (int)StateContainer.GetNdValue("numInstruments");
             var numJoints = (int)StateContainer.GetNdValue("numJoints");
             var numHoses = (int)StateContainer.GetNdValue("numHoses");
             var numFilters = (int)StateContainer.GetNdValue("numFilters");
             var numFlanges = (int)StateContainer.GetNdValue("numFlanges");
+            var numExchangers = (int)StateContainer.GetNdValue("numExchangers");
+            var numVaporizers = (int)StateContainer.GetNdValue("numVaporizers");
+            var numArms = (int)StateContainer.GetNdValue("numArms");
             var numExtraComp1 = (int)StateContainer.GetNdValue("numExtraComponent1");
             var numExtraComp2 = (int)StateContainer.GetNdValue("numExtraComponent2");
 
@@ -72,9 +55,9 @@ namespace SandiaNationalLaboratories.Hyram
 
             string relSpecies = StateContainer.GetValue<FuelType>("FuelType").GetKey();
             double? relTemp = StateContainer.GetNdValue("fluidTemperature", TempUnit.Kelvin);
-            var relPres = StateContainer.GetNdValue("fluidPressure", PressureUnit.Pa);
-            var ambTemp = StateContainer.GetNdValue("ambientTemperature", TempUnit.Kelvin);
-            var ambPres = StateContainer.GetNdValue("ambientPressure", PressureUnit.Pa);
+            double relPres = StateContainer.GetNdValue("fluidPressure", PressureUnit.Pa);
+            double ambTemp = StateContainer.GetNdValue("ambientTemperature", TempUnit.Kelvin);
+            double ambPres = StateContainer.GetNdValue("ambientPressure", PressureUnit.Pa);
 
             string phaseKey = StateContainer.Instance.GetFluidPhase().GetKey();
             if (!FluidPhase.DisplayTemperature()) relTemp = null;  // clear temp if not gas
@@ -124,84 +107,20 @@ namespace SandiaNationalLaboratories.Hyram
             //var occupantJson2 = JsonConvert.SerializeObject(occupantDistributions);
             var occupantJson = occupantDistributions.GetSimpleString();
 
-            // Massage component probabilities into double[][]
-            var compList =
-                StateContainer.GetValue<List<ComponentProbability>>("Prob.Compressor");
-            var
-                cylList = StateContainer.GetValue<List<ComponentProbability>>("Prob.Cylinder");
-            var filterList =
-                StateContainer.GetValue<List<ComponentProbability>>("Prob.Filter");
-            var flangeList =
-                StateContainer.GetValue<List<ComponentProbability>>("Prob.Flange");
-            var hoseList = StateContainer.GetValue<List<ComponentProbability>>("Prob.Hose");
-            var jointList = StateContainer.GetValue<List<ComponentProbability>>("Prob.Joint");
-            var pipeList = StateContainer.GetValue<List<ComponentProbability>>("Prob.Pipe");
-            var valveList = StateContainer.GetValue<List<ComponentProbability>>("Prob.Valve");
-            var instrList =
-                StateContainer.GetValue<List<ComponentProbability>>("Prob.Instrument");
-            var ex1List = StateContainer.GetValue<List<ComponentProbability>>("Prob.Extra1");
-            var ex2List = StateContainer.GetValue<List<ComponentProbability>>("Prob.Extra2");
-
-            double[][] compressorProbs =
-            {
-                compList[0].GetParameters(), compList[1].GetParameters(), compList[2].GetParameters(), compList[3].GetParameters(), compList[4].GetParameters()
-            };
-
-            double[][] cylinderProbs =
-            {
-                cylList[0].GetParameters(), cylList[1].GetParameters(), cylList[2].GetParameters(), cylList[3].GetParameters(), cylList[4].GetParameters()
-            };
-
-            double[][] filterProbs =
-            {
-                filterList[0].GetParameters(), filterList[1].GetParameters(), filterList[2].GetParameters(), filterList[3].GetParameters(), filterList[4].GetParameters()
-            };
-
-            double[][] flangeProbs =
-            {
-                flangeList[0].GetParameters(), flangeList[1].GetParameters(), flangeList[2].GetParameters(), flangeList[3].GetParameters(), flangeList[4].GetParameters()
-            };
-
-            double[][] hoseProbs =
-            {
-                hoseList[0].GetParameters(), hoseList[1].GetParameters(), hoseList[2].GetParameters(), hoseList[3].GetParameters(), hoseList[4].GetParameters()
-            };
-
-            double[][] jointProbs =
-            {
-                jointList[0].GetParameters(), jointList[1].GetParameters(), jointList[2].GetParameters(), jointList[3].GetParameters(), jointList[4].GetParameters()
-            };
-
-            double[][] pipeProbs =
-            {
-                pipeList[0].GetParameters(), pipeList[1].GetParameters(), pipeList[2].GetParameters(), pipeList[3].GetParameters(), pipeList[4].GetParameters()
-            };
-
-            double[][] valveProbs =
-            {
-                valveList[0].GetParameters(), valveList[1].GetParameters(), valveList[2].GetParameters(), valveList[3].GetParameters(), valveList[4].GetParameters()
-            };
-
-            double[][] instrumentProbs =
-            {
-                instrList[0].GetParameters(), instrList[1].GetParameters(), instrList[2].GetParameters(), instrList[3].GetParameters(), instrList[4].GetParameters()
-            };
-
-            double[][] extraComp1Probs =
-            {
-                ex1List[0].GetParameters(), ex1List[1].GetParameters(), ex1List[2].GetParameters(), ex1List[3].GetParameters(), ex1List[4].GetParameters()
-            };
-
-            double[][] extraComp2Probs =
-            {
-                ex2List[0].GetParameters(), ex2List[1].GetParameters(), ex2List[2].GetParameters(), ex2List[3].GetParameters(), ex2List[4].GetParameters()
-            };
-#if false
-            foreach (double[] j in compressorProbs)
-            {
-                Trace.TraceInformation("{0}, {1}, {2}, {3}; ", j[0], j[1], j[2], j[3]);
-            }
-#endif
+            double[][] compressorProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Compressor");
+            double[][] vesselProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Vessel");
+            double[][] filterProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Filter");
+            double[][] flangeProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Flange");
+            double[][] hoseProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Hose");
+            double[][] jointProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Joint");
+            double[][] pipeProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Pipe");
+            double[][] valveProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Valve");
+            double[][] instrumentProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Instrument");
+            double[][] exchangerProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Exchanger");
+            double[][] vaporizerProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Vaporizer");
+            double[][] armProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Arm");
+            double[][] extra1Probs = StateContainer.Instance.GetComponentProbabilities("Prob.Extra1");
+            double[][] extra2Probs = StateContainer.Instance.GetComponentProbabilities("Prob.Extra2");
 
             var nozPo = StateContainer.GetValue<FailureMode>("Failure.NozPO");
             var nozFtc = StateContainer.GetValue<FailureMode>("Failure.NozFTC");
@@ -252,8 +171,6 @@ namespace SandiaNationalLaboratories.Hyram
 
             // Derive path to data dir for temp and data files, e.g. pickling
             var dataDirLoc = StateContainer.UserDataDir;
-            bool isVerbose = false;
-            //bool isVerbose = StateContainer.GetValue<bool>("debug");
 
             QraResult result;
 
@@ -270,9 +187,13 @@ namespace SandiaNationalLaboratories.Hyram
                     dynamic resultPyObj;
 
                     // Execute python analysis. Will return PyObject which is parsed in QRAResult.
-                    resultPyObj = pyLib.qra.c_api.qra_analysis(
-                        pipeLength, numCompressors, numCylinders, numValves, numInstruments, numJoints, numHoses,
-                        numFilters, numFlanges, numExtraComp1, numExtraComp2,
+                    resultPyObj = pyLib.qra.c_api.c_request_analysis(
+                        pipeLength,
+                        numCompressors, numVessels, numValves,
+                        numInstruments, numJoints, numHoses,
+                        numFilters, numFlanges,
+                        numExchangers, numVaporizers, numArms,
+                        numExtraComp1, numExtraComp2,
                         facilLength, facilWidth, facilHeight,
                         pipeOuterD, pipeThickness,
                         relSpecies, relTemp, relPres, phaseKey, ambTemp, ambPres, dischargeCoeff,
@@ -286,8 +207,8 @@ namespace SandiaNationalLaboratories.Hyram
                         leakHeight, releaseAngle,
                         exclusionRadius, randomSeed, relativeHumid,
                         occupantJson,
-                        compressorProbs, cylinderProbs, valveProbs, instrumentProbs, pipeProbs, jointProbs, hoseProbs,
-                        filterProbs, flangeProbs, extraComp1Probs, extraComp2Probs,
+                        compressorProbs, vesselProbs, valveProbs, instrumentProbs, pipeProbs, jointProbs, hoseProbs,
+                        filterProbs, flangeProbs, exchangerProbs, vaporizerProbs, armProbs, extra1Probs, extra2Probs,
                         nozPoDist, nozPoParamA, nozPoParamB,
                         nozFtcDist, nozFtcParamA, nozFtcParamB,
                         mValveFtcDist, mValveFtcParamA, mValveFtcParamB,

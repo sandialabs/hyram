@@ -36,8 +36,12 @@ namespace SandiaNationalLaboratories.Hyram {
             this.dgInput = new System.Windows.Forms.DataGridView();
             this.outputTab = new System.Windows.Forms.TabPage();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.outputPictureBox = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.outputWarning = new System.Windows.Forms.Label();
+            this.outputSrad = new System.Windows.Forms.TextBox();
+            this.lblSeconds = new System.Windows.Forms.Label();
+            this.outputMassFlowRate = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.outputPictureBox = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.tcIO.SuspendLayout();
             this.inputTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.spinnerPictureBox)).BeginInit();
@@ -194,6 +198,10 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.outputSrad);
+            this.splitContainer1.Panel1.Controls.Add(this.lblSeconds);
+            this.splitContainer1.Panel1.Controls.Add(this.outputMassFlowRate);
+            this.splitContainer1.Panel1.Controls.Add(this.label2);
             this.splitContainer1.Panel1.Controls.Add(this.outputPictureBox);
             // 
             // splitContainer1.Panel2
@@ -202,15 +210,6 @@ namespace SandiaNationalLaboratories.Hyram {
             this.splitContainer1.Size = new System.Drawing.Size(633, 585);
             this.splitContainer1.SplitterDistance = 556;
             this.splitContainer1.TabIndex = 3;
-            // 
-            // outputPictureBox
-            // 
-            this.outputPictureBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.outputPictureBox.Location = new System.Drawing.Point(0, 0);
-            this.outputPictureBox.Name = "outputPictureBox";
-            this.outputPictureBox.Size = new System.Drawing.Size(633, 556);
-            this.outputPictureBox.TabIndex = 2;
-            this.outputPictureBox.TabStop = false;
             // 
             // outputWarning
             // 
@@ -225,6 +224,49 @@ namespace SandiaNationalLaboratories.Hyram {
             this.outputWarning.Text = "blank";
             this.outputWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.outputWarning.Visible = false;
+            // 
+            // outputSrad
+            // 
+            this.outputSrad.Location = new System.Drawing.Point(164, 29);
+            this.outputSrad.Name = "outputSrad";
+            this.outputSrad.ReadOnly = true;
+            this.outputSrad.Size = new System.Drawing.Size(114, 20);
+            this.outputSrad.TabIndex = 10;
+            // 
+            // lblSeconds
+            // 
+            this.lblSeconds.AutoSize = true;
+            this.lblSeconds.Location = new System.Drawing.Point(3, 32);
+            this.lblSeconds.Name = "lblSeconds";
+            this.lblSeconds.Size = new System.Drawing.Size(155, 13);
+            this.lblSeconds.TabIndex = 9;
+            this.lblSeconds.Text = "Total emitted radiate power (W)";
+            // 
+            // outputMassFlowRate
+            // 
+            this.outputMassFlowRate.Location = new System.Drawing.Point(164, 3);
+            this.outputMassFlowRate.Name = "outputMassFlowRate";
+            this.outputMassFlowRate.ReadOnly = true;
+            this.outputMassFlowRate.Size = new System.Drawing.Size(114, 20);
+            this.outputMassFlowRate.TabIndex = 8;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(3, 6);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(106, 13);
+            this.label2.TabIndex = 7;
+            this.label2.Text = "Mass flow rate (kg/s)";
+            // 
+            // outputPictureBox
+            // 
+            this.outputPictureBox.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.outputPictureBox.Location = new System.Drawing.Point(0, 55);
+            this.outputPictureBox.Name = "outputPictureBox";
+            this.outputPictureBox.Size = new System.Drawing.Size(633, 501);
+            this.outputPictureBox.TabIndex = 2;
+            this.outputPictureBox.TabStop = false;
             // 
             // JetFlameTemperaturePlotForm
             // 
@@ -241,6 +283,7 @@ namespace SandiaNationalLaboratories.Hyram {
             ((System.ComponentModel.ISupportInitialize)(this.dgInput)).EndInit();
             this.outputTab.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
@@ -265,5 +308,9 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.ComboBox fuelPhaseSelector;
         private System.Windows.Forms.Label phaseLabel;
         private System.Windows.Forms.Label inputWarning;
+        private System.Windows.Forms.TextBox outputSrad;
+        private System.Windows.Forms.Label lblSeconds;
+        private System.Windows.Forms.TextBox outputMassFlowRate;
+        private System.Windows.Forms.Label label2;
     }
 }

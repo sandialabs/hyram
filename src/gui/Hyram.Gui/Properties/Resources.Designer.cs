@@ -93,6 +93,26 @@ namespace SandiaNationalLaboratories.Hyram.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap BannerLogov2 {
+            get {
+                object obj = ResourceManager.GetObject("BannerLogov2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap BannerLogov2Thin2 {
+            get {
+                object obj = ResourceManager.GetObject("BannerLogov2Thin2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap ESD_2020 {
             get {
                 object obj = ResourceManager.GetObject("ESD_2020", resourceCulture);
@@ -163,9 +183,79 @@ namespace SandiaNationalLaboratories.Hyram.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap geometry_of_indoor_release {
+            get {
+                object obj = ResourceManager.GetObject("geometry_of_indoor_release", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap hyram_bigtitle {
             get {
                 object obj = ResourceManager.GetObject("hyram_bigtitle", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon LogoNoName32x32 {
+            get {
+                object obj = ResourceManager.GetObject("LogoNoName32x32", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LogoNoName64x64 {
+            get {
+                object obj = ResourceManager.GetObject("LogoNoName64x64", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LogoNoNameLg {
+            get {
+                object obj = ResourceManager.GetObject("LogoNoNameLg", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon LogoNoNameLgIcon {
+            get {
+                object obj = ResourceManager.GetObject("LogoNoNameLgIcon", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon LogoNoNameSm {
+            get {
+                object obj = ResourceManager.GetObject("LogoNoNameSm", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LogoNoNameSm1 {
+            get {
+                object obj = ResourceManager.GetObject("LogoNoNameSm1", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

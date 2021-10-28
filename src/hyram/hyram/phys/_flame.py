@@ -1,35 +1,9 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
-
-You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with HyRAM+.
+If not, see https://www.gnu.org/licenses/.
 """
 
 from __future__ import print_function, absolute_import, division
@@ -74,7 +48,7 @@ class Flame:
         ambient: Fluid object (hc_comps)
             fluid into which release is occuring
         nC: int
-            number of carbon atoms (0 for H2, 1 for CH4, 2 for C2H6, 3 for C3H8)
+            number of carbon atoms (0 for H2, 1 for CH4, 3 for C3H8)
         mdot: float, optional 
             should only be specified for subsonic release, mass flow rate (kg/s)
         theta0 : float, optional
@@ -228,17 +202,24 @@ class Flame:
         Smax = min(Smax, self.length())
 
         Y_clE = self.initial_node.Y_cl
-        f_clE = optimize.newton(lambda f: Y_clE - self.chem._Yprod(f)[self.chem.reac],
-                                Y_clE)  # supposed to be ??Y_reac??
+        f_clE = optimize.newton(lambda f: Y_clE - self.chem._Yreac(f)[self.chem.reac],
+                                Y_clE)  # ESH-04/05/21 - updated _Yprod in line above to _Yreac
         thetaE = self.theta0
         SE = self.initial_node.S
         xE = self.x0 + SE * np.cos(thetaE)
         yE = self.y0 + SE * np.sin(thetaE)
         
-        r = integrate.ode(self._govEqns).set_integrator('dopri5', atol=tol, rtol=tol)
+        r = integrate.ode(self._govEqns).set_integrator('dopri5', atol=tol, rtol=tol, nsteps = max_steps)
         S, solution = [], []
         r.set_f_params(numB, n_pts_integral)
         r.set_initial_value(np.array([self.initial_node.v_cl, self.initial_node.B, thetaE, f_clE, xE, yE]), SE)
+
+        # Srad calculation
+        # Xrad is calculated in self.length() which is called above
+        # DHc is available after computation abovee
+        # self.developing_flow initialized in __init__
+        mdot = self.developing_flow.orifice_exp.mdot(self.developing_flow.fluid_exp)  # mass flow rate [kg/s]
+        self.Srad = self.Xrad * mdot * self.chem.DHc
 
         def solout(s, solution_s):
             S.append(s)
@@ -246,12 +227,10 @@ class Flame:
 
         r.set_solout(solout)
 
-        i = 0
         if dS == None:
             dS = Smax - r.t
-        while r.successful() and i < max_steps and r.t < Smax:
+        while r.successful() and r.t < Smax:
             r.integrate(r.t + dS)
-            i += 1
 
         S, solution = np.array(S), np.array(solution)
         res = dict(zip(['V_cl', 'B', 'theta', 'f_cl', 'x', 'y'], solution.T))
@@ -316,8 +295,6 @@ class Flame:
             Lvis = self.Lvis  # length of visible flame [m]
         except:
             Lvis = self.length()
-        Xrad = self.Xrad
-        mdot = self.developing_flow.orifice_exp.mdot(self.developing_flow.fluid_exp)  # mass flow rate [kg/s]
         T = self.ambient.T
 
         n = int(WaistLoc * N)
@@ -379,7 +356,7 @@ class Flame:
             elif obsOrg.ndim == 1:
                 len_v = np.linalg.norm(v)
                 phi = np.arcsin(np.linalg.norm(np.cross(obsNorm, v)) / len_v)
-            Qrad += w[j] / (4 * const.pi * len_v ** 2) * np.cos(phi) * Xrad * mdot * DHc * tau(len_v, T, RH)
+            Qrad += w[j] / (4 * const.pi * len_v ** 2) * np.cos(phi) * self.Srad * tau(len_v, T, RH)
 
         return Qrad.T / 1000
 
@@ -393,10 +370,7 @@ class Flame:
             Lvis = self.Lvis  # length of visible flame [m]
         except:
             Lvis = self.length()
-        Xrad = self.Xrad
-        mdot = self.developing_flow.orifice_exp.mdot(self.developing_flow.fluid_exp)  # mass flow rate [kg/s]
 
-        Srad = Xrad * mdot * DHc
         # Fit to normalized radiant power curve, C*
 
         Distance = obsOrg - flameCen
@@ -438,7 +412,7 @@ class Flame:
                    0.03188 * np.log10(XCO2) + 0.001164 * np.log10(XCO2) ** 2)
             return tau
 
-        Qrad = VF * Srad * tau(Rad, self.ambient.T, RH)
+        Qrad = VF * self.Srad * tau(Rad, self.ambient.T, RH)
         return Qrad.T
 
     def _contourdata(self):
@@ -762,3 +736,21 @@ class Flame:
             flux = self.Qrad_single(x, y, z, flame_center, rel_humid)
 
         return flux
+
+    def get_mass_flow_rate(self):
+        """
+        Calculates mass flow rate for the jet plume
+
+        Returns
+        ----------
+        mass_flow_rate : float
+            Mass flow rate (kg/s) of steady release.
+        """
+        return self.developing_flow.orifice.compute_steady_state_mass_flow(self.fluid, self.ambient.P)
+
+    def get_srad(self):
+        """
+        Returns : float
+            total emitted radiate power for flame (W)
+        """
+        return self.Srad

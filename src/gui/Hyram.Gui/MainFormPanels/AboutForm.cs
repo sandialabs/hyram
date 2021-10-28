@@ -1,35 +1,10 @@
 /*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
-
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
+rights in this software.
 
 You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
@@ -61,7 +36,7 @@ namespace SandiaNationalLaboratories.Hyram
             InitializeComponent();
 
             _mWebsiteUrl = "http://hyram.sandia.gov";
-            Text = "About " + Application.ProductName;
+            //Text = "About " + Application.ProductName;
             _versionText.Text = "Version " + CreateVersionString();
 
             var buildDateTime = File.GetLastWriteTime(Application.ExecutablePath);
@@ -113,6 +88,7 @@ namespace SandiaNationalLaboratories.Hyram
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AboutForm));
             this._versionText = new System.Windows.Forms.Label();
             this._buildByText = new System.Windows.Forms.Label();
             this._okBtn = new System.Windows.Forms.Button();
@@ -123,7 +99,7 @@ namespace SandiaNationalLaboratories.Hyram
             ((System.ComponentModel.ISupportInitialize)(this._bannerLogo)).BeginInit();
             this.SuspendLayout();
             // 
-            // VersionText
+            // _versionText
             // 
             this._versionText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -134,7 +110,7 @@ namespace SandiaNationalLaboratories.Hyram
             this._versionText.Text = "Version XX.XXX.XXX";
             this._versionText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // BuildByText
+            // _buildByText
             // 
             this._buildByText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -146,7 +122,7 @@ namespace SandiaNationalLaboratories.Hyram
     "ies (SNL). Please contact SNL for attribution details.";
             this._buildByText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // OkBtn
+            // _okBtn
             // 
             this._okBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._okBtn.DialogResult = System.Windows.Forms.DialogResult.Cancel;
@@ -157,7 +133,7 @@ namespace SandiaNationalLaboratories.Hyram
             this._okBtn.Text = "OK";
             this._okBtn.Click += new System.EventHandler(this.OkBtn_Click);
             // 
-            // BuildDayText
+            // _buildDayText
             // 
             this._buildDayText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -168,7 +144,7 @@ namespace SandiaNationalLaboratories.Hyram
             this._buildDayText.Text = "Built on";
             this._buildDayText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // Weblink
+            // _weblink
             // 
             this._weblink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this._weblink.AutoSize = true;
@@ -180,7 +156,7 @@ namespace SandiaNationalLaboratories.Hyram
             this._weblink.Text = "HyRAM Website";
             this._weblink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.Weblink_LinkClicked);
             // 
-            // CopyrightText
+            // _copyrightText
             // 
             this._copyrightText.BackColor = System.Drawing.SystemColors.Control;
             this._copyrightText.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -192,9 +168,9 @@ namespace SandiaNationalLaboratories.Hyram
             this._copyrightText.TabIndex = 11;
             this._copyrightText.Text = "";
             // 
-            // BannerLogo
+            // _bannerLogo
             // 
-            this._bannerLogo.Image = Properties.Resources.hyram_bigtitle;
+            this._bannerLogo.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.BannerLogov2Thin2;
             this._bannerLogo.Location = new System.Drawing.Point(0, -6);
             this._bannerLogo.Name = "_bannerLogo";
             this._bannerLogo.Size = new System.Drawing.Size(411, 105);
@@ -218,11 +194,12 @@ namespace SandiaNationalLaboratories.Hyram
             this.Controls.Add(this._buildByText);
             this.Controls.Add(this._versionText);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "AboutForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "About HyRAM";
+            this.Text = "About HyRAM+";
             ((System.ComponentModel.ISupportInitialize)(this._bannerLogo)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

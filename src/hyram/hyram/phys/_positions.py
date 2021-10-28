@@ -1,35 +1,9 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
-
-You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with HyRAM+.
+If not, see https://www.gnu.org/licenses/.
 """
 
 from __future__ import print_function, absolute_import, division
@@ -45,9 +19,9 @@ class PositionGenerator:
     """
     Class used to generate positions.
 
-    Generates positions from a list of location distributions.
-    Each location distribution should be a list of
-    The meaning of param_a and param_b depend on th given distribution.
+    Generates positions from a list of location distributions and parameters
+    
+    The meaning of param_a and param_b depend on the given distribution
 
     Exclusion radius is the minimum distance from (0,0,0)
     that any generated poistion must be
@@ -55,7 +29,7 @@ class PositionGenerator:
 
     def __init__(self, loc_distributions, exclusion_radius, seed):
         """
-        Initializes position generator.
+        Initializes position generator
 
         Parameters
         ----------
@@ -66,10 +40,10 @@ class PositionGenerator:
                  (ydist_type, yparam_a, yparam_b),
                  (zdist_type, zparam_a, zparam_b)]
             where *dist_type is one of 'deterministic', 'uniform', or 
-            'normal' and param_a and param_b depend on the distribution type.
+            'normal' and param_a and param_b depend on the distribution type
             For 'deterministic', param_a = value, param_b = None.
-            For 'uniform', param_a = minval, param_b = maxval.
-            For 'normal', param_a = mu, param_b = sigma.
+            For 'uniform', param_a = minval, param_b = maxval
+            For 'normal', param_a = mu, param_b = sigma
         exclusion_radius : float
             Minimum distance from (0,0,0) that all generated
             positions must be.
@@ -80,9 +54,6 @@ class PositionGenerator:
         self.randgen = np.random.RandomState(seed)
         self.exclusion_radius = exclusion_radius
         self.loc_distributions = loc_distributions
-
-        # Number of extra to generate in case some inside exclusion zone
-        self.extra = 3
         
         # Compute total number of workers (all distributions)
         self.totworkers = sum([dist[0] for dist in loc_distributions])
@@ -103,65 +74,46 @@ class PositionGenerator:
         return self.locs[2,:]
         
     def gen_positions(self):
-        """Generate positions"""
+        """
+        Generate positions into self.locs based off of distributions
+        self.locs is an array of 3 rows and sum(workers) columns
+        """
         curidx = 0
         for dist in self.loc_distributions:
-            nworkers = dist[0]
-
-            valid_list = [[],[],[]]
-            # Small function to identify valid locations and add
-            def get_valid(locs, num_needed):
-                # Find all the ones that were valid (x**2 + y**2 + z**2 < r**2)
-                valid_idx = np.where(locs[0]**2 + locs[1]**2 + locs[2]**2 > self.exclusion_radius**2)
-
-                # Get num_needed or num_valid if less than num_needed
-                nvalid = np.size(valid_idx)
-                if nvalid > num_needed:
-                    endidx = num_needed
-                else:
-                    endidx = nvalid
-                for i in range(3):
-                    valid_list[i].append(locs[i][valid_idx][:endidx])
-
-                return endidx
-
- 
-            # Generate x, y, and z
-            # Generate a few extra in case some are inside exclusion zone
-            locs = self._gen_xyz_locs(nworkers + self.extra, dist[1:])
-            numvalid = get_valid(locs, nworkers)
-
-            # Just in case, go through the remaining and generate some more
-            counter = 0
-            remaining = nworkers - numvalid
-            while remaining > 0:
-                addl_locs = self._gen_xyz_locs(remaining, dist[1:])
-                numvalid = get_valid(addl_locs, remaining)
-                remaining -= numvalid
-                counter += 1
-                if counter > 500:
-                    raise ValueError('Unable to produce desired number of valid positions outside exclusion radius')
-
-            # Set actual locs to contain needed number of valid ones
-            for i in range(3):
-                self.locs[i,curidx:curidx+nworkers] = np.array(valid_list[i]).flatten()
-            curidx += nworkers
+            # get a valid position with the given distribution
+            def get_position():
+                (x, y, z) = (0, 0, 0)
+                counter = 0
+                while x**2 + y**2 + z**2 <= self.exclusion_radius**2:
+                   (x, y, z) = self._gen_xyz_locs(1, dist[1:])
+                   counter += 1
+                   if counter > 500:
+                       raise ValueError('Unable to produce desired number of valid positions outside exclusion radius')
+                return x, y, z
+            # generate n positions with this distribution
+            n = dist[0]
+            for _ in range(n):
+                (x, y, z) = get_position()
+                self.locs[0,curidx] = x
+                self.locs[1,curidx] = y
+                self.locs[2,curidx] = z
+                curidx += 1
 
     def _gen_xyz_locs(self, n, dist_info):
         """
-        Generates appropriate x, y, and z locations for one distribution
+        Generates x, y, and z locations for one distribution
 
         Parameters
         ----------
         n : int
             Number to generate
         dist_info : list
-            Distribution information for x, y, and z in that order.
+            Distribution information for x, y, and z in that order
 
         Returns
         -------
         list
-            List of arrays for x, y, and z locations.
+            List of arrays for x, y, and z locations
         """
         locs = []
         for i in range(3):
@@ -170,7 +122,7 @@ class PositionGenerator:
 
     def _gen_normal(self, n, mu, sigma):
         """
-        Generates numbers from normal distribution.
+        Generates numbers from normal distribution
         Simply wraps numpy random generator
 
         Parameters
@@ -191,8 +143,8 @@ class PositionGenerator:
 
     def _gen_uniform(self, n, minpos, maxpos):
         """
-        Generates numbers from uniform distribution.
-        Simply wraps numpy random generator.
+        Generates numbers from uniform distribution
+        Simply wraps numpy random generator
 
         Parameters
         ----------
@@ -212,7 +164,7 @@ class PositionGenerator:
     
     def _gen_deterministic(self, n, val):
         """
-        Generates array of deterministic value.
+        Generates array of deterministic value
         
         Parameters
         ----------
@@ -224,13 +176,13 @@ class PositionGenerator:
         Returns
         -------
         array
-            Filled with deterministic value.
+            Filled with deterministic value
         """
         return np.ones(n, dtype=float)*val
 
     def _gen_locs(self, n, dist_params):
         """
-        Generates array of x, y, or z coordinate from distribution.
+        Generates array of locations on single coordinate (x, y, or z) from distribution
 
         Parameters
         ----------

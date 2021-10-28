@@ -1,41 +1,14 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
-
-You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with HyRAM+.
+If not, see https://www.gnu.org/licenses/.
 """
 
 from __future__ import print_function, absolute_import, division
 
 import warnings
-import pkg_resources
 import logging
 
 import numpy as np
@@ -45,6 +18,7 @@ from CoolProp import CoolProp
 from scipy import constants as const
 import dill as pickle
 import pandas as pd
+from ._fuel_props import Fuel_Properties
 
 from hyram.utilities.custom_warnings import PhysicsWarning
 
@@ -78,8 +52,18 @@ class CoolPropWrapper:
         P: float
             pressure (Pa)
         '''
-        P, Q = self._cp.PropsSI(['P', 'Q'], 'D', rho, 'T', T, self.spec)
-        self.phase = self._cp.PhaseSI('D', rho, 'T', T, self.spec)
+        P, Q = self.PropsSI(['P', 'Q'], D=rho, T = T)
+        try:
+            self.phase = self._cp.PhaseSI('D', rho, 'P', P, self.spec)
+        except ValueError:
+            if (Q < 1) and (Q > 0):
+                self.phase = 'twophase'
+            elif Q == 1:
+                self.phase = 'vapor'
+            elif Q == 0:
+                self.phase = 'liquid'
+            else:
+                self.phase = ''
         return P
     
     def T(self, P, rho):
@@ -98,8 +82,18 @@ class CoolPropWrapper:
         T: float
             temperature (K)
         '''
-        T, Q = self._cp.PropsSI(['T', 'Q'], 'D', rho, 'P', P, self.spec)
-        self.phase = self._cp.PhaseSI('D', rho, 'P', P, self.spec)
+        T, Q = self.PropsSI(['T', 'Q'], D=rho, P=P)
+        try:
+            self.phase = self._cp.PhaseSI('D', rho, 'P', P, self.spec)
+        except ValueError:
+            if (Q < 1) and (Q > 0):
+                self.phase = 'twophase'
+            elif Q == 1:
+                self.phase = 'vapor'
+            elif Q == 0:
+                self.phase = 'liquid'
+            else:
+                self.phase = ''
         return T
     
     def rho(self, T, P):
@@ -120,8 +114,18 @@ class CoolPropWrapper:
             density (kg/m^3)
         '''
         try:
-            rho, Q = self._cp.PropsSI(['D', 'Q'], 'T', T, 'P', P, self.spec)
-            self.phase = self._cp.PhaseSI('T', T, 'P', P, self.spec)
+            rho, Q = self.PropsSI(['D', 'Q'], T = T, P = P)
+            try:
+                self.phase = self._cp.PhaseSI('D', rho, 'P', P, self.spec)
+            except ValueError:
+                if (Q < 1) and (Q > 0):
+                    self.phase = 'twophase'
+                elif Q == 1:
+                    self.phase = 'vapor'
+                elif Q == 0:
+                    self.phase = 'liquid'
+                else:
+                    self.phase = ''
             return rho
         except:
             try:
@@ -130,8 +134,9 @@ class CoolPropWrapper:
             except:
                 warnings.warn('Assuming gas phase to calculate density.', category=PhysicsWarning)
                 self.phase = 'gas'
+            rho = self._cp.PropsSI('D', 'T|'+self.phase, T, 'P', P, self.spec)
 
-            return self._cp.PropsSI('D', 'T|'+self.phase, T, 'P', P, self.spec)
+            return rho
             
     def rho_P(self, T, phase):
         '''
@@ -257,15 +262,15 @@ class CoolPropWrapper:
             error in enthalpy (J/kg)
         '''
         try:
-            h1 = self._cp.PropsSI('H', 'P', P1, 'D', rho1, self.spec)
+            h1 = self.PropsSI('H', P = P1, D = rho1)
         except:
             print('tp')
-            h1 = self._cp.PropsSI('H', 'P|'+self.phase, P1, 'D', rho1, self.spec)
+            h1 = self.PropsSI('H', {'P|'+self.phase: P1, 'D':rho1})
         try:
-            h2 = self._cp.PropsSI('H', 'P', P2, 'D', rho2, self.spec)
+            h2 = self.PropsSI('H', P = P2, D = rho2)
         except:
             print('tp')
-            h2 = self._cp.PropsSI('H', 'P|'+self.phase, P2, 'D', rho2, self.spec)
+            h2 = self.PropsSI('H', {'P|'+self.phase: P2, 'D': rho2})
         return h1 + v1**2/2. - (h2 + v2**2/2.)
     
     def _err_S(self, T1, P1, T2, P2):
@@ -327,49 +332,25 @@ class CoolPropWrapper:
         def a_2phase(T, Q):
             '''Speed of sound for 2-phase mixture (see Eq. 10 in Chung, Park, Lee: doi:10.1016/j.jsv.2003.07.003)'''
             [al, rhol], [av, rhov] = self._cp.PropsSI(['A', 'D'], 'P', P, 'Q', [0, 1], self.spec)
-            rho = self._cp.PropsSI('D', 'P', P, 'Q', Q, self.spec)
-            alpha = rho*Q/rhov # volume fraction - Q is mass fraction
+            #rho = self._cp.PropsSI('D', 'P', P, 'Q', Q, self.spec)
+            alpha = Q*rhol/(rhov*(1-Q) + rhol*Q)  #rho*Q/rhov # volume fraction - Q is mass fraction
             term = np.sqrt(rhov*av**2/((1-alpha)*rhov*av**2+alpha*rhol*al**2))
             a = al*av*term/((1-alpha)*av+alpha*al*term)
             return a
         if S == None and P != None and T != None: #CoolProp may error out in this case - system should be defined by S and T or P otherwise can be undefined in 2-phase region    
-            a = self._cp.PropsSI('A', 'T', T, 'P', P, self.spec)
+            a = self.PropsSI('A', T = T, P = P)
         elif P == None and S != None and T != None:
-            a, Q = self._cp.PropsSI(['A', 'Q'], 'T', T, 'S', S, self.spec)
+            a, Q = self.PropsSI(['A', 'Q'], T = T, S = S)
             if Q > 0 and Q < 1:
                 a = a_2phase(T, Q)
         elif T == None and P != None and S != None:
-            a, Q, T = self._cp.PropsSI(['A', 'Q', 'T'], 'P', P, 'S', S, self.spec)
+            a, Q, T = self.PropsSI(['A', 'Q', 'T'], P=P, S=S)
             if Q > 0 and Q < 1:
                 a = a_2phase(T, Q)
         else:
             raise warnings.warn('Under-defined - need 2 of T, P, S', category=PhysicsWarning)
             return None
         return a
-        
-    def h(self, **kwargs):
-        '''
-        enthalpy (J/kg) of a fluid at temperature T (K) and pressure P (Pa)
-        
-        Parameters 
-        ----------
-        those accepted by CoolProp (e.g., T, P, S, D - with the addition of the keyword 'phase')
-        
-        Returns
-        -------
-        h: float
-            heat capacity (J/kg)
-        '''
-        if 'phase' in kwargs:
-            phase =  kwargs.pop('phase')
-        else:
-            phase = ''        
-        try:
-            (k1, v1), (k2, v2)  = kwargs.items()
-            k1 += phase
-            return self._cp.PropsSI('H', k1, v1, k2, v2, self.spec)
-        except:
-            raise warnings.warn('system not properly defined')
     
     def PropsSI(self, output, **kwargs):
         '''wrapper on CoolProps PropsSI
@@ -389,9 +370,41 @@ class CoolPropWrapper:
         try:
             (k1, v1), (k2, v2)  = kwargs.items()
             k1 += phase
-            return self._cp.PropsSI(output, k1, v1, k2, v2, self.spec)
+            out = self._cp.PropsSI(output, k1, v1, k2, v2, self.spec)
+            return out
+        except ValueError:
+            if ('T' in kwargs) and ('D' in kwargs):
+                T = kwargs['T']; D = kwargs['D']
+                def err(P):
+                    return D - self._cp.PropsSI('D', 'T', T, 'P', P, self.spec)
+                P = optimize.root(err, D*8.314*T/self.MW)['x']
+            elif ('P' in kwargs) and ('D' in kwargs):
+                P = kwargs['P']; D = kwargs['D']
+                Tmin = self._cp.PropsSI('Tmin', self.spec)
+                def err(T):
+                    return D - self._cp.PropsSI('D', 'T', max(T, Tmin), 'P', P, self.spec)
+                #dT = 5
+                #err0 = err(P*self.MW/(D*8.314))
+                #err1 = err(P*self.MW/(D*8.314) + dT)
+                #Tnext = P*self.MW/(D*8.314) + dT/(err0 - err1)*err0 #- 20*np.sign(err0 - err1)
+                #T = optimize.brenth(err, P*self.MW/(D*8.314), Tnext)
+                T = optimize.root(err, max(P*self.MW/(D*8.314), Tmin))['x']
+            elif 'P' in kwargs:
+                P = kwargs.pop('P')
+                k, v = list(kwargs.items())[0]
+                def err(T):
+                    err = v - self._cp.PropsSI(k, 'T', T, 'P', P, self.spec)
+                    return err
+                T = optimize.root(err, 150)['x']
+            elif 'T' in kwargs:
+                T = kwargs.pop('T')
+                k, v = list(kwargs.items())[0]
+                def err(P):
+                    return v - self._cp.PropsSI(k, 'T', T, 'P', P, self.spec)
+                P = optimize.root(err, 101325.)['x'] 
+            out = self._cp.PropsSI(output, 'T', T, 'P', P, self.spec)
+            return out
         except:
-            #print(output, kwargs)
             raise warnings.warn('system not properly defined')
             
     def s(self, T = None, P = None, rho = None, phase = None):
@@ -426,8 +439,8 @@ class CoolPropWrapper:
             
 
 class Combustion:
-    def __init__(self, fluid, numpoints = 100,
-                 verbose = False):
+    def __init__(self, fluid, #ambient, # todo: add ambient object
+                 numpoints = 100, verbose = False):
         '''
         Class that performs combustion chemistry calculations.
         Stoichiometry: C_nH_(2n) + eta/2 (O_2 + 3.76N_2) -> max(0, 1-eta) C_nH_(2n) + min(1, eta) H_2O + min(n*eta, n)CO_2 + max(0, (eta-1)/2) O2 + 3.76 eta/2 N2
@@ -436,18 +449,15 @@ class Combustion:
         
         Parameters
         ----------
-        Treac : float
-            temperature of reactants (K)
-        nC : int
-            number of carbon molecules in the fuel (assumed to be a normal alkane with 2*Nc + 2 hydrogens)
-            default value of 0 is for hydrogen
-        P : float
-            pressure (Pa), default value is 101325. (this is unused as of now, lacking heat capacity data for alternate pressures)
+        fluid : hyram.phys.Fluid object
+            fluid being combusted
+        ambient: hyram.phys.Fluid object with ambient air
+            air with with the fluid is being combusted
         numpoints : int
             number of points to solve for temperature to create 
             interpolating functions, default value is 100
-        MW : dict
-            molecular weights of elements (C, H, O, N)
+        verbose: boolean
+            whether to include some print statements
             
         Contents
         --------
@@ -456,12 +466,11 @@ class Combustion:
         self.MW_prod:
             mixture averaged molecular weight of products (g/mol) at a mixture fraction, f 
         '''
-        import pkg_resources
-        import pandas as pd
-        stream = pkg_resources.resource_stream('hyram', 'phys/data/fuel_prop.dat') # note: when this is within hyram, 'hyram' can be changed to __name__
-        fuel_props = pd.read_csv(stream, index_col = 0, skipinitialspace=True)
-        nC = np.argwhere((fluid.species.lower() == fuel_props.other_name.values) | (fluid.species == fuel_props.index.values))[0][0]
+        fuel_props = Fuel_Properties(fluid.species)
+        nC = fuel_props.nC
+
         Treac, P = fluid.T, fluid.P
+ #todo:       #Tair, P = ambient.T, ambient.P
         if verbose:
             print('initializing chemistry...', end = '')
         from CoolProp.CoolProp import PropsSI
@@ -469,11 +478,8 @@ class Combustion:
         reac = ('C%dH%d' % (nC, 2*nC+2)).replace('C0', '').replace('C1', 'C')
         self.reac = reac 
         self._nC = nC
-        stream = pkg_resources.resource_stream(__name__, 'data/fuel_prop.dat') 
-        fuel_props = pd.read_csv(stream, index_col = 0, skipinitialspace=True)
-        stream.close()
 
-        self.DHc = fuel_props.dHc[reac] # heat of combustion, J/kg
+        self.DHc = fuel_props.dHc # heat of combustion, J/kg
 
         self.Treac, self.P = Treac, P
         MW = dict([[spec, PropsSI('M', spec)] for spec in ['O2', 'N2', 'H2O', 'CO2', reac]])

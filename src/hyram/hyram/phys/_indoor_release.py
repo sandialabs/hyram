@@ -1,35 +1,9 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
-
-You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with HyRAM+.
+If not, see https://www.gnu.org/licenses/.
 """
 
 
@@ -166,7 +140,7 @@ class IndoorRelease:
             jets.append(LayeringJet(g, orifice, ambient, theta0 = theta0, y0 = y0,
                                     nn_conserve_momentum=nn_conserve_momentum, nn_T=nn_T,
                                     x0 = x0, lam = lam, mdot = mdot, Smax = LIM, Ymin = Ymin,
-                                    max_steps = max_steps, tol = tol, verbose = verbose))
+                                    max_steps = max_steps, tol = tol, suppressWarnings = True, verbose = verbose))
             jets[-1].Q_jet = mdot/gas.rho # needed for layer model
         # Reshape jet if needed
         [jet.reshape(enclosure, showPlot=False) for jet in jets]
@@ -254,14 +228,14 @@ class IndoorRelease:
         fig, ax = plt.subplots()
         ax.semilogy(self.ts, self.mdots)
         ax.set_xlabel('Time [s]')
-        ax.set_ylabel('Hydrogen Mass Flow Rate [kg/s]')
+        ax.set_ylabel('Fuel Mass Flow Rate [kg/s]')
         return fig
 
     def plot_layer(self):
         fig, ax = plt.subplots(2, 1, sharex = True)
         l1 = ax[0].plot(self.t_layer, np.array(self.x_layer)*100,
-                     label = 'Mole Fraction H$_2$')
-        ax[0].set_ylabel('%H$_2$ in Layer\n(Molar or Volume)')
+                     label = 'Mole Fraction Fuel')
+        ax[0].set_ylabel('%Fuel in Layer\n(Molar or Volume)')
         i = np.argmin(np.abs(self.t_layer - (np.max(self.t_layer)
                                         - np.min(self.t_layer)) / 2.0))
         l2 = ax[1].plot(self.t_layer, self.H_layer,
@@ -277,7 +251,7 @@ class IndoorRelease:
         ax.plot(self.t_layer, np.array(self.m_jet)+np.array(self.m_layer),
                  label='Combined')
         ax.set_xlabel('Time [s]')
-        ax.set_ylabel('Flammable Hydrogen Mass [kg]')
+        ax.set_ylabel('Flammable Fuel Mass [kg]')
         ax.legend(ncol=3, loc='lower center', bbox_to_anchor=(0.5, 1.0),
                   fancybox=True)
         return fig
@@ -315,7 +289,7 @@ class IndoorRelease:
         dP : ndarray
            overpressure(s) at time t (Pa)
         '''
-        dp = interpolate.interp1d(self.t_layer, self.dP_tot)
+        dp = interpolate.interp1d(self.t_layer, self.dP_tot, bounds_error = False)
         return dp(t)
 
     def layer_depth(self, t):
@@ -332,7 +306,7 @@ class IndoorRelease:
         ld : ndarray
            layer height(s) at time t (m)
         '''
-        ld = interpolate.interp1d(self.t_layer, self.H_layer)
+        ld = interpolate.interp1d(self.t_layer, self.H_layer, bounds_error = False)
         return ld(t)
 
     def concentration(self, t):
@@ -349,7 +323,7 @@ class IndoorRelease:
         lc : ndarray
            concentrations(s) at time t (%)
         '''
-        lc = interpolate.interp1d(self.t_layer, self.x_layer)
+        lc = interpolate.interp1d(self.t_layer, self.x_layer, bounds_error = False)
         return 100.0 * lc(t)
 
     def max_p_t(self):

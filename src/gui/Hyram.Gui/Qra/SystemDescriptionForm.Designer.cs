@@ -36,7 +36,6 @@
             this.tpComponents = new System.Windows.Forms.TabPage();
             this.dgComponents = new System.Windows.Forms.DataGridView();
             this.tpSystemParameters = new System.Windows.Forms.TabPage();
-            this.inputWarning = new System.Windows.Forms.Label();
             this.fuelPhaseSelector = new System.Windows.Forms.ComboBox();
             this.phaseLabel = new System.Windows.Forms.Label();
             this.tcSystemParameters = new System.Windows.Forms.TabControl();
@@ -87,6 +86,7 @@
             this.mnuRowDown = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuRowInsert = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuRowDelete = new System.Windows.Forms.ToolStripMenuItem();
+            this.formWarning = new System.Windows.Forms.Label();
             this.tcSystemDescription.SuspendLayout();
             this.tpComponents.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgComponents)).BeginInit();
@@ -119,18 +119,21 @@
             // tcSystemDescription
             // 
             this.tcSystemDescription.AllowDrop = true;
+            this.tcSystemDescription.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tcSystemDescription.Controls.Add(this.tpComponents);
             this.tcSystemDescription.Controls.Add(this.tpSystemParameters);
             this.tcSystemDescription.Controls.Add(this.tpFacilityParameters);
             this.tcSystemDescription.Controls.Add(this.tpBoundaryConditions);
             this.tcSystemDescription.Controls.Add(this.tbOverrides);
-            this.tcSystemDescription.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tcSystemDescription.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tcSystemDescription.Location = new System.Drawing.Point(0, 0);
             this.tcSystemDescription.Name = "tcSystemDescription";
             this.tcSystemDescription.SelectedIndex = 0;
-            this.tcSystemDescription.Size = new System.Drawing.Size(1410, 645);
+            this.tcSystemDescription.Size = new System.Drawing.Size(987, 517);
             this.tcSystemDescription.TabIndex = 0;
+            this.tcSystemDescription.SelectedIndexChanged += new System.EventHandler(this.tcSystemDescription_SelectedIndexChanged);
             // 
             // tpComponents
             // 
@@ -138,7 +141,7 @@
             this.tpComponents.Location = new System.Drawing.Point(4, 24);
             this.tpComponents.Name = "tpComponents";
             this.tpComponents.Padding = new System.Windows.Forms.Padding(3);
-            this.tpComponents.Size = new System.Drawing.Size(1402, 617);
+            this.tpComponents.Size = new System.Drawing.Size(979, 489);
             this.tpComponents.TabIndex = 0;
             this.tpComponents.Text = "Components";
             this.tpComponents.UseVisualStyleBackColor = true;
@@ -151,39 +154,22 @@
             this.dgComponents.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgComponents.Location = new System.Drawing.Point(3, 3);
             this.dgComponents.Name = "dgComponents";
-            this.dgComponents.Size = new System.Drawing.Size(1396, 611);
+            this.dgComponents.Size = new System.Drawing.Size(973, 483);
             this.dgComponents.TabIndex = 0;
             this.dgComponents.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgComponents_CellValueChanged);
             // 
             // tpSystemParameters
             // 
-            this.tpSystemParameters.Controls.Add(this.inputWarning);
             this.tpSystemParameters.Controls.Add(this.fuelPhaseSelector);
             this.tpSystemParameters.Controls.Add(this.phaseLabel);
             this.tpSystemParameters.Controls.Add(this.tcSystemParameters);
             this.tpSystemParameters.Location = new System.Drawing.Point(4, 24);
             this.tpSystemParameters.Name = "tpSystemParameters";
             this.tpSystemParameters.Padding = new System.Windows.Forms.Padding(3);
-            this.tpSystemParameters.Size = new System.Drawing.Size(1402, 617);
+            this.tpSystemParameters.Size = new System.Drawing.Size(979, 489);
             this.tpSystemParameters.TabIndex = 1;
             this.tpSystemParameters.Text = "System Parameters";
             this.tpSystemParameters.UseVisualStyleBackColor = true;
-            // 
-            // inputWarning
-            // 
-            this.inputWarning.AutoSize = true;
-            this.inputWarning.BackColor = System.Drawing.Color.MistyRose;
-            this.inputWarning.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.inputWarning.ForeColor = System.Drawing.Color.Maroon;
-            this.inputWarning.Location = new System.Drawing.Point(223, 11);
-            this.inputWarning.MaximumSize = new System.Drawing.Size(600, 0);
-            this.inputWarning.Name = "inputWarning";
-            this.inputWarning.Padding = new System.Windows.Forms.Padding(4);
-            this.inputWarning.Size = new System.Drawing.Size(198, 23);
-            this.inputWarning.TabIndex = 61;
-            this.inputWarning.Text = "Warning/error message here";
-            this.inputWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.inputWarning.Visible = false;
             // 
             // fuelPhaseSelector
             // 
@@ -308,7 +294,7 @@
             this.tpFacilityParameters.Controls.Add(this.splitContainer1);
             this.tpFacilityParameters.Location = new System.Drawing.Point(4, 24);
             this.tpFacilityParameters.Name = "tpFacilityParameters";
-            this.tpFacilityParameters.Size = new System.Drawing.Size(1402, 617);
+            this.tpFacilityParameters.Size = new System.Drawing.Size(979, 489);
             this.tpFacilityParameters.TabIndex = 2;
             this.tpFacilityParameters.Text = "Facility Parameters";
             this.tpFacilityParameters.UseVisualStyleBackColor = true;
@@ -327,8 +313,8 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.tcFacilityParameters);
-            this.splitContainer1.Size = new System.Drawing.Size(1402, 617);
-            this.splitContainer1.SplitterDistance = 78;
+            this.splitContainer1.Size = new System.Drawing.Size(979, 489);
+            this.splitContainer1.SplitterDistance = 61;
             this.splitContainer1.TabIndex = 19;
             // 
             // textBox1
@@ -340,11 +326,11 @@
             this.textBox1.MaxLength = 300;
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(1402, 78);
+            this.textBox1.Size = new System.Drawing.Size(979, 61);
             this.textBox1.TabIndex = 19;
             this.textBox1.Text = "\r\nFacility dimensions and Occupant positions should be specified relative to the " +
-    "hydrogen leak point.\r\nLeak occurs at the origin (0, 0, 0) and extends in the pos" +
-    "itive X (length) direction.";
+    "fuel leak point.\r\nLeak occurs at the origin (0, 0, 0) and extends in the positiv" +
+    "e X (length) direction.";
             // 
             // tcFacilityParameters
             // 
@@ -354,7 +340,7 @@
             this.tcFacilityParameters.Location = new System.Drawing.Point(0, 0);
             this.tcFacilityParameters.Name = "tcFacilityParameters";
             this.tcFacilityParameters.SelectedIndex = 0;
-            this.tcFacilityParameters.Size = new System.Drawing.Size(1402, 535);
+            this.tcFacilityParameters.Size = new System.Drawing.Size(979, 424);
             this.tcFacilityParameters.TabIndex = 18;
             // 
             // tpFPFacility
@@ -363,7 +349,7 @@
             this.tpFPFacility.Location = new System.Drawing.Point(4, 24);
             this.tpFPFacility.Name = "tpFPFacility";
             this.tpFPFacility.Padding = new System.Windows.Forms.Padding(3);
-            this.tpFPFacility.Size = new System.Drawing.Size(1394, 507);
+            this.tpFPFacility.Size = new System.Drawing.Size(971, 396);
             this.tpFPFacility.TabIndex = 0;
             this.tpFPFacility.Text = "Facility";
             this.tpFPFacility.UseVisualStyleBackColor = true;
@@ -378,7 +364,7 @@
             this.dgFacilityParameters.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgFacilityParameters.Location = new System.Drawing.Point(3, 3);
             this.dgFacilityParameters.Name = "dgFacilityParameters";
-            this.dgFacilityParameters.Size = new System.Drawing.Size(1388, 501);
+            this.dgFacilityParameters.Size = new System.Drawing.Size(965, 390);
             this.dgFacilityParameters.TabIndex = 16;
             this.dgFacilityParameters.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgFacilityParameters_CellValueChanged);
             // 
@@ -389,7 +375,7 @@
             this.tpFPOccupants.Location = new System.Drawing.Point(4, 24);
             this.tpFPOccupants.Name = "tpFPOccupants";
             this.tpFPOccupants.Padding = new System.Windows.Forms.Padding(3);
-            this.tpFPOccupants.Size = new System.Drawing.Size(1394, 507);
+            this.tpFPOccupants.Size = new System.Drawing.Size(971, 396);
             this.tpFPOccupants.TabIndex = 1;
             this.tpFPOccupants.Text = "Occupants";
             this.tpFPOccupants.UseVisualStyleBackColor = true;
@@ -427,7 +413,7 @@
             this.clmOccupantExposedHours});
             this.dgOccupantInputDetails.Location = new System.Drawing.Point(3, 41);
             this.dgOccupantInputDetails.Name = "dgOccupantInputDetails";
-            this.dgOccupantInputDetails.Size = new System.Drawing.Size(1386, 267);
+            this.dgOccupantInputDetails.Size = new System.Drawing.Size(963, 267);
             this.dgOccupantInputDetails.TabIndex = 0;
             this.dgOccupantInputDetails.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgOccupantInputDetails_CellValueChanged);
             this.dgOccupantInputDetails.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.dgOccupantInputDetails_DataError);
@@ -551,7 +537,7 @@
             this.tpBoundaryConditions.Controls.Add(this.lblRandomSeed);
             this.tpBoundaryConditions.Location = new System.Drawing.Point(4, 24);
             this.tpBoundaryConditions.Name = "tpBoundaryConditions";
-            this.tpBoundaryConditions.Size = new System.Drawing.Size(1402, 617);
+            this.tpBoundaryConditions.Size = new System.Drawing.Size(979, 489);
             this.tpBoundaryConditions.TabIndex = 3;
             this.tpBoundaryConditions.Text = "Boundary Conditions";
             this.tpBoundaryConditions.UseVisualStyleBackColor = true;
@@ -621,7 +607,7 @@
             this.tbOverrides.Location = new System.Drawing.Point(4, 24);
             this.tbOverrides.Margin = new System.Windows.Forms.Padding(2);
             this.tbOverrides.Name = "tbOverrides";
-            this.tbOverrides.Size = new System.Drawing.Size(1402, 617);
+            this.tbOverrides.Size = new System.Drawing.Size(979, 489);
             this.tbOverrides.TabIndex = 4;
             this.tbOverrides.Text = "Manual Overrides";
             this.tbOverrides.UseVisualStyleBackColor = true;
@@ -640,8 +626,8 @@
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.Controls.Add(this.dgManualOverrides);
-            this.splitContainer2.Size = new System.Drawing.Size(1402, 617);
-            this.splitContainer2.SplitterDistance = 85;
+            this.splitContainer2.Size = new System.Drawing.Size(979, 489);
+            this.splitContainer2.SplitterDistance = 67;
             this.splitContainer2.TabIndex = 19;
             // 
             // textBox2
@@ -651,7 +637,7 @@
             this.textBox2.Location = new System.Drawing.Point(0, 0);
             this.textBox2.Multiline = true;
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(1402, 85);
+            this.textBox2.Size = new System.Drawing.Size(979, 67);
             this.textBox2.TabIndex = 20;
             this.textBox2.Text = resources.GetString("textBox2.Text");
             // 
@@ -665,7 +651,7 @@
             this.dgManualOverrides.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgManualOverrides.Location = new System.Drawing.Point(0, 0);
             this.dgManualOverrides.Name = "dgManualOverrides";
-            this.dgManualOverrides.Size = new System.Drawing.Size(1402, 528);
+            this.dgManualOverrides.Size = new System.Drawing.Size(979, 418);
             this.dgManualOverrides.TabIndex = 17;
             this.dgManualOverrides.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgManualOverrides_CellValueChanged);
             // 
@@ -704,13 +690,30 @@
             this.mnuRowDelete.Size = new System.Drawing.Size(133, 22);
             this.mnuRowDelete.Text = "Delete Row";
             // 
+            // formWarning
+            // 
+            this.formWarning.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.formWarning.AutoSize = true;
+            this.formWarning.BackColor = System.Drawing.Color.MistyRose;
+            this.formWarning.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.formWarning.ForeColor = System.Drawing.Color.Maroon;
+            this.formWarning.Location = new System.Drawing.Point(4, 520);
+            this.formWarning.MaximumSize = new System.Drawing.Size(700, 0);
+            this.formWarning.Name = "formWarning";
+            this.formWarning.Padding = new System.Windows.Forms.Padding(4);
+            this.formWarning.Size = new System.Drawing.Size(177, 23);
+            this.formWarning.TabIndex = 18;
+            this.formWarning.Text = "Errors and warnings here";
+            this.formWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // SystemDescriptionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.formWarning);
             this.Controls.Add(this.tcSystemDescription);
             this.Name = "SystemDescriptionForm";
-            this.Size = new System.Drawing.Size(1410, 645);
+            this.Size = new System.Drawing.Size(990, 595);
             this.tcSystemDescription.ResumeLayout(false);
             this.tpComponents.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgComponents)).EndInit();
@@ -743,6 +746,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgManualOverrides)).EndInit();
             this.mnuPopDistributionInputGrid.ResumeLayout(false);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
 		}
 
@@ -789,7 +793,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox fuelPhaseSelector;
         private System.Windows.Forms.Label phaseLabel;
-        private System.Windows.Forms.Label inputWarning;
         private System.Windows.Forms.DataGridViewTextBoxColumn clmOccupantNumTargets;
         private System.Windows.Forms.DataGridViewTextBoxColumn clmOccupantDescription;
         private System.Windows.Forms.DataGridViewComboBoxColumn clmOccupantLocationParamUnit;
@@ -803,5 +806,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn clmZLocDistParamA;
         private System.Windows.Forms.DataGridViewTextBoxColumn clmZLocDistParamB;
         private System.Windows.Forms.DataGridViewTextBoxColumn clmOccupantExposedHours;
+        private System.Windows.Forms.Label formWarning;
     }
 }

@@ -22,7 +22,7 @@ OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
 OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
 REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
+Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 4.0 has the
 obligation and responsibility to abide by the applicable export control laws,
 regulations, and general prohibitions relating to the export of technical data.
 Failure to obtain an export control license or other authority from the
@@ -65,5 +65,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.1.0")]
-[assembly: AssemblyFileVersion("3.1.0")]
+[assembly: AssemblyVersion("4.0")]
+[assembly: AssemblyFileVersion("4.0")]

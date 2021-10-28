@@ -29,7 +29,7 @@
     <ProductVersion>3.10</ProductVersion>
     <ProjectGuid>374eb47c-2755-4eb7-abe9-598bd6683135</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>Hyram-3.1.Setup</OutputName>
+    <OutputName>Hyram-4.0.Setup</OutputName>
     <OutputType>Package</OutputType>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>

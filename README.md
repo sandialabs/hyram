@@ -6,7 +6,12 @@ Additional descriptions and documentation, as well as a Windows installer, can b
 
 &nbsp;
 ## License
-The HyRAM software is available under the GNU General Public License, Version 3.0.
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
+rights in this software.
+
+You should have received a copy of the GNU General Public License along with
+HyRAM+. If not, see https://www.gnu.org/licenses/.
 This license, as well as terms and conditions, are available in the [COPYING.txt](./COPYING.txt) file. 
 
 &nbsp;

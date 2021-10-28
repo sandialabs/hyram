@@ -36,7 +36,7 @@
             // Splashscreen
             // 
             resources.ApplyResources(this, "$this");
-            this.BackgroundImage = global::SandiaNationalLaboratories.Hyram.Properties.Resources.BannerLogo;
+            this.BackgroundImage = global::SandiaNationalLaboratories.Hyram.Properties.Resources.BannerLogov2;
             this.ControlBox = false;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "Splashscreen";

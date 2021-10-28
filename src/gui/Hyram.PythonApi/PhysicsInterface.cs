@@ -1,35 +1,10 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
-
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
+rights in this software.
 
 You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using Python.Runtime;
@@ -42,7 +17,11 @@ namespace SandiaNationalLaboratories.Hyram
     public class PhysicsInterface
     {
         private readonly string libName = "hyram";
+//#if DEBUG
         private readonly bool isVerbose = true;
+//#else
+        //private readonly bool isVerbose = false;
+//#endif
 
         /// <summary>
         /// Calculate mass flow rate (kg/m3) or time to empty tank.
@@ -107,7 +86,7 @@ namespace SandiaNationalLaboratories.Hyram
                         // Extract correct results based on analysis type
                         if (isSteady)
                         {
-                            massFlowRate = (double)resultDict["mass_flow_rate"];
+                            massFlowRate = ((double[])resultDict["rates"])[0];
                             Trace.TraceInformation("Mass flow rate results - rate: " + massFlowRate);
                         }
                         else
@@ -289,8 +268,7 @@ namespace SandiaNationalLaboratories.Hyram
         /// Get TNT equivalence data
         /// Currently called by ETK.
         /// </summary>
-        public bool ComputeTntEquivalence(double vaporMass, double yield, double heatOfCombustion,
-            out string statusMsg, out double? tntMass)
+        public bool ComputeTntEquivalence(double vaporMass, double yield, out string statusMsg, out double? tntMass)
         {
             bool status = false;
             statusMsg = "";
@@ -298,6 +276,7 @@ namespace SandiaNationalLaboratories.Hyram
 
             // Derive path to data dir for temp and data files, e.g. pickling
             string outputDirPath = StateContainer.UserDataDir;
+            string relSpecies = StateContainer.GetValue<FuelType>("FuelType").GetKey();
 
             Trace.TraceInformation("Acquiring python lock and importing module...");
             using (Py.GIL())
@@ -311,8 +290,7 @@ namespace SandiaNationalLaboratories.Hyram
                 try
                 {
                     Trace.TraceInformation("Executing python TNT mass call...");
-                    dynamic resultPyObj = pyLib.phys.c_api.etk_compute_equivalent_tnt_mass(
-                        vaporMass, yield, heatOfCombustion);
+                    dynamic resultPyObj = pyLib.phys.c_api.etk_compute_equivalent_tnt_mass(vaporMass, yield, relSpecies);
                     Trace.TraceInformation("Python call complete. Processing results...");
 
                     // unwrap results
@@ -372,13 +350,14 @@ namespace SandiaNationalLaboratories.Hyram
             double xMin, double xMax, double yMin, double yMax,
             double contours, string nozzleModel, string plotTitle,
             out string statusMsg, out string warningMsg,
-            out string plotFilepath
+            out string plotFilepath, out float mass_flow_rate
             )
         {
             bool status = false;
             statusMsg = "";
             warningMsg = "";
             plotFilepath = "";
+            mass_flow_rate = float.NaN;
 
             //bool ambSpecies = StateContainer.GetValue<bool>("FuelType");
             string relSpecies = StateContainer.GetValue<FuelType>("FuelType").GetKey();
@@ -419,6 +398,7 @@ namespace SandiaNationalLaboratories.Hyram
                         dynamic resultData = resultPyObj["data"];
                         plotFilepath = (string)resultData["plot"];
                         warningMsg = (string)resultPyObj["warning"];
+                        mass_flow_rate = (float)resultData["mass_flow_rate"];
                         resultPyObj.Dispose();
                         Trace.TraceInformation("Plume plot: " + plotFilepath);
                     }
@@ -482,14 +462,14 @@ namespace SandiaNationalLaboratories.Hyram
         /// <param name="layerPlotFilepath"></param>
         /// <param name="trajectoryPlotFilepath"></param>
         /// <returns></returns>
-        public bool ExecuteOverpressureAnalysis(
+        public bool AnalyzeAccumulation(
                         double ambPres, double ambTemp, double relPres, double? relTemp, double orifDiam, double orifDisCoeff, double tankVolume,
-                        double relDisCoeff, double relArea, double relHeight, double enclosureHeight, double floorCeilingArea, double distReleaseToWall,
+                        double relHeight, double enclosureHeight, double floorCeilingArea, double distReleaseToWall,
                         double ceilVentXArea, double ceilVentHeight, double floorVentXArea, double floorVentHeight, double flowRate, double relAngle, string nozzleModelKey,
-                        double[] timesToPlot, double[] ptPressures, double[] ptTimes, double[] presTicks, double maxSimTime,
+                        double[] timesToPlot, double[] ptPressures, double[] ptTimes, double[] presTicks, double maxSimTime, bool isSteady,
                         out string statusMsg, out string warningMsg,
-                        out double[] pressuresPerTime, out double[] depths, out double[] concentrations, out double overpressure, out double timeOfOverpressure,
-                        out string pressurePlotFilepath, out string massPlotFilepath, out string layerPlotFilepath, out string trajectoryPlotFilepath
+                        out double[] pressuresPerTime, out double[] depths, out double[] concentrations, out double[] massFlowRates, out double overpressure, out double timeOfOverpressure,
+                        out string pressurePlotFilepath, out string massPlotFilepath, out string layerPlotFilepath, out string trajectoryPlotFilepath, out string massFlowPlotFilepath
                         )
         {
             bool status = false;
@@ -498,12 +478,14 @@ namespace SandiaNationalLaboratories.Hyram
             pressuresPerTime = new double[0];
             depths = new double[0];
             concentrations = new double[0];
+            massFlowRates = new double[0];
             overpressure = -1;
             timeOfOverpressure = -1;
             pressurePlotFilepath = "";
             massPlotFilepath = "";
             layerPlotFilepath = "";
             trajectoryPlotFilepath = "";
+            massFlowPlotFilepath = "";
 
             string outputDirPath = StateContainer.UserDataDir;
 
@@ -524,10 +506,10 @@ namespace SandiaNationalLaboratories.Hyram
                     pyLib.phys.c_api.setup(outputDirPath, isVerbose);
 
                     // Execute python function call. Will return PyObject containing wrapped results.
-                    Trace.TraceInformation("Executing overpressure call...");
+                    Trace.TraceInformation("Executing accumulation analysis...");
                     dynamic resultPyObj;
 
-                    resultPyObj = pyLib.phys.c_api.overpressure_indoor_release(
+                    resultPyObj = pyLib.phys.c_api.analyze_accumulation(
                         ambTemp, ambPres,
                         relSpecies, relTemp, relPres, phaseKey,
                         tankVolume, orifDiam, relHeight,
@@ -535,10 +517,10 @@ namespace SandiaNationalLaboratories.Hyram
                         ceilVentXArea, ceilVentHeight,
                         floorVentXArea, floorVentHeight,
                         timesToPlot,
-                        orifDisCoeff, relDisCoeff,
+                        orifDisCoeff,
                         flowRate, distReleaseToWall,
-                        maxSimTime, relArea, relAngle, nozzleModelKey,
-                        ptPressures, ptTimes, presTicks,
+                        maxSimTime, relAngle, nozzleModelKey,
+                        ptPressures, ptTimes, presTicks, isSteady,
                         outputDirPath, isVerbose);
                     Trace.TraceInformation("Python call complete. Processing results...");
 
@@ -551,12 +533,14 @@ namespace SandiaNationalLaboratories.Hyram
                         pressuresPerTime = (double[])resultData["pressures_per_time"];
                         depths = (double[])resultData["depths"];
                         concentrations = (double[])resultData["concentrations"];
+                        massFlowRates = (double[])resultData["mass_flow_rates"];
                         overpressure = (double)resultData["overpressure"];
                         timeOfOverpressure = (double)resultData["time_of_overp"];
                         pressurePlotFilepath = (string)resultData["pres_plot_filepath"];
                         massPlotFilepath = (string)resultData["mass_plot_filepath"];
                         layerPlotFilepath = (string)resultData["layer_plot_filepath"];
                         trajectoryPlotFilepath = (string)resultData["trajectory_plot_filepath"];
+                        massFlowPlotFilepath = (string)resultData["mass_flow_plot_filepath"];
 
                         warningMsg = (string)resultPyObj["warning"];
                         resultPyObj.Dispose();
@@ -570,7 +554,7 @@ namespace SandiaNationalLaboratories.Hyram
                 catch (Exception ex)
                 {
                     Trace.TraceError(ex.ToString());
-                    statusMsg = "Error during overpressure calculation. Check log for details.";
+                    statusMsg = "Error during accumulation analysis. Check log for details.";
                     status = false;
                 }
                 finally
@@ -586,12 +570,14 @@ namespace SandiaNationalLaboratories.Hyram
         public bool CreateFlameTemperaturePlot(
             double ambTemp, double ambPres, double? relTemp, double relPres,
             double orifDiam, double relHeight, double relAngle, string nozzleModelKey,
-            out string statusMsg, out string warningMsg, out string plotFilepath)
+            out string statusMsg, out string warningMsg, out string plotFilepath, out float massFlowRate, out float srad)
         {
             bool status = false;
             statusMsg = "";
             warningMsg = "";
             plotFilepath = "";
+            massFlowRate = float.NaN;
+            srad = float.NaN;
 
             // Derive path to data dir for temp and data files, e.g. pickling
             string outputDirPath = StateContainer.UserDataDir;
@@ -637,6 +623,8 @@ namespace SandiaNationalLaboratories.Hyram
                     {
                         dynamic resultData = (dynamic)resultPyObj["data"];
                         plotFilepath = (string)resultData["temp_plot_filepath"];
+                        massFlowRate = (float)resultData["mass_flow_rate"];
+                        srad = (float)resultData["srad"];
                         Debug.WriteLine(" Created plot: " + plotFilepath);
                         warningMsg = (string)resultPyObj["warning"];
                         resultPyObj.Dispose();
@@ -668,7 +656,7 @@ namespace SandiaNationalLaboratories.Hyram
             NozzleModel notionalNozzleModel, double[] radHeatFluxX, double[] radHeatFluxY, double[] radHeatFluxZ, double relativeHumidity,
             RadiativeSourceModels radiativeSourceModel, double[] contourLevels,
             out string statusMsg, out string warningMsg,
-            out double[] fluxData, out string fluxPlotFilepath, out string tempPlotFilepath)
+            out double[] fluxData, out string fluxPlotFilepath, out string tempPlotFilepath, out float massFlowRate, out float srad)
         {
             bool status = false;
             fluxData = new double[radHeatFluxX.Length];
@@ -676,6 +664,8 @@ namespace SandiaNationalLaboratories.Hyram
             warningMsg = "";
             fluxPlotFilepath = "";
             tempPlotFilepath = "";
+            massFlowRate = float.NaN;
+            srad = float.NaN;
 
             string outputDirPath = StateContainer.UserDataDir;
             string plotFilepath = "";
@@ -722,9 +712,94 @@ namespace SandiaNationalLaboratories.Hyram
                         fluxData = (double[])resultData["flux_data"];
                         fluxPlotFilepath = (string)resultData["flux_plot_filepath"];
                         tempPlotFilepath = (string)resultData["temp_plot_filepath"];
+                        massFlowRate = (float)resultData["mass_flow_rate"];
+                        srad = (float)resultData["srad"];
                         Debug.WriteLine(" Flux results: " + plotFilepath);
                         Debug.WriteLine(" Flux plots: " + fluxPlotFilepath + ", " + tempPlotFilepath);
                         Debug.WriteLine(" Created plot: " + plotFilepath);
+                        warningMsg = (string)resultPyObj["warning"];
+
+                        resultPyObj.Dispose();
+                    }
+                    else
+                    {
+                        Trace.TraceError(statusMsg);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError(ex.ToString());
+                    status = false;
+                    statusMsg = "Error during radiative heat flux analysis. Check log for details.";
+                }
+                finally
+                {
+                    pyGC.InvokeMethod("collect");
+                    pyGC.Dispose();
+                    pyLib.Dispose();
+                }
+
+                return status;
+            }
+        }
+
+        public bool AnalyzeUnconfinedOverpressure(
+            double ambTemp, double ambPres,
+            double? relTemp, double relPres, double orifDiam, double relAngle, double dischargeCoeff,
+            NozzleModel notionalNozzleModel, UnconfinedOverpressureMethod method,
+            double[] xLocs, double[] yLocs, double[] zLocs,
+            double flameSpeed, double tntFactor,
+            out string statusMsg, out string warningMsg,
+            out double[] overpressures, out double[] impulses, out string plotFilepath)
+        {
+            bool status = false;
+            statusMsg = "";
+            warningMsg = "";
+            overpressures = new double[xLocs.Length];
+            impulses = new double[xLocs.Length];
+            plotFilepath = "";
+
+            string outputDirPath = StateContainer.UserDataDir;
+
+            string relSpecies = StateContainer.GetValue<FuelType>("FuelType").GetKey();
+            string phaseKey = StateContainer.Instance.GetFluidPhase().GetKey();
+            if (!FluidPhase.DisplayTemperature()) relTemp = null;  // clear temp if not gas
+
+            Trace.TraceInformation("Acquiring python lock and importing module...");
+            using (Py.GIL())
+            {
+                dynamic pyGC = Py.Import("gc");
+                dynamic pyLib = Py.Import(libName);
+
+                try
+                {
+                    // Activate python logging
+                    pyLib.phys.c_api.setup(outputDirPath, isVerbose);
+
+                    // Execute python function call. Will return PyObject containing wrapped results.
+                    Trace.TraceInformation("Unconfined overpressure analysis...");
+
+                    dynamic resultPyObj = pyLib.phys.c_api.unconfined_overpressure_analysis(
+                        ambTemp, ambPres,
+                        relSpecies, relTemp, relPres, phaseKey,
+                        orifDiam, relAngle, dischargeCoeff,
+                        notionalNozzleModel.GetKey(), method.GetKey(),
+                        xLocs, yLocs, zLocs,
+                        flameSpeed, tntFactor,
+                        outputDirPath, isVerbose);
+
+                    Trace.TraceInformation("Python call complete. Processing results...");
+
+                    status = (bool)resultPyObj["status"];
+                    statusMsg = (string)resultPyObj["message"];
+                    dynamic resultData = resultPyObj["data"];
+
+                    if (status)
+                    {
+                        overpressures = (double[])resultData["overpressure"];
+                        impulses = (double[])resultData["impulse"];
+                        plotFilepath = (string)resultData["figure_file_path"];
                         warningMsg = (string)resultPyObj["warning"];
 
                         resultPyObj.Dispose();

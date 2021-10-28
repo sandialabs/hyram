@@ -1,35 +1,9 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
-
-You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with HyRAM+.
+If not, see https://www.gnu.org/licenses/.
 """
 
 import os
@@ -45,7 +19,6 @@ NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/te
 VERBOSE = False
 
 
-# @unittest.skip
 class ETKMassFlowTestCase(unittest.TestCase):
     """
     Test mass flow rate calculation, including steady and non-steady.
@@ -59,7 +32,6 @@ class ETKMassFlowTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
-    # @unittest.skip
     def test_basic_blowdown(self):
         species = "H2"
         temp = 315.
@@ -102,7 +74,6 @@ class ETKMassFlowTestCase(unittest.TestCase):
         self.assertFalse(wrapped_results['status'])
         self.assertEqual(data, None)
 
-    # @unittest.skip
     def test_LH2_blowdown(self):
         species = 'H2'
         temp = None
@@ -129,7 +100,6 @@ class ETKMassFlowTestCase(unittest.TestCase):
         self.assertTrue(m >= 0.0 for m in rates)
 
 
-# @unittest.skip
 class ETKTankMassTestCase(unittest.TestCase):
     """
     Test calculation of tank mass.
@@ -165,7 +135,6 @@ class ETKTankMassTestCase(unittest.TestCase):
         self.assertGreaterEqual(mass, 0.0)
 
 
-# @unittest.skip
 class ETKTPDTestCase(unittest.TestCase):
     """
     Test calculations of thermo properties.
@@ -219,6 +188,38 @@ class ETKTPDTestCase(unittest.TestCase):
         density = None
         result = c_api.etk_compute_thermo_param(species, temp, pres, density)
         self.assertGreaterEqual(result["data"], 0.0)
+
+
+class ETKTntMassTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.dir_path = os.path.dirname(os.path.realpath(__file__))
+        self.output_dir = os.path.join(self.dir_path, 'temp')
+        c_api.setup(self.output_dir, verbose=VERBOSE)
+
+    def tearDown(self):
+        pass
+
+    def test_hydrogen(self):
+        vapor_mass = 55.
+        percent_yield = 55.
+        fuel = 'h2'
+        result = c_api.etk_compute_equivalent_tnt_mass(vapor_mass, percent_yield, fuel)
+        self.assertAlmostEqual(result["data"], 806.67, places=2)
+
+    def test_methane(self):
+        vapor_mass = 55.
+        percent_yield = 55.
+        fuel = 'ch4'
+        result = c_api.etk_compute_equivalent_tnt_mass(vapor_mass, percent_yield, fuel)
+        self.assertAlmostEqual(result["data"], 336.11, places=2)
+
+    def test_propane(self):
+        vapor_mass = 55.
+        percent_yield = 55.
+        fuel = 'c3h8'
+        result = c_api.etk_compute_equivalent_tnt_mass(vapor_mass, percent_yield, fuel)
+        self.assertAlmostEqual(result["data"], 311.91, places=2)
 
 
 if __name__ == "__main__":

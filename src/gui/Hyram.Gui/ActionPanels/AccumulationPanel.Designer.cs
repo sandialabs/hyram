@@ -1,6 +1,6 @@
 ﻿namespace SandiaNationalLaboratories.Hyram
 {
-    partial class OverpressurePanel
+    partial class AccumulationPanel
     {
         /// <summary> 
         /// Required designer variable.
@@ -34,7 +34,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.Name = "OverpressurePanel";
+			this.Name = "AccumulationPanel";
 			this.Size = new System.Drawing.Size(399, 291);
 			this.ResumeLayout(false);
 

@@ -1,35 +1,10 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
-
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
+rights in this software.
 
 You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
@@ -43,11 +18,12 @@ using System.Windows.Forms;
 
 namespace SandiaNationalLaboratories.Hyram
 {
-    public partial class IndoorReleaseForm : UserControl
+    public partial class AccumulationForm : UserControl
     {
         private bool _analysisStatus;
         private string _warningMsg;
         private double[] _concentrations;
+        private double[] _massFlowRates;
         private double[] _depths;
         private double[] _dotMarkPressures;
         private double[] _dotMarkTimes;
@@ -59,12 +35,13 @@ namespace SandiaNationalLaboratories.Hyram
         private string _pressurePlotFilepath = "";
         private double[] _pressuresPerTime;
         private double _timeOfOverpressure = Double.NaN;
+        private string _massFlowPlotFilepath = "";
 
         // Parameters for analysis; filled once Execute is clicked
         private double[] _timesToPlot;
         private string _trajectoryPlotFilepath = "";
 
-        public IndoorReleaseForm()
+        public AccumulationForm()
         {
             InitializeComponent();
         }
@@ -148,12 +125,8 @@ namespace SandiaNationalLaboratories.Hyram
                     StockConverters.TemperatureConverter),
                 new ParameterWrapper("orificeDiameter", "Leak diameter", DistanceUnit.Meter,
                     StockConverters.DistanceConverter),
-                new ParameterWrapper("orificeDischargeCoefficient", "Discharge coefficient-orifice", UnitlessUnit.Unitless,
+                new ParameterWrapper("orificeDischargeCoefficient", "Discharge coefficient", UnitlessUnit.Unitless,
                     StockConverters.UnitlessConverter),
-                new ParameterWrapper("releaseDischargeCoefficient", "Discharge coefficient-release", UnitlessUnit.Unitless,
-                    StockConverters.UnitlessConverter),
-                new ParameterWrapper("releaseArea", "Release area", AreaUnit.SqMeters,
-                    StockConverters.AreaConverter),
                 new ParameterWrapper("releaseHeight", "Release height", DistanceUnit.Meter,
                     StockConverters.DistanceConverter),
                 new ParameterWrapper("enclosureHeight", "Enclosure height", DistanceUnit.Meter,
@@ -174,31 +147,27 @@ namespace SandiaNationalLaboratories.Hyram
                     StockConverters.AngleConverter)
             });
 
-            // Add gas or liquid params
-            if (StateContainer.FuelTypeIsGaseous())
+            formParams.Add("fluidPressure",
+                new ParameterWrapper("fluidPressure", "Tank fluid pressure (absolute)",
+                    PressureUnit.Pa,
+                    StockConverters.PressureConverter));
+
+            if (FluidPhase.DisplayTemperature())
             {
-                formParams.Add("fluidPressure",
-                    new ParameterWrapper("fluidPressure", "Tank fluid pressure (absolute)",
-                        PressureUnit.Pa,
-                        StockConverters.PressureConverter));
-
-                if (FluidPhase.DisplayTemperature())
-                {
-                    formParams.Add("fluidTemperature",
-                        new ParameterWrapper("fluidTemperature", "Tank fluid temperature", TempUnit.Kelvin,
-                            StockConverters.TemperatureConverter));
-                }
-
-                formParams.Add("tankVolume",
-                    new ParameterWrapper("tankVolume", "Tank volume", VolumeUnit.CubicMeter,
-                        StockConverters.VolumeConverter));
-                formParams.Add("ventVolumetricFlowRate",
-                    new ParameterWrapper("ventVolumetricFlowRate", "Vent volumetric flow rate",
-                        VolumetricFlowUnit.CubicMetersPerSecond, StockConverters.VolumetricFlowConverter));
+                formParams.Add("fluidTemperature",
+                    new ParameterWrapper("fluidTemperature", "Tank fluid temperature", TempUnit.Kelvin,
+                        StockConverters.TemperatureConverter));
             }
 
+            formParams.Add("tankVolume",
+                new ParameterWrapper("tankVolume", "Tank volume", VolumeUnit.CubicMeter,
+                    StockConverters.VolumeConverter));
+            formParams.Add("ventVolumetricFlowRate",
+                new ParameterWrapper("ventVolumetricFlowRate", "Vent volumetric flow rate",
+                    VolumetricFlowUnit.CubicMetersPerSecond, StockConverters.VolumetricFlowConverter));
+
             StaticGridHelperRoutines.InitInteractiveGrid(InputGrid, formParams, false);
-            InputGrid.Columns[0].Width = 235;
+            InputGrid.Columns[0].Width = 200;
 
             CheckFormValid();
         }
@@ -211,7 +180,7 @@ namespace SandiaNationalLaboratories.Hyram
             // if liquid, validate fuel pressure
             if (!StateContainer.ReleasePressureIsValid())
             {
-                warningText = MessageContainer.LiquidReleasePressureInvalid;
+                warningText = MessageContainer.GetAlertMessageReleasePressureInvalid();
                 showWarning = true;
             }
 
@@ -264,8 +233,6 @@ namespace SandiaNationalLaboratories.Hyram
             var orificeDiam = StateContainer.GetNdValue("orificeDiameter", DistanceUnit.Meter);
             var orificeDischargeCoeff = StateContainer.GetNdValue("orificeDischargeCoefficient", UnitlessUnit.Unitless);
             var tankVolume = StateContainer.GetNdValue("tankVolume", VolumeUnit.CubicMeter);
-            var releaseDischargeCoeff = StateContainer.GetNdValue("releaseDischargeCoefficient", UnitlessUnit.Unitless);
-            var releaseArea = StateContainer.GetNdValue("releaseArea", AreaUnit.SqMeters);
             var releaseHeight = StateContainer.GetNdValue("releaseHeight", DistanceUnit.Meter);
             var enclosureHeight = StateContainer.GetNdValue("enclosureHeight", DistanceUnit.Meter);
             var floorCeilingArea = StateContainer.GetNdValue("floorCeilingArea", AreaUnit.SqMeters);
@@ -325,18 +292,19 @@ namespace SandiaNationalLaboratories.Hyram
             Trace.TraceInformation("Initializing PhysicsInterface...");
             var physInt = new PhysicsInterface();
 
-            _analysisStatus = physInt.ExecuteOverpressureAnalysis(
-                ambPressure, ambTemp, h2Pressure, h2Temp, orificeDiam, orificeDischargeCoeff, tankVolume,
-                releaseDischargeCoeff, releaseArea, releaseHeight, enclosureHeight, floorCeilingArea,
+            bool isSteady = !releaseBlowdown.Checked;
+
+            _analysisStatus = physInt.AnalyzeAccumulation(ambPressure, ambTemp, h2Pressure, h2Temp,
+                orificeDiam, orificeDischargeCoeff, tankVolume,
+                releaseHeight, enclosureHeight, floorCeilingArea,
                 distReleaseToWall,
                 ceilVentXArea, ceilVentHeight, floorVentXArea, floorVentHeight, flowRate, releaseAngle, nozzleModel.GetKey(),
                 _timesToPlot,
-                _dotMarkPressures, _dotMarkTimes, limitLinePressures, maxSimTime,
+                _dotMarkPressures, _dotMarkTimes, limitLinePressures, maxSimTime, isSteady,
                 out string statusMsg, out _warningMsg,
-                out _pressuresPerTime, out _depths, out _concentrations, out _overpressure, out _timeOfOverpressure,
+                out _pressuresPerTime, out _depths, out _concentrations, out _massFlowRates, out _overpressure, out _timeOfOverpressure,
                 out _pressurePlotFilepath, out _massPlotFilepath, out _layerPlotFilepath,
-                out _trajectoryPlotFilepath
-            );
+                out _trajectoryPlotFilepath, out _massFlowPlotFilepath);
             Trace.TraceInformation("PhysicsInterface call complete. Displaying results..");
 
             if (!_analysisStatus)
@@ -368,7 +336,8 @@ namespace SandiaNationalLaboratories.Hyram
                             _timesToPlot[i].ToString(),
                             _pressuresPerTime[i].ToString("E3"),
                             _depths[i].ToString("N3"),
-                            _concentrations[i].ToString("N3")
+                            _concentrations[i].ToString("N3"),
+                            _massFlowRates[i].ToString("E3")
                             );
                     }
                 }
@@ -381,6 +350,7 @@ namespace SandiaNationalLaboratories.Hyram
                 pbLayer.Load(_layerPlotFilepath);
                 pbFlammableMass.Load(_massPlotFilepath);
                 pbTrajectory.Load(_trajectoryPlotFilepath);
+                pbMassFlowPlot.Load(_massFlowPlotFilepath);
 
                 IOTabs.SelectedTab = outputTab;
 
@@ -601,7 +571,7 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void PhaseSelection_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            StateContainer.SetValue("ReleaseFluidPhase", PhaseSelection.SelectedItem);
+            StateContainer.SetReleasePhase((FluidPhase)PhaseSelection.SelectedItem);
             RefreshGridParameters();
         }
 

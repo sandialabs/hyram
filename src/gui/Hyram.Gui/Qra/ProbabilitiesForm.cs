@@ -1,35 +1,10 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
-
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
+rights in this software.
 
 You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
@@ -43,47 +18,56 @@ using MathNet.Numerics.Distributions;
 
 namespace SandiaNationalLaboratories.Hyram
 {
-    public partial class ProbabilitiesForm : UserControl
+    public partial class ProbabilitiesForm : AnalysisForm
     {
         private const int ColImmed = 1;
         private const int ColDelayed = 2;
 
-        private readonly List<ComponentProbability> _compressorList =
+        private readonly List<ComponentProbability> _compressorProbs =
             StateContainer.GetValue<List<ComponentProbability>>("Prob.Compressor");
 
         private readonly FailureMode _breakawayCouplingFailureToClose = StateContainer.GetValue<FailureMode>("Failure.CouplingFTC");
 
-        private readonly List<ComponentProbability> _cylList =
-            StateContainer.GetValue<List<ComponentProbability>>("Prob.Cylinder");
-
         private readonly FailureMode _driveoffFail = StateContainer.GetValue<FailureMode>("Failure.Driveoff");
 
-        private readonly List<ComponentProbability> _ex1List =
-            StateContainer.GetValue<List<ComponentProbability>>("Prob.Extra1");
+        private readonly List<ComponentProbability> _vesselProbs =
+            StateContainer.GetValue<List<ComponentProbability>>("Prob.Vessel");
 
-        private readonly List<ComponentProbability> _ex2List =
-            StateContainer.GetValue<List<ComponentProbability>>("Prob.Extra2");
-
-        private readonly List<ComponentProbability> _filterList =
+        private readonly List<ComponentProbability> _filterProbs =
             StateContainer.GetValue<List<ComponentProbability>>("Prob.Filter");
 
-        private readonly List<ComponentProbability> _flangeList =
+        private readonly List<ComponentProbability> _flangeProbs =
             StateContainer.GetValue<List<ComponentProbability>>("Prob.Flange");
 
-        private readonly List<ComponentProbability> _hoseList =
+        private readonly List<ComponentProbability> _hoseProbs =
             StateContainer.GetValue<List<ComponentProbability>>("Prob.Hose");
 
         private readonly List<ComponentProbability>
-            _instrList = StateContainer.GetValue<List<ComponentProbability>>("Prob.Instrument");
+            _instrProbs = StateContainer.GetValue<List<ComponentProbability>>("Prob.Instrument");
 
-        private readonly List<ComponentProbability> _jointList =
+        private readonly List<ComponentProbability> _jointProbs =
             StateContainer.GetValue<List<ComponentProbability>>("Prob.Joint");
 
-        private readonly List<ComponentProbability> _pipeList =
+        private readonly List<ComponentProbability> _pipeProbs =
             StateContainer.GetValue<List<ComponentProbability>>("Prob.Pipe");
 
-        private readonly List<ComponentProbability> _valveList =
+        private readonly List<ComponentProbability> _valveProbs =
             StateContainer.GetValue<List<ComponentProbability>>("Prob.Valve");
+
+        private readonly List<ComponentProbability> _exchangerProbs =
+            StateContainer.GetValue<List<ComponentProbability>>("Prob.Exchanger");
+
+        private readonly List<ComponentProbability> _vaporizerProbs =
+            StateContainer.GetValue<List<ComponentProbability>>("Prob.Vaporizer");
+
+        private readonly List<ComponentProbability> _armProbs =
+            StateContainer.GetValue<List<ComponentProbability>>("Prob.Arm");
+
+        private readonly List<ComponentProbability> _ex1Probs =
+            StateContainer.GetValue<List<ComponentProbability>>("Prob.Extra1");
+
+        private readonly List<ComponentProbability> _ex2Probs =
+            StateContainer.GetValue<List<ComponentProbability>>("Prob.Extra2");
 
         private bool _mIgnoringChangeEvents;
         private readonly FailureMode _manualValveFailureToClose = StateContainer.GetValue<FailureMode>("Failure.MValveFTC");
@@ -94,9 +78,11 @@ namespace SandiaNationalLaboratories.Hyram
         private readonly FailureMode _solenoidValveCommonFailure = StateContainer.GetValue<FailureMode>("Failure.SValveCCF");
         private readonly FailureMode _solenoidValveFailureToClose = StateContainer.GetValue<FailureMode>("Failure.SValveFTC");
 
-        public ProbabilitiesForm()
+        public ProbabilitiesForm(MainForm mainForm)
         {
+            MainForm = mainForm;
             InitializeComponent();
+            CheckFormValid();
         }
 
         /// <summary>
@@ -106,19 +92,21 @@ namespace SandiaNationalLaboratories.Hyram
         /// <param name="e"></param>
         private void cpDataProbabilities_Load(object sender, EventArgs e)
         {
-            var qraInst = StateContainer.Instance;
             // Data-binding for component distributions
-            compressorDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_compressorList), null);
-            cylinderDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_cylList), null);
-            filterDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_filterList), null);
-            flangeDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_flangeList), null);
-            hoseDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_hoseList), null);
-            jointDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_jointList), null);
-            pipeDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_pipeList), null);
-            valveDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_valveList), null);
-            instrumentDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_instrList), null);
-            extraComponent1DistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_ex1List), null);
-            extraComponent2DistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_ex2List), null);
+            compressorDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_compressorProbs), null);
+            cylinderDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_vesselProbs), null);
+            filterDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_filterProbs), null);
+            flangeDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_flangeProbs), null);
+            hoseDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_hoseProbs), null);
+            jointDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_jointProbs), null);
+            pipeDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_pipeProbs), null);
+            valveDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_valveProbs), null);
+            instrumentDistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_instrProbs), null);
+            exchangerGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_exchangerProbs), null);
+            vaporizerGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_vaporizerProbs), null);
+            armGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_armProbs), null);
+            extraComponent1DistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_ex1Probs), null);
+            extraComponent2DistributionsGrid.DataSource = new BindingSource(new BindingList<ComponentProbability>(_ex2Probs), null);
 
             // Data-binding for failure modes
             // First two columns should be greyed out
@@ -183,7 +171,9 @@ namespace SandiaNationalLaboratories.Hyram
             DataGridView[] componentProbTabs =
             {
                 compressorDistributionsGrid, cylinderDistributionsGrid, filterDistributionsGrid, flangeDistributionsGrid, hoseDistributionsGrid, jointDistributionsGrid, pipeDistributionsGrid,
-                valveDistributionsGrid, instrumentDistributionsGrid, extraComponent1DistributionsGrid, extraComponent2DistributionsGrid
+                valveDistributionsGrid, instrumentDistributionsGrid,
+                exchangerGrid, vaporizerGrid, armGrid,
+                extraComponent1DistributionsGrid, extraComponent2DistributionsGrid
             };
 
             foreach (var probTab in componentProbTabs)
@@ -191,28 +181,28 @@ namespace SandiaNationalLaboratories.Hyram
                 probTab.Columns[(int) Column.LeakSize].ReadOnly = true;
                 probTab.Columns[(int) Column.LeakSize].DefaultCellStyle.BackColor = Color.LightGray;
 
-                probTab.Columns[(int) Column.Mu].DefaultCellStyle.Format = "N2";
+                probTab.Columns[(int) Column.Mu].DefaultCellStyle.Format = "N4";
                 probTab.Columns[(int) Column.Mu].DefaultCellStyle.NullValue = "N/A";
 
-                probTab.Columns[(int) Column.Sigma].DefaultCellStyle.Format = "N2";
+                probTab.Columns[(int) Column.Sigma].DefaultCellStyle.Format = "N4";
                 probTab.Columns[(int) Column.Sigma].DefaultCellStyle.NullValue = "N/A";
 
-                probTab.Columns[(int) Column.Mean].DefaultCellStyle.Format = "E2";
+                probTab.Columns[(int) Column.Mean].DefaultCellStyle.Format = "E1";
                 probTab.Columns[(int) Column.Mean].DefaultCellStyle.NullValue = "N/A";
                 probTab.Columns[(int) Column.Mean].DefaultCellStyle.BackColor = Color.LightGray;
                 probTab.Columns[(int) Column.Mean].ReadOnly = true;
 
-                probTab.Columns[(int) Column.Fifth].HeaderText = "5th";
-                probTab.Columns[(int) Column.Fifth].DefaultCellStyle.Format = "E2";
+                //probTab.Columns[(int) Column.Fifth].HeaderText = "5th";
+                probTab.Columns[(int) Column.Fifth].DefaultCellStyle.Format = "E1";
                 probTab.Columns[(int) Column.Fifth].DefaultCellStyle.NullValue = "N/A";
                 probTab.Columns[(int) Column.Fifth].DefaultCellStyle.BackColor = Color.LightGray;
                 probTab.Columns[(int) Column.Fifth].ReadOnly = true;
 
-                probTab.Columns[(int) Column.Median].DefaultCellStyle.Format = "E2";
+                probTab.Columns[(int) Column.Median].DefaultCellStyle.Format = "E1";
                 probTab.Columns[(int) Column.Median].DefaultCellStyle.NullValue = "N/A";
 
-                probTab.Columns[(int) Column.NinetyFifth].HeaderText = "95th";
-                probTab.Columns[(int) Column.NinetyFifth].DefaultCellStyle.Format = "E2";
+                //probTab.Columns[(int) Column.NinetyFifth].HeaderText = "95th";
+                probTab.Columns[(int) Column.NinetyFifth].DefaultCellStyle.Format = "E1";
                 probTab.Columns[(int) Column.NinetyFifth].DefaultCellStyle.NullValue = "N/A";
                 probTab.Columns[(int) Column.NinetyFifth].DefaultCellStyle.BackColor = Color.LightGray;
                 probTab.Columns[(int) Column.NinetyFifth].ReadOnly = true;
@@ -226,6 +216,31 @@ namespace SandiaNationalLaboratories.Hyram
 
             StateContainer.SetValue("ResultsAreStale", true);
             _mIgnoringChangeEvents = false;
+        }
+
+        public override void CheckFormValid()
+        {
+            AlertType = 0;
+            AlertMessage = "";
+            AlertDisplayed = false;
+
+            FuelType fuel = StateContainer.GetValue<FuelType>("FuelType");
+            FluidPhase phase = StateContainer.GetValue<FluidPhase>("ReleaseFluidPhase");
+
+            if (fuel != FuelType.Hydrogen)
+            {
+                AlertDisplayed = true;
+                AlertType = 1;
+                AlertMessage = "Default data for failures and ignition thresholds were generated for " +
+                               "high pressure gaseous hydrogen systems and may not be appropriate for the selected fuel";
+            }
+
+            formWarning.Visible = AlertDisplayed;
+            formWarning.Text = AlertMessage;
+            formWarning.BackColor = AlertType == 1 ? MainForm.WarningBackColor : MainForm.ErrorBackColor;
+            formWarning.ForeColor = AlertType == 1 ? MainForm.WarningForeColor : MainForm.ErrorForeColor;
+
+            MainForm.NotifyOfChildPublicStateChange();
         }
 
         /// <summary>
@@ -245,58 +260,73 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void compressorDistributionsGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _compressorList[e.RowIndex],
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _compressorProbs[e.RowIndex],
                 compressorDistributionsGrid);
         }
 
         private void cylinderDistributionsGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _cylList[e.RowIndex], cylinderDistributionsGrid);
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _vesselProbs[e.RowIndex], cylinderDistributionsGrid);
         }
 
         private void filterDistributionsGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _filterList[e.RowIndex], filterDistributionsGrid);
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _filterProbs[e.RowIndex], filterDistributionsGrid);
         }
 
         private void flangeDistributionsGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _flangeList[e.RowIndex], flangeDistributionsGrid);
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _flangeProbs[e.RowIndex], flangeDistributionsGrid);
         }
 
         private void hoseDistributionsGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _hoseList[e.RowIndex], hoseDistributionsGrid);
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _hoseProbs[e.RowIndex], hoseDistributionsGrid);
         }
 
         private void jointDistributionsGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _jointList[e.RowIndex], jointDistributionsGrid);
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _jointProbs[e.RowIndex], jointDistributionsGrid);
         }
 
         private void pipeDistributionsGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _pipeList[e.RowIndex], pipeDistributionsGrid);
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _pipeProbs[e.RowIndex], pipeDistributionsGrid);
         }
 
         private void valveDistributionsGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _valveList[e.RowIndex], valveDistributionsGrid);
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _valveProbs[e.RowIndex], valveDistributionsGrid);
         }
 
         private void instrumentDistributionsGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _instrList[e.RowIndex], instrumentDistributionsGrid);
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _instrProbs[e.RowIndex], instrumentDistributionsGrid);
+        }
+
+        private void exchangerGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _exchangerProbs[e.RowIndex], exchangerGrid);
+        }
+
+        private void vaporizerGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _vaporizerProbs[e.RowIndex], vaporizerGrid);
+        }
+
+        private void armGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _armProbs[e.RowIndex], armGrid);
         }
 
         private void extraComponent1DistributionsGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _ex1List[e.RowIndex], extraComponent1DistributionsGrid);
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _ex1Probs[e.RowIndex], extraComponent1DistributionsGrid);
         }
 
         private void extraComponent2DistributionsGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _ex2List[e.RowIndex], extraComponent2DistributionsGrid);
+            UpdateLeakProbability(e.RowIndex, (Column) e.ColumnIndex, _ex2Probs[e.RowIndex], extraComponent2DistributionsGrid);
         }
 
         // Catch invalid data and show message
@@ -355,6 +385,30 @@ namespace SandiaNationalLaboratories.Hyram
         {
             if (e.Exception != null && e.Context == DataGridViewDataErrorContexts.Commit)
                 MessageBox.Show("Cell value must be numeric");
+        }
+
+        private void exchangerGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            if (e.Exception != null && e.Context == DataGridViewDataErrorContexts.Commit)
+            {
+                MessageBox.Show("Cell value must be numeric");
+            }
+        }
+
+        private void vaporizerGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            if (e.Exception != null && e.Context == DataGridViewDataErrorContexts.Commit)
+            {
+                MessageBox.Show("Cell value must be numeric");
+            }
+        }
+
+        private void armGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            if (e.Exception != null && e.Context == DataGridViewDataErrorContexts.Commit)
+            {
+                MessageBox.Show("Cell value must be numeric");
+            }
         }
 
         private void extraComponent1DistributionsGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)

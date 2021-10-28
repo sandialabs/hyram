@@ -4,8 +4,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.1.0] - 2021-05-11
+## [4.0.0] - 2021-10-23
+### Added
+* Ability to select hydrogen, methane, or propane as the fuel
+* Additional components in QRA mode
+* Unconfined overpressure model
+* Default leak frequencies for liquid hydrogen, methane (liquid and gas), and propane (liquid and gas)
+* Fuel specific critical pressure check
+* Mass flow rate graph for indoor accumulation model
+* Python tests for QRA mode and unconfined overpressure models
+* Scenario details in QRA results
+* Positional heat flux table in QRA results
+* Flame temperature/trajectory model output displays mass flow rate and emitted power
 
+### Changed
+* Name change to HyRAM+, along with new logo and icons
+* Default leak frequencies for gaseous hydrogen updated based on more recent Bayesian analysis
+* Overpressure physics model renamed to accumulation to differentiate from unconfined overpressure model
+* Occupant location calculation in QRA mode 
+* TNT equivalent model in ETK looks up heat of combustion
+* Fuel properties data table converted to pythonic dictionary
+* Plot labels specific to hydrogen were changed to 'fuel'
+* Sketch of accumulation scenario (without secondary area)
+* Improved warning and error notifications
+* Data directory now cleared on program launch
+* Updated copyright
+
+### Removed
+* Release area input from accumulation model
+
+### Fixed
+* Suppressed interpolation bounds errors in indoor accumulation model
+
+
+## [3.1.0] - 2021-05-11
 ### Added
 - Jet _radial_profile method outputs temperatures
 - Input label clarification that pressure units are absolute, not gauge

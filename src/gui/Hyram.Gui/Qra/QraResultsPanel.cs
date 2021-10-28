@@ -1,35 +1,10 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
-
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
+rights in this software.
 
 You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
@@ -89,6 +64,26 @@ namespace SandiaNationalLaboratories.Hyram
             dgRiskMetrics.Rows[1].Cells[1].Value = "Calculating...";
             dgRiskMetrics.Rows[2].Cells[1].Value = "Calculating...";
 
+            detailsLeakGrid.Columns[1].DefaultCellStyle.Format = "E3";
+            detailsLeakGrid.Columns[2].DefaultCellStyle.Format = "E3";
+
+            detailsOutcomeGrid.Columns[1].DefaultCellStyle.Format = "P3";
+            detailsOutcomeGrid.Columns[2].DefaultCellStyle.Format = "P3";
+            detailsOutcomeGrid.Columns[3].DefaultCellStyle.Format = "P3";
+            detailsOutcomeGrid.Columns[4].DefaultCellStyle.Format = "P3";
+            detailsOutcomeGrid.Columns[5].DefaultCellStyle.Format = "P3";
+
+            // x,y,z coordinates
+            positionDataGrid.Columns[1].DefaultCellStyle.Format = "N1";
+            positionDataGrid.Columns[2].DefaultCellStyle.Format = "N1";
+            positionDataGrid.Columns[3].DefaultCellStyle.Format = "N1";
+            // flux values
+            positionDataGrid.Columns[4].DefaultCellStyle.Format = "E3";
+            positionDataGrid.Columns[5].DefaultCellStyle.Format = "E3";
+            positionDataGrid.Columns[6].DefaultCellStyle.Format = "E3";
+            positionDataGrid.Columns[7].DefaultCellStyle.Format = "E3";
+            positionDataGrid.Columns[8].DefaultCellStyle.Format = "E3";
+
             GenerateResults();
 
             dgRanking.ScrollBars = ScrollBars.Both;
@@ -109,6 +104,11 @@ namespace SandiaNationalLaboratories.Hyram
             dgRiskMetrics.Rows[1].Cells[1].Value = result.Far;
             dgRiskMetrics.Rows[2].Cells[1].Value = result.Air;
 
+            detailsOutcomeGrid.Rows.Add("Shutdown", double.NaN, double.NaN, double.NaN, double.NaN, double.NaN);
+            detailsOutcomeGrid.Rows.Add("Jetfire", double.NaN, double.NaN, double.NaN, double.NaN, double.NaN);
+            detailsOutcomeGrid.Rows.Add("Explosion", double.NaN, double.NaN, double.NaN, double.NaN, double.NaN);
+            detailsOutcomeGrid.Rows.Add("No ignition", double.NaN, double.NaN, double.NaN, double.NaN, double.NaN);
+
             var curRow = 1;
             for (var i = 0; i < result.LeakResults.Count; i++)
             {
@@ -121,6 +121,13 @@ namespace SandiaNationalLaboratories.Hyram
                     leakRes.ProbExplosion, leakRes.ExplosionPllContrib);
                 dgRanking.Rows.Add(curRow++, leakRes.GetLeakSizeString(), "No ignition", leakRes.NoIgnAvgEvents,
                     leakRes.ProbNoIgnition, 0);
+
+                detailsLeakGrid.Rows.Add(leakRes.GetLeakSizeString(), leakRes.MassFlowRate, leakRes.LeakDiam);
+
+                detailsOutcomeGrid.Rows[0].Cells[i+1].Value = leakRes.ProbShutdown;
+                detailsOutcomeGrid.Rows[1].Cells[i+1].Value = leakRes.ProbJetfire;
+                detailsOutcomeGrid.Rows[2].Cells[i+1].Value = leakRes.ProbExplosion;
+                detailsOutcomeGrid.Rows[3].Cells[i+1].Value = leakRes.ProbNoIgnition;
             }
 
             // Load position plots
@@ -130,6 +137,16 @@ namespace SandiaNationalLaboratories.Hyram
             pbPositionPlot001d00.Load(result.PositionPlotFilenames[2]);
             pbPositionPlot010d00.Load(result.PositionPlotFilenames[3]);
             pbPositionPlot100d00.Load(result.PositionPlotFilenames[4]);
+
+            for (var i = 0; i < result.Positions.Length; i++)
+            {
+                double[] coordinates = result.Positions[i];
+                double[] fluxes = result.PositionQrads[i];
+
+                positionDataGrid.Rows.Add(i + 1,
+                    coordinates[0], coordinates[1], coordinates[2],
+                    fluxes[0], fluxes[1], fluxes[2], fluxes[3], fluxes[4]);
+            }
 
             // Add cut set data
             PopulateCutSetTable(CutSetDGV000d01, result.LeakResults[0], false);
@@ -168,7 +185,7 @@ namespace SandiaNationalLaboratories.Hyram
             else
             {
                 dgv.Rows.Add(1, "Compressor leak", leakRes.CompressorLeakFreq);
-                dgv.Rows.Add(2, "Cylinder leak", leakRes.CylinderLeakFreq);
+                dgv.Rows.Add(2, "Vessel leak", leakRes.VesselLeakFreq);
                 dgv.Rows.Add(3, "Valve leak", leakRes.ValveLeakFreq);
                 dgv.Rows.Add(4, "Instrument leak", leakRes.InstrumentLeakFreq);
                 dgv.Rows.Add(5, "Joint leak", leakRes.JointLeakFreq);
@@ -176,6 +193,9 @@ namespace SandiaNationalLaboratories.Hyram
                 dgv.Rows.Add(7, "Pipe leak", leakRes.PipeLeakFreq);
                 dgv.Rows.Add(8, "Filter leak", leakRes.FilterLeakFreq);
                 dgv.Rows.Add(9, "Flange leak", leakRes.FlangeLeakFreq);
+                dgv.Rows.Add(9, "Heat exchanger leak", leakRes.ExchangerLeakFreq);
+                dgv.Rows.Add(9, "Vaporizer leak", leakRes.VaporizerLeakFreq);
+                dgv.Rows.Add(9, "Loading arm leak", leakRes.ArmLeakFreq);
                 dgv.Rows.Add(10, "Extra component #1 leak", leakRes.ExtraComp1LeakFreq);
                 dgv.Rows.Add(11, "Extra component #2 leak", leakRes.ExtraComp2LeakFreq);
                 nextRow = 12;
@@ -212,10 +232,6 @@ namespace SandiaNationalLaboratories.Hyram
         private void dgRanking_SortCompare(object sender, DataGridViewSortCompareEventArgs e)
         {
             QuickFunctions.PerformNumericSortOnGrid(sender, e);
-        }
-
-        private enum ScenColumns
-        {
         }
     }
 }

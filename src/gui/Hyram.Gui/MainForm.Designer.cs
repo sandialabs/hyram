@@ -38,14 +38,17 @@
             this.consequenceModelsFormButton = new System.Windows.Forms.Button();
             this.physicsModeTab = new System.Windows.Forms.TabPage();
             this.physicsNavPanel = new System.Windows.Forms.Panel();
+            this.overpressureFormBtn = new System.Windows.Forms.Button();
             this.jetHeatAnalysisFormButton = new System.Windows.Forms.Button();
             this.jetPlotTempFormButton = new System.Windows.Forms.Button();
             this.fuelTypeLabel1 = new System.Windows.Forms.Label();
             this.physicsFuelTypeSelector = new System.Windows.Forms.ComboBox();
-            this.overpressureFormButton = new System.Windows.Forms.Button();
+            this.accumulationFormButton = new System.Windows.Forms.Button();
             this.plumeFormButton = new System.Windows.Forms.Button();
             this.mainOutputPanel = new System.Windows.Forms.Panel();
             this.mainOutputNavPanel = new System.Windows.Forms.Panel();
+            this.alertIcon = new System.Windows.Forms.Label();
+            this.mainMessage = new System.Windows.Forms.Label();
             this.mainFormPanel = new System.Windows.Forms.Panel();
             this.mainMenuStrip = new System.Windows.Forms.MenuStrip();
             this.fileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -72,6 +75,7 @@
             this.physicsModeTab.SuspendLayout();
             this.physicsNavPanel.SuspendLayout();
             this.mainOutputPanel.SuspendLayout();
+            this.mainOutputNavPanel.SuspendLayout();
             this.mainMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -90,6 +94,7 @@
             // 
             // mainContainer.Panel2
             // 
+            this.mainContainer.Panel2.Controls.Add(this.mainMessage);
             this.mainContainer.Panel2.Controls.Add(this.mainFormPanel);
             this.mainContainer.Size = new System.Drawing.Size(1184, 705);
             this.mainContainer.SplitterDistance = 186;
@@ -180,7 +185,6 @@
             this.fuelTypeLabel2.Size = new System.Drawing.Size(42, 16);
             this.fuelTypeLabel2.TabIndex = 13;
             this.fuelTypeLabel2.Text = "Fuel:";
-            this.fuelTypeLabel2.Visible = false;
             // 
             // qraFuelTypeSelector
             // 
@@ -190,7 +194,6 @@
             this.qraFuelTypeSelector.Name = "qraFuelTypeSelector";
             this.qraFuelTypeSelector.Size = new System.Drawing.Size(114, 21);
             this.qraFuelTypeSelector.TabIndex = 12;
-            this.qraFuelTypeSelector.Visible = false;
             this.qraFuelTypeSelector.SelectionChangeCommitted += new System.EventHandler(this.qraFuelTypeSelector_SelectionChangeCommitted);
             // 
             // scenariosFormButton
@@ -254,11 +257,12 @@
             // 
             // physicsNavPanel
             // 
+            this.physicsNavPanel.Controls.Add(this.overpressureFormBtn);
             this.physicsNavPanel.Controls.Add(this.jetHeatAnalysisFormButton);
             this.physicsNavPanel.Controls.Add(this.jetPlotTempFormButton);
             this.physicsNavPanel.Controls.Add(this.fuelTypeLabel1);
             this.physicsNavPanel.Controls.Add(this.physicsFuelTypeSelector);
-            this.physicsNavPanel.Controls.Add(this.overpressureFormButton);
+            this.physicsNavPanel.Controls.Add(this.accumulationFormButton);
             this.physicsNavPanel.Controls.Add(this.plumeFormButton);
             this.physicsNavPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.physicsNavPanel.Location = new System.Drawing.Point(0, 0);
@@ -266,6 +270,18 @@
             this.physicsNavPanel.Name = "physicsNavPanel";
             this.physicsNavPanel.Size = new System.Drawing.Size(175, 234);
             this.physicsNavPanel.TabIndex = 0;
+            // 
+            // overpressureFormBtn
+            // 
+            this.overpressureFormBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.overpressureFormBtn.Location = new System.Drawing.Point(0, 164);
+            this.overpressureFormBtn.Name = "overpressureFormBtn";
+            this.overpressureFormBtn.Size = new System.Drawing.Size(171, 26);
+            this.overpressureFormBtn.TabIndex = 14;
+            this.overpressureFormBtn.Text = "Unconfined Overpressure";
+            this.overpressureFormBtn.UseVisualStyleBackColor = true;
+            this.overpressureFormBtn.Click += new System.EventHandler(this.overpressureFormBtn_Click);
             // 
             // jetHeatAnalysisFormButton
             // 
@@ -300,7 +316,6 @@
             this.fuelTypeLabel1.Size = new System.Drawing.Size(42, 16);
             this.fuelTypeLabel1.TabIndex = 11;
             this.fuelTypeLabel1.Text = "Fuel:";
-            this.fuelTypeLabel1.Visible = false;
             // 
             // physicsFuelTypeSelector
             // 
@@ -310,20 +325,19 @@
             this.physicsFuelTypeSelector.Name = "physicsFuelTypeSelector";
             this.physicsFuelTypeSelector.Size = new System.Drawing.Size(114, 21);
             this.physicsFuelTypeSelector.TabIndex = 10;
-            this.physicsFuelTypeSelector.Visible = false;
             this.physicsFuelTypeSelector.SelectionChangeCommitted += new System.EventHandler(this.physicsFuelTypeSelector_SelectionChangeCommitted);
             // 
-            // overpressureFormButton
+            // accumulationFormButton
             // 
-            this.overpressureFormButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.accumulationFormButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.overpressureFormButton.Location = new System.Drawing.Point(0, 68);
-            this.overpressureFormButton.Name = "overpressureFormButton";
-            this.overpressureFormButton.Size = new System.Drawing.Size(171, 26);
-            this.overpressureFormButton.TabIndex = 9;
-            this.overpressureFormButton.Text = "Overpressure";
-            this.overpressureFormButton.UseVisualStyleBackColor = true;
-            this.overpressureFormButton.Click += new System.EventHandler(this.overpressureFormButton_Click);
+            this.accumulationFormButton.Location = new System.Drawing.Point(0, 68);
+            this.accumulationFormButton.Name = "accumulationFormButton";
+            this.accumulationFormButton.Size = new System.Drawing.Size(171, 26);
+            this.accumulationFormButton.TabIndex = 9;
+            this.accumulationFormButton.Text = "Accumulation";
+            this.accumulationFormButton.UseVisualStyleBackColor = true;
+            this.accumulationFormButton.Click += new System.EventHandler(this.accumulationFormButton_Click);
             // 
             // plumeFormButton
             // 
@@ -350,11 +364,43 @@
             // 
             // mainOutputNavPanel
             // 
+            this.mainOutputNavPanel.Controls.Add(this.alertIcon);
             this.mainOutputNavPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mainOutputNavPanel.Location = new System.Drawing.Point(0, 0);
             this.mainOutputNavPanel.Name = "mainOutputNavPanel";
             this.mainOutputNavPanel.Size = new System.Drawing.Size(183, 438);
             this.mainOutputNavPanel.TabIndex = 1;
+            // 
+            // alertIcon
+            // 
+            this.alertIcon.AutoSize = true;
+            this.alertIcon.BackColor = System.Drawing.Color.PaleGoldenrod;
+            this.alertIcon.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.alertIcon.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.alertIcon.ForeColor = System.Drawing.Color.Goldenrod;
+            this.alertIcon.Location = new System.Drawing.Point(87, 98);
+            this.alertIcon.Name = "alertIcon";
+            this.alertIcon.Size = new System.Drawing.Size(12, 18);
+            this.alertIcon.TabIndex = 14;
+            this.alertIcon.Text = "!";
+            this.alertIcon.Visible = false;
+            // 
+            // mainMessage
+            // 
+            this.mainMessage.AutoSize = true;
+            this.mainMessage.BackColor = System.Drawing.Color.MistyRose;
+            this.mainMessage.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.mainMessage.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.mainMessage.ForeColor = System.Drawing.Color.Maroon;
+            this.mainMessage.Location = new System.Drawing.Point(0, 674);
+            this.mainMessage.Margin = new System.Windows.Forms.Padding(8, 0, 8, 0);
+            this.mainMessage.MaximumSize = new System.Drawing.Size(800, 0);
+            this.mainMessage.Name = "mainMessage";
+            this.mainMessage.Padding = new System.Windows.Forms.Padding(8);
+            this.mainMessage.Size = new System.Drawing.Size(206, 31);
+            this.mainMessage.TabIndex = 61;
+            this.mainMessage.Text = "Warning/error message here";
+            this.mainMessage.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // mainFormPanel
             // 
@@ -469,10 +515,11 @@
             this.MainMenuStrip = this.mainMenuStrip;
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "HyRAM";
+            this.Text = "HyRAM+";
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.mainContainer.Panel1.ResumeLayout(false);
             this.mainContainer.Panel2.ResumeLayout(false);
+            this.mainContainer.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mainContainer)).EndInit();
             this.mainContainer.ResumeLayout(false);
             this.navContainer.Panel1.ResumeLayout(false);
@@ -487,6 +534,8 @@
             this.physicsNavPanel.ResumeLayout(false);
             this.physicsNavPanel.PerformLayout();
             this.mainOutputPanel.ResumeLayout(false);
+            this.mainOutputNavPanel.ResumeLayout(false);
+            this.mainOutputNavPanel.PerformLayout();
             this.mainMenuStrip.ResumeLayout(false);
             this.mainMenuStrip.PerformLayout();
             this.ResumeLayout(false);
@@ -515,7 +564,7 @@
 		private System.Windows.Forms.ToolStripMenuItem aboutMenuItem;
         private System.Windows.Forms.TabPage physicsModeTab;
         private System.Windows.Forms.Panel physicsNavPanel;
-        private System.Windows.Forms.Button overpressureFormButton;
+        private System.Windows.Forms.Button accumulationFormButton;
 		private System.Windows.Forms.Button plumeFormButton;
         private System.Windows.Forms.ToolStripMenuItem saveMenuItem;
         private System.Windows.Forms.ToolStripMenuItem loadMenuItem;
@@ -530,5 +579,8 @@
         private System.Windows.Forms.Label divider;
         private System.Windows.Forms.Button jetHeatAnalysisFormButton;
         private System.Windows.Forms.Button jetPlotTempFormButton;
+        private System.Windows.Forms.Button overpressureFormBtn;
+        private System.Windows.Forms.Label mainMessage;
+        private System.Windows.Forms.Label alertIcon;
     }
 }

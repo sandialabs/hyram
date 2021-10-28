@@ -1,35 +1,9 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
-
-You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with HyRAM+.
+If not, see https://www.gnu.org/licenses/.
 """
 
 from __future__ import print_function, absolute_import, division
@@ -57,7 +31,7 @@ class DevelopingFlow:
                  theta0 = 0, x0 = 0., y0 = 0.,
                  lam  = 1.16, betaA = 0.28,
                  nn_conserve_momentum = True, nn_T = 'solve_energy', 
-                 T_establish_min = -1):
+                 T_establish_min = -1, suppressWarnings = False):
         '''
         Engineering correlations to calculate the Gaussian profile boundary conditions for
         the flow through an orifice
@@ -67,7 +41,7 @@ class DevelopingFlow:
         
         # Orifice flow
         self.orifice = orifice
-        self.fluid_orifice = self._orifice_flow(fluid, orifice, ambient, mdot) # plug node at orifice exit
+        self.fluid_orifice = self._orifice_flow(fluid, orifice, ambient, mdot, suppressWarnings) # plug node at orifice exit
         self.d0 = orifice.d
         self.orifice_node = PlugNode(orifice.d, self.fluid_orifice.v, self.fluid_orifice.rho,
                                      1, self.fluid_orifice.T, theta0, x0, y0, S0)
@@ -83,16 +57,19 @@ class DevelopingFlow:
 
         self.initial_node = self.expanded_plug_node.establish(ambient, self.fluid_exp, lam)
         
-    def _orifice_flow(self, fluid, orifice, ambient, mdot):
+        
+    def _orifice_flow(self, fluid, orifice, ambient, mdot, suppressWarnings):
         '''
         flow thorugh the orifice
         '''
         fluid_out = orifice.flow(fluid, ambient.P)
         if fluid_out._choked and mdot is not None:
-            warnings.warn('Fluid over-specified. Using choked flow calculation of mass flow.', category=PhysicsWarning)
+            if not suppressWarnings:
+                warnings.warn('Fluid over-specified. Using choked flow calculation of mass flow.', category=PhysicsWarning)
         elif not fluid_out._choked and mdot is None:
-            warnings.warn('Fluid unchoked. Verification or specification of mass flow rate suggested.',
-                          category=PhysicsWarning)
+            if not suppressWarnings:
+                warnings.warn('Fluid unchoked. Verification or specification of mass flow rate suggested.',
+                              category=PhysicsWarning)
         elif fluid_out._choked and mdot is None:
             pass
         else:
@@ -254,7 +231,7 @@ class Jet:
                  Ymin = 7e-4, dS = None, Smax = np.inf, 
                  max_steps = 5000, tol = 1e-8,
                  alpha = 0.082, Yamb = 0., numB = 5, numpts = 500,
-                 verbose = True):
+                 suppressWarnings = False, verbose = True):
         '''
         Class for solving for a 2D jet. 
         If fluid pressure is <= 2 x ambient pressure, use subsonic initilization (specify mdot).
@@ -311,6 +288,8 @@ class Jet:
             maximum number of halfwidths (B) considered to be infinity - for integration in energy equations
         numpts: int, optional
             maximum number of points in energy integration (from 0 to numB)
+        suppressWarnings: boolean, optional
+            whether to display warnings about fluid being under-/over-specified in DevelopingFlow object
         verbose: boolean, optional
             whether to include print statements about the model actions
         There are up to 4 engineering models that give initial conditions to an 
@@ -332,7 +311,7 @@ class Jet:
                                               theta0 = theta0, x0 = x0, y0 = y0,
                                               lam  = lam, betaA = betaA,
                                               nn_conserve_momentum = nn_conserve_momentum, nn_T = nn_T, 
-                                              T_establish_min = T_establish_min,
+                                              T_establish_min = T_establish_min, suppressWarnings = suppressWarnings
                                               )
         self.initial_node = self.developing_flow.initial_node
         
@@ -350,7 +329,7 @@ class Jet:
         # note: method of calculating heat capacity and enthalpy makes a significant difference in terms
         # of trajectory and density in the calculations...
         self.lam, self.fluid, self.ambient = lam, fluid, ambient
-             
+
         #####################################################################################################
         # TODO: account for variations in heat capacity as a function of temperature - used when getting rid of
         #       heat capacity in _gov_eqns
@@ -943,3 +922,14 @@ class Jet:
         if aspect is not None:
             ax.set_aspect(aspect)
         return plt.gcf()
+
+    def get_mass_flow_rate(self):
+        """
+        Calculates mass flow rate for the jet plume
+
+        Returns
+        ----------
+        mass_flow_rate : float
+            Mass flow rate (kg/s) of steady release.
+        """
+        return self.developing_flow.orifice.compute_steady_state_mass_flow(self.fluid, self.ambient.P)

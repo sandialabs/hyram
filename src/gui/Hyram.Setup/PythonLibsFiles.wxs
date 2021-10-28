@@ -27,6 +27,9 @@
             <Component Id="cmp7FC398585E1BFD99D845B7C9EDBEEBC3" Directory="dir0D483AFE08CE557B8028AEB9CD311670" Guid="*">
                 <File Id="filC140580D448E53775B127ED6BEE7B0BE" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\_flux.py" />
             </Component>
+            <Component Id="cmpE158D467F2CDB0643A56C3099727C84F" Directory="dir0D483AFE08CE557B8028AEB9CD311670" Guid="*">
+                <File Id="fil7CB330302066B293E5FEC19542678FE4" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\_fuel_props.py" />
+            </Component>
             <Component Id="cmp1EBACAD6694F69B517297E01AC12194A" Directory="dir0D483AFE08CE557B8028AEB9CD311670" Guid="*">
                 <File Id="filEF0B078622C369486275920FFD58286B" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\_indoor_release.py" />
             </Component>
@@ -45,11 +48,26 @@
             <Component Id="cmpA81A46BB276E5166D621602D0D5F4743" Directory="dir0D483AFE08CE557B8028AEB9CD311670" Guid="*">
                 <File Id="filCFDA90A0CC2626BA32F9E2AEC6336B24" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\_therm.py" />
             </Component>
+            <Component Id="cmp242D51FF78595938365662395B820BB9" Directory="dir0D483AFE08CE557B8028AEB9CD311670" Guid="*">
+                <File Id="fil9DBB3D81EB6949BC4DD45510BAB61A10" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\_unconfined_overpressure.py" />
+            </Component>
             <Component Id="cmp0D9A5B2E4DE0E1E70EC30CE3FB6B88C3" Directory="dir0D483AFE08CE557B8028AEB9CD311670" Guid="*">
                 <File Id="fil0A2651635840C1317519FC45459A316D" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\__init__.py" />
             </Component>
-            <Component Id="cmp904C07102D0049620905CF8D6FE510D7" Directory="dir5DB316D10C63DA9585E261A98F690BFA" Guid="*">
-                <File Id="filE9CB44545A348C76C0A89C1AEB82E669" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\data\fuel_prop.dat" />
+            <Component Id="cmp4D035DB8FCA0A1057C742A76C7EE1DE7" Directory="dir5DB316D10C63DA9585E261A98F690BFA" Guid="*">
+                <File Id="fil1FB87FFB9716CA26CA16983AE9CF363E" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\data\BST_ImpulseCurves.csv" />
+            </Component>
+            <Component Id="cmp6AA7EF7537BB29CBB68A0461675DA4FD" Directory="dir5DB316D10C63DA9585E261A98F690BFA" Guid="*">
+                <File Id="fil5F1325201A484C16515D152233A97F9B" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\data\BST_OverpressureCurves.csv" />
+            </Component>
+            <Component Id="cmpD65B74F3986C4AB5B4894738DB08D358" Directory="dir5DB316D10C63DA9585E261A98F690BFA" Guid="*">
+                <File Id="fil28490CA5553604E715ADF4FB3A757FF8" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\data\detonation_cell_size.pkl" />
+            </Component>
+            <Component Id="cmp0681F22D8C41F6C46FC3D8445D1C5F25" Directory="dir5DB316D10C63DA9585E261A98F690BFA" Guid="*">
+                <File Id="fil46F5A373DC843E9728439A808C68EB2B" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\data\TNT_scaled_impulse.csv" />
+            </Component>
+            <Component Id="cmpA35B4DA1D52AD10CBB5F7F14A574F2A8" Directory="dir5DB316D10C63DA9585E261A98F690BFA" Guid="*">
+                <File Id="filA488AE2CF0C225C8D928305F55FB5306" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\data\TNT_scaled_peak_overpressure.csv" />
             </Component>
             <Component Id="cmpE42BBB2BFD3802028DB3ECE3AEDEE210" Directory="dir16BC304A3C66D86CD856D11DC8C19ACD" Guid="*">
                 <File Id="fil63EC2567CED9330C0C1FFFF8835E6444" KeyPath="yes" Source="$(var.PythonLibsDir)\qra\analysis.py" />
@@ -71,9 +89,6 @@
             </Component>
             <Component Id="cmp0AB1133F3E9B98552AD2DA009111BA1E" Directory="dir16BC304A3C66D86CD856D11DC8C19ACD" Guid="*">
                 <File Id="filBB5803C76C597EB473174548A1C37CCD" KeyPath="yes" Source="$(var.PythonLibsDir)\qra\leaks.py" />
-            </Component>
-            <Component Id="cmp2A114BA5186B29ACAD4E4BB5D5307F97" Directory="dir16BC304A3C66D86CD856D11DC8C19ACD" Guid="*">
-                <File Id="fil00CDFCB6772CC90BDDC25BE5A49E9430" KeyPath="yes" Source="$(var.PythonLibsDir)\qra\occupants.py" />
             </Component>
             <Component Id="cmp2E0E21962069746CAF83A27B56CBFA58" Directory="dir16BC304A3C66D86CD856D11DC8C19ACD" Guid="*">
                 <File Id="filF3EFB403332568A47359EBD17E933057" KeyPath="yes" Source="$(var.PythonLibsDir)\qra\probit.py" />

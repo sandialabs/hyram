@@ -1,35 +1,10 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
-
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
+rights in this software.
 
 You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
@@ -118,6 +93,7 @@ namespace SandiaNationalLaboratories.Hyram
         // - All param values are known so store them as properties on a DBTable object 
         // - Add suitable wrapper for setting min/max, unit conversions to reinforce MVC
         // - Centralize all external parameter edits to use single function/db entry point
+        // (these would help to get rid of this old technical debt)
 
         // Main store of parameter values. Initialized in InitDatabase.
         // Analysis parameters stored in mDatabase["PARAMETERS"]. Default values stored in mDatabase["DEFAULTS"]
@@ -141,10 +117,22 @@ namespace SandiaNationalLaboratories.Hyram
             //NozzleModel.HarstadBellan
         };
 
+        public List<UnconfinedOverpressureMethod> OverpressureMethods = new List<UnconfinedOverpressureMethod>
+        {
+            UnconfinedOverpressureMethod.BstMethod,
+            UnconfinedOverpressureMethod.TntMethod,
+            UnconfinedOverpressureMethod.BauwensMethod
+        };
+
+        public List<double> MachFlameSpeeds = new List<double>
+        {
+            0.2D, 0.35, 0.7, 1.0, 1.4, 2.0, 3.0, 4.0, 5.2D
+        };
+
         // Note that fuel type has custom event which is controlled in SetValue method below
         public List<FuelType> FuelTypes = new List<FuelType>
         {
-            FuelType.H2, FuelType.CNG, FuelType.LNG
+            FuelType.Hydrogen, FuelType.Methane, FuelType.Propane
         };
 
         public List<FluidPhase> FluidPhases = new List<FluidPhase>
@@ -162,6 +150,8 @@ namespace SandiaNationalLaboratories.Hyram
             OverpressureProbitModel.LungEis, OverpressureProbitModel.LungHse, OverpressureProbitModel.Head,
             OverpressureProbitModel.Collapse  //  OverpressureProbitModel.Debris
         };
+
+
 
         // AppData/HyRAM dir for non-user-specific output
         //public static string AppDataDir =
@@ -320,17 +310,6 @@ namespace SandiaNationalLaboratories.Hyram
             if (Instance.Parameters.ContainsKey(uKey))
             {
                 Instance.Parameters[uKey] = newVal;
-
-                // Trigger events, if any. Currently using events for FuelType selection on change
-                if (uKey == "FUELTYPE")
-                {
-                    EventHandler handler = Instance.FuelTypeChangedEvent;
-                    if (handler != null)
-                    {
-                        var e = EventArgs.Empty;
-                        handler(Instance, e);
-                    }
-                }
             }
             else
                 throw new Exception(key + " not present in parameters");
@@ -411,39 +390,15 @@ namespace SandiaNationalLaboratories.Hyram
 
         }
 
-        public void RefreshLeakFrequencyData(FuelType fuel = null)
+        public double[][] GetComponentProbabilities(string key)
         {
-            // update params on Instance based on selected fuel
-            if (fuel is null)
+            var componentProbabilityList = GetValue<List<ComponentProbability>>(key);
+            double[][] probabilities =
             {
-                fuel = GetValue<FuelType>("FuelType");
-            }
-            ComponentProbabilitySet probabilities = FuelData.H2LeakFrequencies;
-
-            if (fuel == FuelType.H2)
-            {
-                probabilities = FuelData.H2LeakFrequencies;
-            }
-            else if (fuel == FuelType.CNG)
-            {
-                probabilities = FuelData.CngLeakFrequencies;
-            }
-            else if (fuel == FuelType.LNG)
-            {
-                probabilities = FuelData.H2LeakFrequencies;
-            }
-
-            SetValue("Prob.Compressor", probabilities.Compressor);
-            SetValue("Prob.Cylinder", probabilities.Cylinder);
-            SetValue("Prob.Filter", probabilities.Filter);
-            SetValue("Prob.Flange", probabilities.Flange);
-            SetValue("Prob.Hose", probabilities.Hose);
-            SetValue("Prob.Joint", probabilities.Joint);
-            SetValue("Prob.Pipe", probabilities.Pipe);
-            SetValue("Prob.Valve", probabilities.Valve);
-            SetValue("Prob.Instrument", probabilities.Instrument);
-            SetValue("Prob.Extra1", probabilities.Extra1);
-            SetValue("Prob.Extra2", probabilities.Extra2);
+                componentProbabilityList[0].GetParameters(), componentProbabilityList[1].GetParameters(), componentProbabilityList[2].GetParameters(),
+                componentProbabilityList[3].GetParameters(), componentProbabilityList[4].GetParameters()
+            };
+            return probabilities;
         }
 
         public ElapsingTimeConversionUnit ExposureTimeUnit
@@ -471,6 +426,8 @@ namespace SandiaNationalLaboratories.Hyram
             InitOccupantDistributions();
         }
 
+
+
         public OccupantDistributionInfoCollection OccupantDistributionInfoCollection =>
             (OccupantDistributionInfoCollection) Parameters[OccupantDistributionsCollectionKey];
 
@@ -482,8 +439,7 @@ namespace SandiaNationalLaboratories.Hyram
 
         /// <summary>
         /// Set up all parameter default values in DB set.
-        /// Note that the full DB contains two of these sets: Parameters and Defaults.
-        /// TODO: No reason to have two sets. Get rid of Defaults ParameterDatabase obj.
+        /// Note that the full DB contains two of these sets: Parameters and Defaults. (old technical debt).
         /// </summary>
         /// <returns></returns>
         private ParameterDatabase InitDefaults()
@@ -498,7 +454,9 @@ namespace SandiaNationalLaboratories.Hyram
 
             // Track whether QRA must be run when next visiting results tabs.
             // Naive for now; set to true on load and whenever user visits an input tab. False after analysis executed.
-            database["ResultsAreStale"] = true;
+            // NOTE: this is disabled for now. May delete this functionality because it's bug-prone
+            // (easy to forget to update the stale check so results aren't fresh)
+            database["ResultsAreStale"] = true;  // 
             database["Result"] = null;
 
             // Pipe outer diameter [inches]
@@ -527,7 +485,7 @@ namespace SandiaNationalLaboratories.Hyram
             database["IgnitionThresholds"] = new[] {0.125, 6.25};
             ;
 
-            database["FuelType"] = FuelType.H2;
+            database["FuelType"] = FuelType.Hydrogen;
             database["ReleaseFluidPhase"] = FluidPhase.GasDefault;
             database["ThermalProbit"] = ThermalProbitModel.Eisenberg;
             database["OverpressureProbit"] = OverpressureProbitModel.Collapse;
@@ -571,7 +529,7 @@ namespace SandiaNationalLaboratories.Hyram
 
             database["numCompressors"] = new ConvertibleValue(StockConverters.UnitlessConverter,
                 UnitlessUnit.Unitless, new double[] {0}, 0D);
-            database["numCylinders"] = new ConvertibleValue(StockConverters.UnitlessConverter,
+            database["numVessels"] = new ConvertibleValue(StockConverters.UnitlessConverter,
                 UnitlessUnit.Unitless, new double[] {0}, 0D);
             database["numValves"] = new ConvertibleValue(StockConverters.UnitlessConverter,
                 UnitlessUnit.Unitless, new double[] {5}, 0D);
@@ -586,6 +544,12 @@ namespace SandiaNationalLaboratories.Hyram
             database["numFlanges"] = new ConvertibleValue(StockConverters.UnitlessConverter,
                 UnitlessUnit.Unitless, new double[] {0}, 0D);
             database["numFilters"] = new ConvertibleValue(StockConverters.UnitlessConverter,
+                UnitlessUnit.Unitless, new double[] {0}, 0D);
+            database["numExchangers"] = new ConvertibleValue(StockConverters.UnitlessConverter,
+                UnitlessUnit.Unitless, new double[] {0}, 0D);
+            database["numVaporizers"] = new ConvertibleValue(StockConverters.UnitlessConverter,
+                UnitlessUnit.Unitless, new double[] {0}, 0D);
+            database["numArms"] = new ConvertibleValue(StockConverters.UnitlessConverter,
                 UnitlessUnit.Unitless, new double[] {0}, 0D);
             database["numExtraComponent1"] = new ConvertibleValue(StockConverters.UnitlessConverter,
                 UnitlessUnit.Unitless, new double[] {0}, 0D);
@@ -643,20 +607,20 @@ namespace SandiaNationalLaboratories.Hyram
             database["Failure.CouplingFTC"] = new FailureMode("Breakaway coupling", "Failure to close",
                 FailureDistributionType.Beta, 0.5D, 5031.0D);
 
-            // Component leak probabilities stored in lists of objects for easy data-binding.
-            // Note that func above will refresh these depending on selected fuel. (They're refreshed after initialization.)
-            // Array elements are leak size, Mu, Sigma, Mean, Variance, in order.
-            database["Prob.Compressor"] = FuelData.H2LeakFrequencies.Compressor;
-            database["Prob.Cylinder"] = FuelData.H2LeakFrequencies.Cylinder;
-            database["Prob.Filter"] = FuelData.H2LeakFrequencies.Filter;
-            database["Prob.Flange"] = FuelData.H2LeakFrequencies.Flange;
-            database["Prob.Hose"] = FuelData.H2LeakFrequencies.Hose;
-            database["Prob.Joint"] = FuelData.H2LeakFrequencies.Joint;
-            database["Prob.Pipe"] = FuelData.H2LeakFrequencies.Pipe;
-            database["Prob.Valve"] = FuelData.H2LeakFrequencies.Valve;
-            database["Prob.Instrument"] = FuelData.H2LeakFrequencies.Instrument;
-            database["Prob.Extra1"] = FuelData.H2LeakFrequencies.Extra1;
-            database["Prob.Extra2"] = FuelData.H2LeakFrequencies.Extra2;
+            database["Prob.Compressor"] = FuelData.ActiveLeakSet.Compressor;
+            database["Prob.Vessel"] = FuelData.ActiveLeakSet.Vessel;
+            database["Prob.Filter"] = FuelData.ActiveLeakSet.Filter;
+            database["Prob.Flange"] = FuelData.ActiveLeakSet.Flange;
+            database["Prob.Hose"] = FuelData.ActiveLeakSet.Hose;
+            database["Prob.Joint"] = FuelData.ActiveLeakSet.Joint;
+            database["Prob.Pipe"] = FuelData.ActiveLeakSet.Pipe;
+            database["Prob.Valve"] = FuelData.ActiveLeakSet.Valve;
+            database["Prob.Instrument"] = FuelData.ActiveLeakSet.Instrument;
+            database["Prob.Exchanger"] = FuelData.ActiveLeakSet.HeatExchanger;
+            database["Prob.Vaporizer"] = FuelData.ActiveLeakSet.Vaporizer;
+            database["Prob.Arm"] = FuelData.ActiveLeakSet.LoadingArm;
+            database["Prob.Extra1"] = FuelData.ActiveLeakSet.Extra1;
+            database["Prob.Extra2"] = FuelData.ActiveLeakSet.Extra2;
 
             database["tankVolume"] = new ConvertibleValue(
                     StockConverters.VolumeConverter,
@@ -785,8 +749,117 @@ namespace SandiaNationalLaboratories.Hyram
             database["Dist.LeakScenarios"] = new ConvertibleValue(StockConverters.UnitlessConverter,
                 UnitlessUnit.Unitless, new[] {0.0001, 0.001, 0.01, 0.1, 1.0});
 
+            database["unconfinedOverpressureMethod"] = UnconfinedOverpressureMethod.BstMethod;
+            //database["heatofCombustion"] = new ConvertibleValue(StockConverters.SpecificEnergyConverter, SpecificEnergyUnit.JoulePerKilogram, new [] {});
+            database["overpressure.x"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter,
+                new[] {1D, 2D});
+            database["overpressure.y"] = new ConvertibleValue( StockConverters.DistanceConverter, DistanceUnit.Meter,
+                new[] {1D, 2D});
+            database["overpressure.z"] = new ConvertibleValue( StockConverters.DistanceConverter, DistanceUnit.Meter,
+                new[] {0D, 0D});
+
+            //database["overpressure.xmin"] = (float?)null;
+            // no conversion allowed because constrained options
+            database["overpressureFlameSpeed"] = new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, new[] {5.2D});
+            database["tntEquivalenceFactor"] = new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, new[] {0.03D});
+
             return database;
         }
+
+        public List<ComponentProbability> GetLeakData(string key)
+        {
+            return GetValue<List<ComponentProbability>>(key);
+        }
+
+        public void RefreshLeakFrequencyData()
+        {
+            FuelType fuel = GetFuel();
+            FluidPhase phase = GetValue<FluidPhase>("ReleaseFluidPhase");
+
+            ComponentProbabilitySet newP = null;
+
+            if (fuel == FuelType.Hydrogen)
+            {
+                newP = phase == FluidPhase.GasDefault ? FuelData.H2GasLeaks : FuelData.H2LiquidLeaks;
+            }
+            else if (fuel == FuelType.Methane)
+            {
+                newP = phase == FluidPhase.GasDefault ? FuelData.MethaneGasLeaks : FuelData.MethaneLiquidLeaks;
+            }
+            else if (fuel == FuelType.Propane)
+            {
+                newP = phase == FluidPhase.GasDefault ? FuelData.PropaneGasLeaks : FuelData.PropaneLiquidLeaks;
+            }
+            else
+            {
+                newP = FuelData.H2GasLeaks;
+            }
+
+            List<ComponentProbability> compressorData = GetLeakData("Prob.Compressor");
+            List<ComponentProbability> vesselData = GetLeakData("Prob.Vessel");
+            List<ComponentProbability> filterData = GetLeakData("Prob.Filter");
+            List<ComponentProbability> flangeData = GetLeakData("Prob.Flange");
+            List<ComponentProbability> hoseData = GetLeakData("Prob.Hose");
+            List<ComponentProbability> jointData = GetLeakData("Prob.Joint");
+            List<ComponentProbability> pipeData = GetLeakData("Prob.Pipe");
+            List<ComponentProbability> valveData = GetLeakData("Prob.Valve");
+            List<ComponentProbability> instrumentData = GetLeakData("Prob.Instrument");
+            List<ComponentProbability> exchangerData = GetLeakData("Prob.Exchanger");
+            List<ComponentProbability> vaporData = GetLeakData("Prob.Vaporizer");
+            List<ComponentProbability> armData = GetLeakData("Prob.Arm");
+            List<ComponentProbability> extra1Data = GetLeakData("Prob.Extra1");
+            List<ComponentProbability> extra2Data = GetLeakData("Prob.Extra2");
+
+            for (int i = 0; i < 5; i++)
+            {
+                compressorData[i].SetParameters(newP.Compressor[i].Mu, newP.Compressor[i].Sigma);
+                vesselData[i].SetParameters(newP.Vessel[i].Mu, newP.Vessel[i].Sigma);
+                filterData[i].SetParameters(newP.Filter[i].Mu, newP.Filter[i].Sigma);
+                flangeData[i].SetParameters(newP.Flange[i].Mu, newP.Flange[i].Sigma);
+                hoseData[i].SetParameters(newP.Hose[i].Mu, newP.Hose[i].Sigma);
+                jointData[i].SetParameters(newP.Joint[i].Mu, newP.Joint[i].Sigma);
+                pipeData[i].SetParameters(newP.Pipe[i].Mu, newP.Pipe[i].Sigma);
+                valveData[i].SetParameters(newP.Valve[i].Mu, newP.Valve[i].Sigma);
+                instrumentData[i].SetParameters(newP.Instrument[i].Mu, newP.Instrument[i].Sigma);
+                exchangerData[i].SetParameters(newP.HeatExchanger[i].Mu, newP.HeatExchanger[i].Sigma);
+                vaporData[i].SetParameters(newP.Vaporizer[i].Mu, newP.Vaporizer[i].Sigma);
+                armData[i].SetParameters(newP.LoadingArm[i].Mu, newP.LoadingArm[i].Sigma);
+                extra1Data[i].SetParameters(newP.Extra1[i].Mu, newP.Extra1[i].Sigma);
+                extra2Data[i].SetParameters(newP.Extra2[i].Mu, newP.Extra2[i].Sigma);
+            }
+        }
+
+        public void RefreshComponentQuantities()
+        {
+            FuelType fuel = GetFuel();
+            FluidPhase phase = GetFluidPhase();
+            double[] quantities;
+
+            if (fuel == FuelType.Hydrogen && phase == FluidPhase.GasDefault)
+            {
+                quantities = new [] {0d, 0, 5, 3, 35, 1, 20, 0, 0, 0, 0, 0, 0, 0};
+            } else
+            {
+                quantities = new [] {0d, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            } 
+
+            SetNdValue("numCompressors", UnitlessUnit.Unitless, quantities[0]);
+            SetNdValue("numVessels",  UnitlessUnit.Unitless, quantities[1]);
+            SetNdValue("numValves",  UnitlessUnit.Unitless, quantities[2]);
+            SetNdValue("numInstruments",  UnitlessUnit.Unitless, quantities[3]);
+            SetNdValue("numJoints",  UnitlessUnit.Unitless, quantities[4]);;
+            SetNdValue("numHoses",  UnitlessUnit.Unitless, quantities[5]);;
+            SetNdValue("pipeLength",  DistanceUnit.Meter, quantities[6]);;
+            SetNdValue("numFilters",  UnitlessUnit.Unitless, quantities[7]);
+            SetNdValue("numFlanges",  UnitlessUnit.Unitless, quantities[8]);;
+            SetNdValue("numExchangers",  UnitlessUnit.Unitless, quantities[9]);
+            SetNdValue("numVaporizers",  UnitlessUnit.Unitless, quantities[10]);
+            SetNdValue("numArms",  UnitlessUnit.Unitless, quantities[11]);
+            SetNdValue("numExtraComponent1",  UnitlessUnit.Unitless, quantities[12]);
+            SetNdValue("numExtraComponent2", UnitlessUnit.Unitless, quantities[13]);
+        }
+
+
 
         /// <summary>
         /// Retrieve unit converter object based on param key.
@@ -832,6 +905,9 @@ namespace SandiaNationalLaboratories.Hyram
                 case "FLAMEWRAPPER.RADIATIVE_HEAT_FLUX_POINT:X":
                 case "FLAMEWRAPPER.RADIATIVE_HEAT_FLUX_POINT:Y":
                 case "FLAMEWRAPPER.RADIATIVE_HEAT_FLUX_POINT:Z":
+                case "OVERPRESSURE.X":
+                case "OVERPRESSURE.Y":
+                case "OVERPRESSURE.Z":
                 case "PLUMEWRAPPER.XMIN":
                 case "PLUMEWRAPPER.XMAX":
                 case "PLUMEWRAPPER.YMIN":
@@ -900,6 +976,9 @@ namespace SandiaNationalLaboratories.Hyram
                 case "FLOOR.WINDVELOCITY":
                 case "CEILING.WINDVELOCITY":
                     result = StockConverters.SpeedConverter;
+                    break;
+                case "HEATOFCOMBUSTION":
+                    result = StockConverters.SpecificEnergyConverter;
                     break;
                 case "PLUMEWRAPPER.CONTOURS":
                 default:
@@ -1032,7 +1111,7 @@ namespace SandiaNationalLaboratories.Hyram
                     }
                 }
 
-                //Backward compatability fix for max/min value checking
+                //Backward compatibility fix for max/min value checking
                 foreach (var key in savedParams.Keys)
                 {
                     var userValue = savedParams[key];
@@ -1149,14 +1228,13 @@ namespace SandiaNationalLaboratories.Hyram
         }
 
 
+
         public static bool FuelTypeIsGaseous()
         {
-            FuelType selectedFuel = GetValue<FuelType>("FuelType");
-            bool isGaseous = (selectedFuel == FuelType.H2 || selectedFuel == FuelType.CNG);
-            //Debug.WriteLine($"Fuel {selectedFuel} gaseous? {isGaseous}");
+            FluidPhase phase = Instance.GetFluidPhase();
+            bool isGaseous = (phase == FluidPhase.GasDefault || phase == FluidPhase.SatGas);
             return isGaseous;
         }
-
 
         public static bool FuelPhaseIsSaturated()
         {
@@ -1164,6 +1242,31 @@ namespace SandiaNationalLaboratories.Hyram
             return (phase == FluidPhase.SatLiquid || phase == FluidPhase.SatGas);
         }
 
+        public static FuelType GetFuel()
+        {
+            return GetValue<FuelType>("FuelType");
+        }
+
+        public static void SetFuel(FuelType fuel)
+        {
+            SetValue("FuelType", fuel);
+            Instance.RefreshLeakFrequencyData();
+            Instance.RefreshComponentQuantities();
+
+            EventHandler handler = Instance.FuelTypeChangedEvent;
+            if (handler != null)
+            {
+                var e = EventArgs.Empty;
+                handler(Instance, e);
+            }
+        }
+
+        public static void SetReleasePhase(FluidPhase phase)
+        {
+            SetValue("ReleaseFluidPhase", phase);
+            Instance.RefreshLeakFrequencyData();
+            Instance.RefreshComponentQuantities();
+        }
 
         /// <summary>
         /// Checks whether fuel release pressure is within valid range
@@ -1172,13 +1275,14 @@ namespace SandiaNationalLaboratories.Hyram
         public static bool ReleasePressureIsValid(string varName)
         {
             bool result = true;
-            FluidPhase phase = Instance.GetFluidPhase();
-            if (phase == FluidPhase.SatLiquid || phase == FluidPhase.SatGas)
+            if (FuelPhaseIsSaturated())
             {
-                double relPres = GetNdValue(varName, PressureUnit.Atm);
-                double ambPres = GetNdValue("ambientPressure", PressureUnit.Atm);
-                double critPres = 12.73131;
-                if (relPres <= ambPres || relPres > critPres)
+                FuelType fuel = GetFuel();
+                double releaseP = GetNdValue(varName, PressureUnit.MPa);
+                double ambientP = GetNdValue("ambientPressure", PressureUnit.MPa);
+                double criticalP = fuel.GetCriticalPressureMpa();
+
+                if (releaseP <= ambientP || releaseP > criticalP)
                 {
                     result = false;
                 }
@@ -1195,10 +1299,13 @@ namespace SandiaNationalLaboratories.Hyram
         {
             var ambPres= GetNdValue("ambientPressure", PressureUnit.Pa);
             var fuelPres = GetNdValue("fluidPressure", PressureUnit.Pa);
-            var selectedFuel = GetValue<FuelType>("FuelType");
-            return (fuelPres < (selectedFuel.GetRatio() * ambPres));
+            var fuel = GetFuel();
+            return (fuelPres < (fuel.GetCriticalRatio() * ambPres));
         }
 
+        public static UnconfinedOverpressureMethod GetOverpressureMethod()
+        {
+            return GetValue<UnconfinedOverpressureMethod>("unconfinedOverpressureMethod");
+        }
     }
-
 }

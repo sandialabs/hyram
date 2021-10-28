@@ -1,36 +1,13 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
+You should have received a copy of the GNU General Public License along with HyRAM+.
+If not, see https://www.gnu.org/licenses/.
 
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+"""
 
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
-
-You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
-
+"""
 -----
 Alternately, tests can be run using the Python `unittest` framework. 
 For test discovery, all tests will be located in this "tests" directory and will match the pattern: 
@@ -39,8 +16,9 @@ For test discovery, all tests will be located in this "tests" directory and will
 
 import unittest
 # Be careful about shadowing GUI tests pkg; added 'hyram.' for this
-from tests import test_c_api_etk, test_c_api_phys, test_api_flux, test_c_api_jet_plume, test_c_api_qra
-from tests import test_api_flux
+from tests import (test_c_api_etk, test_c_api_phys, test_c_api_jet_plume, test_c_api_qra, test_c_api_overpressure,
+                   test_api_flux,  test_api_overpressure,
+                   test_overpressure)
 
 
 def suite():
@@ -60,21 +38,40 @@ def suite():
     # TODO: add validation tests for jet flame
     # TODO: add validation tests for overpressure/accumulation
 
-    # C API TESTS
-    suite.addTest(unittest.makeSuite(test_c_api_etk.ETKMassFlowTestCase))
-    suite.addTest(unittest.makeSuite(test_c_api_etk.ETKTankMassTestCase))
-    suite.addTest(unittest.makeSuite(test_c_api_etk.ETKTPDTestCase))
-    suite.addTest(unittest.makeSuite(test_c_api_jet_plume.H2JetPlumeTestCase))
-    suite.addTest(unittest.makeSuite(test_c_api_jet_plume.LH2JetPlumeTestCase))
-    suite.addTest(unittest.makeSuite(test_c_api_phys.IndoorReleaseTestCase))
-    suite.addTest(unittest.makeSuite(test_c_api_phys.TestFlameTempPlotGeneration))
-    suite.addTest(unittest.makeSuite(test_c_api_phys.TestRadHeatAnalysis))
-    suite.addTest(unittest.makeSuite(test_c_api_qra.TestQRA))
+    do_test_etk = True
+    do_test_phys = True
+    do_test_qra = True
+    do_test_overpressure = True
 
-    # FLUX PHYS API TESTS
-    suite.addTest(unittest.makeSuite(test_api_flux.TestDischargeRateCalculation))
-    suite.addTest(unittest.makeSuite(test_api_flux.TestPositionalFlux))
-    # TODO: add additional API tests
+    # C API TESTS
+    if do_test_etk:
+        suite.addTest(unittest.makeSuite(test_c_api_etk.ETKMassFlowTestCase))
+        suite.addTest(unittest.makeSuite(test_c_api_etk.ETKTankMassTestCase))
+        suite.addTest(unittest.makeSuite(test_c_api_etk.ETKTPDTestCase))
+        suite.addTest(unittest.makeSuite(test_c_api_etk.ETKTntMassTestCase))
+
+    if do_test_phys:
+        suite.addTest(unittest.makeSuite(test_c_api_jet_plume.H2JetPlumeTestCase))
+        suite.addTest(unittest.makeSuite(test_c_api_jet_plume.LH2JetPlumeTestCase))
+        suite.addTest(unittest.makeSuite(test_c_api_phys.IndoorReleaseTestCase))
+        suite.addTest(unittest.makeSuite(test_c_api_phys.TestFlameTempPlotGeneration))
+        suite.addTest(unittest.makeSuite(test_c_api_phys.TestRadHeatAnalysis))
+        suite.addTest(unittest.makeSuite(test_api_flux.TestPositionalFlux))
+
+    # QRA Tests
+    if do_test_qra:
+        # NOTE: these are regression tests only and do not contain experimentally-validated comparisons.
+        suite.addTest(unittest.makeSuite(test_c_api_qra.TestHydrogen))
+        suite.addTest(unittest.makeSuite(test_c_api_qra.TestMethane))
+        suite.addTest(unittest.makeSuite(test_c_api_qra.TestPropane))
+
+    # OVERPRESSURE METHODS API AND FUNCTION TESTS
+    if do_test_overpressure:
+        suite.addTest(unittest.makeSuite(test_c_api_overpressure.OverpressureTestCase))
+        suite.addTest(unittest.makeSuite(test_api_overpressure.OverpressureTestCase))
+        suite.addTest(unittest.makeSuite(test_overpressure.BstMethodTestCase))
+        suite.addTest(unittest.makeSuite(test_overpressure.TntMethodTestCase))
+        suite.addTest(unittest.makeSuite(test_overpressure.BauwensMethodTestCase))
 
     return suite
 

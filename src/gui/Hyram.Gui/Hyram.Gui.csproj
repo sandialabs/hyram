@@ -30,7 +30,7 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -54,7 +54,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>icon-32x32.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\LogoNoNameSm.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>SandiaNationalLaboratories.Hyram.Program</StartupObject>
@@ -85,11 +85,11 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActionPanels\OverpressurePanel.cs">
+    <Compile Include="ActionPanels\AccumulationPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ActionPanels\OverpressurePanel.Designer.cs">
-      <DependentUpon>OverpressurePanel.cs</DependentUpon>
+    <Compile Include="ActionPanels\AccumulationPanel.Designer.cs">
+      <DependentUpon>AccumulationPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="ActionPanels\QraOutputNavPanel.cs">
       <SubType>UserControl</SubType>
@@ -102,6 +102,15 @@
     </Compile>
     <Compile Include="ActionPanels\PlumeDispersionPanel.Designer.cs">
       <DependentUpon>PlumeDispersionPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AnalysisForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Physics\UnconfinedOverpressureForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Physics\UnconfinedOverpressureForm.Designer.cs">
+      <DependentUpon>UnconfinedOverpressureForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Qra\ConsequenceModelsForm.cs">
       <SubType>UserControl</SubType>
@@ -127,11 +136,11 @@
     <Compile Include="Physics\PlumeForm.Designer.cs">
       <DependentUpon>PlumeForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Physics\IndoorReleaseForm.cs">
+    <Compile Include="Physics\AccumulationForm.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Physics\IndoorReleaseForm.Designer.cs">
-      <DependentUpon>IndoorReleaseForm.cs</DependentUpon>
+    <Compile Include="Physics\AccumulationForm.Designer.cs">
+      <DependentUpon>AccumulationForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Physics\JetFlameTemperaturePlotForm.cs">
       <SubType>UserControl</SubType>
@@ -255,14 +264,19 @@
     <None Include="Resources\BannerInstaller.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <Content Include="icon-32x32.ico" />
+    <None Include="Resources\geometry_of_indoor_release.png" />
+    <None Include="Resources\BannerLogov2.jpg" />
+    <None Include="Resources\BannerLogov2Thin2.jpg" />
     <Content Include="Resources\hyram_bigtitle.jpg" />
     <Content Include="Resources\CopyrightFormatted.rtf" />
-    <EmbeddedResource Include="ActionPanels\OverpressurePanel.resx">
-      <DependentUpon>OverpressurePanel.cs</DependentUpon>
+    <EmbeddedResource Include="ActionPanels\AccumulationPanel.resx">
+      <DependentUpon>AccumulationPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ActionPanels\QraOutputNavPanel.resx">
       <DependentUpon>QraOutputNavPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Physics\UnconfinedOverpressureForm.resx">
+      <DependentUpon>UnconfinedOverpressureForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Qra\ConsequenceModelsForm.resx">
       <DependentUpon>ConsequenceModelsForm.cs</DependentUpon>
@@ -277,8 +291,8 @@
     <EmbeddedResource Include="Physics\PlumeForm.resx">
       <DependentUpon>PlumeForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Physics\IndoorReleaseForm.resx">
-      <DependentUpon>IndoorReleaseForm.cs</DependentUpon>
+    <EmbeddedResource Include="Physics\AccumulationForm.resx">
+      <DependentUpon>AccumulationForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Physics\JetFlameTemperaturePlotForm.resx">
       <DependentUpon>JetFlameTemperaturePlotForm.cs</DependentUpon>
@@ -377,8 +391,14 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\geometry of flame.png" />
+    <None Include="Resources\LogoNoNameLg.png" />
+    <None Include="Resources\LogoNoNameLgIcon.ico" />
+    <None Include="Resources\LogoNoName32x32.ico" />
+    <None Include="Resources\LogoNoNameSm.ico" />
+    <None Include="Resources\LogoNoNameSm.png" />
+    <None Include="Resources\LogoNoName64x64.png" />
     <Content Include="Resources\PhysJetFlameDescrip.rtf" />
-    <Content Include="Resources\PhysOverpressureDescrip.rtf" />
+    <Content Include="Resources\PhysAccumulationDescrip.rtf" />
     <Content Include="Resources\PhysPlumeDescrip.rtf" />
     <Content Include="Resources\QraConsequenceModelsDescrip.rtf" />
     <Content Include="Resources\QraProbabilitiesDescrip.rtf" />
@@ -386,6 +406,7 @@
     <Content Include="Resources\QraOutputDescrip.rtf" />
     <Content Include="Resources\QraSystemDescriptionDescrip.rtf" />
     <None Include="Resources\PhysRadHeatDescrip.rtf" />
+    <None Include="Resources\PhysUnconfinedOverpressureDescrip.rtf" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">

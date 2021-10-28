@@ -1,35 +1,10 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
-
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
+rights in this software.
 
 You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
@@ -38,7 +13,6 @@ namespace SandiaNationalLaboratories.Hyram
 {
     /// <summary>
     /// Classes for storing model choice including descriptive string name.
-    /// Used instead of enum for more flexibility.
     /// </summary>
     [Serializable]
     public class NozzleModel
@@ -169,27 +143,21 @@ namespace SandiaNationalLaboratories.Hyram
         }
     }
 
-    /// <summary>
-    /// Representation of fuel type, designated by string label which is consumed by python funcs.
-    /// </summary>
     [Serializable]
-    public sealed class FuelType
+    public class UnconfinedOverpressureMethod
     {
-        // TODO: update critical ratios
-        public static readonly FuelType H2 = new FuelType(0, "H2", "H2", crit_ratio:1.893);
-        public static readonly FuelType CNG = new FuelType(1, "CNG", "CNG", crit_ratio:0.0);
-        public static readonly FuelType LNG = new FuelType(2, "LNG", "LNG", crit_ratio:0.0);
+        public static readonly UnconfinedOverpressureMethod BstMethod = new UnconfinedOverpressureMethod(0, "BST", "bst");
+        public static readonly UnconfinedOverpressureMethod TntMethod = new UnconfinedOverpressureMethod(1, "TNT", "tnt");
+        public static readonly UnconfinedOverpressureMethod BauwensMethod = new UnconfinedOverpressureMethod(2, "Bauwens", "bauwens");
         private readonly string _key;
         private readonly string _name;
         private readonly int _value;
-        private readonly double _crit_ratio;
 
-        private FuelType(int value, string name, string key, double crit_ratio)
+        public UnconfinedOverpressureMethod(int value, string name, string key)
         {
             _name = name;
             _value = value;
             _key = key;
-            _crit_ratio = crit_ratio;
         }
 
         public override string ToString()
@@ -202,9 +170,114 @@ namespace SandiaNationalLaboratories.Hyram
             return _key;
         }
 
-        public double GetRatio()
+        public static UnconfinedOverpressureMethod ParseName(string name)
         {
-            return _crit_ratio;
+            switch (name.ToLower())
+            {
+                case "tnt":
+                    return TntMethod;
+                case "bauwens":
+                    return BauwensMethod;
+                case "bst":
+                default:
+                    return BstMethod;
+            }
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as UnconfinedOverpressureMethod);
+        }
+
+        public bool Equals(UnconfinedOverpressureMethod f)
+        {
+            if (f is null)
+            {
+                return false;
+            }
+
+            // Optimization for a common success case.
+            if (ReferenceEquals(this, f))
+            {
+                return true;
+            }
+
+            if (GetType() != f.GetType())
+            {
+                return false;
+            }
+            return (_value == f._value);
+        }
+
+        public override int GetHashCode()
+        {
+            return _value;
+        }
+
+        public static bool operator ==(UnconfinedOverpressureMethod lhs, UnconfinedOverpressureMethod rhs)
+        {
+            if (lhs is null)
+            {
+                if (rhs is null)
+                {
+                    return true;
+                }
+                return false;
+            }
+            // Equals handles case of null on right side.
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(UnconfinedOverpressureMethod lhs, UnconfinedOverpressureMethod rhs)
+        {
+            return !(lhs == rhs);
+        }
+    }
+
+
+    /// <summary>
+    /// Representation of fuel type, designated by string label which is consumed by python funcs.
+    /// </summary>
+    [Serializable]
+    public sealed class FuelType
+    {
+        // TODO: update critical ratios
+        public static readonly FuelType Hydrogen = new FuelType(0, "Hydrogen", "h2", chokedFlowPRatio:1.904, criticalP: 1296400);
+        public static readonly FuelType Methane = new FuelType(1, "Methane", "ch4", chokedFlowPRatio:1.844, criticalP: 4599200);
+        public static readonly FuelType Propane = new FuelType(2, "Propane", "c3h8", chokedFlowPRatio:1.725, criticalP: 4251200);
+        private readonly string _key;
+        private readonly string _name;
+        private readonly int _value;
+        private readonly double _chokedFlowPRatio;  // [-]
+        private readonly double _liquidCriticalP;  // [Pa]
+
+        private FuelType(int value, string name, string key, double chokedFlowPRatio, double criticalP)
+        {
+            _name = name;
+            _value = value;
+            _key = key;
+            _chokedFlowPRatio = chokedFlowPRatio;
+            _liquidCriticalP = criticalP;
+        }
+
+        public override string ToString()
+        {
+            return _name;
+        }
+
+        public string GetKey()
+        {
+            return _key;
+        }
+
+        public double GetCriticalRatio()
+        {
+            return _chokedFlowPRatio;
+        }
+
+        public double GetCriticalPressureMpa()
+        {
+            return (_liquidCriticalP / 1000000.0);
         }
 
         public override bool Equals(object obj)
@@ -448,7 +521,7 @@ namespace SandiaNationalLaboratories.Hyram
     [Serializable]
     public sealed class FluidPhase
     {
-        public static readonly FluidPhase GasDefault = new FluidPhase("Gas", "default", index: 0);
+        public static readonly FluidPhase GasDefault = new FluidPhase("Gas", "none", index: 0);
         public static readonly FluidPhase SatGas = new FluidPhase("Saturated vapor", "gas", index: 1);
         public static readonly FluidPhase SatLiquid = new FluidPhase("Saturated liquid", "liquid", index: 2);
         private readonly string _key;

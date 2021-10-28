@@ -1,38 +1,14 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
-
-Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
-for use of this work by or on behalf of the U.S. Government.  Export of this
-data may require a license from the United States Government. For five (5)
-years from 2/16/2016, the United States Government is granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
-license in this data to reproduce, prepare derivative works, and perform
-publicly and display publicly, by or on behalf of the Government. There
-is provision for the possible extension of the term of this license. Subsequent
-to that period or any extension granted, the United States Government is
-granted for itself and others acting on its behalf a paid-up, nonexclusive,
-irrevocable worldwide license in this data to reproduce, prepare derivative
-works, distribute copies to the public, perform publicly and display publicly,
-and to permit others to do so. The specific term of the license can be
-identified by inquiry made to NTESS or DOE.
-
-NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF
-ENERGY, NOR NTESS, NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS
-OR IMPLIED, OR ASSUMES ANY LEGAL RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS,
-OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR
-REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
-
-Any licensee of HyRAM (Hydrogen Risk Assessment Models) v. 3.1 has the
-obligation and responsibility to abide by the applicable export control laws,
-regulations, and general prohibitions relating to the export of technical data.
-Failure to obtain an export control license or other authority from the
-Government may result in criminal liability under U.S. laws.
+Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
+rights in this software.
 
 You should have received a copy of the GNU General Public License along with
-HyRAM. If not, see <https://www.gnu.org/licenses/>.
+HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
@@ -55,9 +31,29 @@ namespace SandiaNationalLaboratories.Hyram
         private static UserControl _currentControl;
         //private string genericNavErrorMsg = @"Action could not be completed due to error: ";
         public static MainForm ActiveScreen { get; private set; }
+        public Color WarningBackColor = Color.Cornsilk;
+        public Color WarningForeColor = Color.DarkGoldenrod;
+        public Color ErrorBackColor = Color.MistyRose;
+        public Color ErrorForeColor = Color.Maroon;
+        //public Color InfoBackColor = Color.LightCyan;
+        //public Color InfoForeColor = Color.PaleTurquoise;
+
+        private static SystemDescriptionForm _systemDescriptionForm;
+        private static ProbabilitiesForm _probabilitiesForm;
+        private static ScenariosForm _scenariosForm;
+        private static ConsequenceModelsForm _consequenceModelsForm;
+        private static List<AnalysisForm> _qraForms;
+        private static List<UserControl> _qraFormControls;
+        private static int _mode = 0;  // 0 QRA, 1 physics
+        private static string _topAlertMessage = "";
+        private static int _topAlertType = 0;
+
 
         public MainForm()
         {
+            _qraForms = new List<AnalysisForm>();
+            _qraFormControls = new List<UserControl>();
+
             InitializeComponent();
             StateContainer.Instance.InitDatabase();
             GotoAppStartDefaultLocation();
@@ -97,6 +93,9 @@ namespace SandiaNationalLaboratories.Hyram
 
             RefreshTopState();
             _mEtkForm = new EtkMainForm();
+
+            // refresh main form when ETK closed
+            _mEtkForm.Closing += (o, args) => GotoAppStartDefaultLocation();
         }
 
         private void RefreshTopState()
@@ -105,43 +104,131 @@ namespace SandiaNationalLaboratories.Hyram
             qraFuelTypeSelector.SelectedItem = StateContainer.GetValue<FuelType>("FuelType");
         }
 
+        /// <summary>
+        /// Child forms call this to let MainForm know of a large change, i.e. to update alert messages.
+        /// </summary>
+        public void NotifyOfChildPublicStateChange()
+        {
+            ValidateTopParameters();
+        }
+
+        /// <summary>
+        /// Update display of notifications and alerts.
+        /// Will prioritize top-level messages and hoist child-level messages if current form has none but siblings do.
+        /// </summary>
+        private void RefreshAlertDisplays()
+        {
+            int alertType = 0;
+            string alertMessage = "";
+
+            if (_topAlertType > 0)
+            {
+                alertType = _topAlertType;
+                alertMessage = _topAlertMessage;
+            }
+            else
+            {
+                // no top-level alerts so check child forms
+                foreach (AnalysisForm form in _qraForms)
+                {
+                    alertMessage = form.AlertMessage;
+                    alertType = form.AlertType;
+
+                    if (alertType > 0)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (_mode == 1 || alertType == 0)
+            {
+                mainMessage.Visible = false;
+            }
+            else
+            {
+                mainMessage.Visible = true;
+                mainMessage.BackColor = (alertType == 1) ? WarningBackColor : ErrorBackColor;
+                mainMessage.ForeColor = (alertType == 1) ? WarningForeColor : ErrorForeColor;
+            }
+            mainMessage.Text = alertMessage;
+
+            // hide if active form already has msg up and planned alert is child-level
+            // i.e. only show if it's a top-level alert or childform has no alert but sibling does.
+            if ((_mode == 0) && 
+                ((_currentControl != null) && ((AnalysisForm) _currentControl).AlertDisplayed && _topAlertType == 0))
+            {
+                mainMessage.Visible = false;
+            }
+        }
+
+
         private void scenariosFormButton_Click(object sender, EventArgs e)
         {
-            ChangePanel(sender, new ScenariosForm(), Narratives.QraScenariosDescrip);
+            if (_scenariosForm == null)
+            {
+                _scenariosForm = new ScenariosForm(this);
+                _qraForms.Add(_scenariosForm);
+                _qraFormControls.Add(_scenariosForm);
+            }
+            ChangePanel(sender, _scenariosForm, Narratives.QraScenariosDescrip);
         }
 
         private void probabilitiesFormButton_Click(object sender, EventArgs e)
         {
-            ChangePanel(sender, new ProbabilitiesForm(), Narratives.QraProbabilitiesDescrip);
+            if (_probabilitiesForm == null)
+            {
+                _probabilitiesForm = new ProbabilitiesForm(this);
+                _qraForms.Add(_probabilitiesForm);
+                _qraFormControls.Add(_probabilitiesForm);
+            }
+            ChangePanel(sender, _probabilitiesForm, Narratives.QraProbabilitiesDescrip);
         }
 
         private void consequenceModelsFormButton_Click(object sender, EventArgs e)
         {
-            ChangePanel(sender, new ConsequenceModelsForm(), Narratives.QraConsequenceModelsDescrip);
+            if (_consequenceModelsForm == null)
+            {
+                _consequenceModelsForm = new ConsequenceModelsForm(this);
+                _qraForms.Add(_consequenceModelsForm);
+            }
+            ChangePanel(sender, _consequenceModelsForm, Narratives.QraConsequenceModelsDescrip);
         }
 
         private void systemDescriptionFormButton_Click(object sender, EventArgs e)
         {
-            ChangePanel(sender, new SystemDescriptionForm(), Narratives.QraSystemDescriptionDescrip);
+            if (_systemDescriptionForm == null)
+            {
+                _systemDescriptionForm = new SystemDescriptionForm(this);
+                _qraForms.Add(_systemDescriptionForm);
+                _qraFormControls.Add(_systemDescriptionForm);
+            }
+            ChangePanel(sender, _systemDescriptionForm, Narratives.QraSystemDescriptionDescrip);
         }
         private void plumeDispersionFormButton_Click(object sender, EventArgs e)
         {
             ChangePanel(sender, new PlumeForm(), Narratives.PhysPlumeDescrip, new PlumeDispersionPanel());
         }
 
-        private void overpressureFormButton_Click(object sender, EventArgs e)
+        private void accumulationFormButton_Click(object sender, EventArgs e)
         {
-            ChangePanel(sender, new IndoorReleaseForm(), Narratives.PhysOverpressureDescrip, new OverpressurePanel());
+            ChangePanel(sender, new AccumulationForm(), Narratives.PhysAccumulationDescrip, new AccumulationPanel());
         }
 
         private void jetPlotTempFormButton_Click(object sender, EventArgs e)
         {
-            ChangePanel(sender, new JetFlameTemperaturePlotForm(), Narratives.PhysJetFlameDescrip, new OverpressurePanel());
+            ChangePanel(sender, new JetFlameTemperaturePlotForm(), Narratives.PhysJetFlameDescrip, new AccumulationPanel());
         }
 
         private void jetHeatAnalysisFormButton_Click(object sender, EventArgs e)
         {
-            ChangePanel(sender, new JetFlameHeatAnalysisForm(), Narratives.PhysRadHeatDescrip, new OverpressurePanel());
+            ChangePanel(sender, new JetFlameHeatAnalysisForm(), Narratives.PhysRadHeatDescrip, new AccumulationPanel());
+        }
+
+        private void overpressureFormBtn_Click(object sender, EventArgs e)
+        {
+            ChangePanel(sender, new UnconfinedOverpressureForm(), Narratives.PhysUnconfinedOverpressureDescrip,
+                new AccumulationPanel());
         }
 
         /// <summary>
@@ -160,7 +247,9 @@ namespace SandiaNationalLaboratories.Hyram
             {
                 //var modeNavPanel = (Panel) ((Button)sender).Parent;
                 if (panelToActivate is null)
+                {
                     panelToActivate = new QraOutputNavPanel();
+                }
 
                 mainOutputNavPanel.Controls.Clear();
                 mainOutputNavPanel.Controls.Add(panelToActivate);
@@ -168,18 +257,6 @@ namespace SandiaNationalLaboratories.Hyram
 
                 UiStateRoutines.UnselectButtons(qraNavPanel);
                 UiStateRoutines.UnselectButtons(physicsNavPanel);
-                //if (modeNavPanel != null) UiStateRoutines.UnselectButtons(modeNavPanel);
-
-#if false
-                //UiStateRoutines.UnselectButtons(mainOutputNavPanel);
-                //clickedButton.ForeColor = Color.Green;
-
-// remove nav buttons (will add later if needed)
-                foreach (Control thisControl in mainOutputNavPanel.Controls)
-                    if (thisControl is Button)
-                        mainOutputNavPanel.Controls.Remove(thisControl);
-#endif
-
 
                 if (clickOption == ApButtonClickOption.PerformClick)
                 {
@@ -194,12 +271,16 @@ namespace SandiaNationalLaboratories.Hyram
 
             if (nextControl != null)
             {
-                _currentControl?.Dispose();
+                //_currentControl?.Dispose();
                 _currentControl = nextControl;
                 SetContentScreen((Button) sender, nextControl);
             }
+
             if (nextControl != null && descripFilepath != null)
+            {
                 ContentPanel.SetNarrative(nextControl, descripFilepath);
+            }
+            ValidateTopParameters();
         }
 
         public static void SetContentScreen(Button caller, UserControl contentControl)
@@ -213,6 +294,11 @@ namespace SandiaNationalLaboratories.Hyram
 
             cpParent.Dock = DockStyle.Fill;
             cpParent.ChildControl = contentControl;
+            // trigger form load "event", usually to refresh data
+            if ((_mode == 0) && _qraFormControls.Contains(contentControl))
+            {
+                ((AnalysisForm)contentControl).OnFormDisplay();
+            }
 
             caller.ForeColor = Color.Green;
         }
@@ -237,6 +323,27 @@ namespace SandiaNationalLaboratories.Hyram
             modeTabs.Enabled = true;
         }
 
+
+        private void ValidateTopParameters()
+        {
+            _topAlertType = 0;
+            _topAlertMessage = "";
+            if (_mode == 0)
+            {
+                // QRA mode
+                if (StateContainer.GetValue<FuelType>("FuelType") != FuelType.Hydrogen)
+                {
+                    _topAlertType = 1;
+                    _topAlertMessage = "QRA mode inputs are currently tailored to H2";
+                }
+            }
+            else
+            {
+
+            }
+            RefreshAlertDisplays();
+        }
+
         /// <summary>
         /// Switch between main analysis modes (QRA and phys)
         /// </summary>
@@ -250,14 +357,17 @@ namespace SandiaNationalLaboratories.Hyram
             if (activeTab == qraModeTab)
             {
                 activePanel = qraNavPanel;
+                _mode = 0;
             }
             else
             {
                 activePanel = physicsNavPanel;
+                _mode = 1;
             }
 
             mainOutputNavPanel.Controls.Clear();  // Clear nav panel
             QuickFunctions.GetTopButton(activePanel, ChildNavOptions.NavigateChildren).PerformClick();
+            ValidateTopParameters();
         }
 
         /// <summary>
@@ -268,6 +378,12 @@ namespace SandiaNationalLaboratories.Hyram
             modeTabs.SelectedIndex = 0;
             RefreshTopState();
             systemDescriptionFormButton.PerformClick();
+            ValidateTopParameters();
+
+            foreach (AnalysisForm form in _qraForms)
+            {
+                form.CheckFormValid();
+            }
         }
 
 
@@ -357,22 +473,16 @@ namespace SandiaNationalLaboratories.Hyram
         }
 
 
-        private void ChangeSelectedFuel(FuelType newFuel)
-        {
-            StateContainer.SetValue("FuelType", newFuel);
-            StateContainer.Instance.RefreshLeakFrequencyData(newFuel);
-            GotoAppStartDefaultLocation();
-        }
-
-
         private void physicsFuelTypeSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            ChangeSelectedFuel((FuelType)physicsFuelTypeSelector.SelectedItem);
+            StateContainer.SetFuel((FuelType)physicsFuelTypeSelector.SelectedItem);
+            GotoAppStartDefaultLocation();
         }
 
         private void qraFuelTypeSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            ChangeSelectedFuel((FuelType)qraFuelTypeSelector.SelectedItem);
+            StateContainer.SetFuel((FuelType)qraFuelTypeSelector.SelectedItem);
+            GotoAppStartDefaultLocation();
         }
     }
 }
