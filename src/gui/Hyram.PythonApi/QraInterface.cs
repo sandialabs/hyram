@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -19,9 +19,11 @@ namespace SandiaNationalLaboratories.Hyram
 #if DEBUG
             bool isVerbose = true;
 #else
-            bool isVerbose = false;
+            bool isVerbose = true;
 #endif
 
+        // Quantitative risk analysis of hydrogen release.
+        // See python module hyram.qra.analysis for descriptions of parameters and analysis.
         public void Execute()
         {
             var inst = StateContainer.Instance;
@@ -48,7 +50,6 @@ namespace SandiaNationalLaboratories.Hyram
 
             var facilLength = StateContainer.GetNdValue("facilityLength", DistanceUnit.Meter);
             var facilWidth = StateContainer.GetNdValue("facilityWidth", DistanceUnit.Meter);
-            var facilHeight = StateContainer.GetNdValue("facilityHeight", DistanceUnit.Meter);
 
             var pipeOuterD = StateContainer.GetNdValue("pipeDiameter", DistanceUnit.Meter);
             var pipeThickness = StateContainer.GetNdValue("pipeThickness", DistanceUnit.Meter);
@@ -62,7 +63,7 @@ namespace SandiaNationalLaboratories.Hyram
             string phaseKey = StateContainer.Instance.GetFluidPhase().GetKey();
             if (!FluidPhase.DisplayTemperature()) relTemp = null;  // clear temp if not gas
 
-            var dischargeCoeff = StateContainer.GetNdValue("DischargeCoefficient");
+            var dischargeCoeff = StateContainer.GetNdValue("orificeDischargeCoefficient");
             var numVehicles = StateContainer.GetNdValue("numVehicles");
             var numFuelingPerDay = StateContainer.GetNdValue("dailyFuelings");
             var numVehicleOpDays = StateContainer.GetNdValue("vehicleOperatingDays");
@@ -78,24 +79,21 @@ namespace SandiaNationalLaboratories.Hyram
             var h2Release100d00 = StateContainer.GetNdValue("H2Release.100d00");
             var failureManualOverride = StateContainer.GetNdValue("Failure.ManualOverride");
 
-            var detectGasAndFlame = inst.GasAndFlameDetectionOn;
             var gasDetectCredit = StateContainer.GetNdValue("PdetectIsolate");
 
-            var probitThermalModelId = StateContainer.GetValue<ThermalProbitModel>("ThermalProbit").GetKey();
+            var overpMethod =
+                StateContainer.GetValue<UnconfinedOverpressureMethod>("unconfinedOverpressureMethod").GetKey();
+            var tntFactor = StateContainer.GetNdValue("tntEquivalenceFactor");
+            var bstMachFlameSpeed = StateContainer.GetNdValue("overpressureFlameSpeed");
+
+            var probitThermalId = StateContainer.GetValue<ThermalProbitModel>("ThermalProbit").GetKey();
             var thermalExposureTime =
                 StateContainer.GetNdValue("flameExposureTime", ElapsingTimeConversionUnit.Second);
 
-            var probitOverpModelId =
+            var probitOverpId =
                 StateContainer.GetValue<OverpressureProbitModel>("OverpressureProbit").GetKey();
-            var overpressureConsequences = StateContainer.GetNdValueList("OverpressureConsequences", PressureUnit.Pa);
-            var impulses = StateContainer.GetNdValueList("Impulses", PressureUnit.Pa);
-            // NOTE (Cianan): These aren't used yet
-            double overpFragMass = 0;
-            double overpVelocity = 0;
-            double overpTotalMass = 0;
 
             var notionalNozzleModel = StateContainer.GetValue<NozzleModel>("NozzleModel").GetKey();
-            var leakHeight = StateContainer.GetNdValue("LeakHeight", DistanceUnit.Meter);
             var releaseAngle = StateContainer.GetNdValue("ReleaseAngle", AngleUnit.Degrees);
 
             var exclusionRadius = StateContainer.GetNdValue("exclusionRadius");
@@ -194,17 +192,19 @@ namespace SandiaNationalLaboratories.Hyram
                         numFilters, numFlanges,
                         numExchangers, numVaporizers, numArms,
                         numExtraComp1, numExtraComp2,
-                        facilLength, facilWidth, facilHeight,
+                        facilLength, facilWidth,
                         pipeOuterD, pipeThickness,
                         relSpecies, relTemp, relPres, phaseKey, ambTemp, ambPres, dischargeCoeff,
                         numVehicles, numFuelingPerDay, numVehicleOpDays,
                         immediateIgnitionProbs, delayedIgnitionProbs, ignitionThresholds,
-                        detectGasAndFlame, gasDetectCredit,
-                        probitThermalModelId, thermalExposureTime,
-                        probitOverpModelId, overpressureConsequences, impulses, overpFragMass, overpVelocity,
-                        overpTotalMass,
+
+                        gasDetectCredit,
+                        overpMethod, tntFactor, bstMachFlameSpeed,
+                        probitThermalId, thermalExposureTime,
+                        probitOverpId,
+
                         notionalNozzleModel,
-                        leakHeight, releaseAngle,
+                        releaseAngle,
                         exclusionRadius, randomSeed, relativeHumid,
                         occupantJson,
                         compressorProbs, vesselProbs, valveProbs, instrumentProbs, pipeProbs, jointProbs, hoseProbs,

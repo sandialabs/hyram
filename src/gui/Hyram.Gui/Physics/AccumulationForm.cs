@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -9,6 +9,7 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
@@ -58,6 +59,8 @@ namespace SandiaNationalLaboratories.Hyram
             outputWarning.Hide();
 
             // Initialize input options tab
+            // NOTE (Cianan): for simplicity, all accum. time values are stored unitless and converted to seconds,
+            // corresponding to selected time unit, prior to analysis in execute() function.
             _mReactToDdTimePressureOptionsEdit = false;
             var pressuresAtTimes =
                 (NdPressureAtTime[]) StateContainer.Instance.Parameters["OpWrapper.PlotDotsPressureAtTimes"];
@@ -72,11 +75,11 @@ namespace SandiaNationalLaboratories.Hyram
             _mReactToDdTimePressureOptionsEdit = true;
 
             // Initialize plot times
-            var timesToPlot = StateContainer.Instance.GetStateDefinedValueObject("OpWrapper.SecondsToPlot")
-                .GetValue(ElapsingTimeConversionUnit.Second);
+            var timesToPlot = StateContainer.GetNdValueList("OpWrapper.SecondsToPlot");
+            //var timesToPlot = StateContainer.Instance.GetStateDefinedValueObject("OpWrapper.SecondsToPlot")
+            //    .GetValue(UnitlessUnit.Unitless);
             ParseUtility.PutDoubleArrayIntoTextBox(PlotTimesInput, timesToPlot);
-            var maxTimes = StateContainer.Instance.GetStateDefinedValueObject("maxSimTime")
-                .GetValue(ElapsingTimeConversionUnit.Second);
+            var maxTimes = StateContainer.Instance.GetStateDefinedValueObject("maxSimTime").GetValue(UnitlessUnit.Unitless);
             if (maxTimes.Length > 0) MaxTimeInput.Text = "" + maxTimes[0];
 
             // initialize lines grid
@@ -98,14 +101,28 @@ namespace SandiaNationalLaboratories.Hyram
                 _mIgnoreHorzLinesSpecifierChangeEvent = false;
             }
 
-            // Populate notional nozzle model combo box. Manual to exclude Harstad
-            //notionalNozzleSelector.Items.Add(NozzleModel.Birch.ToString());
             notionalNozzleSelector.DataSource = StateContainer.Instance.NozzleModels;
             notionalNozzleSelector.SelectedItem = StateContainer.GetValue<NozzleModel>("NozzleModel");
 
             StateContainer.Instance.FuelTypeChangedEvent += delegate{RefreshGridParameters();};
             PhaseSelection.DataSource = StateContainer.Instance.FluidPhases;
             PhaseSelection.SelectedItem = StateContainer.Instance.GetFluidPhase();
+
+            // Fill time unit selector
+            var timeUnit = StateContainer.Instance.AccumulationTimeUnit;
+            var defaultIndex = 0;
+            var timeUnits = timeUnit.GetType().GetEnumValues();
+            var timeUnitObjects = new object[timeUnits.GetLength(0)];
+            for (var index = 0; index < timeUnitObjects.Length; index++)
+            {
+                timeUnitObjects[index] = timeUnits.GetValue(index);
+                if (timeUnitObjects[index].ToString() == timeUnit.ToString())
+                {
+                    defaultIndex = index;
+                }
+            }
+            timeUnitSelector.Items.AddRange(timeUnitObjects);
+            timeUnitSelector.SelectedIndex = defaultIndex;
 
             RefreshGridParameters();
         }
@@ -246,12 +263,8 @@ namespace SandiaNationalLaboratories.Hyram
             var releaseAngle = StateContainer.GetNdValue("releaseAngle", AngleUnit.Radians);
             var nozzleModel = StateContainer.GetValue<NozzleModel>("NozzleModel");
 
-            // Blanket try block to catch odd Win8 VM issue
-            //try
-            //{
-            Trace.TraceInformation("Primitive overpressure parameters gathered. Extracting advanced...");
-            _timesToPlot =
-                StateContainer.GetNdValueList("OpWrapper.SecondsToPlot", ElapsingTimeConversionUnit.Second);
+            //Trace.TraceInformation("Primitive overpressure parameters gathered. Extracting advanced...");
+            _timesToPlot = StateContainer.GetNdValueList("OpWrapper.SecondsToPlot", UnitlessUnit.Unitless);
 
             // Whether to mark pressures on chart. Gets custom time-pressure objects
             NdPressureAtTime[] pressuresAtTimes = { };
@@ -281,7 +294,44 @@ namespace SandiaNationalLaboratories.Hyram
             if (PressureLinesCheckbox.Checked) limitLinePressures = llp;
 
             var maxSimTime =
-                StateContainer.GetNdValue("maxSimTime", ElapsingTimeConversionUnit.Second);
+                StateContainer.GetNdValue("maxSimTime", UnitlessUnit.Unitless);
+
+            // convert stored time values to corresponding units.
+            var maxSimTimeConv = maxSimTime;
+            var timesToPlotConv = _timesToPlot;
+            var pressureTimesConv = _dotMarkTimes;
+            ElapsingTimeConversionUnit timeUnit = StateContainer.Instance.AccumulationTimeUnit;
+            if (timeUnit != ElapsingTimeConversionUnit.Second)
+            {
+                double timeConversion = 1;
+                switch (timeUnit)
+                {
+                    case ElapsingTimeConversionUnit.Hour:
+                        timeConversion = 3600;
+                        break;
+                    case ElapsingTimeConversionUnit.Minute:
+                        timeConversion = 60;
+                        break;
+                    case ElapsingTimeConversionUnit.Millisecond:
+                        timeConversion = 0.001;
+                        break;
+                }
+
+                maxSimTimeConv = maxSimTime * timeConversion;
+
+                for (var i = 0; i < _timesToPlot.Length; i++)
+                {
+                    timesToPlotConv[i] = _timesToPlot[i] * timeConversion;
+                }
+
+                if (PressuresPerTimeCheckbox.Checked)
+                {
+                    for (var i = 0; i < pressuresAtTimes.Length; i++)
+                    {
+                        pressureTimesConv[i] = _dotMarkTimes[i] * timeConversion;
+                    }
+                }
+            }
 
             // prep vars to hold results
             var numTimes = pressuresAtTimes.Length;
@@ -299,8 +349,8 @@ namespace SandiaNationalLaboratories.Hyram
                 releaseHeight, enclosureHeight, floorCeilingArea,
                 distReleaseToWall,
                 ceilVentXArea, ceilVentHeight, floorVentXArea, floorVentHeight, flowRate, releaseAngle, nozzleModel.GetKey(),
-                _timesToPlot,
-                _dotMarkPressures, _dotMarkTimes, limitLinePressures, maxSimTime, isSteady,
+                timesToPlotConv,
+                _dotMarkPressures, pressureTimesConv, limitLinePressures, maxSimTimeConv, isSteady,
                 out string statusMsg, out _warningMsg,
                 out _pressuresPerTime, out _depths, out _concentrations, out _massFlowRates, out _overpressure, out _timeOfOverpressure,
                 out _pressurePlotFilepath, out _massPlotFilepath, out _layerPlotFilepath,
@@ -501,11 +551,11 @@ namespace SandiaNationalLaboratories.Hyram
             var timesToPlot = ExtractArrayFromTextbox(PlotTimesInput);
             var values = StateContainer.Instance.GetStateDefinedValueObject("OpWrapper.SecondsToPlot");
             var maxSimTime =
-                StateContainer.GetNdValue("maxSimTime", ElapsingTimeConversionUnit.Second);
+                StateContainer.GetNdValue("maxSimTime", UnitlessUnit.Unitless);
 
             if (Enumerable.Max((IEnumerable<double>) timesToPlot) <= maxSimTime)
             {
-                values.SetValue(ElapsingTimeConversionUnit.Second, timesToPlot);
+                values.SetValue(UnitlessUnit.Unitless, timesToPlot);
                 PlotTimesInput.ForeColor = Color.Black;
             }
             else
@@ -523,7 +573,7 @@ namespace SandiaNationalLaboratories.Hyram
             {
                 var values =
                     StateContainer.Instance.GetStateDefinedValueObject("maxSimTime");
-                values.SetValue(ElapsingTimeConversionUnit.Second, maximumTimes);
+                values.SetValue(UnitlessUnit.Unitless, maximumTimes);
             }
 
             CheckFormValid();
@@ -579,6 +629,30 @@ namespace SandiaNationalLaboratories.Hyram
         {
             var modelName = notionalNozzleSelector.SelectedItem.ToString();
             StateContainer.SetValue("NozzleModel", NozzleModel.ParseNozzleModelName(modelName));
+        }
+
+        private void timeUnitSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            var iValue = GetTimeUnitFromDropdown();
+
+            if (iValue != null)
+                StateContainer.Instance.AccumulationTimeUnit =
+                    (ElapsingTimeConversionUnit) Enum.Parse(StateContainer.Instance.AccumulationTimeUnit.GetType(),
+                        iValue.ToString());
+
+            //timeInput.Text =
+            //    GetThermalExposureTime(StateContainer.Instance.ExposureTimeUnit).ToString("F4");
+        }
+
+        private ElapsingTimeConversionUnit? GetTimeUnitFromDropdown()
+        {
+            ElapsingTimeConversionUnit? result = null;
+            var selectedItemName =
+                timeUnitSelector.Items[timeUnitSelector.SelectedIndex].ToString();
+
+            if (Enum.TryParse<ElapsingTimeConversionUnit>(selectedItemName, out var iResult)) result = iResult;
+
+            return result;
         }
     }
 }

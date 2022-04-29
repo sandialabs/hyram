@@ -1,14 +1,14 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
-
 """
 
 """
-Parameters for Lognormal distribution for component leak frequencies
+Lognormal distribution parameters for component leak frequencies based on fuel and phase.
+Dict format is <component name>: [<leak_size> [mu, sigma], ...] where leak sizes are 0.01%, 0.1%, 1%, 10%, 100%.
 """
 
 
@@ -215,7 +215,6 @@ h2_liquid_params = {
 }
 
 ch4_gas_params = {
-
     'compressor': [
         [0.7785, 1.3159],
         [-2.2394, 0.9997],
@@ -236,7 +235,6 @@ ch4_gas_params = {
         [-5.3303, 1.2879],
         [-5.3798, 0.7448],
         [-5.4288, 0.8171],
-
     ],
     'flange': [
         [-3.9125, 1.4920],
@@ -420,106 +418,7 @@ ch4_liquid_params = {
     ],
 }
 
-c3h8_gas_params = {
-    'compressor': [
-        [0.7785, 1.3159],
-        [-2.2394, 0.9997],
-        [-5.2560, 1.0068],
-        [-8.2731, 0.7015],
-        [-11.2905, 1.2350],
-    ],
-    'vessel': [
-        [-0.4139, 1.3445],
-        [-3.8954, 1.0446],
-        [-7.3613, 0.8054],
-        [-10.8805, 0.6776],
-        [-14.3160, 0.6934],
-    ],
-    'filter': [
-        [-5.2348, 1.6955],
-        [-5.2822, 1.2885],
-        [-5.3303, 1.2879],
-        [-5.3798, 0.7448],
-        [-5.4288, 0.8171],
-    ],
-    'flange': [
-        [-3.9125, 1.4920],
-        [-6.1191, 1.1345],
-        [-8.3252, 2.0541],
-        [-10.5327, 0.7208],
-        [-12.7385, 1.6925],
-    ],
-    'hose': [
-        [2.5434, 1.2507],
-        [0.3455, 0.9447],
-        [-1.8439, 0.7670],
-        [-4.0745, 0.6712],
-        [-6.2263, 1.3906],
-    ],
-    'joint': [
-        [-0.6255, 1.2727],
-        [-2.3062, 0.9835],
-        [-4.0101, 0.9541],
-        [-5.6481, 0.5745],
-        [-7.3739, 0.6569],
-    ],
-    'pipe': [
-        [-7.9272, 0.9882],
-        [-9.6818, 0.7884],
-        [-11.4317, 1.5059],
-        [-13.2003, 1.2938],
-        [-14.9400, 2.1066],
-    ],
-    'valve': [
-        [-4.4577, 1.0301],
-        [-6.2603, 0.8332],
-        [-8.0664, 1.5396],
-        [-9.8503, 0.6458],
-        [-11.6738, 1.4350],
-    ],
-    'instrument': [
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-    ],
-    'exchanger': [
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-    ],
-    'vaporizer': [
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-    ],
-    'arm': [
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-    ],
-    'extra1': [
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-    ],
-    'extra2': [
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-        [999., 999.],
-    ],
-}
+c3h8_gas_params = ch4_gas_params
 
 c3h8_liquid_params = c3h8_gas_params
 

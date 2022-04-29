@@ -1,16 +1,69 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
 """
-
 import unittest
-from numpy import array, isnan
-from numpy.testing import assert_almost_equal
+
+import numpy as np
+
 from hyram.phys import TNT_method, Orifice, Jet, Fluid, BST_method, Bauwens_method
+import hyram.phys._unconfined_overpressure as hyram_overp
 from hyram.utilities import misc_utils
+
+
+class GenericMethodTestCase(unittest.TestCase):
+    """
+    Tests of generic method functions for unconfined overpressure
+    """
+    def setUp(self):
+        ambient_temperature = 300.  # K
+        jet_pressure = 60e5  # Pa
+        orifice_diameter = 0.0254  # m
+        dischage_coefficent = 1.0
+        ambient_pressure = 101325.  # Pa
+        nozzle_model = 'yuce'
+        release_fluid = Fluid(T=ambient_temperature,
+                              P=jet_pressure,
+                              species='hydrogen')
+        orifice = Orifice(orifice_diameter, dischage_coefficent)
+        ambient_fluid = Fluid(P=ambient_pressure,
+                              T=ambient_temperature,
+                              species='air')
+        nozzle_cons_momentum, nozzle_t_param = misc_utils.convert_nozzle_model_to_params(nozzle_model, release_fluid)
+        self.jet_object = Jet(release_fluid, orifice, ambient_fluid,
+                         nn_conserve_momentum=nozzle_cons_momentum,
+                         nn_T=nozzle_t_param)
+
+    def test_origin_at_leak_orifice(self):
+        generic_calc = hyram_overp.Generic_overpressure_method(self.jet_object,
+                                                               origin_at_orifice=True)
+        for coord in generic_calc.origin:
+            self.assertAlmostEqual(coord, 0)
+
+    def test_origin_not_at_leak_orifice(self):
+        generic_calc = hyram_overp.Generic_overpressure_method(self.jet_object)
+        self.assertGreater(generic_calc.origin[0], 0)
+        self.assertGreater(generic_calc.origin[1], 0)
+        self.assertEqual(generic_calc.origin[2], 0)
+
+    def test_distance_no_locations(self):
+        locations = []
+        origin = (0, 0, 0)
+        distances = hyram_overp.Generic_overpressure_method.calc_distance(locations,
+                                                                          origin)
+        self.assertEqual(len(distances), 0)
+
+    def test_flammability_limits(self):
+        lower_flammability_limit = 0.1
+        upper_flammability_limit = 0.75
+        flammability_limits = (lower_flammability_limit, upper_flammability_limit)
+        generic_smaller_flam = hyram_overp.Generic_overpressure_method(self.jet_object,
+                                                                       flammability_limits=flammability_limits)
+        generic_larger_flam = hyram_overp.Generic_overpressure_method(self.jet_object)
+        self.assertGreater(generic_larger_flam.flammable_mass, generic_smaller_flam.flammable_mass)
 
 
 class BstMethodTestCase(unittest.TestCase):
@@ -27,7 +80,7 @@ class BstMethodTestCase(unittest.TestCase):
         orifice_diameter = jet_diameter
         mach_flame_speed = 5.2
         origin_at_orifice = True
-        nozzle_model='yuce'
+        nozzle_model = 'yuce'
         dischage_coefficent = 1.
 
         orifice = Orifice(orifice_diameter, dischage_coefficent)
@@ -59,19 +112,21 @@ class BstMethodTestCase(unittest.TestCase):
         self.assertEqual(unscaled_overpressure, scaled_overpressure*101325)
 
     def test_calc_overpressure(self):
-        locations = [array([5.0, 0., 0.])]  # m
+        locations = [np.array([5.0, 0., 0.])]  # m
         overpressure = self.BST_calc.calc_overpressure(locations=locations)[0]  # Pa
         # Hand calculation and figure estimation by hand
         # VERY rough approximate value
         self.assertAlmostEqual(overpressure/202650, 202650/202650, places=0)
     
     def test_calc_overpressure_array(self):
-        locations = [array([5.0, 0., 0.]), array([0., 5., 0.])]  # m
+        locations = [np.array([5.0, 0., 0.]), np.array([0., 5., 0.])]  # m
         overpressure = self.BST_calc.calc_overpressure(locations=locations)  # Pa
         # Hand calculation and figure estimation by hand
         # VERY rough approximate value
-        # Use numpy version of testing for vector
-        assert_almost_equal(overpressure/202650, array([202650/202650, 202650/202650]), decimal=0)
+        calculated_values = overpressure/202650
+        test_values = np.array([202650/202650, 202650/202650])
+        for calc_val, test_val in zip(calculated_values, test_values):
+            self.assertAlmostEqual(calc_val, test_val, places=0)
 
     def test_get_scaled_impulse(self):
         scaled_distance = 1.  # m/kg^(1/3)
@@ -85,7 +140,7 @@ class BstMethodTestCase(unittest.TestCase):
         self.assertEqual(unscaled_impulse, scaled_impulse*(2*1*1.20E+08)**(1/3)*101325**(2/3) / 340)
 
     def test_calc_impulse(self):
-        locations = [array([5.0, 0., 0.])]  # m
+        locations = [np.array([5.0, 0., 0.])]  # m
         impulse = self.BST_calc.calc_impulse(locations=locations)[0]
         # Hand calculation and figure estimation by hand
         # VERY rough approximate value
@@ -103,17 +158,17 @@ class BstMethodTestCase(unittest.TestCase):
         for Mf in [0.2, 0.35, 0.7, 1.0, 1.4, 2.0, 3.0, 4.0, 5.2]:
             self.BST_calc.set_mach_flame_speed(mach_flame_speed=Mf)
             self.assertEqual(self.BST_calc.get_scaled_overpressure(scaled_distance=0.05),
-                             self.BST_calc.scaled_peak_overpressure_data['scaled_overpressure_Mf' + str(Mf)].dropna().iloc[0])
+                             self.BST_calc.scaled_peak_overpressure_data['scaled_overpressure_Mf' + str(Mf)][0])
             self.assertEqual(self.BST_calc.get_scaled_impulse(scaled_distance=0.005),
-                             self.BST_calc.all_scaled_impulse_data['scaled_impulse_Mf' + str(Mf)].dropna().iloc[0])
+                             self.BST_calc.all_scaled_impulse_data['scaled_impulse_Mf' + str(Mf)][0])
 
     def test_value_right_of_figure_data_returns_final_value(self):
         for Mf in [0.2, 0.35, 0.7, 1.0, 1.4, 2.0, 3.0, 4.0, 5.2]:
             self.BST_calc.set_mach_flame_speed(mach_flame_speed=Mf)
             self.assertEqual(self.BST_calc.get_scaled_overpressure(scaled_distance=15),
-                             self.BST_calc.scaled_peak_overpressure_data['scaled_overpressure_Mf' + str(Mf)].dropna().iloc[-1])
+                             self.BST_calc.scaled_peak_overpressure_data['scaled_overpressure_Mf' + str(Mf)][-1])
             self.assertEqual(self.BST_calc.get_scaled_impulse(scaled_distance=15),
-                             self.BST_calc.all_scaled_impulse_data['scaled_impulse_Mf' + str(Mf)].dropna().iloc[-1])
+                             self.BST_calc.all_scaled_impulse_data['scaled_impulse_Mf' + str(Mf)][-1])
 
     def test_calc_scaled_overpressure(self):
         overpressure = 13.  # Pa
@@ -131,9 +186,9 @@ class BstMethodTestCase(unittest.TestCase):
         unscaled_distance = self.BST_calc.calc_unscaled_distance(scaled_distance=scaled_distance)  # m
         self.assertEqual(unscaled_distance, 1*(2*1*1.20E+08/101325)**(1/3))
 
-    def test_calc_distance_from_overpressure(self):
+    def test_calc_distance_to_overpressure(self):
         overpressure = 202650  # Pa
-        distance = self.BST_calc.calc_distance_from_overpressure(overpressure=overpressure)  # m
+        distance = self.BST_calc.calc_distance_to_overpressure(overpressure=overpressure)  # m
         # Hand calculation and figure estimation by hand
         # VERY rough approximate value
         self.assertAlmostEqual(distance, 5, places=0)
@@ -149,9 +204,9 @@ class BstMethodTestCase(unittest.TestCase):
         # Figure-estimation by hand
         self.assertAlmostEqual(scaled_distance, 0.27, places=0)
 
-    def test_calc_distance_from_impulse(self):
+    def test_calc_distance_to_impulse(self):
         impulse = 284  # Pa*s
-        distance = self.BST_calc.calc_distance_from_impulse(impulse=impulse)  # m
+        distance = self.BST_calc.calc_distance_to_impulse(impulse=impulse)  # m
         # Hand calculation and figure estimation by hand
         # VERY rough approximate value
         self.assertAlmostEqual(distance, 6, places=0)
@@ -165,11 +220,9 @@ class BauwensMethodTestCase(unittest.TestCase):
         ambient_pressure = 101325.  # Pa, ambient pressure
         ambient_temperature = 300.  # K, jet exit temperature
         jet_pressure = 60e5  # Pa, jet exit pressure
-        jet_diameter = 0.0254  #m, jet exit diameter
+        orifice_diameter = 0.0254  #m, jet exit diameter
         ambient_fluid = Fluid(P=ambient_pressure, T=ambient_temperature, species='air')
         release_fluid = Fluid(T=ambient_temperature, P=jet_pressure, species='hydrogen')
-        orifice_diameter = jet_diameter
-        origin_at_orifice = True
         nozzle_model='yuce'
         dischage_coefficent = 1.
 
@@ -178,28 +231,23 @@ class BauwensMethodTestCase(unittest.TestCase):
         jet_object = Jet(release_fluid, orifice, ambient_fluid,
                          nn_conserve_momentum=nozzle_cons_momentum, nn_T=nozzle_t_param)
 
-        self.Bauwens_calc = Bauwens_method(jet_object=jet_object, origin_at_orifice=origin_at_orifice)
-        self.Bauwens_calc.detonable_mass= 1.
-        self.Bauwens_calc.energy = self.Bauwens_calc.calc_energy()
+        self.Bauwens_calc = Bauwens_method(jet_object)
 
     def test_calc_overpressure(self):
-        # test to monitor if result changes
-        locations = [array([5.0, 0., 0.])]
+        # test to check that result is non-zero
+        locations = [(5.0, 0.0, 0.0)]
         overpressure = self.Bauwens_calc.calc_overpressure(locations)[0]
-        self.assertAlmostEqual(overpressure/124884, 124884/124884, places=0)
+        self.assertGreater(overpressure, 0)
 
     def test_calc_impulse(self):
         # ensure that method returns a nan value due to not computing impulse
-        locations = [array([5.0, 0., 0.])]
+        locations = [(5.0, 0.0, 0.0)]
         impulse = self.Bauwens_calc.calc_impulse(locations)[0]
-        self.assertTrue(isnan(impulse))
+        self.assertTrue(np.isnan(impulse))
 
     def test_calc_energy(self):
-        self.assertEqual(self.Bauwens_calc.energy, 1*1.20E+08)
-
-    def test_calc_dimenionless_distance(self):
-        distance = 2.
-        self.assertEqual(self.Bauwens_calc.calc_dimensionless_distance(distance), 2.*(101325/1.20E+08)**(1./3.))
+        # test to check that result is non-zero
+        self.assertGreater(self.Bauwens_calc.energy, 0)
 
 
 class TntMethodTestCase(unittest.TestCase):
@@ -249,7 +297,7 @@ class TntMethodTestCase(unittest.TestCase):
         self.assertEqual(overpressure, scaled_overpressure*self.ambient_pressure)
 
     def test_calc_overpressure(self):
-        locations = [array([1., 0., 0.])]  # m
+        locations = [np.array([1., 0., 0.])]  # m
         overpressure = self.TNT_method_calc.calc_overpressure(locations=locations)[0]  # Pa
         # Hand calculation and figure estimation by hand
         # VERY rough approximate value
@@ -267,7 +315,7 @@ class TntMethodTestCase(unittest.TestCase):
         self.assertEqual(unscaled_impulse, scaled_impulse*(0.03*1*1.20E+08/4.68e6)**(1/3))
 
     def test_calc_impulse(self):
-        locations = [array([1., 0., 0.])]  # m
+        locations = [np.array([1., 0., 0.])]  # m
         impulse = self.TNT_method_calc.calc_impulse(locations=locations)[0]
         # Hand calculation and figure estimation by hand
         # VERY rough approximate value
@@ -275,15 +323,15 @@ class TntMethodTestCase(unittest.TestCase):
 
     def test_value_left_of_figure_data_returns_initial_value(self):
         self.assertEqual(self.TNT_method_calc.get_scaled_overpressure(scaled_distance=0.05),
-                         self.TNT_method_calc.scaled_peak_overP_data['scaled_overpressure'].iloc[0])
+                         self.TNT_method_calc.scaled_peak_overP_data['scaled_overpressure'][0])
         self.assertEqual(self.TNT_method_calc.get_scaled_impulse(scaled_distance=0.05),
-                         self.TNT_method_calc.scaled_impulse_data['scaled_impulse'].iloc[0])
+                         self.TNT_method_calc.scaled_impulse_data['scaled_impulse'][0])
 
     def test_value_right_of_figure_data_returns_final_value(self):
         self.assertEqual(self.TNT_method_calc.get_scaled_overpressure(scaled_distance=40),
-                         self.TNT_method_calc.scaled_peak_overP_data['scaled_overpressure'].iloc[-1])
+                         self.TNT_method_calc.scaled_peak_overP_data['scaled_overpressure'][-1])
         self.assertEqual(self.TNT_method_calc.get_scaled_impulse(scaled_distance=40),
-                         self.TNT_method_calc.scaled_impulse_data['scaled_impulse'].iloc[-1])
+                         self.TNT_method_calc.scaled_impulse_data['scaled_impulse'][-1])
 
     def test_calc_scaled_overpressure(self):
         overpressure = 13.
@@ -301,9 +349,9 @@ class TntMethodTestCase(unittest.TestCase):
         unscaled_distance = self.TNT_method_calc.calc_unscaled_distance(scaled_distance=scaled_distance)  # m
         self.assertEqual(unscaled_distance, 1*(0.03*1*1.20E+08/4.68e6)**(1/3))
 
-    def test_calc_distance_from_overpressure(self):
+    def test_calc_distance_to_overpressure(self):
         overpressure = 1013250  # Pa
-        distance = self.TNT_method_calc.calc_distance_from_overpressure(overpressure=overpressure)  # m
+        distance = self.TNT_method_calc.calc_distance_to_overpressure(overpressure=overpressure)  # m
         # Hand calculation and figure estimation by hand
         # VERY rough approximate value
         self.assertAlmostEqual(distance, 1, places=0)
@@ -319,12 +367,64 @@ class TntMethodTestCase(unittest.TestCase):
         # Figure-estimation by hand
         self.assertAlmostEqual(scaled_distance, 31, places=0)
 
-    def test_calc_distance_from_impulse(self):
+    def test_calc_distance_to_impulse(self):
         impulse = 0.0021  # Pa*s
-        distance = self.TNT_method_calc.calc_distance_from_impulse(impulse=impulse)  # m
+        distance = self.TNT_method_calc.calc_distance_to_impulse(impulse=impulse)  # m
         # Hand calculation and figure estimation by hand
         # VERY rough approximate value
         self.assertAlmostEqual(distance, 0, places=0)
+
+
+class TestJallaisOverpressureH2(unittest.TestCase):
+    """
+    Tests of hydrogen overpressure calculation from Jallais et al.
+    """
+    def setUp(self):
+        ambient_pressure = 101325.  # Pa
+        ambient_temperature = 300.  # K
+        fluid_pressure = 60e5  # Pa
+        orifice_diameter = 0.0254  # m
+        ambient_fluid = Fluid(P=ambient_pressure, T=ambient_temperature, species='air')
+        release_fluid = Fluid(T=ambient_temperature, P=fluid_pressure, species='hydrogen')
+        nozzle_model='yuce'
+        dischage_coefficent = 1.
+        orifice = Orifice(orifice_diameter, dischage_coefficent)
+        nozzle_cons_momentum, nozzle_t_param = misc_utils.convert_nozzle_model_to_params(nozzle_model)
+        jet_object = Jet(release_fluid, orifice, ambient_fluid,
+                         nn_conserve_momentum=nozzle_cons_momentum, nn_T=nozzle_t_param)
+        self.jallais_calc = hyram_overp.JallaisOverpressureH2(jet_object)
+
+    def test_reject_nonhydrogen_inputs(self):
+        ambient_fluid = Fluid(P=101325, T=300, species='air')
+        release_fluid = Fluid(T=300, P=1e6, species='methane')
+        nozzle_model='yuce'
+        orifice = Orifice(0.0254)
+        nozzle_cons_momentum, nozzle_t_param = misc_utils.convert_nozzle_model_to_params(nozzle_model)
+        jet_object = Jet(release_fluid, orifice, ambient_fluid,
+                         nn_conserve_momentum=nozzle_cons_momentum, nn_T=nozzle_t_param)
+        self.assertRaises(ValueError, hyram_overp.JallaisOverpressureH2, jet_object)
+
+    def test_calc_flame_speed(self):
+        mass_flow_rate = 0.7  # kg/s
+        flame_speed = hyram_overp.JallaisOverpressureH2.calc_flame_speed(mass_flow_rate)  # m/s
+        self.assertEqual(flame_speed, 140)
+
+    def test_calc_mach_flame_speed(self):
+        flame_speed = 100  # m/s
+        mach_flame_speed = self.jallais_calc.calc_mach_flame_speed(flame_speed)
+        self.assertAlmostEqual(mach_flame_speed, 100/340)
+
+    def test_get_mach_flame_speed_curve(self):
+        mach_flame_speed = 0.29
+        selected_mach_flame_speed = hyram_overp.JallaisOverpressureH2.get_mach_flame_speed_curve(mach_flame_speed)
+        self.assertEqual(selected_mach_flame_speed, 0.35)
+
+    def test_calc_overpressure(self):
+        locations = [(5, 0, 0)]
+        overpressures = self.jallais_calc.calc_overpressure(locations)
+        for overpressure in overpressures:
+            self.assertGreater(overpressure, 0)
+
 
 
 if __name__ == "__main__":

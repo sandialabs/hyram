@@ -38,8 +38,10 @@ namespace SandiaNationalLaboratories.Hyram {
             this.lblPlotTitle = new System.Windows.Forms.Label();
             this.outputTab = new System.Windows.Forms.TabPage();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.outputPictureBox = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.outputWarning = new System.Windows.Forms.Label();
+            this.outputMassFlowRate = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.outputPictureBox = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.mainTabControl.SuspendLayout();
             this.inputTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.spinnerPictureBox)).BeginInit();
@@ -214,6 +216,8 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.outputMassFlowRate);
+            this.splitContainer1.Panel1.Controls.Add(this.label2);
             this.splitContainer1.Panel1.Controls.Add(this.outputPictureBox);
             // 
             // splitContainer1.Panel2
@@ -223,15 +227,6 @@ namespace SandiaNationalLaboratories.Hyram {
             this.splitContainer1.Size = new System.Drawing.Size(570, 334);
             this.splitContainer1.SplitterDistance = 305;
             this.splitContainer1.TabIndex = 1;
-            // 
-            // outputPictureBox
-            // 
-            this.outputPictureBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.outputPictureBox.Location = new System.Drawing.Point(0, 0);
-            this.outputPictureBox.Name = "outputPictureBox";
-            this.outputPictureBox.Size = new System.Drawing.Size(570, 305);
-            this.outputPictureBox.TabIndex = 0;
-            this.outputPictureBox.TabStop = false;
             // 
             // outputWarning
             // 
@@ -246,6 +241,33 @@ namespace SandiaNationalLaboratories.Hyram {
             this.outputWarning.Text = "blank";
             this.outputWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.outputWarning.Visible = false;
+            // 
+            // outputMassFlowRate
+            // 
+            this.outputMassFlowRate.Location = new System.Drawing.Point(115, 4);
+            this.outputMassFlowRate.Name = "outputMassFlowRate";
+            this.outputMassFlowRate.ReadOnly = true;
+            this.outputMassFlowRate.Size = new System.Drawing.Size(114, 20);
+            this.outputMassFlowRate.TabIndex = 14;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(3, 7);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(106, 13);
+            this.label2.TabIndex = 13;
+            this.label2.Text = "Mass flow rate (kg/s)";
+            // 
+            // outputPictureBox
+            // 
+            this.outputPictureBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.outputPictureBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.outputPictureBox.Location = new System.Drawing.Point(0, 0);
+            this.outputPictureBox.Name = "outputPictureBox";
+            this.outputPictureBox.Size = new System.Drawing.Size(570, 305);
+            this.outputPictureBox.TabIndex = 0;
+            this.outputPictureBox.TabStop = false;
             // 
             // PlumeForm
             // 
@@ -262,6 +284,7 @@ namespace SandiaNationalLaboratories.Hyram {
             ((System.ComponentModel.ISupportInitialize)(this.plumeInputGrid)).EndInit();
             this.outputTab.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
@@ -288,5 +311,7 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.Label outputWarning;
         private System.Windows.Forms.ComboBox fuelPhaseSelector;
         private System.Windows.Forms.Label phaseLabel;
+        private System.Windows.Forms.TextBox outputMassFlowRate;
+        private System.Windows.Forms.Label label2;
     }
 }

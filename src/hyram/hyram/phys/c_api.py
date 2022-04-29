@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -7,10 +7,9 @@ If not, see https://www.gnu.org/licenses/.
 """
 
 import logging
-import os
 import warnings
-
 import gc
+
 import numpy as np
 
 from . import api
@@ -52,7 +51,7 @@ def setup(output_dir, verbose):
 
 
 def etk_compute_mass_flow_rate(species, temp, pres, phase, orif_diam,
-                               is_steady, tank_vol, dis_coeff, output_dir):
+                               is_steady, tank_vol, dis_coeff, amb_pres, output_dir):
     """
     Process GUI request for mass flow calculation.
 
@@ -83,11 +82,10 @@ def etk_compute_mass_flow_rate(species, temp, pres, phase, orif_diam,
     log.info("Initializing CAPI: ETK mass flow analysis...")
     params = locals()
     log.info(misc_utils.params_as_str(params))
-    amb_pres = 101325.
     results = {"status": False, "data": None, "message": None}
 
     if pres is not None and pres < amb_pres:
-        msg = "Error during calculation: fluid pressure is less than ambient pressure (1 atm)"
+        msg = "Error during calculation: fluid pressure is less than ambient pressure"
         results["message"] = msg
         log.error(msg)
         return results
@@ -162,7 +160,7 @@ def etk_compute_tank_mass(species, temp, pres, phase, tank_vol):
         return results
 
 
-def etk_compute_thermo_param(species, temp, pres, density):
+def etk_compute_thermo_param(species, phase, temp, pres, density):
     """
     Process GUI request for various thermo calculations, e.g. pressure.
 
@@ -173,8 +171,10 @@ def etk_compute_thermo_param(species, temp, pres, density):
             True if call successful.
         message : str or None
             Contains error message if call fails.
-        data : float
+        data : dict of floats or float and None
+            {param1, param2}
             Requested parameter, i.e. whichever was None. Temp (K), Pressure (Pa), density (kg/m3).
+            Second param is temp if phase is saturated. If unsaturated, first is param and second is None.
 
     See Also
     --------
@@ -187,9 +187,9 @@ def etk_compute_thermo_param(species, temp, pres, density):
     results = {"status": False, "data": None, "message": None}
 
     try:
-        param_value = api.compute_thermo_param(species, temp, pres, density)
-        log.info("Result: {}".format(param_value))
-        results["data"] = param_value
+        param1, param2 = api.compute_thermo_param(species, phase, temp, pres, density)
+        log.info(f"Results: {param1}, {param2}")
+        results["data"] = {'param1': param1, 'param2': param2}
         results["status"] = True
 
     except exceptions.InputError as exc:
@@ -294,7 +294,7 @@ def analyze_jet_plume(amb_temp, amb_pres,
                                               xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, plot_title=plot_title,
                                               output_dir=output_dir, verbose=verbose)
 
-            log.info("File path: {}".format(data_dict['plot']))
+            log.info("results: {}".format(data_dict))
             results["data"] = data_dict
             results["status"] = True
 
@@ -308,8 +308,12 @@ def analyze_jet_plume(amb_temp, amb_pres,
         log.error(msg)
 
     except ValueError as exc:
-        results["message"] = exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG
-        log.error(exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG)
+        err_msg = str(exc)
+        if len(err_msg) > 5:
+            results["message"] = err_msg
+        else:
+            results["message"] = exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG
+        log.error(results["message"])
 
     except Exception as exc:
         msg = "Plume plot generation failed: {}".format(str(exc))
@@ -414,8 +418,12 @@ def analyze_accumulation(amb_temp, amb_pres,
         log.error(msg)
 
     except ValueError as exc:
-        results["message"] = exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG
-        log.exception(exc)
+        err_msg = str(exc)
+        if len(err_msg) > 5:
+            results["message"] = err_msg
+        else:
+            results["message"] = exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG
+        log.error(results["message"])
 
     except Exception as exc:
         msg = "Accumulation analysis failed: {}".format(str(exc))
@@ -429,9 +437,9 @@ def analyze_accumulation(amb_temp, amb_pres,
 
 def jet_flame_analysis(amb_temp, amb_pres,
                        rel_species, rel_temp, rel_pres, rel_phase,
-                       orif_diam,
-                       rel_angle, rel_height,
-                       nozzle_key, rad_src_key, rel_humid,
+                       orif_diam, discharge_coeff,
+                       rel_angle,
+                       nozzle_key, rel_humid,
                        xpos, ypos, zpos,
                        contours,
                        analyze_flux=True,
@@ -446,29 +454,16 @@ def jet_flame_analysis(amb_temp, amb_pres,
 
     results = {"status": False, "data": None, "message": None, "warning": ""}
 
-    # Check if chem file found. If not found, pass None; will be initialized later.
-    chem_filename = 'flux_chem.pkl'
-    chem_filepath = os.path.join(output_dir, chem_filename)
-    # Maker sure file actually exists, otherwise clear it
-    if not os.path.isfile(chem_filepath):
-        chem_filepath = None
-
-    if chem_filepath:
-        log.info("Chem file found: {}".format(chem_filepath))
-    else:
-        log.info("Chem file not found")
-
     if xpos is not None:
         xpos = c_utils.convert_to_numpy_array(xpos)
-
     if ypos is not None:
         ypos = c_utils.convert_to_numpy_array(ypos)
-
     if zpos is not None:
         zpos = c_utils.convert_to_numpy_array(zpos)
-
     if contours is not None:
         contours = c_utils.convert_to_numpy_array(contours)
+        if len(contours) == 0:
+            contours = None
 
     log.info("Flux X: {}".format(xpos))
     log.info("Flux Y: {}".format(ypos))
@@ -480,23 +475,32 @@ def jet_flame_analysis(amb_temp, amb_pres,
         with warnings.catch_warnings(record=True) as warning_list:
             amb_fluid = api.create_fluid('AIR', amb_temp, amb_pres)
             rel_fluid = api.create_fluid(rel_species, rel_temp, rel_pres, density=None, phase=rel_phase)
-
-            (temp_plot_filepath, _, flux2d_filepath, flux_data,
-             mass_flow, srad) = api.jet_flame_analysis(
+            if xpos is not None:
+                flux_coordinates = [(x, y, z) for x, y, z in zip(xpos, ypos, zpos)]
+            else:
+                flux_coordinates = None
+            (temp_plot_filepath, heatflux_filepath, flux_data,
+             mass_flow, srad, visible_length) = api.jet_flame_analysis(
                     amb_fluid, rel_fluid, orif_diam,
-                    rel_angle=rel_angle, rel_height=rel_height,
-                    nozzle_key=nozzle_key, rad_src_key=rad_src_key, rel_humid=rel_humid, contours=contours,
-                    create_temp_plot=True, analyze_flux=analyze_flux, create_3dplot=False,
-                    xpos=xpos, ypos=ypos, zpos=zpos,
-                    chem_filepath=chem_filepath,
+                    dis_coeff=discharge_coeff,
+                    rel_angle=rel_angle,
+                    nozzle_key=nozzle_key, rel_humid=rel_humid, contours=contours,
+                    create_temp_plot=True, analyze_flux=analyze_flux,
+                    flux_coordinates=flux_coordinates,
                     output_dir=output_dir, verbose=verbose)
+            
+            if flux_data is not None:
+                flux_data_kWm2 = [flux / 1000 for flux in flux_data]
+            else:
+                flux_data_kWm2 = None
 
             output_dict = {
-                'flux_data': flux_data,
-                'flux_plot_filepath': flux2d_filepath,
+                'flux_data': flux_data_kWm2,
+                'flux_plot_filepath': heatflux_filepath,
                 'temp_plot_filepath': temp_plot_filepath,
                 'mass_flow_rate': mass_flow,
-                'srad': srad
+                'srad': srad,
+                'visible_length': visible_length
             }
 
             log.info("Result: {}".format(output_dict))
@@ -513,8 +517,12 @@ def jet_flame_analysis(amb_temp, amb_pres,
         log.error(msg)
 
     except ValueError as exc:
-        results["message"] = exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG
-        log.error(exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG)
+        err_msg = str(exc)
+        if len(err_msg) > 5:
+            results["message"] = err_msg
+        else:
+            results["message"] = exceptions.LIQUID_RELEASE_PRESSURE_INVALID_MSG
+        log.error(results["message"])
 
     except Exception as exc:
         msg = "jet flame analysis failed: {}".format(str(exc))
@@ -529,7 +537,7 @@ def jet_flame_analysis(amb_temp, amb_pres,
 def unconfined_overpressure_analysis(amb_temp, amb_pres,
                                      rel_species, rel_temp, rel_pres, rel_phase,
                                      orif_diam, rel_angle, discharge_coeff, nozzle_model, method,
-                                     xlocs, ylocs, zlocs,
+                                     xlocs, ylocs, zlocs, contours,
                                      bst_flame_speed, tnt_factor,
                                      output_dir=None, verbose=False):
     """
@@ -545,6 +553,8 @@ def unconfined_overpressure_analysis(amb_temp, amb_pres,
         data : dict
             overpressure value(s) [Pa]
             impulse value(s) [Pa*s]
+            plot filepath
+            mass flow rate [kg/s]
 
     See Also
     --------
@@ -560,7 +570,12 @@ def unconfined_overpressure_analysis(amb_temp, amb_pres,
     ylocs = c_utils.convert_to_numpy_array(ylocs)
     zlocs = c_utils.convert_to_numpy_array(zlocs)
     method = method.lower()
-    
+
+    if contours is not None:
+        contours = c_utils.convert_to_numpy_array(contours)
+        if len(contours) == 0:
+            contours = None
+
     try:
         with warnings.catch_warnings(record=True) as warning_list:
             amb_fluid = api.create_fluid('AIR', amb_temp, amb_pres)
@@ -572,6 +587,7 @@ def unconfined_overpressure_analysis(amb_temp, amb_pres,
                                             orifice_diameter=orif_diam, release_angle=rel_angle,
                                             discharge_coefficient=discharge_coeff, nozzle_model=nozzle_model,
                                             heat_of_combustion=None,
+                                            contours=contours,
                                             BST_mach_flame_speed=bst_flame_speed, TNT_equivalence_factor=tnt_factor,
                                             create_overpressure_plot=True, output_dir=output_dir, verbose=verbose
                                             )

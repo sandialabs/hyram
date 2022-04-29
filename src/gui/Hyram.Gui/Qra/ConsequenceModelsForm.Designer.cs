@@ -27,17 +27,12 @@
             this.notionalNozzleLabel = new System.Windows.Forms.Label();
             this.modelSelectionTabControl = new System.Windows.Forms.TabControl();
             this.physicalConsequenceTab = new System.Windows.Forms.TabPage();
-            this.radiativeSourceSelector = new System.Windows.Forms.ComboBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.consequenceInputsGroupBox = new System.Windows.Forms.GroupBox();
-            this.consequenceInputUnitSelector = new System.Windows.Forms.ComboBox();
-            this.consequenceInputGrid = new System.Windows.Forms.DataGridView();
-            this.colVariable = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.col0 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.col1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.col2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.col3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.col4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.tntInput = new System.Windows.Forms.TextBox();
+            this.tntLabel = new System.Windows.Forms.Label();
+            this.flameSpeedSelector = new System.Windows.Forms.ComboBox();
+            this.flameSpeedLabel = new System.Windows.Forms.Label();
+            this.overpMethodSelector = new System.Windows.Forms.ComboBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.fatalityConsequenceTab = new System.Windows.Forms.TabPage();
             this.exposureTimeUnitSelector = new System.Windows.Forms.ComboBox();
             this.thermalProbitSelector = new System.Windows.Forms.ComboBox();
@@ -49,8 +44,6 @@
             this.formWarning = new System.Windows.Forms.Label();
             this.modelSelectionTabControl.SuspendLayout();
             this.physicalConsequenceTab.SuspendLayout();
-            this.consequenceInputsGroupBox.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.consequenceInputGrid)).BeginInit();
             this.fatalityConsequenceTab.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -91,9 +84,12 @@
             // 
             // physicalConsequenceTab
             // 
-            this.physicalConsequenceTab.Controls.Add(this.radiativeSourceSelector);
-            this.physicalConsequenceTab.Controls.Add(this.label2);
-            this.physicalConsequenceTab.Controls.Add(this.consequenceInputsGroupBox);
+            this.physicalConsequenceTab.Controls.Add(this.tntInput);
+            this.physicalConsequenceTab.Controls.Add(this.tntLabel);
+            this.physicalConsequenceTab.Controls.Add(this.flameSpeedSelector);
+            this.physicalConsequenceTab.Controls.Add(this.flameSpeedLabel);
+            this.physicalConsequenceTab.Controls.Add(this.overpMethodSelector);
+            this.physicalConsequenceTab.Controls.Add(this.label1);
             this.physicalConsequenceTab.Controls.Add(this.notionalNozzleSelector);
             this.physicalConsequenceTab.Controls.Add(this.notionalNozzleLabel);
             this.physicalConsequenceTab.Location = new System.Drawing.Point(4, 24);
@@ -104,98 +100,60 @@
             this.physicalConsequenceTab.Text = "Physical Consequence Models";
             this.physicalConsequenceTab.UseVisualStyleBackColor = true;
             // 
-            // radiativeSourceSelector
+            // tntInput
             // 
-            this.radiativeSourceSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.radiativeSourceSelector.FormattingEnabled = true;
-            this.radiativeSourceSelector.Location = new System.Drawing.Point(199, 40);
-            this.radiativeSourceSelector.Name = "radiativeSourceSelector";
-            this.radiativeSourceSelector.Size = new System.Drawing.Size(248, 23);
-            this.radiativeSourceSelector.TabIndex = 26;
-            this.radiativeSourceSelector.Visible = false;
-            this.radiativeSourceSelector.SelectionChangeCommitted += new System.EventHandler(this.radiativeSourceSelector_SelectionChangeCommitted);
+            this.tntInput.Location = new System.Drawing.Point(199, 99);
+            this.tntInput.Name = "tntInput";
+            this.tntInput.Size = new System.Drawing.Size(248, 21);
+            this.tntInput.TabIndex = 68;
+            this.tntInput.TextChanged += new System.EventHandler(this.tntInput_TextChanged);
             // 
-            // label2
+            // tntLabel
             // 
-            this.label2.Location = new System.Drawing.Point(11, 43);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(173, 18);
-            this.label2.TabIndex = 25;
-            this.label2.Text = "Radiative source model:";
-            this.label2.Visible = false;
+            this.tntLabel.AutoSize = true;
+            this.tntLabel.Location = new System.Drawing.Point(11, 102);
+            this.tntLabel.Name = "tntLabel";
+            this.tntLabel.Size = new System.Drawing.Size(132, 15);
+            this.tntLabel.TabIndex = 67;
+            this.tntLabel.Text = "TNT equivalence factor";
             // 
-            // consequenceInputsGroupBox
+            // flameSpeedSelector
             // 
-            this.consequenceInputsGroupBox.Controls.Add(this.consequenceInputUnitSelector);
-            this.consequenceInputsGroupBox.Controls.Add(this.consequenceInputGrid);
-            this.consequenceInputsGroupBox.Location = new System.Drawing.Point(13, 88);
-            this.consequenceInputsGroupBox.Name = "consequenceInputsGroupBox";
-            this.consequenceInputsGroupBox.Size = new System.Drawing.Size(662, 229);
-            this.consequenceInputsGroupBox.TabIndex = 9;
-            this.consequenceInputsGroupBox.TabStop = false;
-            this.consequenceInputsGroupBox.Text = "Overpressure consequence inputs";
+            this.flameSpeedSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.flameSpeedSelector.FormattingEnabled = true;
+            this.flameSpeedSelector.Location = new System.Drawing.Point(199, 70);
+            this.flameSpeedSelector.Name = "flameSpeedSelector";
+            this.flameSpeedSelector.Size = new System.Drawing.Size(248, 23);
+            this.flameSpeedSelector.TabIndex = 66;
+            this.flameSpeedSelector.SelectionChangeCommitted += new System.EventHandler(this.flameSpeedSelector_SelectionChangeCommitted);
             // 
-            // consequenceInputUnitSelector
+            // flameSpeedLabel
             // 
-            this.consequenceInputUnitSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.consequenceInputUnitSelector.FormattingEnabled = true;
-            this.consequenceInputUnitSelector.Location = new System.Drawing.Point(7, 20);
-            this.consequenceInputUnitSelector.Name = "consequenceInputUnitSelector";
-            this.consequenceInputUnitSelector.Size = new System.Drawing.Size(77, 23);
-            this.consequenceInputUnitSelector.TabIndex = 2;
-            this.consequenceInputUnitSelector.SelectedIndexChanged += new System.EventHandler(this.consequenceInputUnitSelector_SelectedIndexChanged);
+            this.flameSpeedLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.flameSpeedLabel.Location = new System.Drawing.Point(10, 73);
+            this.flameSpeedLabel.Name = "flameSpeedLabel";
+            this.flameSpeedLabel.Size = new System.Drawing.Size(190, 18);
+            this.flameSpeedLabel.TabIndex = 65;
+            this.flameSpeedLabel.Text = "Mach flame speed";
             // 
-            // consequenceInputGrid
+            // overpMethodSelector
             // 
-            this.consequenceInputGrid.AllowUserToAddRows = false;
-            this.consequenceInputGrid.AllowUserToDeleteRows = false;
-            this.consequenceInputGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.consequenceInputGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.consequenceInputGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.consequenceInputGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.colVariable,
-            this.col0,
-            this.col1,
-            this.col2,
-            this.col3,
-            this.col4});
-            this.consequenceInputGrid.Location = new System.Drawing.Point(6, 59);
-            this.consequenceInputGrid.Name = "consequenceInputGrid";
-            this.consequenceInputGrid.Size = new System.Drawing.Size(650, 163);
-            this.consequenceInputGrid.TabIndex = 0;
-            this.consequenceInputGrid.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.consequenceInputGrid_CellValueChanged);
+            this.overpMethodSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.overpMethodSelector.FormattingEnabled = true;
+            this.overpMethodSelector.Location = new System.Drawing.Point(199, 41);
+            this.overpMethodSelector.Name = "overpMethodSelector";
+            this.overpMethodSelector.Size = new System.Drawing.Size(248, 23);
+            this.overpMethodSelector.TabIndex = 64;
+            this.overpMethodSelector.SelectionChangeCommitted += new System.EventHandler(this.overpMethodSelector_SelectionChangeCommitted);
             // 
-            // colVariable
+            // label1
             // 
-            this.colVariable.HeaderText = "Variable";
-            this.colVariable.Name = "colVariable";
-            // 
-            // col0
-            // 
-            this.col0.HeaderText = "0.01% Leak";
-            this.col0.Name = "col0";
-            // 
-            // col1
-            // 
-            this.col1.HeaderText = "0.1% Leak";
-            this.col1.Name = "col1";
-            // 
-            // col2
-            // 
-            this.col2.HeaderText = "1.0% Leak";
-            this.col2.Name = "col2";
-            // 
-            // col3
-            // 
-            this.col3.HeaderText = "10% Leak";
-            this.col3.Name = "col3";
-            // 
-            // col4
-            // 
-            this.col4.HeaderText = "100% Leak";
-            this.col4.Name = "col4";
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(10, 44);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(147, 18);
+            this.label1.TabIndex = 63;
+            this.label1.Text = "Overpressure method";
             // 
             // fatalityConsequenceTab
             // 
@@ -209,7 +167,7 @@
             this.fatalityConsequenceTab.Location = new System.Drawing.Point(4, 24);
             this.fatalityConsequenceTab.Name = "fatalityConsequenceTab";
             this.fatalityConsequenceTab.Padding = new System.Windows.Forms.Padding(3);
-            this.fatalityConsequenceTab.Size = new System.Drawing.Size(691, 617);
+            this.fatalityConsequenceTab.Size = new System.Drawing.Size(982, 489);
             this.fatalityConsequenceTab.TabIndex = 1;
             this.fatalityConsequenceTab.Text = "Harm Models";
             this.fatalityConsequenceTab.UseVisualStyleBackColor = true;
@@ -286,8 +244,7 @@
             "Lung Eisenberg",
             "Lung HSE",
             "Head impact",
-            "Collapse",
-            "Debris"});
+            "Collapse"});
             this.overpressureProbitSelector.Location = new System.Drawing.Point(199, 69);
             this.overpressureProbitSelector.Name = "overpressureProbitSelector";
             this.overpressureProbitSelector.Size = new System.Drawing.Size(248, 23);
@@ -321,8 +278,6 @@
             this.modelSelectionTabControl.ResumeLayout(false);
             this.physicalConsequenceTab.ResumeLayout(false);
             this.physicalConsequenceTab.PerformLayout();
-            this.consequenceInputsGroupBox.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.consequenceInputGrid)).EndInit();
             this.fatalityConsequenceTab.ResumeLayout(false);
             this.fatalityConsequenceTab.PerformLayout();
             this.ResumeLayout(false);
@@ -339,22 +294,17 @@
 		private System.Windows.Forms.TabPage fatalityConsequenceTab;
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.ComboBox overpressureProbitSelector;
-		private System.Windows.Forms.GroupBox consequenceInputsGroupBox;
-		private System.Windows.Forms.DataGridView consequenceInputGrid;
-		private System.Windows.Forms.ComboBox consequenceInputUnitSelector;
-		private System.Windows.Forms.DataGridViewTextBoxColumn colVariable;
-		private System.Windows.Forms.DataGridViewTextBoxColumn col0;
-		private System.Windows.Forms.DataGridViewTextBoxColumn col1;
-		private System.Windows.Forms.DataGridViewTextBoxColumn col2;
-		private System.Windows.Forms.DataGridViewTextBoxColumn col3;
-		private System.Windows.Forms.DataGridViewTextBoxColumn col4;
         private System.Windows.Forms.ComboBox exposureTimeUnitSelector;
         private System.Windows.Forms.ComboBox thermalProbitSelector;
         private System.Windows.Forms.TextBox exposureTimeInput;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label exposureTimeLabel;
-        private System.Windows.Forms.ComboBox radiativeSourceSelector;
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label formWarning;
+        private System.Windows.Forms.ComboBox overpMethodSelector;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ComboBox flameSpeedSelector;
+        private System.Windows.Forms.Label flameSpeedLabel;
+        private System.Windows.Forms.TextBox tntInput;
+        private System.Windows.Forms.Label tntLabel;
     }
 }

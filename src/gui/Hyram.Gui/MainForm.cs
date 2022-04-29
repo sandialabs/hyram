@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -294,7 +294,8 @@ namespace SandiaNationalLaboratories.Hyram
 
             cpParent.Dock = DockStyle.Fill;
             cpParent.ChildControl = contentControl;
-            // trigger form load "event", usually to refresh data
+
+            // qra-specific form load function to e.g. refresh data since forms are persisted
             if ((_mode == 0) && _qraFormControls.Contains(contentControl))
             {
                 ((AnalysisForm)contentControl).OnFormDisplay();

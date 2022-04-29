@@ -1,5 +1,5 @@
 /*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -150,10 +150,10 @@ namespace SandiaNationalLaboratories.Hyram
             this._weblink.AutoSize = true;
             this._weblink.Location = new System.Drawing.Point(12, 532);
             this._weblink.Name = "_weblink";
-            this._weblink.Size = new System.Drawing.Size(86, 13);
+            this._weblink.Size = new System.Drawing.Size(92, 13);
             this._weblink.TabIndex = 8;
             this._weblink.TabStop = true;
-            this._weblink.Text = "HyRAM Website";
+            this._weblink.Text = "HyRAM+ Website";
             this._weblink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.Weblink_LinkClicked);
             // 
             // _copyrightText

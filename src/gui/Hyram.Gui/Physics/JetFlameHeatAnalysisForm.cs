@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -8,7 +8,9 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -25,6 +27,7 @@ namespace SandiaNationalLaboratories.Hyram
         private string _fluxPlotFilepath;
         private float _massFlow;
         private float _srad;
+        private float _flameLength;
         private bool _mIgnoreXyzChangeEvent = true;
 
         private double[] _radHeatFluxX;
@@ -48,14 +51,6 @@ namespace SandiaNationalLaboratories.Hyram
 
             fuelPhaseSelector.DataSource = StateContainer.Instance.FluidPhases;
             fuelPhaseSelector.SelectedItem = StateContainer.Instance.GetFluidPhase();
-
-            // If None option is selected (e.g. in QRA), reset it to Multi
-            var selectedRadSrc = StateContainer.GetValue<RadiativeSourceModels>("RadiativeSourceModel");
-            if (selectedRadSrc == RadiativeSourceModels.None)
-            {
-                selectedRadSrc = RadiativeSourceModels.Multi;
-                StateContainer.SetValue("RadiativeSourceModel", selectedRadSrc);
-            }
 
             // Watch custom event for when fuel type selection changes, and updated displayed params to match
             StateContainer.Instance.FuelTypeChangedEvent += delegate{RefreshGridParameters();};
@@ -96,12 +91,14 @@ namespace SandiaNationalLaboratories.Hyram
                     StockConverters.PressureConverter),
                 new ParameterWrapper("orificeDiameter", "Leak diameter", DistanceUnit.Meter,
                     StockConverters.DistanceConverter),
+                new ParameterWrapper("orificeDischargeCoefficient", "Discharge coefficient", UnitlessUnit.Unitless,
+                    StockConverters.UnitlessConverter),
                 new ParameterWrapper("relativeHumidity", "Relative humidity", UnitlessUnit.Unitless,
                     StockConverters.UnitlessConverter),
                 new ParameterWrapper("releaseAngle", "Release angle", AngleUnit.Radians,
                     StockConverters.AngleConverter),
-                new ParameterWrapper("releaseHeight", "Leak height from floor", DistanceUnit.Meter,
-                    StockConverters.DistanceConverter)
+                //new ParameterWrapper("releaseHeight", "Leak height from floor", DistanceUnit.Meter,
+                //    StockConverters.DistanceConverter)
             });
 
             formParams.Add("fluidPressure",
@@ -163,7 +160,7 @@ namespace SandiaNationalLaboratories.Hyram
             var h2Temp = StateContainer.GetNdValue("fluidTemperature", TempUnit.Kelvin);
             var h2Pressure = StateContainer.GetNdValue("fluidPressure", PressureUnit.Pa);
             var orificeDiam = StateContainer.GetNdValue("orificeDiameter", DistanceUnit.Meter);
-            var leakHeight = StateContainer.GetNdValue("releaseHeight", DistanceUnit.Meter);
+            var dischargeCoeff = StateContainer.GetNdValue("orificeDischargeCoefficient", UnitlessUnit.Unitless);
 
             _radHeatFluxX =
                 StateContainer.GetNdValueList("FlameWrapper.radiative_heat_flux_point:x", DistanceUnit.Meter);
@@ -176,17 +173,17 @@ namespace SandiaNationalLaboratories.Hyram
             var relativeHumidity = StateContainer.GetNdValue("relativeHumidity", UnitlessUnit.Unitless);
             var notionalNozzleModel = StateContainer.GetValue<NozzleModel>("NozzleModel");
             var releaseAngle = StateContainer.GetNdValue("releaseAngle", AngleUnit.Radians);
-            var radiativeSourceModel =
-                StateContainer.GetValue<RadiativeSourceModels>("RadiativeSourceModel");
 
             Trace.TraceInformation("Creating PhysicsInterface for python call");
             var physInt = new PhysicsInterface();
 
             _analysisStatus = physInt.AnalyzeRadiativeHeatFlux(
-                ambTemp, ambPressure, h2Temp, h2Pressure, orificeDiam, leakHeight, releaseAngle,
+                ambTemp, ambPressure, h2Temp, h2Pressure, orificeDiam, dischargeCoeff,
+                releaseAngle,
                 notionalNozzleModel, _radHeatFluxX, _radHeatFluxY, _radHeatFluxZ, relativeHumidity,
-                radiativeSourceModel, contourLevels,
-                out _statusMsg, out _warningMsg, out _fluxData, out _fluxPlotFilepath, out _tempPlotFilepath, out _massFlow, out _srad);
+                contourLevels,
+                out _statusMsg, out _warningMsg, out _fluxData, out _fluxPlotFilepath, out _tempPlotFilepath,
+                out _massFlow, out _srad, out _flameLength);
             Trace.TraceInformation("PhysicsInterface call complete");
         }
 
@@ -228,6 +225,7 @@ namespace SandiaNationalLaboratories.Hyram
 
                 outputMassFlowRate.Text = _massFlow.ToString("E3");
                 outputSrad.Text = _srad.ToString("E3");
+                outputFlameLength.Text = _flameLength.ToString("F3");
 
                 spinnerPictureBox.Hide();
                 executeButton.Enabled = true;
@@ -353,9 +351,16 @@ namespace SandiaNationalLaboratories.Hyram
         {
             if (!_mIgnoreXyzChangeEvent)
             {
-                var contourLevels = ExtractFloatArrayFromDelimitedString(tbContourLevels.Text, ',');
+                var contours = new List<double>();
+
+                string contourText = tbContourLevels.Text;
+                Regex.Replace(contourText, @"\s+", "");  // trim whitespace
+                if (contourText != "")
+                {
+                    contours = new List<double>(ExtractFloatArrayFromDelimitedString(tbContourLevels.Text, ','));
+                }
                 StateContainer.Instance.Parameters["FlameWrapper.contour_levels"] =
-                    new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, contourLevels,
+                    new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, contours.ToArray(),
                         0.0);
             }
         }

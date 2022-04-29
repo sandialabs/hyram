@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 /*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -11,7 +11,7 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 -->
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
-	<Bundle Name="HyRAM+" Version="4.0" Manufacturer="Sandia National Laboratories"
+	<Bundle Name="HyRAM+" Version="4.1" Manufacturer="Sandia National Laboratories"
           IconSourceFile="$(var.Hyram.Gui.ProjectDir)Resources\LogoNoNameSm.ico"
           UpgradeCode="89739331-5be8-4eb2-a5a4-32b1b732d15f"
           >

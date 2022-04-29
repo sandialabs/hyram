@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -23,22 +23,10 @@ namespace SandiaNationalLaboratories.Hyram
         //private readonly bool isVerbose = false;
 //#endif
 
-        /// <summary>
-        /// Calculate mass flow rate (kg/m3) or time to empty tank.
-        /// Currently called by ETK.
-        /// </summary>
-        /// <param name="temp">K</param>
-        /// <param name="pressure">Pa</param>
-        /// <param name="tankVolume">m3</param>
-        /// <param name="orifDiam">m</param>
-        /// <param name="isSteady">bool; whether to compute flow rate or blowdown timing</param>
-        /// <param name="dischargeCoeff">coefficient to account for non-plug flow; between 0 and 1</param>
-        /// <param name="massFlowRate">Output parameter for flow roate (kg/m3)</param>
-        /// 
-        /// <param name="timeToEmpty">Output parameter for time-to-empty (s)</param>
-        /// <param name="plotFileLoc">Output parameter string for plot location if computing time-to-empty</param>
+        // Calculates mass flow rate (kg/m3) or time to empty tank.
+        // See python module hyram.phys.api for input parameter descriptions.
         public bool ComputeFlowRateOrTimeToEmpty(double orifDiam, double? temp, double pressure,
-            double tankVolume, bool isSteady, double dischargeCoeff,
+            double tankVolume, bool isSteady, double dischargeCoeff, double ambientPressure,
             out string statusMsg, out double? massFlowRate, out double? timeToEmpty, out string plotFileLoc)
         {
             // Default return vals
@@ -72,7 +60,7 @@ namespace SandiaNationalLaboratories.Hyram
                     dynamic resultPyObj;
                     resultPyObj = pyLib.phys.c_api.etk_compute_mass_flow_rate(
                         species, temp, pressure, phaseKey, orifDiam,
-                        isSteady, tankVolume, dischargeCoeff, outputDirPath);
+                        isSteady, tankVolume, dischargeCoeff, ambientPressure, outputDirPath);
                     Trace.TraceInformation("Python call complete. Processing results...");
 
                     // unwrap result status before actual results
@@ -119,15 +107,8 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
-        /// <summary>
-        /// Calculate tank mass (kg)
-        /// Currently called by ETK.
-        /// </summary>
-        /// <param name="temp"></param>
-        /// <param name="pressure"></param>
-        /// <param name="phase">Fluid phase</param>
-        /// <param name="tankVolume"></param>
-        /// <returns></returns>
+        // Calculates tank mass (kg)
+        // See python module hyram.phys.api for input parameter descriptions.
         public bool ComputeTankMass(double? temp, double pressure, double tankVolume,
             out string statusMsg, out double? tankMass)
         {
@@ -140,7 +121,10 @@ namespace SandiaNationalLaboratories.Hyram
 
             string species = StateContainer.GetValue<FuelType>("FuelType").GetKey();
             string phaseKey = StateContainer.Instance.GetFluidPhase().GetKey();
-            if (!FluidPhase.DisplayTemperature()) temp = null;  // clear temp if not gas
+            if (!FluidPhase.DisplayTemperature())
+            {
+                temp = null;  // clear temp if not gas
+            }
 
             Trace.TraceInformation("Acquiring python lock and importing module...");
             using (Py.GIL())
@@ -190,27 +174,19 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
-        /// <summary>
-        /// Calculate temp, pressure or density based on which parameters are provided.
-        /// Currently called by ETK.
-        /// </summary>
-        /// <param name="temp">K</param>
-        /// <param name="pressure">Pa</param>
-        /// <param name="density">kg/m3</param>
-        /// <returns></returns>
-        public bool ComputeTpd(double? temp, double? pressure, double? density,
-            out string statusMsg, out double? tpdResult)
+        // Calculates temperature, pressure or density based on given parameters, including phase.
+        // See python module hyram.phys.api for input parameter descriptions.
+        public bool ComputeTpd(double? temp, double? pressure, double? density, string phaseKey,
+            out string statusMsg, out double? output1, out double? output2)
         {
             bool status = false;
             statusMsg = "";
-            tpdResult = null;
+            output1 = null;
+            output2 = null;
 
             // Derive path to data dir for temp and data files, e.g. pickling
             string outputDirPath = StateContainer.UserDataDir;
-
             string species = StateContainer.GetValue<FuelType>("FuelType").GetKey();
-
-            double? result;
 
             Trace.TraceInformation("Executing python call");
             using (Py.GIL())
@@ -225,7 +201,7 @@ namespace SandiaNationalLaboratories.Hyram
                 {
                     // Execute python analysis. Will return PyObject containing results.
                     Trace.TraceInformation("Executing python TPD call...");
-                    dynamic resultPyObj = pyLib.phys.c_api.etk_compute_thermo_param(species, temp, pressure, density);
+                    dynamic resultPyObj = pyLib.phys.c_api.etk_compute_thermo_param(species, phaseKey, temp, pressure, density);
                     Trace.TraceInformation("Python call complete. Processing results...");
 
                     // unwrap results
@@ -235,10 +211,11 @@ namespace SandiaNationalLaboratories.Hyram
                     // Verify python func completed without error
                     if (status)
                     {
-                        result = (double)resultPyObj["data"];
+                        dynamic resultData = resultPyObj["data"];
+                        output1 = (double?)resultData["param1"];
+                        output2 = (double?)resultData["param2"];
                         resultPyObj.Dispose();
-                        Trace.TraceInformation("TPD result: " + result);
-                        tpdResult = result;
+                        Trace.TraceInformation("TPD results: " + output1 + ", " + output2);
                     }
                     else
                     {
@@ -250,7 +227,6 @@ namespace SandiaNationalLaboratories.Hyram
                 {
                     Trace.TraceError(ex.ToString());
                     status = false;
-                    tpdResult = null;
                     statusMsg = "Error during TPD calculation. Check log for details.";
                 }
                 finally
@@ -264,10 +240,8 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
-        /// <summary>
-        /// Get TNT equivalence data
-        /// Currently called by ETK.
-        /// </summary>
+        // Calculates TNT equivalence data.
+        // See python module hyram.phys.api for input parameter descriptions.
         public bool ComputeTntEquivalence(double vaporMass, double yield, out string statusMsg, out double? tntMass)
         {
             bool status = false;
@@ -326,23 +300,8 @@ namespace SandiaNationalLaboratories.Hyram
         }
 
 
-        /// <summary>
-        /// Create plume plot via python
-        /// </summary>
-        /// <param name="ambPres"></param>
-        /// <param name="ambTemp"></param>
-        /// <param name="relPres"></param>
-        /// <param name="relTemp"></param>
-        /// <param name="orifDiam"></param>
-        /// <param name="dischargeCoeff"></param>
-        /// <param name="xMin"></param>
-        /// <param name="xMax"></param>
-        /// <param name="yMin"></param>
-        /// <param name="yMax"></param>
-        /// <param name="contours"></param>
-        /// <param name="jetAngle"></param>
-        /// <param name="plotTitle"></param>
-        /// <returns></returns>
+        // Creates release plume plot.
+        // See python module hyram.phys.api for input parameter descriptions.
         public bool CreatePlumePlot(
             double ambPres, double ambTemp,
             double relPres, double? relTemp, double relAngle,
@@ -350,14 +309,14 @@ namespace SandiaNationalLaboratories.Hyram
             double xMin, double xMax, double yMin, double yMax,
             double contours, string nozzleModel, string plotTitle,
             out string statusMsg, out string warningMsg,
-            out string plotFilepath, out float mass_flow_rate
+            out string plotFilepath, out float massFlowRate
             )
         {
             bool status = false;
             statusMsg = "";
             warningMsg = "";
             plotFilepath = "";
-            mass_flow_rate = float.NaN;
+            massFlowRate = float.NaN;
 
             //bool ambSpecies = StateContainer.GetValue<bool>("FuelType");
             string relSpecies = StateContainer.GetValue<FuelType>("FuelType").GetKey();
@@ -398,7 +357,7 @@ namespace SandiaNationalLaboratories.Hyram
                         dynamic resultData = resultPyObj["data"];
                         plotFilepath = (string)resultData["plot"];
                         warningMsg = (string)resultPyObj["warning"];
-                        mass_flow_rate = (float)resultData["mass_flow_rate"];
+                        massFlowRate = (float)resultData["mass_flow_rate"];
                         resultPyObj.Dispose();
                         Trace.TraceInformation("Plume plot: " + plotFilepath);
                     }
@@ -425,43 +384,8 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
-        /// <summary>
-        /// Compute results of overpressure and generate associated plots.
-        /// </summary>
-        /// <param name="ambPres"></param>
-        /// <param name="ambTemp"></param>
-        /// <param name="relPres"></param>
-        /// <param name="relTemp"></param>
-        /// <param name="orifDiam"></param>
-        /// <param name="orifDisCoeff"></param>
-        /// <param name="tankVolume"></param>
-        /// <param name="relDisCoeff"></param>
-        /// <param name="relArea"></param>
-        /// <param name="relHeight"></param>
-        /// <param name="enclosureHeight"></param>
-        /// <param name="floorCeilingArea"></param>
-        /// <param name="distReleaseToWall"></param>
-        /// <param name="ceilVentXArea"></param>
-        /// <param name="ceilVentHeight"></param>
-        /// <param name="floorVentXArea"></param>
-        /// <param name="floorVentHeight"></param>
-        /// <param name="flowRate"></param>
-        /// <param name="relAngle"></param>
-        /// <param name="timesToPlot"></param>
-        /// <param name="ptPressures"></param>
-        /// <param name="ptTimes"></param>
-        /// <param name="presTicks"></param>
-        /// <param name="maxSimTime"></param>
-        /// <param name="pressuresPerTime"></param>
-        /// <param name="depths"></param>
-        /// <param name="concentrations"></param>
-        /// <param name="overpressure"></param>
-        /// <param name="timeOfOverpressure"></param>
-        /// <param name="pressurePlotFilepath"></param>
-        /// <param name="massPlotFilepath"></param>
-        /// <param name="layerPlotFilepath"></param>
-        /// <param name="trajectoryPlotFilepath"></param>
-        /// <returns></returns>
+        // Evaluates accumulation and generates associated data and plots.
+        // See python module hyram.phys.api for input parameter descriptions.
         public bool AnalyzeAccumulation(
                         double ambPres, double ambTemp, double relPres, double? relTemp, double orifDiam, double orifDisCoeff, double tankVolume,
                         double relHeight, double enclosureHeight, double floorCeilingArea, double distReleaseToWall,
@@ -486,6 +410,8 @@ namespace SandiaNationalLaboratories.Hyram
             layerPlotFilepath = "";
             trajectoryPlotFilepath = "";
             massFlowPlotFilepath = "";
+
+            // times must be converted to correct values in seconds, depending on selected time unit
 
             string outputDirPath = StateContainer.UserDataDir;
 
@@ -567,10 +493,13 @@ namespace SandiaNationalLaboratories.Hyram
             return status;
         }
 
+        // Creates flame release temperature plot.
+        // See python module hyram.phys.api for input parameter descriptions.
         public bool CreateFlameTemperaturePlot(
             double ambTemp, double ambPres, double? relTemp, double relPres,
-            double orifDiam, double relHeight, double relAngle, string nozzleModelKey,
-            out string statusMsg, out string warningMsg, out string plotFilepath, out float massFlowRate, out float srad)
+            double orifDiam, double dischargeCoeff, double relAngle, string nozzleModelKey,
+            out string statusMsg, out string warningMsg, out string plotFilepath,
+            out float massFlowRate, out float srad, out float flameLength)
         {
             bool status = false;
             statusMsg = "";
@@ -578,6 +507,7 @@ namespace SandiaNationalLaboratories.Hyram
             plotFilepath = "";
             massFlowRate = float.NaN;
             srad = float.NaN;
+            flameLength = float.NaN;
 
             // Derive path to data dir for temp and data files, e.g. pickling
             string outputDirPath = StateContainer.UserDataDir;
@@ -586,9 +516,6 @@ namespace SandiaNationalLaboratories.Hyram
             string phaseKey = StateContainer.Instance.GetFluidPhase().GetKey();
             if (!FluidPhase.DisplayTemperature()) relTemp = null;  // clear temp if not gas
 
-            // unused params required by python
-            var radSourceModel =
-                StateContainer.GetValue<RadiativeSourceModels>("RadiativeSourceModel").ToString();
             var relHumid = StateContainer.GetNdValue("relativeHumidity");
             bool analyzeFlux = false;
 
@@ -608,9 +535,9 @@ namespace SandiaNationalLaboratories.Hyram
                     dynamic resultPyObj = pyLib.phys.c_api.jet_flame_analysis(
                         ambTemp, ambPres,
                         relSpecies, relTemp, relPres, phaseKey,
-                        orifDiam,
-                        relAngle, relHeight,
-                        nozzleModelKey, radSourceModel, relHumid,
+                        orifDiam, dischargeCoeff,
+                        relAngle,
+                        nozzleModelKey, relHumid,
                         null, null, null, null, analyzeFlux,
                         outputDirPath, isVerbose);
 
@@ -625,6 +552,7 @@ namespace SandiaNationalLaboratories.Hyram
                         plotFilepath = (string)resultData["temp_plot_filepath"];
                         massFlowRate = (float)resultData["mass_flow_rate"];
                         srad = (float)resultData["srad"];
+                        flameLength = (float)resultData["visible_length"];
                         Debug.WriteLine(" Created plot: " + plotFilepath);
                         warningMsg = (string)resultPyObj["warning"];
                         resultPyObj.Dispose();
@@ -651,12 +579,16 @@ namespace SandiaNationalLaboratories.Hyram
         }
 
 
+        // Evaluates radiative heat flux of release.
+        // See python module hyram.phys.api for input parameter descriptions.
         public bool AnalyzeRadiativeHeatFlux(
-            double ambTemp, double ambPres, double? relTemp, double relPres, double orifDiam, double relHeight, double relAngle,
-            NozzleModel notionalNozzleModel, double[] radHeatFluxX, double[] radHeatFluxY, double[] radHeatFluxZ, double relativeHumidity,
-            RadiativeSourceModels radiativeSourceModel, double[] contourLevels,
+            double ambTemp, double ambPres, double? relTemp, double relPres, double orifDiam, double dischargeCoeff,
+            double relAngle,
+            NozzleModel notionalNozzleModel, double[] radHeatFluxX, double[] radHeatFluxY, double[] radHeatFluxZ,
+            double relativeHumidity, double[] contourLevels,
             out string statusMsg, out string warningMsg,
-            out double[] fluxData, out string fluxPlotFilepath, out string tempPlotFilepath, out float massFlowRate, out float srad)
+            out double[] fluxData, out string fluxPlotFilepath, out string tempPlotFilepath,
+            out float massFlowRate, out float srad, out float flameLength)
         {
             bool status = false;
             fluxData = new double[radHeatFluxX.Length];
@@ -666,6 +598,7 @@ namespace SandiaNationalLaboratories.Hyram
             tempPlotFilepath = "";
             massFlowRate = float.NaN;
             srad = float.NaN;
+            flameLength = float.NaN;
 
             string outputDirPath = StateContainer.UserDataDir;
             string plotFilepath = "";
@@ -692,9 +625,9 @@ namespace SandiaNationalLaboratories.Hyram
                     dynamic resultPyObj = pyLib.phys.c_api.jet_flame_analysis(
                         ambTemp, ambPres,
                         relSpecies, relTemp, relPres, phaseKey,
-                        orifDiam,
-                        relAngle, relHeight,
-                        notionalNozzleModel.GetKey(), radiativeSourceModel.ToString().ToLower(),
+                        orifDiam, dischargeCoeff,
+                        relAngle,
+                        notionalNozzleModel.GetKey(),
                         relativeHumidity,
                         radHeatFluxX, radHeatFluxY, radHeatFluxZ,
                         contourLevels,
@@ -714,6 +647,7 @@ namespace SandiaNationalLaboratories.Hyram
                         tempPlotFilepath = (string)resultData["temp_plot_filepath"];
                         massFlowRate = (float)resultData["mass_flow_rate"];
                         srad = (float)resultData["srad"];
+                        flameLength = (float)resultData["visible_length"];
                         Debug.WriteLine(" Flux results: " + plotFilepath);
                         Debug.WriteLine(" Flux plots: " + fluxPlotFilepath + ", " + tempPlotFilepath);
                         Debug.WriteLine(" Created plot: " + plotFilepath);
@@ -744,27 +678,34 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
+
+        // Evaluates overpressure release.
+        // See python module hyram.phys.api for input parameter descriptions.
         public bool AnalyzeUnconfinedOverpressure(
             double ambTemp, double ambPres,
             double? relTemp, double relPres, double orifDiam, double relAngle, double dischargeCoeff,
             NozzleModel notionalNozzleModel, UnconfinedOverpressureMethod method,
-            double[] xLocs, double[] yLocs, double[] zLocs,
+            double[] xLocs, double[] yLocs, double[] zLocs, double[] contours,
             double flameSpeed, double tntFactor,
             out string statusMsg, out string warningMsg,
-            out double[] overpressures, out double[] impulses, out string plotFilepath)
+            out double[] overpressures, out double[] impulses, out string plotFilepath, out float massFlowRate)
         {
             bool status = false;
             statusMsg = "";
             warningMsg = "";
             overpressures = new double[xLocs.Length];
             impulses = new double[xLocs.Length];
+            massFlowRate = float.NaN;
             plotFilepath = "";
 
             string outputDirPath = StateContainer.UserDataDir;
 
             string relSpecies = StateContainer.GetValue<FuelType>("FuelType").GetKey();
             string phaseKey = StateContainer.Instance.GetFluidPhase().GetKey();
-            if (!FluidPhase.DisplayTemperature()) relTemp = null;  // clear temp if not gas
+            if (!FluidPhase.DisplayTemperature())
+            {
+                relTemp = null; // clear temp if not gas
+            }
 
             Trace.TraceInformation("Acquiring python lock and importing module...");
             using (Py.GIL())
@@ -785,7 +726,7 @@ namespace SandiaNationalLaboratories.Hyram
                         relSpecies, relTemp, relPres, phaseKey,
                         orifDiam, relAngle, dischargeCoeff,
                         notionalNozzleModel.GetKey(), method.GetKey(),
-                        xLocs, yLocs, zLocs,
+                        xLocs, yLocs, zLocs, contours,
                         flameSpeed, tntFactor,
                         outputDirPath, isVerbose);
 
@@ -800,6 +741,7 @@ namespace SandiaNationalLaboratories.Hyram
                         overpressures = (double[])resultData["overpressure"];
                         impulses = (double[])resultData["impulse"];
                         plotFilepath = (string)resultData["figure_file_path"];
+                        massFlowRate = (float)resultData["mass_flow_rate"];
                         warningMsg = (string)resultPyObj["warning"];
 
                         resultPyObj.Dispose();

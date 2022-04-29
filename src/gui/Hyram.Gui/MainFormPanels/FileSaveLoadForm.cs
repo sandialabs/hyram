@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -91,7 +91,8 @@ namespace SandiaNationalLaboratories.Hyram
                     MessageBox.Show("The workspace could not be saved due to the following error: " + ex.Message);
                 }
             }
-            else if (_mCurrentLoadedState == null)
+            //else if (_mCurrentLoadedState == null)
+            else
             {
                 try
                 {
@@ -110,11 +111,6 @@ namespace SandiaNationalLaboratories.Hyram
                     MessageBox.Show("The workspace could not be loaded due to the following error: " + ex.Message);
                     CurrentLoadedState = null;
                 }
-            }
-
-            else
-            {
-                Close();
             }
         }
 

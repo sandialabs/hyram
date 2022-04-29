@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -225,8 +225,6 @@ namespace SandiaNationalLaboratories.Hyram
                         StockConverters.DistanceConverter),
                     new ParameterWrapper("facilityWidth", "Width (z-direction)", DistanceUnit.Meter,
                         StockConverters.DistanceConverter),
-                    new ParameterWrapper("facilityHeight", "Height (y-direction)", DistanceUnit.Meter,
-                        StockConverters.DistanceConverter)
                 }
             ), false);
 
@@ -342,6 +340,10 @@ namespace SandiaNationalLaboratories.Hyram
             vdColl2.Add("ambientPressure",
                 new ParameterWrapper("ambientPressure", "Ambient Pressure", PressureUnit.MPa,
                     StockConverters.PressureConverter));
+            vdColl2.Add("orificeDischargeCoefficient",
+                new ParameterWrapper("orificeDischargeCoefficient",
+                    "Discharge coefficient", UnitlessUnit.Unitless,
+                    StockConverters.UnitlessConverter));
 
             StaticGridHelperRoutines.InitInteractiveGrid(dgSystemParameters_Piping, vdColl2, false);
             dgSystemParameters_Piping.Columns[0].Width = 200;

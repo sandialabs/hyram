@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -12,14 +12,7 @@ import os
 import datetime
 import re
 
-import numpy as np
-
 from .exceptions import InputError
-
-try:
-    import cPickle as pickle  # C module
-except ModuleNotFoundError:
-    import pickle
 
 
 def params_as_str(param_dict):
@@ -128,23 +121,6 @@ def convert_nozzle_model_to_params(nozzle_model, rel_fluid=None):
     return con_mom, t_param
 
 
-def get_num_carbon_atoms_from_species(species):
-    """ Returns int # carbon atoms based on species input """
-    species = str(species).lower()
-    if species == "h2":
-        num_atoms = 0
-    elif species == "ch4":
-        num_atoms = 1
-    # elif species == "c2h6":
-    #     num_atoms = 2
-    elif species == "c3h8":
-        num_atoms = 3
-    else:
-        raise InputError("Species {} not recognized".format(species))
-
-    return num_atoms
-
-
 def get_now_str():
     """ Generates a string-formatted time, down to seconds """
     now = datetime.datetime.now()
@@ -202,90 +178,6 @@ def setup_file_log(output_dir, verbose=False, logfile='log_hyram.txt', logname='
     log.info("Log setup complete")
 
 
-def convert_ign_prob_lists_to_dicts(immed_ign_probs, delayed_ign_probs, thresholds):
-    """
-    Convert lists of ignition data into list of dicts with one entry per rate group.
-
-    Parameters
-    ----------
-    immed_ign_probs : list
-        Immediate ignition probabilities for each group
-    delayed_ign_probs : list
-        Delayed ignition probabilities for each group
-    thresholds : list
-        Ignition release rate thresholds for each group (kg/s). floats.
-
-    Returns
-    -------
-    ign_dict : list of dicts
-        Each entry is: {threshold_min, threshold_max, immed_prob, delay_prob}
-
-    """
-    num_groups = len(immed_ign_probs)
-    ign_dicts = []
-
-    for i in range(num_groups):
-        if i == 0:
-            thres_min = -np.inf
-            thres_max = thresholds[i]
-
-        elif i == (num_groups - 1):
-            thres_min = thresholds[-1]
-            thres_max = np.inf
-
-        else:
-            thres_min = thresholds[i-1]
-            thres_max = thresholds[i]
-
-        immed_prob = immed_ign_probs[i]
-        delay_prob = delayed_ign_probs[i]
-
-        ign_dicts.append({
-            'threshold_min': thres_min,
-            'threshold_max': thres_max,
-            'immed_prob': immed_prob,
-            'delay_prob': delay_prob,
-        })
-
-    return ign_dicts
-
-
-def save_object(filepath, obj):
-    """
-    Save object to file via pickling
-
-    Parameters
-    ----------
-    filepath : str
-        Location of file in which to store object, including its path.
-
-    obj : object
-        Object to store in file
-
-    """
-    with open(filepath, 'wb') as outfile:
-        pickle.dump(obj, outfile, pickle.HIGHEST_PROTOCOL)
-
-
-def load_object(filepath):
-    """
-    Load existing object from file via pickling
-
-    Parameters
-    ----------
-    filepath : str
-        Location of file in which to store object, including its path.
-
-    Returns
-    ----------
-    obj : object
-        Retrieved object
-    """
-    with open(filepath, 'rb') as infile:
-        obj = pickle.load(infile)
-        return obj
-
-
 def is_fluid_specified(temp=None, pres=None, density=None, phase=None):
     """ Verify that fluid is defined by exactly two parameters """
     num_params = len([x for x in [temp, pres, density, phase] if x is not None])
@@ -308,3 +200,24 @@ def parse_phase_key(key):
 
     """
     return key if key in ['gas', 'liquid'] else None
+
+
+def get_temp_folder(temp_dir_name='temp'):
+    """
+    Returns location of temporary folder
+    and creates it if needed
+
+    Parameters
+    ----------
+    temp_dir_name : str, optional
+        Name of temporary folder (default is 'temp')
+
+    Returns
+    -------
+    temp_dir_path : str
+        absolute path to temporary folder
+    """
+    temp_dir_path = os.path.join(os.getcwd(), temp_dir_name)
+    if not os.path.isdir(temp_dir_path):
+        os.mkdir(temp_dir_path)
+    return temp_dir_path

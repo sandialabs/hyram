@@ -118,29 +118,29 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="ft0p01pct_2020" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\0p01pctFT_2020.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="ft0p01pct" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\0p01pctFT.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="BannerLogov2" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\BannerLogov2.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="ft10pct_2020" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\10pctFT_2020.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="ft10pct" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\10pctFT.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="geometry_of_flame" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\geometry of flame.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="ft0p1pct_2020" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\0p1pctFT_2020.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="ft0p1pct" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\0p1pctFT.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="BannerLogo" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\BannerLogo.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="ft1pct_2020" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\1pctFT_2020.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="ft1pct" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\1pctFT.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="ESD_2020" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ESD_2020.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="ESD" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ESD.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="geometry_of_indoor_release" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\geometry_of_indoor_release.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -151,8 +151,8 @@
   <data name="AjaxSpinner" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ajax-loader.gif;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="ft100pct_2020" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\100pctFT_2020.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="ft100pct" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\100pctFT.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="BannerInstaller" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\BannerInstaller.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>

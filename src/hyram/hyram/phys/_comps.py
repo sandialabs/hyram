@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -14,7 +14,9 @@ import logging
 
 import numpy as np
 from scipy import integrate, optimize
+
 from ._therm import CoolPropWrapper
+from ..utilities.custom_warnings import PhysicsWarning
 
 
 log = logging.getLogger(__name__)
@@ -131,7 +133,7 @@ class Orifice:
         '''
         return fluid.rho * fluid.v * self.A * self.Cd
 
-    def flow(self, upstream_fluid, downstream_P=101325.):
+    def flow(self, upstream_fluid, downstream_P = 101325., mdot = None, suppressWarnings = True):
         '''
         Returns the fluid in a flow restriction, for given upstream conditions 
         and downstream pressure.  Isentropic expansion.
@@ -139,11 +141,13 @@ class Orifice:
         Parameters
         ----------
         upstream_fluid - upstream fluid with therm object, as well as P, T, rho, v
+        downstream_P - float: downstream pressure (Pa)
+        mdot - mass flow rate - only used for unchoked flow
         
         Returns
         -------
         Fluid object containing T, P, rho, v at the throat (orifice)
-        '''
+        '''           
         h0 = upstream_fluid.therm.PropsSI('H', T = upstream_fluid.T, D = upstream_fluid.rho)
         h0 += upstream_fluid.v**2/2
         if upstream_fluid.v > 0:
@@ -152,69 +156,36 @@ class Orifice:
             s0 = upstream_fluid.therm.PropsSI('S', D = upstream_fluid.rho, T = upstream_fluid.T)
         
         fluid = copy.copy(upstream_fluid)
-        a = upstream_fluid.therm.a(P = downstream_P, S = s0)
-        ht, rho = upstream_fluid.therm.PropsSI(['H', 'D'], P = downstream_P, S = s0)
-        
-        if h0 >= ht:
-            if a >= np.sqrt(2 * (h0 - ht)):  # unchoked
-                P = downstream_P
-                fluid.update(rho=rho, P=P, v=np.sqrt(2 * (h0 - ht)))
+        if fluid.P < downstream_P:
+            raise ValueError('Downstream pressure is lower than upstream pressure.  Unphysical.')
+        if fluid.P == downstream_P:
+            if mdot is not None:
+                v = mdot/(self.Cd*fluid.rho*self.A)
+                fluid.update(v=v)
                 fluid._choked = False
                 return fluid
-        else:  # unable to calculate flow rate - enthalpy of upstream fluid greater than enthalpy at throat pressure
-            fluid.update(rho=rho, P=downstream_P, v=np.nan)
-            fluid._choked = None  # None rather than true/false may cause error - need to monitor
-            return fluid
-
-        def err_P_sonic(P):
-            a = upstream_fluid.therm.a(P = P, S = s0)
-            h = upstream_fluid.therm.PropsSI('H', P = P, S = s0)
-            if 2 * (h0 + upstream_fluid.v ** 2 / 2. - h) > 0:
-                v = np.sqrt(2 * (h0 + upstream_fluid.v ** 2 / 2. - h))
             else:
-                v = 0
-            return v - a
-
-        try:
-            P = optimize.brentq(err_P_sonic, upstream_fluid.P, downstream_P)
-            if P <= downstream_P: # This shouldn't happen since there was a check above...
-                P = downstream_P
-                rho, T, ht = upstream_fluid.therm.PropsSI(['D', 'T', 'H'], P = P, S = s0)
-                fluid.update(rho=rho, P=P, v=np.sqrt(2 * (h0 - ht)))
-                fluid._choked = False
-            else:
-                a = upstream_fluid.therm.a(P = P, S = s0)
-                rho = upstream_fluid.therm.PropsSI('D', P = P, S = s0)
-                fluid.update(rho=rho, P=P, v=a)
-                fluid._choked = True
-        except:
-            rho, T, ht = upstream_fluid.therm.PropsSI(['D', 'T', 'H'], P = downstream_P, S = s0)
-            fluid.update(rho=rho, P=downstream_P, v=np.sqrt(2 * (h0 - ht)))
+                raise ValueError('Downstream pressure is the same as upstream pressure.  Need to specify mass flow rate (mdot).')
+        def negflux(P):
+            h, rho = fluid.therm.PropsSI(['H', 'D'], P = P, S = s0)
+            return -rho*np.sqrt(2 * (h0 + upstream_fluid.v ** 2 / 2. - h))
+        P = optimize.minimize_scalar(negflux, bounds = (downstream_P, upstream_fluid.P), method = 'bounded')['x']
+        h, rho = fluid.therm.PropsSI(['H', 'D'], P = P, S = s0)
+        fluid.update(rho = rho, P = P, v = np.sqrt(2 * (h0 + upstream_fluid.v ** 2 / 2. - h)))
+        if P - downstream_P > .01: 
+            if mdot is not None:
+                if not suppressWarnings:
+                    warnings.warn('Fluid choked. Ignoring mdot specification and using choked flow calculation.', category=PhysicsWarning)
+            fluid._choked = True
+        else: 
             fluid._choked = False
+            if mdot is None:
+                if not suppressWarnings:
+                    warnings.warn('Fluid unchoked. It is recommended to verify/specify mass flow rate.', category=PhysicsWarning)
+            else:
+                v = mdot/(self.Cd*rho*self.A)
+                fluid.update(rho=rho, P=P, v=v)
         return fluid
-
-    def compute_steady_state_mass_flow(self, fluid, amb_pres=101325.):
-        """
-        Calculate mass flow rate based on given conditions.
-
-        Parameters
-        ----------
-        fluid : Fluid
-            Release fluid object
-
-        amb_pres : float, optional
-            Ambient fluid pressure (Pa).
-
-        dis_coeff : float
-            Discharge coefficient to account for non-plug flow (always <=1, assumed to be 1 for plug flow).
-
-        Returns
-        ----------
-        mass_flow_rate : float
-            Mass flow rate (kg/s) of steady release.
-
-        """
-        return self.mdot(self.flow(fluid, amb_pres))
 
 class Source(object):
     """
@@ -301,10 +272,6 @@ class Source(object):
             return None
         return cls(V, fluid)
 
-    def mdot(self, orifice, downstream_P=101325.):
-        '''returns the mass flow rate through an orifice, from the current tank conditions'''
-        return orifice.compute_steady_state_mass_flow(self.fluid, downstream_P)
-
     def _blowdown_gov_eqns(self, t, ind_vars, Vol, orifice, heat_flux, ambient_P):
         '''governing equations for energy balance on a tank (https://doi.org/10.1016/j.ijhydene.2011.12.047)
         
@@ -329,8 +296,7 @@ class Source(object):
         fluid = copy.copy(self.fluid)
         fluid.update(T=T, rho=rho)
         throat = orifice.flow(fluid, ambient_P)
-        # h = therm.h(T = fluid.T, D = fluid.rho)
-        h = therm.PropsSI('H', T=fluid.T, D=fluid.rho)
+        h = therm.PropsSI('H', T = fluid.T, D = fluid.rho)
         dm_dt = -orifice.mdot(throat)
         du_dt = 1. / m * (heat_flux + (h - U) * dm_dt)
         return np.array([dm_dt, du_dt])

@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -144,6 +144,8 @@ namespace SandiaNationalLaboratories.Hyram
                 DistanceUnit.Meter,
                 _mOrificeDiameterValue);
 
+            double ambientPressure = StateContainer.GetNdValue("ambientPressure", PressureUnit.Pa);
+
             var isSteady = SteadyBlowdown;
             var dischargeCoeff = 1.0;
 
@@ -151,7 +153,7 @@ namespace SandiaNationalLaboratories.Hyram
 
             bool status = physApi.ComputeFlowRateOrTimeToEmpty(
                 orificeDiam, temp, pressure,
-                tankVolume, isSteady, dischargeCoeff,
+                tankVolume, isSteady, dischargeCoeff, ambientPressure,
                 out var statusMsg, out var massFlowRate, out var timeToEmpty, out var plotFileLoc
                 );
 

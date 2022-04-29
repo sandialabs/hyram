@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -96,10 +96,14 @@ namespace SandiaNationalLaboratories.Hyram
         public double Air;
         public double Far;
         public List<LeakResult> LeakResults;
-        public string[] PositionPlotFilenames;
         public double TotalPll;
         public double[][] Positions;
+        public string[] QradPlotFiles;
         public double[][] PositionQrads;  // kW
+        public string[] OverpressurePlotFiles;
+        public double[][] PositionOverpressures;  // Pa
+        public string[] ImpulsePlotFiles;
+        public double[][] PositionImpulses;  // Pa*s
 
         public QraResult(PyObject pyResult)
         {
@@ -107,9 +111,16 @@ namespace SandiaNationalLaboratories.Hyram
             Air = (double) (dynamic) pyResult["air"];
             TotalPll = (double) (dynamic) pyResult["total_pll"];
             Far = (double) (dynamic) pyResult["far"];
-            PositionPlotFilenames = (string[])(dynamic)pyResult["plot_files"];
             Positions = (double[][])(dynamic)pyResult["positions"];
+
             PositionQrads = (double[][])(dynamic)pyResult["position_qrads"];
+            QradPlotFiles = (string[])(dynamic)pyResult["qrad_plot_files"];
+
+            PositionOverpressures = (double[][])(dynamic)pyResult["position_overps"];
+            OverpressurePlotFiles = (string[])(dynamic)pyResult["overp_plot_files"];
+
+            PositionImpulses = (double[][])(dynamic)pyResult["position_impulses"];
+            ImpulsePlotFiles = (string[])(dynamic)pyResult["impulse_plot_files"];
 
 
             // Parse scenario data for each leak size into objects

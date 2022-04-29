@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -8,7 +8,9 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -30,6 +32,7 @@ namespace SandiaNationalLaboratories.Hyram
         private double[] _overpressures;
         private double[] _impulses;
         private string _plotFilepath;
+        private float _massFlowRate;
 
         public UnconfinedOverpressureForm()
         {
@@ -69,6 +72,9 @@ namespace SandiaNationalLaboratories.Hyram
             ParseUtility.PutDoubleArrayIntoTextBox(zLocsInput,
                 StateContainer.Instance.GetStateDefinedValueObject("overpressure.z")
                     .GetValue(DistanceUnit.Meter));
+            ParseUtility.PutDoubleArrayIntoTextBox(tbContourLevels,
+                StateContainer.Instance.GetStateDefinedValueObject("overpressure.contours")
+                    .GetValue(UnitlessUnit.Unitless));  // stored as kPa
 
             _mIgnoreXyzChangeEvent = false;
         }
@@ -95,7 +101,8 @@ namespace SandiaNationalLaboratories.Hyram
                     StockConverters.DistanceConverter),
                 new ParameterWrapper("releaseAngle", "Release angle", AngleUnit.Radians,
                     StockConverters.AngleConverter),
-                new ParameterWrapper("DischargeCoefficient", "Discharge coefficient", UnitlessUnit.Unitless,
+                new ParameterWrapper("orificeDischargeCoefficient", 
+                    "Discharge coefficient", UnitlessUnit.Unitless,
                     StockConverters.UnitlessConverter),
                 //new ParameterWrapper("relativeHumidity", "Relative humidity", UnitlessUnit.Unitless,
                 //    StockConverters.UnitlessConverter),
@@ -181,13 +188,19 @@ namespace SandiaNationalLaboratories.Hyram
             var relTemp = StateContainer.GetNdValue("fluidTemperature", TempUnit.Kelvin);
             var relPres = StateContainer.GetNdValue("fluidPressure", PressureUnit.Pa);
             var orificeDiam = StateContainer.GetNdValue("orificeDiameter", DistanceUnit.Meter);
-            var dischargeCoeff = StateContainer.GetNdValue("DischargeCoefficient", UnitlessUnit.Unitless);
+            var dischargeCoeff = StateContainer.GetNdValue("orificeDischargeCoefficient", UnitlessUnit.Unitless);
             var flameSpeed = StateContainer.GetNdValue("overpressureFlameSpeed", UnitlessUnit.Unitless);
             var tntFactor = StateContainer.GetNdValue("tntEquivalenceFactor", UnitlessUnit.Unitless);
 
             _xLocs = StateContainer.GetNdValueList("overpressure.x", DistanceUnit.Meter);
             _yLocs = StateContainer.GetNdValueList("overpressure.y", DistanceUnit.Meter);
             _zLocs = StateContainer.GetNdValueList("overpressure.z", DistanceUnit.Meter);
+            var contours = StateContainer.GetNdValueList("overpressure.contours", UnitlessUnit.Unitless);
+            for (int i = 0; i < contours.Length; i++)
+            {
+                contours[i] *= 1000.0;  // convert to Pa from kPa
+            }
+
             var notionalNozzleModel = StateContainer.GetValue<NozzleModel>("NozzleModel");
             var method = StateContainer.GetOverpressureMethod();
             var relAngle = StateContainer.GetNdValue("releaseAngle", AngleUnit.Radians);
@@ -197,9 +210,9 @@ namespace SandiaNationalLaboratories.Hyram
 
             _analysisStatus = physInt.AnalyzeUnconfinedOverpressure(
                 ambTemp, ambPressure, relTemp, relPres, orificeDiam, relAngle, dischargeCoeff,
-                notionalNozzleModel, method, _xLocs, _yLocs, _zLocs,
+                notionalNozzleModel, method, _xLocs, _yLocs, _zLocs, contours,
                 flameSpeed, tntFactor,
-                out _statusMsg, out _warningMsg, out _overpressures, out _impulses, out _plotFilepath);
+                out _statusMsg, out _warningMsg, out _overpressures, out _impulses, out _plotFilepath, out _massFlowRate);
             Trace.TraceInformation("PhysicsInterface call complete");
         }
 
@@ -220,6 +233,7 @@ namespace SandiaNationalLaboratories.Hyram
             else
             {
                 plotBox.Load(_plotFilepath);
+                outputMassFlowRate.Text = _massFlowRate.ToString("E3");
 
                 dgResult.Rows.Clear();
                 for (var index = 0; index < _overpressures.Length; index++)
@@ -377,6 +391,24 @@ namespace SandiaNationalLaboratories.Hyram
         {
             double speed = (double)flameSpeedSelector.SelectedItem;
             StateContainer.SetNdValue("overpressureFlameSpeed", UnitlessUnit.Unitless, speed);
+        }
+
+        private void tbContourLevels_TextChanged(object sender, EventArgs e)
+        {
+            if (!_mIgnoreXyzChangeEvent)
+            {
+                var contours = new List<double>();
+
+                string contourText = tbContourLevels.Text;
+                Regex.Replace(contourText, @"\s+", "");  // trim whitespace
+                if (contourText != "")
+                {
+                    contours = new List<double>(ExtractFloatArrayFromDelimitedString(tbContourLevels.Text, ','));
+                }
+                StateContainer.Instance.Parameters["overpressure.contours"] =
+                    new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, contours.ToArray(),
+                        0.0);
+            }
         }
     }
 }

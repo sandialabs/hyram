@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -11,16 +11,14 @@ from __future__ import print_function, absolute_import, division
 import warnings
 import logging
 
+from CoolProp import CoolProp
 import numpy as np
 from scipy import optimize, interpolate
-from CoolProp import CoolProp
-
 from scipy import constants as const
-import dill as pickle
-import pandas as pd
-from ._fuel_props import Fuel_Properties
 
-from hyram.utilities.custom_warnings import PhysicsWarning
+from ._fuel_props import Fuel_Properties
+from ..utilities.custom_warnings import PhysicsWarning
+
 
 log = logging.getLogger(__name__)
 
@@ -201,42 +199,6 @@ class CoolPropWrapper:
         self.phase = phase
         return P, T
         
-    def _err_H(self, T1, P1, v1, T2, P2, v2, usePhase1 = False, usePhase2 = False):
-        '''
-        error in total enthalpy (J/kg) for a gas at two different states and velocities
-        
-        Parameters
-        ----------
-        T1: float
-            tempearture (K) at state 1
-        P1: float
-            pressure (Pa) at state 1
-        v1: float
-            velocity (m/s) at state 1
-        T2: float
-            tempearture (K) at state 2
-        P2: float
-            pressure (Pa) at state 2
-        v2: float
-            velocity (m/s) at state 2
-        
-        Returns
-        -------
-        err_h: float
-            error in enthalpy (J/kg)
-        '''
-        try:
-            h1 = self._cp.PropsSI('H', 'T', T1, 'P', P1, self.spec)
-        except:
-            print('tp')
-            h1 = self._cp.PropsSI('H', 'T|'+self.phase, T1, 'P', P1, self.spec)
-        try:
-            h2 = self._cp.PropsSI('H', 'T', T2, 'P', P2, self.spec)
-        except:
-            print('tp')
-            h2 = self._cp.PropsSI('H', 'T|'+self.phase, T2, 'P', P2, self.spec)
-        return h1 + v1**2/2. - (h2 + v2**2/2.)
-        
     def _err_H_P_rho(self, P1, rho1, v1, P2, rho2, v2):
         '''
         error in total enthalpy (J/kg) for a gas at two different states and velocities
@@ -264,47 +226,14 @@ class CoolPropWrapper:
         try:
             h1 = self.PropsSI('H', P = P1, D = rho1)
         except:
-            print('tp')
-            h1 = self.PropsSI('H', {'P|'+self.phase: P1, 'D':rho1})
+            print(f'exception P1:{P1}, rho1:{rho1}, {self.phase}')
+            h1 = self.PropsSI('H', **{'P|'+self.phase: P1, 'D':rho1})
         try:
             h2 = self.PropsSI('H', P = P2, D = rho2)
         except:
-            print('tp')
-            h2 = self.PropsSI('H', {'P|'+self.phase: P2, 'D': rho2})
+            print(f'exception P2:{P2}, rho2:{rho2}, {self.phase}')
+            h2 = self.PropsSI('H', **{'P|'+self.phase: P2, 'D': rho2})
         return h1 + v1**2/2. - (h2 + v2**2/2.)
-    
-    def _err_S(self, T1, P1, T2, P2):
-        '''
-        returns the difference in entropy (J/kg) between 2 states specified by the 
-        temperatures and pressures.
-        
-        Parameters
-        ----------
-        T1: float
-            temperature of gas at point 1 (K)
-        P1: float
-            pressure of gas at point 1 (Pa)
-        T2: float
-            temperature of gas at point 2 (K)
-        P2: float
-            Pressure of gas at point 2 (Pa)
-            
-        Returns
-        -------
-        err_S: float
-            error in enthalpy between the two different states (J/kg)
-        '''
-        try:
-            s1 = self._cp.PropsSI('S', 'T', T1, 'P', P1, self.spec)
-        except:
-            print('tp')
-            s1 = self._cp.PropsSI('S', 'T|'+self.phase, T1, 'P', P1, self.spec)
-        try:
-            s2 = self._cp.PropsSI('S', 'T', T2, 'P', P2, self.spec)
-        except:
-            print('tp')
-            S2 = self._cp.PropsSI('S', 'T|'+self.phase, T2, 'P', P2, self.spec)
-        return s1 - s2
         
     def _X(self, Y, other = 'air'):
         MW = self._cp.PropsSI('M', self.spec)
@@ -313,7 +242,9 @@ class CoolPropWrapper:
     
     def a(self, T = None, P = None, S = None):
         '''
-        returns the speed of sound given the temperature and pressure, or temperature and entropy
+        returns the speed of sound given the temperature and entropy or pressure and entropy
+          note: 2-phase calcualtions no longer supported by this method see git history if
+                interested in 2-phase speed of sound calculations
         
         Parameters
         ----------
@@ -329,24 +260,12 @@ class CoolPropWrapper:
         a: float
             speed of sound (m/s)
         '''
-        def a_2phase(T, Q):
-            '''Speed of sound for 2-phase mixture (see Eq. 10 in Chung, Park, Lee: doi:10.1016/j.jsv.2003.07.003)'''
-            [al, rhol], [av, rhov] = self._cp.PropsSI(['A', 'D'], 'P', P, 'Q', [0, 1], self.spec)
-            #rho = self._cp.PropsSI('D', 'P', P, 'Q', Q, self.spec)
-            alpha = Q*rhol/(rhov*(1-Q) + rhol*Q)  #rho*Q/rhov # volume fraction - Q is mass fraction
-            term = np.sqrt(rhov*av**2/((1-alpha)*rhov*av**2+alpha*rhol*al**2))
-            a = al*av*term/((1-alpha)*av+alpha*al*term)
-            return a
-        if S == None and P != None and T != None: #CoolProp may error out in this case - system should be defined by S and T or P otherwise can be undefined in 2-phase region    
+        if S == None and P != None and T != None: 
             a = self.PropsSI('A', T = T, P = P)
         elif P == None and S != None and T != None:
-            a, Q = self.PropsSI(['A', 'Q'], T = T, S = S)
-            if Q > 0 and Q < 1:
-                a = a_2phase(T, Q)
+            a, Q, P = self.PropsSI(['A', 'Q', 'P'], T=T, S=S)
         elif T == None and P != None and S != None:
             a, Q, T = self.PropsSI(['A', 'Q', 'T'], P=P, S=S)
-            if Q > 0 and Q < 1:
-                a = a_2phase(T, Q)
         else:
             raise warnings.warn('Under-defined - need 2 of T, P, S', category=PhysicsWarning)
             return None
@@ -374,12 +293,14 @@ class CoolPropWrapper:
             return out
         except ValueError:
             if ('T' in kwargs) and ('D' in kwargs):
-                T = kwargs['T']; D = kwargs['D']
+                T = kwargs['T']
+                D = kwargs['D']
                 def err(P):
                     return D - self._cp.PropsSI('D', 'T', T, 'P', P, self.spec)
                 P = optimize.root(err, D*8.314*T/self.MW)['x']
             elif ('P' in kwargs) and ('D' in kwargs):
-                P = kwargs['P']; D = kwargs['D']
+                P = kwargs['P']
+                D = kwargs['D']
                 Tmin = self._cp.PropsSI('Tmin', self.spec)
                 def err(T):
                     return D - self._cp.PropsSI('D', 'T', max(T, Tmin), 'P', P, self.spec)
@@ -406,6 +327,7 @@ class CoolPropWrapper:
             return out
         except:
             raise warnings.warn('system not properly defined')
+
             
     def s(self, T = None, P = None, rho = None, phase = None):
         '''
@@ -439,7 +361,7 @@ class CoolPropWrapper:
             
 
 class Combustion:
-    def __init__(self, fluid, #ambient, # todo: add ambient object
+    def __init__(self, fluid, #ambient, # TODO: add ambient object
                  numpoints = 100, verbose = False):
         '''
         Class that performs combustion chemistry calculations.
@@ -470,7 +392,7 @@ class Combustion:
         nC = fuel_props.nC
 
         Treac, P = fluid.T, fluid.P
- #todo:       #Tair, P = ambient.T, ambient.P
+        # TODO: # Tair, P = ambient.T, ambient.P
         if verbose:
             print('initializing chemistry...', end = '')
         from CoolProp.CoolProp import PropsSI
@@ -487,7 +409,7 @@ class Combustion:
         self.fstoich = MW[reac]/(MW[reac] + (3*nC+1)/2. * (MW['O2'] + MW['N2']*3.76))
         ifstoich = int(max(numpoints*self.fstoich, 5))
         fvals = np.append(np.linspace(0, self.fstoich, int(max(numpoints*self.fstoich, 5))), 
-                          np.linspace(self.fstoich, 1, int(max(numpoints*(1-self.fstoich), 5))));
+                          np.linspace(self.fstoich, 1, int(max(numpoints*(1-self.fstoich), 5))))
         T = self._T_combustion(Treac, fvals)
         MWvals = self._MWmix(self._Yprod(fvals))
         
@@ -596,11 +518,3 @@ class Combustion:
         H = H0 + DHc
         T = optimize.root(lambda T: self._H(T, self._Yprod(f), Hdict) - H, T_reac*np.ones_like(np.array(f)))['x']
         return T
-    
-    def save(self, fname):
-        with open(fname, 'wb') as f:
-            pickle.dump(self, f)
-
-def load_object(fname):
-    with open(fname, 'rb') as f:
-        return pickle.load(f)            

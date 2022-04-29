@@ -35,13 +35,13 @@ namespace SandiaNationalLaboratories.Hyram {
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
-            this.tcScenario = new System.Windows.Forms.TabControl();
-            this.tpRiskMetrics = new System.Windows.Forms.TabPage();
+            this.qraResultTabs = new System.Windows.Forms.TabControl();
+            this.riskMetricsTab = new System.Windows.Forms.TabPage();
             this.dgRiskMetrics = new System.Windows.Forms.DataGridView();
             this.colVariable = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colRmUnit = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.tpScenarioRanking = new System.Windows.Forms.TabPage();
+            this.rankingTab = new System.Windows.Forms.TabPage();
             this.dgRanking = new System.Windows.Forms.DataGridView();
             this.ScenColRanking = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ScenColScenario = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -49,7 +49,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.ScenColAvgEvents = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ScenColBranchLineProb = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ScenColPLL = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.tbScenarioDetails = new System.Windows.Forms.TabPage();
+            this.scenarioDetailsTab = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.detailsLeakGrid = new System.Windows.Forms.DataGridView();
             this.leakSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -64,7 +64,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.leak100d00 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.tpCutSet = new System.Windows.Forms.TabPage();
+            this.cutSetsTab = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.componentLeaksTabControl = new System.Windows.Forms.TabControl();
             this.CutSet000d01 = new System.Windows.Forms.TabPage();
@@ -93,40 +93,88 @@ namespace SandiaNationalLaboratories.Hyram {
             this.dataGridViewTextBoxColumn11 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn12 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.textBox3 = new System.Windows.Forms.TextBox();
-            this.tpPlots = new System.Windows.Forms.TabPage();
-            this.tcPositionPlots = new System.Windows.Forms.TabControl();
-            this.tpPositionPlot1 = new System.Windows.Forms.TabPage();
-            this.pbPositionPlot000d01 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
-            this.tpPositionPlot2 = new System.Windows.Forms.TabPage();
-            this.pbPositionPlot000d10 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
-            this.tpPositionPlot3 = new System.Windows.Forms.TabPage();
-            this.pbPositionPlot001d00 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
-            this.tpPositionPlot4 = new System.Windows.Forms.TabPage();
-            this.pbPositionPlot010d00 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
-            this.tpPositionPlot5 = new System.Windows.Forms.TabPage();
-            this.pbPositionPlot100d00 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
-            this.positionData = new System.Windows.Forms.TabPage();
+            this.thermalTab = new System.Windows.Forms.TabPage();
+            this.thermalPlotTabs = new System.Windows.Forms.TabControl();
+            this.thermalPlot1Tab = new System.Windows.Forms.TabPage();
+            this.thermalPic1 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.thermalPlot2Tab = new System.Windows.Forms.TabPage();
+            this.thermalPic2 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.thermalPlot3Tab = new System.Windows.Forms.TabPage();
+            this.thermalPic3 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.thermalPlot4Tab = new System.Windows.Forms.TabPage();
+            this.thermalPic4 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.thermalPlot5Tab = new System.Windows.Forms.TabPage();
+            this.thermalPic5 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.thermalDataTab = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
-            this.positionDataGrid = new System.Windows.Forms.DataGridView();
-            this.position = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.x = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.y = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.z = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.thermalDataGrid = new System.Windows.Forms.DataGridView();
+            this.thermalPosition = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.thermalX = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.thermalY = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.thermalZ = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.flux000d01 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.flux000d10 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.flux001d00 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.flux010d00 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.flux100d00 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.tcScenario.SuspendLayout();
-            this.tpRiskMetrics.SuspendLayout();
+            this.overpressureTab = new System.Windows.Forms.TabPage();
+            this.overpressurePlotTabs = new System.Windows.Forms.TabControl();
+            this.overpressurePlot1Tab = new System.Windows.Forms.TabPage();
+            this.overpressurePic1 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.overpressurePlot2Tab = new System.Windows.Forms.TabPage();
+            this.overpressurePic2 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.overpressurePlot3Tab = new System.Windows.Forms.TabPage();
+            this.overpressurePic3 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.overpressurePlot4Tab = new System.Windows.Forms.TabPage();
+            this.overpressurePic4 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.overpressurePlot5Tab = new System.Windows.Forms.TabPage();
+            this.overpressurePic5 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.overpressureDataTab = new System.Windows.Forms.TabPage();
+            this.overpressureTablePanel = new System.Windows.Forms.TableLayoutPanel();
+            this.overpressureDataGrid = new System.Windows.Forms.DataGridView();
+            this.overpressurePosition = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.overpressureX = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.overpressureY = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.overpressureZ = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.overp1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.overp2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.overp3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.overp4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.overp5 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.impulseTab = new System.Windows.Forms.TabPage();
+            this.impulsePlotTabs = new System.Windows.Forms.TabControl();
+            this.impulsePlot1Tab = new System.Windows.Forms.TabPage();
+            this.impulsePic1 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.impulsePlot2Tab = new System.Windows.Forms.TabPage();
+            this.impulsePic2 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.impulsePlot3Tab = new System.Windows.Forms.TabPage();
+            this.impulsePic3 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.impulsePlot4Tab = new System.Windows.Forms.TabPage();
+            this.impulsePic4 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.impulsePlot5Tab = new System.Windows.Forms.TabPage();
+            this.impulsePic5 = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.impulseDataTab = new System.Windows.Forms.TabPage();
+            this.impulseTablePanel = new System.Windows.Forms.TableLayoutPanel();
+            this.impulseDataGrid = new System.Windows.Forms.DataGridView();
+            this.impulsePosition = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.impulseX = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.impulseY = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.impulseZ = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.impulse1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.impulse2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.impulse3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.impulse4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.impulse5 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.qraResultTabs.SuspendLayout();
+            this.riskMetricsTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgRiskMetrics)).BeginInit();
-            this.tpScenarioRanking.SuspendLayout();
+            this.rankingTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgRanking)).BeginInit();
-            this.tbScenarioDetails.SuspendLayout();
+            this.scenarioDetailsTab.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.detailsLeakGrid)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.detailsOutcomeGrid)).BeginInit();
-            this.tpCutSet.SuspendLayout();
+            this.cutSetsTab.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.componentLeaksTabControl.SuspendLayout();
             this.CutSet000d01.SuspendLayout();
@@ -139,49 +187,81 @@ namespace SandiaNationalLaboratories.Hyram {
             ((System.ComponentModel.ISupportInitialize)(this.CutSetDGV010d00)).BeginInit();
             this.CutSet100d00.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.CutSetDGV100d00)).BeginInit();
-            this.tpPlots.SuspendLayout();
-            this.tcPositionPlots.SuspendLayout();
-            this.tpPositionPlot1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot000d01)).BeginInit();
-            this.tpPositionPlot2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot000d10)).BeginInit();
-            this.tpPositionPlot3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot001d00)).BeginInit();
-            this.tpPositionPlot4.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot010d00)).BeginInit();
-            this.tpPositionPlot5.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot100d00)).BeginInit();
-            this.positionData.SuspendLayout();
+            this.thermalTab.SuspendLayout();
+            this.thermalPlotTabs.SuspendLayout();
+            this.thermalPlot1Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.thermalPic1)).BeginInit();
+            this.thermalPlot2Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.thermalPic2)).BeginInit();
+            this.thermalPlot3Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.thermalPic3)).BeginInit();
+            this.thermalPlot4Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.thermalPic4)).BeginInit();
+            this.thermalPlot5Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.thermalPic5)).BeginInit();
+            this.thermalDataTab.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.positionDataGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.thermalDataGrid)).BeginInit();
+            this.overpressureTab.SuspendLayout();
+            this.overpressurePlotTabs.SuspendLayout();
+            this.overpressurePlot1Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.overpressurePic1)).BeginInit();
+            this.overpressurePlot2Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.overpressurePic2)).BeginInit();
+            this.overpressurePlot3Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.overpressurePic3)).BeginInit();
+            this.overpressurePlot4Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.overpressurePic4)).BeginInit();
+            this.overpressurePlot5Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.overpressurePic5)).BeginInit();
+            this.overpressureDataTab.SuspendLayout();
+            this.overpressureTablePanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.overpressureDataGrid)).BeginInit();
+            this.impulseTab.SuspendLayout();
+            this.impulsePlotTabs.SuspendLayout();
+            this.impulsePlot1Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.impulsePic1)).BeginInit();
+            this.impulsePlot2Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.impulsePic2)).BeginInit();
+            this.impulsePlot3Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.impulsePic3)).BeginInit();
+            this.impulsePlot4Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.impulsePic4)).BeginInit();
+            this.impulsePlot5Tab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.impulsePic5)).BeginInit();
+            this.impulseDataTab.SuspendLayout();
+            this.impulseTablePanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.impulseDataGrid)).BeginInit();
             this.SuspendLayout();
             // 
-            // tcScenario
+            // qraResultTabs
             // 
-            this.tcScenario.Controls.Add(this.tpRiskMetrics);
-            this.tcScenario.Controls.Add(this.tpScenarioRanking);
-            this.tcScenario.Controls.Add(this.tbScenarioDetails);
-            this.tcScenario.Controls.Add(this.tpCutSet);
-            this.tcScenario.Controls.Add(this.tpPlots);
-            this.tcScenario.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tcScenario.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tcScenario.Location = new System.Drawing.Point(0, 0);
-            this.tcScenario.Name = "tcScenario";
-            this.tcScenario.Padding = new System.Drawing.Point(8, 4);
-            this.tcScenario.SelectedIndex = 0;
-            this.tcScenario.Size = new System.Drawing.Size(867, 619);
-            this.tcScenario.TabIndex = 4;
+            this.qraResultTabs.Controls.Add(this.riskMetricsTab);
+            this.qraResultTabs.Controls.Add(this.rankingTab);
+            this.qraResultTabs.Controls.Add(this.scenarioDetailsTab);
+            this.qraResultTabs.Controls.Add(this.cutSetsTab);
+            this.qraResultTabs.Controls.Add(this.thermalTab);
+            this.qraResultTabs.Controls.Add(this.overpressureTab);
+            this.qraResultTabs.Controls.Add(this.impulseTab);
+            this.qraResultTabs.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.qraResultTabs.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.qraResultTabs.Location = new System.Drawing.Point(0, 0);
+            this.qraResultTabs.Name = "qraResultTabs";
+            this.qraResultTabs.Padding = new System.Drawing.Point(8, 4);
+            this.qraResultTabs.SelectedIndex = 0;
+            this.qraResultTabs.Size = new System.Drawing.Size(867, 619);
+            this.qraResultTabs.TabIndex = 4;
             // 
-            // tpRiskMetrics
+            // riskMetricsTab
             // 
-            this.tpRiskMetrics.Controls.Add(this.dgRiskMetrics);
-            this.tpRiskMetrics.Location = new System.Drawing.Point(4, 26);
-            this.tpRiskMetrics.Margin = new System.Windows.Forms.Padding(2);
-            this.tpRiskMetrics.Name = "tpRiskMetrics";
-            this.tpRiskMetrics.Size = new System.Drawing.Size(859, 589);
-            this.tpRiskMetrics.TabIndex = 6;
-            this.tpRiskMetrics.Text = "Risk Metrics";
-            this.tpRiskMetrics.UseVisualStyleBackColor = true;
+            this.riskMetricsTab.Controls.Add(this.dgRiskMetrics);
+            this.riskMetricsTab.Location = new System.Drawing.Point(4, 26);
+            this.riskMetricsTab.Margin = new System.Windows.Forms.Padding(2);
+            this.riskMetricsTab.Name = "riskMetricsTab";
+            this.riskMetricsTab.Size = new System.Drawing.Size(859, 589);
+            this.riskMetricsTab.TabIndex = 6;
+            this.riskMetricsTab.Text = "Risk Metrics";
+            this.riskMetricsTab.UseVisualStyleBackColor = true;
             // 
             // dgRiskMetrics
             // 
@@ -230,16 +310,16 @@ namespace SandiaNationalLaboratories.Hyram {
             this.colRmUnit.Name = "colRmUnit";
             this.colRmUnit.ReadOnly = true;
             // 
-            // tpScenarioRanking
+            // rankingTab
             // 
-            this.tpScenarioRanking.AutoScroll = true;
-            this.tpScenarioRanking.Controls.Add(this.dgRanking);
-            this.tpScenarioRanking.Location = new System.Drawing.Point(4, 26);
-            this.tpScenarioRanking.Name = "tpScenarioRanking";
-            this.tpScenarioRanking.Size = new System.Drawing.Size(859, 589);
-            this.tpScenarioRanking.TabIndex = 4;
-            this.tpScenarioRanking.Text = "Scenario Ranking";
-            this.tpScenarioRanking.UseVisualStyleBackColor = true;
+            this.rankingTab.AutoScroll = true;
+            this.rankingTab.Controls.Add(this.dgRanking);
+            this.rankingTab.Location = new System.Drawing.Point(4, 26);
+            this.rankingTab.Name = "rankingTab";
+            this.rankingTab.Size = new System.Drawing.Size(859, 589);
+            this.rankingTab.TabIndex = 4;
+            this.rankingTab.Text = "Scenario Ranking";
+            this.rankingTab.UseVisualStyleBackColor = true;
             // 
             // dgRanking
             // 
@@ -336,15 +416,15 @@ namespace SandiaNationalLaboratories.Hyram {
             this.ScenColPLL.ReadOnly = true;
             this.ScenColPLL.Width = 144;
             // 
-            // tbScenarioDetails
+            // scenarioDetailsTab
             // 
-            this.tbScenarioDetails.Controls.Add(this.tableLayoutPanel2);
-            this.tbScenarioDetails.Location = new System.Drawing.Point(4, 26);
-            this.tbScenarioDetails.Name = "tbScenarioDetails";
-            this.tbScenarioDetails.Size = new System.Drawing.Size(859, 589);
-            this.tbScenarioDetails.TabIndex = 7;
-            this.tbScenarioDetails.Text = "Scenario Details";
-            this.tbScenarioDetails.UseVisualStyleBackColor = true;
+            this.scenarioDetailsTab.Controls.Add(this.tableLayoutPanel2);
+            this.scenarioDetailsTab.Location = new System.Drawing.Point(4, 26);
+            this.scenarioDetailsTab.Name = "scenarioDetailsTab";
+            this.scenarioDetailsTab.Size = new System.Drawing.Size(859, 589);
+            this.scenarioDetailsTab.TabIndex = 7;
+            this.scenarioDetailsTab.Text = "Scenario Details";
+            this.scenarioDetailsTab.UseVisualStyleBackColor = true;
             // 
             // tableLayoutPanel2
             // 
@@ -481,15 +561,15 @@ namespace SandiaNationalLaboratories.Hyram {
             this.label2.TabIndex = 3;
             this.label2.Text = "Leak Outcome Probabilities";
             // 
-            // tpCutSet
+            // cutSetsTab
             // 
-            this.tpCutSet.Controls.Add(this.tableLayoutPanel1);
-            this.tpCutSet.Location = new System.Drawing.Point(4, 26);
-            this.tpCutSet.Name = "tpCutSet";
-            this.tpCutSet.Size = new System.Drawing.Size(859, 589);
-            this.tpCutSet.TabIndex = 2;
-            this.tpCutSet.Text = "Cut Sets";
-            this.tpCutSet.UseVisualStyleBackColor = true;
+            this.cutSetsTab.Controls.Add(this.tableLayoutPanel1);
+            this.cutSetsTab.Location = new System.Drawing.Point(4, 26);
+            this.cutSetsTab.Name = "cutSetsTab";
+            this.cutSetsTab.Size = new System.Drawing.Size(859, 589);
+            this.cutSetsTab.TabIndex = 2;
+            this.cutSetsTab.Text = "Cut Sets";
+            this.cutSetsTab.UseVisualStyleBackColor = true;
             // 
             // tableLayoutPanel1
             // 
@@ -775,150 +855,150 @@ namespace SandiaNationalLaboratories.Hyram {
             this.textBox3.TabIndex = 2;
             this.textBox3.Text = "Annual frequencies for specific components or failures for each leak size.";
             // 
-            // tpPlots
+            // thermalTab
             // 
-            this.tpPlots.Controls.Add(this.tcPositionPlots);
-            this.tpPlots.Location = new System.Drawing.Point(4, 26);
-            this.tpPlots.Name = "tpPlots";
-            this.tpPlots.Padding = new System.Windows.Forms.Padding(3);
-            this.tpPlots.Size = new System.Drawing.Size(859, 589);
-            this.tpPlots.TabIndex = 5;
-            this.tpPlots.Text = "Thermal Effects";
-            this.tpPlots.UseVisualStyleBackColor = true;
+            this.thermalTab.Controls.Add(this.thermalPlotTabs);
+            this.thermalTab.Location = new System.Drawing.Point(4, 26);
+            this.thermalTab.Name = "thermalTab";
+            this.thermalTab.Padding = new System.Windows.Forms.Padding(3);
+            this.thermalTab.Size = new System.Drawing.Size(859, 589);
+            this.thermalTab.TabIndex = 5;
+            this.thermalTab.Text = "Thermal Effects";
+            this.thermalTab.UseVisualStyleBackColor = true;
             // 
-            // tcPositionPlots
+            // thermalPlotTabs
             // 
-            this.tcPositionPlots.Controls.Add(this.tpPositionPlot1);
-            this.tcPositionPlots.Controls.Add(this.tpPositionPlot2);
-            this.tcPositionPlots.Controls.Add(this.tpPositionPlot3);
-            this.tcPositionPlots.Controls.Add(this.tpPositionPlot4);
-            this.tcPositionPlots.Controls.Add(this.tpPositionPlot5);
-            this.tcPositionPlots.Controls.Add(this.positionData);
-            this.tcPositionPlots.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tcPositionPlots.Location = new System.Drawing.Point(3, 3);
-            this.tcPositionPlots.Name = "tcPositionPlots";
-            this.tcPositionPlots.SelectedIndex = 0;
-            this.tcPositionPlots.Size = new System.Drawing.Size(853, 583);
-            this.tcPositionPlots.TabIndex = 0;
+            this.thermalPlotTabs.Controls.Add(this.thermalPlot1Tab);
+            this.thermalPlotTabs.Controls.Add(this.thermalPlot2Tab);
+            this.thermalPlotTabs.Controls.Add(this.thermalPlot3Tab);
+            this.thermalPlotTabs.Controls.Add(this.thermalPlot4Tab);
+            this.thermalPlotTabs.Controls.Add(this.thermalPlot5Tab);
+            this.thermalPlotTabs.Controls.Add(this.thermalDataTab);
+            this.thermalPlotTabs.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.thermalPlotTabs.Location = new System.Drawing.Point(3, 3);
+            this.thermalPlotTabs.Name = "thermalPlotTabs";
+            this.thermalPlotTabs.SelectedIndex = 0;
+            this.thermalPlotTabs.Size = new System.Drawing.Size(853, 583);
+            this.thermalPlotTabs.TabIndex = 0;
             // 
-            // tpPositionPlot1
+            // thermalPlot1Tab
             // 
-            this.tpPositionPlot1.Controls.Add(this.pbPositionPlot000d01);
-            this.tpPositionPlot1.Location = new System.Drawing.Point(4, 24);
-            this.tpPositionPlot1.Name = "tpPositionPlot1";
-            this.tpPositionPlot1.Padding = new System.Windows.Forms.Padding(3);
-            this.tpPositionPlot1.Size = new System.Drawing.Size(845, 555);
-            this.tpPositionPlot1.TabIndex = 0;
-            this.tpPositionPlot1.Text = "Position Plot for 0.01% Leak";
-            this.tpPositionPlot1.UseVisualStyleBackColor = true;
+            this.thermalPlot1Tab.Controls.Add(this.thermalPic1);
+            this.thermalPlot1Tab.Location = new System.Drawing.Point(4, 24);
+            this.thermalPlot1Tab.Name = "thermalPlot1Tab";
+            this.thermalPlot1Tab.Padding = new System.Windows.Forms.Padding(3);
+            this.thermalPlot1Tab.Size = new System.Drawing.Size(845, 555);
+            this.thermalPlot1Tab.TabIndex = 0;
+            this.thermalPlot1Tab.Text = "Position Plot for 0.01% Leak";
+            this.thermalPlot1Tab.UseVisualStyleBackColor = true;
             // 
-            // pbPositionPlot000d01
+            // thermalPic1
             // 
-            this.pbPositionPlot000d01.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbPositionPlot000d01.Location = new System.Drawing.Point(3, 3);
-            this.pbPositionPlot000d01.Margin = new System.Windows.Forms.Padding(4);
-            this.pbPositionPlot000d01.Name = "pbPositionPlot000d01";
-            this.pbPositionPlot000d01.Size = new System.Drawing.Size(839, 549);
-            this.pbPositionPlot000d01.TabIndex = 0;
-            this.pbPositionPlot000d01.TabStop = false;
+            this.thermalPic1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.thermalPic1.Location = new System.Drawing.Point(3, 3);
+            this.thermalPic1.Margin = new System.Windows.Forms.Padding(4);
+            this.thermalPic1.Name = "thermalPic1";
+            this.thermalPic1.Size = new System.Drawing.Size(839, 549);
+            this.thermalPic1.TabIndex = 0;
+            this.thermalPic1.TabStop = false;
             // 
-            // tpPositionPlot2
+            // thermalPlot2Tab
             // 
-            this.tpPositionPlot2.Controls.Add(this.pbPositionPlot000d10);
-            this.tpPositionPlot2.Location = new System.Drawing.Point(4, 24);
-            this.tpPositionPlot2.Name = "tpPositionPlot2";
-            this.tpPositionPlot2.Padding = new System.Windows.Forms.Padding(3);
-            this.tpPositionPlot2.Size = new System.Drawing.Size(178, 36);
-            this.tpPositionPlot2.TabIndex = 1;
-            this.tpPositionPlot2.Text = "Position Plot for 0.1% Leak";
-            this.tpPositionPlot2.UseVisualStyleBackColor = true;
+            this.thermalPlot2Tab.Controls.Add(this.thermalPic2);
+            this.thermalPlot2Tab.Location = new System.Drawing.Point(4, 24);
+            this.thermalPlot2Tab.Name = "thermalPlot2Tab";
+            this.thermalPlot2Tab.Padding = new System.Windows.Forms.Padding(3);
+            this.thermalPlot2Tab.Size = new System.Drawing.Size(178, 36);
+            this.thermalPlot2Tab.TabIndex = 1;
+            this.thermalPlot2Tab.Text = "Position Plot for 0.1% Leak";
+            this.thermalPlot2Tab.UseVisualStyleBackColor = true;
             // 
-            // pbPositionPlot000d10
+            // thermalPic2
             // 
-            this.pbPositionPlot000d10.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbPositionPlot000d10.Location = new System.Drawing.Point(3, 3);
-            this.pbPositionPlot000d10.Margin = new System.Windows.Forms.Padding(4);
-            this.pbPositionPlot000d10.Name = "pbPositionPlot000d10";
-            this.pbPositionPlot000d10.Size = new System.Drawing.Size(172, 30);
-            this.pbPositionPlot000d10.TabIndex = 1;
-            this.pbPositionPlot000d10.TabStop = false;
+            this.thermalPic2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.thermalPic2.Location = new System.Drawing.Point(3, 3);
+            this.thermalPic2.Margin = new System.Windows.Forms.Padding(4);
+            this.thermalPic2.Name = "thermalPic2";
+            this.thermalPic2.Size = new System.Drawing.Size(172, 30);
+            this.thermalPic2.TabIndex = 1;
+            this.thermalPic2.TabStop = false;
             // 
-            // tpPositionPlot3
+            // thermalPlot3Tab
             // 
-            this.tpPositionPlot3.Controls.Add(this.pbPositionPlot001d00);
-            this.tpPositionPlot3.Location = new System.Drawing.Point(4, 24);
-            this.tpPositionPlot3.Name = "tpPositionPlot3";
-            this.tpPositionPlot3.Size = new System.Drawing.Size(178, 36);
-            this.tpPositionPlot3.TabIndex = 2;
-            this.tpPositionPlot3.Text = "Position Plot for 1% Leak";
-            this.tpPositionPlot3.UseVisualStyleBackColor = true;
+            this.thermalPlot3Tab.Controls.Add(this.thermalPic3);
+            this.thermalPlot3Tab.Location = new System.Drawing.Point(4, 24);
+            this.thermalPlot3Tab.Name = "thermalPlot3Tab";
+            this.thermalPlot3Tab.Size = new System.Drawing.Size(178, 36);
+            this.thermalPlot3Tab.TabIndex = 2;
+            this.thermalPlot3Tab.Text = "Position Plot for 1% Leak";
+            this.thermalPlot3Tab.UseVisualStyleBackColor = true;
             // 
-            // pbPositionPlot001d00
+            // thermalPic3
             // 
-            this.pbPositionPlot001d00.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbPositionPlot001d00.Location = new System.Drawing.Point(0, 0);
-            this.pbPositionPlot001d00.Margin = new System.Windows.Forms.Padding(4);
-            this.pbPositionPlot001d00.Name = "pbPositionPlot001d00";
-            this.pbPositionPlot001d00.Size = new System.Drawing.Size(178, 36);
-            this.pbPositionPlot001d00.TabIndex = 1;
-            this.pbPositionPlot001d00.TabStop = false;
+            this.thermalPic3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.thermalPic3.Location = new System.Drawing.Point(0, 0);
+            this.thermalPic3.Margin = new System.Windows.Forms.Padding(4);
+            this.thermalPic3.Name = "thermalPic3";
+            this.thermalPic3.Size = new System.Drawing.Size(178, 36);
+            this.thermalPic3.TabIndex = 1;
+            this.thermalPic3.TabStop = false;
             // 
-            // tpPositionPlot4
+            // thermalPlot4Tab
             // 
-            this.tpPositionPlot4.Controls.Add(this.pbPositionPlot010d00);
-            this.tpPositionPlot4.Location = new System.Drawing.Point(4, 24);
-            this.tpPositionPlot4.Name = "tpPositionPlot4";
-            this.tpPositionPlot4.Size = new System.Drawing.Size(178, 36);
-            this.tpPositionPlot4.TabIndex = 3;
-            this.tpPositionPlot4.Text = "Position Plot for 10% Leak";
-            this.tpPositionPlot4.UseVisualStyleBackColor = true;
+            this.thermalPlot4Tab.Controls.Add(this.thermalPic4);
+            this.thermalPlot4Tab.Location = new System.Drawing.Point(4, 24);
+            this.thermalPlot4Tab.Name = "thermalPlot4Tab";
+            this.thermalPlot4Tab.Size = new System.Drawing.Size(178, 36);
+            this.thermalPlot4Tab.TabIndex = 3;
+            this.thermalPlot4Tab.Text = "Position Plot for 10% Leak";
+            this.thermalPlot4Tab.UseVisualStyleBackColor = true;
             // 
-            // pbPositionPlot010d00
+            // thermalPic4
             // 
-            this.pbPositionPlot010d00.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbPositionPlot010d00.Location = new System.Drawing.Point(0, 0);
-            this.pbPositionPlot010d00.Margin = new System.Windows.Forms.Padding(4);
-            this.pbPositionPlot010d00.Name = "pbPositionPlot010d00";
-            this.pbPositionPlot010d00.Size = new System.Drawing.Size(178, 36);
-            this.pbPositionPlot010d00.TabIndex = 1;
-            this.pbPositionPlot010d00.TabStop = false;
+            this.thermalPic4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.thermalPic4.Location = new System.Drawing.Point(0, 0);
+            this.thermalPic4.Margin = new System.Windows.Forms.Padding(4);
+            this.thermalPic4.Name = "thermalPic4";
+            this.thermalPic4.Size = new System.Drawing.Size(178, 36);
+            this.thermalPic4.TabIndex = 1;
+            this.thermalPic4.TabStop = false;
             // 
-            // tpPositionPlot5
+            // thermalPlot5Tab
             // 
-            this.tpPositionPlot5.Controls.Add(this.pbPositionPlot100d00);
-            this.tpPositionPlot5.Location = new System.Drawing.Point(4, 24);
-            this.tpPositionPlot5.Name = "tpPositionPlot5";
-            this.tpPositionPlot5.Size = new System.Drawing.Size(178, 36);
-            this.tpPositionPlot5.TabIndex = 4;
-            this.tpPositionPlot5.Text = "Position Plot for 100% Leak";
-            this.tpPositionPlot5.UseVisualStyleBackColor = true;
+            this.thermalPlot5Tab.Controls.Add(this.thermalPic5);
+            this.thermalPlot5Tab.Location = new System.Drawing.Point(4, 24);
+            this.thermalPlot5Tab.Name = "thermalPlot5Tab";
+            this.thermalPlot5Tab.Size = new System.Drawing.Size(178, 36);
+            this.thermalPlot5Tab.TabIndex = 4;
+            this.thermalPlot5Tab.Text = "Position Plot for 100% Leak";
+            this.thermalPlot5Tab.UseVisualStyleBackColor = true;
             // 
-            // pbPositionPlot100d00
+            // thermalPic5
             // 
-            this.pbPositionPlot100d00.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbPositionPlot100d00.Location = new System.Drawing.Point(0, 0);
-            this.pbPositionPlot100d00.Margin = new System.Windows.Forms.Padding(4);
-            this.pbPositionPlot100d00.Name = "pbPositionPlot100d00";
-            this.pbPositionPlot100d00.Size = new System.Drawing.Size(178, 36);
-            this.pbPositionPlot100d00.TabIndex = 1;
-            this.pbPositionPlot100d00.TabStop = false;
+            this.thermalPic5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.thermalPic5.Location = new System.Drawing.Point(0, 0);
+            this.thermalPic5.Margin = new System.Windows.Forms.Padding(4);
+            this.thermalPic5.Name = "thermalPic5";
+            this.thermalPic5.Size = new System.Drawing.Size(178, 36);
+            this.thermalPic5.TabIndex = 1;
+            this.thermalPic5.TabStop = false;
             // 
-            // positionData
+            // thermalDataTab
             // 
-            this.positionData.Controls.Add(this.tableLayoutPanel3);
-            this.positionData.Location = new System.Drawing.Point(4, 24);
-            this.positionData.Name = "positionData";
-            this.positionData.Padding = new System.Windows.Forms.Padding(3);
-            this.positionData.Size = new System.Drawing.Size(178, 36);
-            this.positionData.TabIndex = 5;
-            this.positionData.Text = "Position Data";
-            this.positionData.UseVisualStyleBackColor = true;
+            this.thermalDataTab.Controls.Add(this.tableLayoutPanel3);
+            this.thermalDataTab.Location = new System.Drawing.Point(4, 24);
+            this.thermalDataTab.Name = "thermalDataTab";
+            this.thermalDataTab.Padding = new System.Windows.Forms.Padding(3);
+            this.thermalDataTab.Size = new System.Drawing.Size(178, 36);
+            this.thermalDataTab.TabIndex = 5;
+            this.thermalDataTab.Text = "Position Data";
+            this.thermalDataTab.UseVisualStyleBackColor = true;
             // 
             // tableLayoutPanel3
             // 
             this.tableLayoutPanel3.ColumnCount = 1;
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel3.Controls.Add(this.positionDataGrid, 0, 1);
+            this.tableLayoutPanel3.Controls.Add(this.thermalDataGrid, 0, 1);
             this.tableLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel3.Location = new System.Drawing.Point(3, 3);
             this.tableLayoutPanel3.Name = "tableLayoutPanel3";
@@ -929,58 +1009,58 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tableLayoutPanel3.Size = new System.Drawing.Size(172, 30);
             this.tableLayoutPanel3.TabIndex = 0;
             // 
-            // positionDataGrid
+            // thermalDataGrid
             // 
-            this.positionDataGrid.AllowUserToAddRows = false;
-            this.positionDataGrid.AllowUserToDeleteRows = false;
-            this.positionDataGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.positionDataGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.positionDataGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.position,
-            this.x,
-            this.y,
-            this.z,
+            this.thermalDataGrid.AllowUserToAddRows = false;
+            this.thermalDataGrid.AllowUserToDeleteRows = false;
+            this.thermalDataGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.thermalDataGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.thermalDataGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.thermalPosition,
+            this.thermalX,
+            this.thermalY,
+            this.thermalZ,
             this.flux000d01,
             this.flux000d10,
             this.flux001d00,
             this.flux010d00,
             this.flux100d00});
-            this.positionDataGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.positionDataGrid.Location = new System.Drawing.Point(3, 4);
-            this.positionDataGrid.Name = "positionDataGrid";
-            this.positionDataGrid.ReadOnly = true;
-            this.positionDataGrid.Size = new System.Drawing.Size(166, 15);
-            this.positionDataGrid.TabIndex = 0;
+            this.thermalDataGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.thermalDataGrid.Location = new System.Drawing.Point(3, 4);
+            this.thermalDataGrid.Name = "thermalDataGrid";
+            this.thermalDataGrid.ReadOnly = true;
+            this.thermalDataGrid.Size = new System.Drawing.Size(166, 15);
+            this.thermalDataGrid.TabIndex = 0;
             // 
-            // position
+            // thermalPosition
             // 
-            this.position.HeaderText = "Position";
-            this.position.Name = "position";
-            this.position.ReadOnly = true;
+            this.thermalPosition.HeaderText = "Position";
+            this.thermalPosition.Name = "thermalPosition";
+            this.thermalPosition.ReadOnly = true;
             // 
-            // x
+            // thermalX
             // 
-            this.x.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
-            this.x.HeaderText = "x (m)";
-            this.x.Name = "x";
-            this.x.ReadOnly = true;
-            this.x.Width = 56;
+            this.thermalX.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.thermalX.HeaderText = "x (m)";
+            this.thermalX.Name = "thermalX";
+            this.thermalX.ReadOnly = true;
+            this.thermalX.Width = 56;
             // 
-            // y
+            // thermalY
             // 
-            this.y.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
-            this.y.HeaderText = "y (m)";
-            this.y.Name = "y";
-            this.y.ReadOnly = true;
-            this.y.Width = 55;
+            this.thermalY.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.thermalY.HeaderText = "y (m)";
+            this.thermalY.Name = "thermalY";
+            this.thermalY.ReadOnly = true;
+            this.thermalY.Width = 55;
             // 
-            // z
+            // thermalZ
             // 
-            this.z.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
-            this.z.HeaderText = "z (m)";
-            this.z.Name = "z";
-            this.z.ReadOnly = true;
-            this.z.Width = 56;
+            this.thermalZ.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.thermalZ.HeaderText = "z (m)";
+            this.thermalZ.Name = "thermalZ";
+            this.thermalZ.ReadOnly = true;
+            this.thermalZ.Width = 56;
             // 
             // flux000d01
             // 
@@ -1012,25 +1092,497 @@ namespace SandiaNationalLaboratories.Hyram {
             this.flux100d00.Name = "flux100d00";
             this.flux100d00.ReadOnly = true;
             // 
+            // overpressureTab
+            // 
+            this.overpressureTab.Controls.Add(this.overpressurePlotTabs);
+            this.overpressureTab.Location = new System.Drawing.Point(4, 26);
+            this.overpressureTab.Name = "overpressureTab";
+            this.overpressureTab.Size = new System.Drawing.Size(859, 589);
+            this.overpressureTab.TabIndex = 8;
+            this.overpressureTab.Text = "Overpressure";
+            this.overpressureTab.UseVisualStyleBackColor = true;
+            // 
+            // overpressurePlotTabs
+            // 
+            this.overpressurePlotTabs.Controls.Add(this.overpressurePlot1Tab);
+            this.overpressurePlotTabs.Controls.Add(this.overpressurePlot2Tab);
+            this.overpressurePlotTabs.Controls.Add(this.overpressurePlot3Tab);
+            this.overpressurePlotTabs.Controls.Add(this.overpressurePlot4Tab);
+            this.overpressurePlotTabs.Controls.Add(this.overpressurePlot5Tab);
+            this.overpressurePlotTabs.Controls.Add(this.overpressureDataTab);
+            this.overpressurePlotTabs.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.overpressurePlotTabs.Location = new System.Drawing.Point(0, 0);
+            this.overpressurePlotTabs.Name = "overpressurePlotTabs";
+            this.overpressurePlotTabs.SelectedIndex = 0;
+            this.overpressurePlotTabs.Size = new System.Drawing.Size(859, 589);
+            this.overpressurePlotTabs.TabIndex = 1;
+            // 
+            // overpressurePlot1Tab
+            // 
+            this.overpressurePlot1Tab.Controls.Add(this.overpressurePic1);
+            this.overpressurePlot1Tab.Location = new System.Drawing.Point(4, 24);
+            this.overpressurePlot1Tab.Name = "overpressurePlot1Tab";
+            this.overpressurePlot1Tab.Padding = new System.Windows.Forms.Padding(3);
+            this.overpressurePlot1Tab.Size = new System.Drawing.Size(851, 561);
+            this.overpressurePlot1Tab.TabIndex = 0;
+            this.overpressurePlot1Tab.Text = "Position Plot for 0.01% Leak";
+            this.overpressurePlot1Tab.UseVisualStyleBackColor = true;
+            // 
+            // overpressurePic1
+            // 
+            this.overpressurePic1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.overpressurePic1.Location = new System.Drawing.Point(3, 3);
+            this.overpressurePic1.Margin = new System.Windows.Forms.Padding(4);
+            this.overpressurePic1.Name = "overpressurePic1";
+            this.overpressurePic1.Size = new System.Drawing.Size(845, 555);
+            this.overpressurePic1.TabIndex = 0;
+            this.overpressurePic1.TabStop = false;
+            // 
+            // overpressurePlot2Tab
+            // 
+            this.overpressurePlot2Tab.Controls.Add(this.overpressurePic2);
+            this.overpressurePlot2Tab.Location = new System.Drawing.Point(4, 24);
+            this.overpressurePlot2Tab.Name = "overpressurePlot2Tab";
+            this.overpressurePlot2Tab.Padding = new System.Windows.Forms.Padding(3);
+            this.overpressurePlot2Tab.Size = new System.Drawing.Size(184, 42);
+            this.overpressurePlot2Tab.TabIndex = 1;
+            this.overpressurePlot2Tab.Text = "Position Plot for 0.1% Leak";
+            this.overpressurePlot2Tab.UseVisualStyleBackColor = true;
+            // 
+            // overpressurePic2
+            // 
+            this.overpressurePic2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.overpressurePic2.Location = new System.Drawing.Point(3, 3);
+            this.overpressurePic2.Margin = new System.Windows.Forms.Padding(4);
+            this.overpressurePic2.Name = "overpressurePic2";
+            this.overpressurePic2.Size = new System.Drawing.Size(178, 36);
+            this.overpressurePic2.TabIndex = 1;
+            this.overpressurePic2.TabStop = false;
+            // 
+            // overpressurePlot3Tab
+            // 
+            this.overpressurePlot3Tab.Controls.Add(this.overpressurePic3);
+            this.overpressurePlot3Tab.Location = new System.Drawing.Point(4, 24);
+            this.overpressurePlot3Tab.Name = "overpressurePlot3Tab";
+            this.overpressurePlot3Tab.Size = new System.Drawing.Size(184, 42);
+            this.overpressurePlot3Tab.TabIndex = 2;
+            this.overpressurePlot3Tab.Text = "Position Plot for 1% Leak";
+            this.overpressurePlot3Tab.UseVisualStyleBackColor = true;
+            // 
+            // overpressurePic3
+            // 
+            this.overpressurePic3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.overpressurePic3.Location = new System.Drawing.Point(0, 0);
+            this.overpressurePic3.Margin = new System.Windows.Forms.Padding(4);
+            this.overpressurePic3.Name = "overpressurePic3";
+            this.overpressurePic3.Size = new System.Drawing.Size(184, 42);
+            this.overpressurePic3.TabIndex = 1;
+            this.overpressurePic3.TabStop = false;
+            // 
+            // overpressurePlot4Tab
+            // 
+            this.overpressurePlot4Tab.Controls.Add(this.overpressurePic4);
+            this.overpressurePlot4Tab.Location = new System.Drawing.Point(4, 24);
+            this.overpressurePlot4Tab.Name = "overpressurePlot4Tab";
+            this.overpressurePlot4Tab.Size = new System.Drawing.Size(184, 42);
+            this.overpressurePlot4Tab.TabIndex = 3;
+            this.overpressurePlot4Tab.Text = "Position Plot for 10% Leak";
+            this.overpressurePlot4Tab.UseVisualStyleBackColor = true;
+            // 
+            // overpressurePic4
+            // 
+            this.overpressurePic4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.overpressurePic4.Location = new System.Drawing.Point(0, 0);
+            this.overpressurePic4.Margin = new System.Windows.Forms.Padding(4);
+            this.overpressurePic4.Name = "overpressurePic4";
+            this.overpressurePic4.Size = new System.Drawing.Size(184, 42);
+            this.overpressurePic4.TabIndex = 1;
+            this.overpressurePic4.TabStop = false;
+            // 
+            // overpressurePlot5Tab
+            // 
+            this.overpressurePlot5Tab.Controls.Add(this.overpressurePic5);
+            this.overpressurePlot5Tab.Location = new System.Drawing.Point(4, 24);
+            this.overpressurePlot5Tab.Name = "overpressurePlot5Tab";
+            this.overpressurePlot5Tab.Size = new System.Drawing.Size(184, 42);
+            this.overpressurePlot5Tab.TabIndex = 4;
+            this.overpressurePlot5Tab.Text = "Position Plot for 100% Leak";
+            this.overpressurePlot5Tab.UseVisualStyleBackColor = true;
+            // 
+            // overpressurePic5
+            // 
+            this.overpressurePic5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.overpressurePic5.Location = new System.Drawing.Point(0, 0);
+            this.overpressurePic5.Margin = new System.Windows.Forms.Padding(4);
+            this.overpressurePic5.Name = "overpressurePic5";
+            this.overpressurePic5.Size = new System.Drawing.Size(184, 42);
+            this.overpressurePic5.TabIndex = 1;
+            this.overpressurePic5.TabStop = false;
+            // 
+            // overpressureDataTab
+            // 
+            this.overpressureDataTab.Controls.Add(this.overpressureTablePanel);
+            this.overpressureDataTab.Location = new System.Drawing.Point(4, 24);
+            this.overpressureDataTab.Name = "overpressureDataTab";
+            this.overpressureDataTab.Padding = new System.Windows.Forms.Padding(3);
+            this.overpressureDataTab.Size = new System.Drawing.Size(184, 42);
+            this.overpressureDataTab.TabIndex = 5;
+            this.overpressureDataTab.Text = "Position Data";
+            this.overpressureDataTab.UseVisualStyleBackColor = true;
+            // 
+            // overpressureTablePanel
+            // 
+            this.overpressureTablePanel.ColumnCount = 1;
+            this.overpressureTablePanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.overpressureTablePanel.Controls.Add(this.overpressureDataGrid, 0, 1);
+            this.overpressureTablePanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.overpressureTablePanel.Location = new System.Drawing.Point(3, 3);
+            this.overpressureTablePanel.Name = "overpressureTablePanel";
+            this.overpressureTablePanel.RowCount = 3;
+            this.overpressureTablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 5F));
+            this.overpressureTablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 70F));
+            this.overpressureTablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.overpressureTablePanel.Size = new System.Drawing.Size(178, 36);
+            this.overpressureTablePanel.TabIndex = 0;
+            // 
+            // overpressureDataGrid
+            // 
+            this.overpressureDataGrid.AllowUserToAddRows = false;
+            this.overpressureDataGrid.AllowUserToDeleteRows = false;
+            this.overpressureDataGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.overpressureDataGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.overpressureDataGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.overpressurePosition,
+            this.overpressureX,
+            this.overpressureY,
+            this.overpressureZ,
+            this.overp1,
+            this.overp2,
+            this.overp3,
+            this.overp4,
+            this.overp5});
+            this.overpressureDataGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.overpressureDataGrid.Location = new System.Drawing.Point(3, 4);
+            this.overpressureDataGrid.Name = "overpressureDataGrid";
+            this.overpressureDataGrid.ReadOnly = true;
+            this.overpressureDataGrid.Size = new System.Drawing.Size(172, 19);
+            this.overpressureDataGrid.TabIndex = 0;
+            // 
+            // overpressurePosition
+            // 
+            this.overpressurePosition.HeaderText = "Position";
+            this.overpressurePosition.Name = "overpressurePosition";
+            this.overpressurePosition.ReadOnly = true;
+            // 
+            // overpressureX
+            // 
+            this.overpressureX.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.overpressureX.HeaderText = "x (m)";
+            this.overpressureX.Name = "overpressureX";
+            this.overpressureX.ReadOnly = true;
+            this.overpressureX.Width = 56;
+            // 
+            // overpressureY
+            // 
+            this.overpressureY.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.overpressureY.HeaderText = "y (m)";
+            this.overpressureY.Name = "overpressureY";
+            this.overpressureY.ReadOnly = true;
+            this.overpressureY.Width = 55;
+            // 
+            // overpressureZ
+            // 
+            this.overpressureZ.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.overpressureZ.HeaderText = "z (m)";
+            this.overpressureZ.Name = "overpressureZ";
+            this.overpressureZ.ReadOnly = true;
+            this.overpressureZ.Width = 56;
+            // 
+            // overp1
+            // 
+            this.overp1.HeaderText = "0.01% Leak Overpressure (kPa)";
+            this.overp1.Name = "overp1";
+            this.overp1.ReadOnly = true;
+            // 
+            // overp2
+            // 
+            this.overp2.HeaderText = "0.1% Leak Overpressure (kPa)";
+            this.overp2.Name = "overp2";
+            this.overp2.ReadOnly = true;
+            // 
+            // overp3
+            // 
+            this.overp3.HeaderText = "1% Leak Overpressure (kPa)";
+            this.overp3.Name = "overp3";
+            this.overp3.ReadOnly = true;
+            // 
+            // overp4
+            // 
+            this.overp4.HeaderText = "10% Leak Overpressure (kPa)";
+            this.overp4.Name = "overp4";
+            this.overp4.ReadOnly = true;
+            // 
+            // overp5
+            // 
+            this.overp5.HeaderText = "100% Leak Overpressure (kPa)";
+            this.overp5.Name = "overp5";
+            this.overp5.ReadOnly = true;
+            // 
+            // impulseTab
+            // 
+            this.impulseTab.Controls.Add(this.impulsePlotTabs);
+            this.impulseTab.Location = new System.Drawing.Point(4, 26);
+            this.impulseTab.Name = "impulseTab";
+            this.impulseTab.Size = new System.Drawing.Size(859, 589);
+            this.impulseTab.TabIndex = 9;
+            this.impulseTab.Text = "Impulse";
+            this.impulseTab.UseVisualStyleBackColor = true;
+            // 
+            // impulsePlotTabs
+            // 
+            this.impulsePlotTabs.Controls.Add(this.impulsePlot1Tab);
+            this.impulsePlotTabs.Controls.Add(this.impulsePlot2Tab);
+            this.impulsePlotTabs.Controls.Add(this.impulsePlot3Tab);
+            this.impulsePlotTabs.Controls.Add(this.impulsePlot4Tab);
+            this.impulsePlotTabs.Controls.Add(this.impulsePlot5Tab);
+            this.impulsePlotTabs.Controls.Add(this.impulseDataTab);
+            this.impulsePlotTabs.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.impulsePlotTabs.Location = new System.Drawing.Point(0, 0);
+            this.impulsePlotTabs.Name = "impulsePlotTabs";
+            this.impulsePlotTabs.SelectedIndex = 0;
+            this.impulsePlotTabs.Size = new System.Drawing.Size(859, 589);
+            this.impulsePlotTabs.TabIndex = 1;
+            // 
+            // impulsePlot1Tab
+            // 
+            this.impulsePlot1Tab.Controls.Add(this.impulsePic1);
+            this.impulsePlot1Tab.Location = new System.Drawing.Point(4, 24);
+            this.impulsePlot1Tab.Name = "impulsePlot1Tab";
+            this.impulsePlot1Tab.Padding = new System.Windows.Forms.Padding(3);
+            this.impulsePlot1Tab.Size = new System.Drawing.Size(851, 561);
+            this.impulsePlot1Tab.TabIndex = 0;
+            this.impulsePlot1Tab.Text = "Position Plot for 0.01% Leak";
+            this.impulsePlot1Tab.UseVisualStyleBackColor = true;
+            // 
+            // impulsePic1
+            // 
+            this.impulsePic1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.impulsePic1.Location = new System.Drawing.Point(3, 3);
+            this.impulsePic1.Margin = new System.Windows.Forms.Padding(4);
+            this.impulsePic1.Name = "impulsePic1";
+            this.impulsePic1.Size = new System.Drawing.Size(845, 555);
+            this.impulsePic1.TabIndex = 0;
+            this.impulsePic1.TabStop = false;
+            // 
+            // impulsePlot2Tab
+            // 
+            this.impulsePlot2Tab.Controls.Add(this.impulsePic2);
+            this.impulsePlot2Tab.Location = new System.Drawing.Point(4, 24);
+            this.impulsePlot2Tab.Name = "impulsePlot2Tab";
+            this.impulsePlot2Tab.Padding = new System.Windows.Forms.Padding(3);
+            this.impulsePlot2Tab.Size = new System.Drawing.Size(184, 42);
+            this.impulsePlot2Tab.TabIndex = 1;
+            this.impulsePlot2Tab.Text = "Position Plot for 0.1% Leak";
+            this.impulsePlot2Tab.UseVisualStyleBackColor = true;
+            // 
+            // impulsePic2
+            // 
+            this.impulsePic2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.impulsePic2.Location = new System.Drawing.Point(3, 3);
+            this.impulsePic2.Margin = new System.Windows.Forms.Padding(4);
+            this.impulsePic2.Name = "impulsePic2";
+            this.impulsePic2.Size = new System.Drawing.Size(178, 36);
+            this.impulsePic2.TabIndex = 1;
+            this.impulsePic2.TabStop = false;
+            // 
+            // impulsePlot3Tab
+            // 
+            this.impulsePlot3Tab.Controls.Add(this.impulsePic3);
+            this.impulsePlot3Tab.Location = new System.Drawing.Point(4, 24);
+            this.impulsePlot3Tab.Name = "impulsePlot3Tab";
+            this.impulsePlot3Tab.Size = new System.Drawing.Size(184, 42);
+            this.impulsePlot3Tab.TabIndex = 2;
+            this.impulsePlot3Tab.Text = "Position Plot for 1% Leak";
+            this.impulsePlot3Tab.UseVisualStyleBackColor = true;
+            // 
+            // impulsePic3
+            // 
+            this.impulsePic3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.impulsePic3.Location = new System.Drawing.Point(0, 0);
+            this.impulsePic3.Margin = new System.Windows.Forms.Padding(4);
+            this.impulsePic3.Name = "impulsePic3";
+            this.impulsePic3.Size = new System.Drawing.Size(184, 42);
+            this.impulsePic3.TabIndex = 1;
+            this.impulsePic3.TabStop = false;
+            // 
+            // impulsePlot4Tab
+            // 
+            this.impulsePlot4Tab.Controls.Add(this.impulsePic4);
+            this.impulsePlot4Tab.Location = new System.Drawing.Point(4, 24);
+            this.impulsePlot4Tab.Name = "impulsePlot4Tab";
+            this.impulsePlot4Tab.Size = new System.Drawing.Size(851, 561);
+            this.impulsePlot4Tab.TabIndex = 3;
+            this.impulsePlot4Tab.Text = "Position Plot for 10% Leak";
+            this.impulsePlot4Tab.UseVisualStyleBackColor = true;
+            // 
+            // impulsePic4
+            // 
+            this.impulsePic4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.impulsePic4.Location = new System.Drawing.Point(0, 0);
+            this.impulsePic4.Margin = new System.Windows.Forms.Padding(4);
+            this.impulsePic4.Name = "impulsePic4";
+            this.impulsePic4.Size = new System.Drawing.Size(851, 561);
+            this.impulsePic4.TabIndex = 1;
+            this.impulsePic4.TabStop = false;
+            // 
+            // impulsePlot5Tab
+            // 
+            this.impulsePlot5Tab.Controls.Add(this.impulsePic5);
+            this.impulsePlot5Tab.Location = new System.Drawing.Point(4, 24);
+            this.impulsePlot5Tab.Name = "impulsePlot5Tab";
+            this.impulsePlot5Tab.Size = new System.Drawing.Size(184, 42);
+            this.impulsePlot5Tab.TabIndex = 4;
+            this.impulsePlot5Tab.Text = "Position Plot for 100% Leak";
+            this.impulsePlot5Tab.UseVisualStyleBackColor = true;
+            // 
+            // impulsePic5
+            // 
+            this.impulsePic5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.impulsePic5.Location = new System.Drawing.Point(0, 0);
+            this.impulsePic5.Margin = new System.Windows.Forms.Padding(4);
+            this.impulsePic5.Name = "impulsePic5";
+            this.impulsePic5.Size = new System.Drawing.Size(184, 42);
+            this.impulsePic5.TabIndex = 1;
+            this.impulsePic5.TabStop = false;
+            // 
+            // impulseDataTab
+            // 
+            this.impulseDataTab.Controls.Add(this.impulseTablePanel);
+            this.impulseDataTab.Location = new System.Drawing.Point(4, 24);
+            this.impulseDataTab.Name = "impulseDataTab";
+            this.impulseDataTab.Padding = new System.Windows.Forms.Padding(3);
+            this.impulseDataTab.Size = new System.Drawing.Size(184, 42);
+            this.impulseDataTab.TabIndex = 5;
+            this.impulseDataTab.Text = "Position Data";
+            this.impulseDataTab.UseVisualStyleBackColor = true;
+            // 
+            // impulseTablePanel
+            // 
+            this.impulseTablePanel.ColumnCount = 1;
+            this.impulseTablePanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.impulseTablePanel.Controls.Add(this.impulseDataGrid, 0, 1);
+            this.impulseTablePanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.impulseTablePanel.Location = new System.Drawing.Point(3, 3);
+            this.impulseTablePanel.Name = "impulseTablePanel";
+            this.impulseTablePanel.RowCount = 3;
+            this.impulseTablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 5F));
+            this.impulseTablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 70F));
+            this.impulseTablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.impulseTablePanel.Size = new System.Drawing.Size(178, 36);
+            this.impulseTablePanel.TabIndex = 0;
+            // 
+            // impulseDataGrid
+            // 
+            this.impulseDataGrid.AllowUserToAddRows = false;
+            this.impulseDataGrid.AllowUserToDeleteRows = false;
+            this.impulseDataGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.impulseDataGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.impulseDataGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.impulsePosition,
+            this.impulseX,
+            this.impulseY,
+            this.impulseZ,
+            this.impulse1,
+            this.impulse2,
+            this.impulse3,
+            this.impulse4,
+            this.impulse5});
+            this.impulseDataGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.impulseDataGrid.Location = new System.Drawing.Point(3, 4);
+            this.impulseDataGrid.Name = "impulseDataGrid";
+            this.impulseDataGrid.ReadOnly = true;
+            this.impulseDataGrid.Size = new System.Drawing.Size(172, 19);
+            this.impulseDataGrid.TabIndex = 0;
+            // 
+            // impulsePosition
+            // 
+            this.impulsePosition.HeaderText = "Position";
+            this.impulsePosition.Name = "impulsePosition";
+            this.impulsePosition.ReadOnly = true;
+            // 
+            // impulseX
+            // 
+            this.impulseX.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.impulseX.HeaderText = "x (m)";
+            this.impulseX.Name = "impulseX";
+            this.impulseX.ReadOnly = true;
+            this.impulseX.Width = 56;
+            // 
+            // impulseY
+            // 
+            this.impulseY.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.impulseY.HeaderText = "y (m)";
+            this.impulseY.Name = "impulseY";
+            this.impulseY.ReadOnly = true;
+            this.impulseY.Width = 55;
+            // 
+            // impulseZ
+            // 
+            this.impulseZ.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+            this.impulseZ.HeaderText = "z (m)";
+            this.impulseZ.Name = "impulseZ";
+            this.impulseZ.ReadOnly = true;
+            this.impulseZ.Width = 56;
+            // 
+            // impulse1
+            // 
+            this.impulse1.HeaderText = "0.01% Leak Impulse (Pa*s)";
+            this.impulse1.Name = "impulse1";
+            this.impulse1.ReadOnly = true;
+            // 
+            // impulse2
+            // 
+            this.impulse2.HeaderText = "0.1% Leak Impulse (Pa*s)";
+            this.impulse2.Name = "impulse2";
+            this.impulse2.ReadOnly = true;
+            // 
+            // impulse3
+            // 
+            this.impulse3.HeaderText = "1% Leak Impulse (Pa*s)";
+            this.impulse3.Name = "impulse3";
+            this.impulse3.ReadOnly = true;
+            // 
+            // impulse4
+            // 
+            this.impulse4.HeaderText = "10% Leak Impulse (Pa*s)";
+            this.impulse4.Name = "impulse4";
+            this.impulse4.ReadOnly = true;
+            // 
+            // impulse5
+            // 
+            this.impulse5.HeaderText = "100% Leak Impulse (Pa*s)";
+            this.impulse5.Name = "impulse5";
+            this.impulse5.ReadOnly = true;
+            // 
             // QraResultsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.tcScenario);
+            this.Controls.Add(this.qraResultTabs);
             this.Name = "QraResultsPanel";
             this.Size = new System.Drawing.Size(867, 619);
-            this.tcScenario.ResumeLayout(false);
-            this.tpRiskMetrics.ResumeLayout(false);
+            this.qraResultTabs.ResumeLayout(false);
+            this.riskMetricsTab.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgRiskMetrics)).EndInit();
-            this.tpScenarioRanking.ResumeLayout(false);
+            this.rankingTab.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgRanking)).EndInit();
-            this.tbScenarioDetails.ResumeLayout(false);
+            this.scenarioDetailsTab.ResumeLayout(false);
             this.tableLayoutPanel2.ResumeLayout(false);
             this.tableLayoutPanel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.detailsLeakGrid)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.detailsOutcomeGrid)).EndInit();
-            this.tpCutSet.ResumeLayout(false);
-            this.tpCutSet.PerformLayout();
+            this.cutSetsTab.ResumeLayout(false);
+            this.cutSetsTab.PerformLayout();
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
             this.componentLeaksTabControl.ResumeLayout(false);
@@ -1044,43 +1596,73 @@ namespace SandiaNationalLaboratories.Hyram {
             ((System.ComponentModel.ISupportInitialize)(this.CutSetDGV010d00)).EndInit();
             this.CutSet100d00.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.CutSetDGV100d00)).EndInit();
-            this.tpPlots.ResumeLayout(false);
-            this.tcPositionPlots.ResumeLayout(false);
-            this.tpPositionPlot1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot000d01)).EndInit();
-            this.tpPositionPlot2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot000d10)).EndInit();
-            this.tpPositionPlot3.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot001d00)).EndInit();
-            this.tpPositionPlot4.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot010d00)).EndInit();
-            this.tpPositionPlot5.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pbPositionPlot100d00)).EndInit();
-            this.positionData.ResumeLayout(false);
+            this.thermalTab.ResumeLayout(false);
+            this.thermalPlotTabs.ResumeLayout(false);
+            this.thermalPlot1Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.thermalPic1)).EndInit();
+            this.thermalPlot2Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.thermalPic2)).EndInit();
+            this.thermalPlot3Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.thermalPic3)).EndInit();
+            this.thermalPlot4Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.thermalPic4)).EndInit();
+            this.thermalPlot5Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.thermalPic5)).EndInit();
+            this.thermalDataTab.ResumeLayout(false);
             this.tableLayoutPanel3.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.positionDataGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.thermalDataGrid)).EndInit();
+            this.overpressureTab.ResumeLayout(false);
+            this.overpressurePlotTabs.ResumeLayout(false);
+            this.overpressurePlot1Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.overpressurePic1)).EndInit();
+            this.overpressurePlot2Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.overpressurePic2)).EndInit();
+            this.overpressurePlot3Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.overpressurePic3)).EndInit();
+            this.overpressurePlot4Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.overpressurePic4)).EndInit();
+            this.overpressurePlot5Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.overpressurePic5)).EndInit();
+            this.overpressureDataTab.ResumeLayout(false);
+            this.overpressureTablePanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.overpressureDataGrid)).EndInit();
+            this.impulseTab.ResumeLayout(false);
+            this.impulsePlotTabs.ResumeLayout(false);
+            this.impulsePlot1Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.impulsePic1)).EndInit();
+            this.impulsePlot2Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.impulsePic2)).EndInit();
+            this.impulsePlot3Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.impulsePic3)).EndInit();
+            this.impulsePlot4Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.impulsePic4)).EndInit();
+            this.impulsePlot5Tab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.impulsePic5)).EndInit();
+            this.impulseDataTab.ResumeLayout(false);
+            this.impulseTablePanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.impulseDataGrid)).EndInit();
             this.ResumeLayout(false);
 
 		}
 
 		#endregion
 
-		private System.Windows.Forms.TabControl tcScenario;
-		private System.Windows.Forms.TabPage tpCutSet;
-		private System.Windows.Forms.TabPage tpScenarioRanking;
+		private System.Windows.Forms.TabControl qraResultTabs;
+		private System.Windows.Forms.TabPage cutSetsTab;
+		private System.Windows.Forms.TabPage rankingTab;
 		private System.Windows.Forms.DataGridView dgRanking;
-		private System.Windows.Forms.TabPage tpPlots;
-		private System.Windows.Forms.TabControl tcPositionPlots;
-		private System.Windows.Forms.TabPage tpPositionPlot1;
-		private System.Windows.Forms.TabPage tpPositionPlot2;
-		private System.Windows.Forms.TabPage tpPositionPlot3;
-		private System.Windows.Forms.TabPage tpPositionPlot4;
-		private System.Windows.Forms.TabPage tpPositionPlot5;
-		private Hyram.PictureBoxWithSave pbPositionPlot000d01;
-		private Hyram.PictureBoxWithSave pbPositionPlot000d10;
-		private Hyram.PictureBoxWithSave pbPositionPlot001d00;
-		private Hyram.PictureBoxWithSave pbPositionPlot010d00;
-		private Hyram.PictureBoxWithSave pbPositionPlot100d00;
+		private System.Windows.Forms.TabPage thermalTab;
+		private System.Windows.Forms.TabControl thermalPlotTabs;
+		private System.Windows.Forms.TabPage thermalPlot1Tab;
+		private System.Windows.Forms.TabPage thermalPlot2Tab;
+		private System.Windows.Forms.TabPage thermalPlot3Tab;
+		private System.Windows.Forms.TabPage thermalPlot4Tab;
+		private System.Windows.Forms.TabPage thermalPlot5Tab;
+		private Hyram.PictureBoxWithSave thermalPic1;
+		private Hyram.PictureBoxWithSave thermalPic2;
+		private Hyram.PictureBoxWithSave thermalPic3;
+		private Hyram.PictureBoxWithSave thermalPic4;
+		private Hyram.PictureBoxWithSave thermalPic5;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.TabControl componentLeaksTabControl;
         private System.Windows.Forms.TabPage CutSet000d01;
@@ -1094,7 +1676,7 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.DataGridView CutSetDGV100d00;
         private System.Windows.Forms.TextBox textBox3;
         private System.Windows.Forms.DataGridView CutSetDGV000d01;
-        private System.Windows.Forms.TabPage tpRiskMetrics;
+        private System.Windows.Forms.TabPage riskMetricsTab;
         private System.Windows.Forms.DataGridView dgRiskMetrics;
         private System.Windows.Forms.DataGridViewTextBoxColumn colVariable;
         private System.Windows.Forms.DataGridViewTextBoxColumn colValue;
@@ -1120,7 +1702,7 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.DataGridViewTextBoxColumn ScenColAvgEvents;
         private System.Windows.Forms.DataGridViewTextBoxColumn ScenColBranchLineProb;
         private System.Windows.Forms.DataGridViewTextBoxColumn ScenColPLL;
-        private System.Windows.Forms.TabPage tbScenarioDetails;
+        private System.Windows.Forms.TabPage scenarioDetailsTab;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.DataGridView detailsLeakGrid;
         private System.Windows.Forms.DataGridView detailsOutcomeGrid;
@@ -1133,13 +1715,13 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.DataGridViewTextBoxColumn leak001d00;
         private System.Windows.Forms.DataGridViewTextBoxColumn leak010d00;
         private System.Windows.Forms.DataGridViewTextBoxColumn leak100d00;
-        private System.Windows.Forms.TabPage positionData;
+        private System.Windows.Forms.TabPage thermalDataTab;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
-        private System.Windows.Forms.DataGridView positionDataGrid;
-        private System.Windows.Forms.DataGridViewTextBoxColumn position;
-        private System.Windows.Forms.DataGridViewTextBoxColumn x;
-        private System.Windows.Forms.DataGridViewTextBoxColumn y;
-        private System.Windows.Forms.DataGridViewTextBoxColumn z;
+        private System.Windows.Forms.DataGridView thermalDataGrid;
+        private System.Windows.Forms.DataGridViewTextBoxColumn thermalPosition;
+        private System.Windows.Forms.DataGridViewTextBoxColumn thermalX;
+        private System.Windows.Forms.DataGridViewTextBoxColumn thermalY;
+        private System.Windows.Forms.DataGridViewTextBoxColumn thermalZ;
         private System.Windows.Forms.DataGridViewTextBoxColumn flux000d01;
         private System.Windows.Forms.DataGridViewTextBoxColumn flux000d10;
         private System.Windows.Forms.DataGridViewTextBoxColumn flux001d00;
@@ -1147,5 +1729,53 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.DataGridViewTextBoxColumn flux100d00;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TabPage overpressureTab;
+        private System.Windows.Forms.TabPage impulseTab;
+        private System.Windows.Forms.TabControl overpressurePlotTabs;
+        private System.Windows.Forms.TabPage overpressurePlot1Tab;
+        private PictureBoxWithSave overpressurePic1;
+        private System.Windows.Forms.TabPage overpressurePlot2Tab;
+        private PictureBoxWithSave overpressurePic2;
+        private System.Windows.Forms.TabPage overpressurePlot3Tab;
+        private PictureBoxWithSave overpressurePic3;
+        private System.Windows.Forms.TabPage overpressurePlot4Tab;
+        private PictureBoxWithSave overpressurePic4;
+        private System.Windows.Forms.TabPage overpressurePlot5Tab;
+        private PictureBoxWithSave overpressurePic5;
+        private System.Windows.Forms.TabPage overpressureDataTab;
+        private System.Windows.Forms.TableLayoutPanel overpressureTablePanel;
+        private System.Windows.Forms.DataGridView overpressureDataGrid;
+        private System.Windows.Forms.TabControl impulsePlotTabs;
+        private System.Windows.Forms.TabPage impulsePlot1Tab;
+        private PictureBoxWithSave impulsePic1;
+        private System.Windows.Forms.TabPage impulsePlot2Tab;
+        private PictureBoxWithSave impulsePic2;
+        private System.Windows.Forms.TabPage impulsePlot3Tab;
+        private PictureBoxWithSave impulsePic3;
+        private System.Windows.Forms.TabPage impulsePlot4Tab;
+        private PictureBoxWithSave impulsePic4;
+        private System.Windows.Forms.TabPage impulsePlot5Tab;
+        private PictureBoxWithSave impulsePic5;
+        private System.Windows.Forms.TabPage impulseDataTab;
+        private System.Windows.Forms.TableLayoutPanel impulseTablePanel;
+        private System.Windows.Forms.DataGridView impulseDataGrid;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulsePosition;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulseX;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulseY;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulseZ;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulse1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulse2;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulse3;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulse4;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulse5;
+        private System.Windows.Forms.DataGridViewTextBoxColumn overpressurePosition;
+        private System.Windows.Forms.DataGridViewTextBoxColumn overpressureX;
+        private System.Windows.Forms.DataGridViewTextBoxColumn overpressureY;
+        private System.Windows.Forms.DataGridViewTextBoxColumn overpressureZ;
+        private System.Windows.Forms.DataGridViewTextBoxColumn overp1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn overp2;
+        private System.Windows.Forms.DataGridViewTextBoxColumn overp3;
+        private System.Windows.Forms.DataGridViewTextBoxColumn overp4;
+        private System.Windows.Forms.DataGridViewTextBoxColumn overp5;
     }
 }

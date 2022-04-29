@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -11,7 +11,9 @@ import unittest
 
 from scipy import constants as const
 
-from hyram.phys import c_api, Jet, Fluid
+from hyram.phys import c_api
+from hyram.utilities import misc_utils
+
 
 """
 NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
@@ -25,8 +27,7 @@ class H2JetPlumeTestCase(unittest.TestCase):
     Test plume analysis.
     """
     def setUp(self):
-        self.dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.output_dir = os.path.join(self.dir_path, 'temp')
+        self.output_dir = misc_utils.get_temp_folder()
         c_api.setup(self.output_dir, VERBOSE)
 
     def tearDown(self):
@@ -140,14 +141,61 @@ class H2JetPlumeTestCase(unittest.TestCase):
 
         self.assertTrue(warning)
 
+    def test_contour_invalid_0(self):
+        wrapped = c_api.analyze_jet_plume(
+                amb_temp=288.15,
+                amb_pres=101325.,
+                rel_species='H2',
+                rel_temp=287.8,
+                rel_pres=13420000.,
+                rel_phase=None,
+                orif_diam=0.00356,
+                rel_angle=1.5708,
+                dis_coeff=1.0,
+                nozzle_model='yuce',
+                contour=0.0,
+                xmin=-2.5,
+                xmax=2.5,
+                ymin=0,
+                ymax=10,
+                plot_title='Plume test',
+                output_dir=self.output_dir,
+                verbose=VERBOSE)
+
+        self.assertFalse(wrapped['status'])
+        self.assertTrue(len(wrapped['message']))
+
+    def test_contour_invalid_1(self):
+        wrapped = c_api.analyze_jet_plume(
+                amb_temp=288.15,
+                amb_pres=101325.,
+                rel_species='H2',
+                rel_temp=287.8,
+                rel_pres=13420000.,
+                rel_phase=None,
+                orif_diam=0.00356,
+                rel_angle=1.5708,
+                dis_coeff=1.0,
+                nozzle_model='yuce',
+                contour=1.0,
+                xmin=-2.5,
+                xmax=2.5,
+                ymin=0,
+                ymax=10,
+                plot_title='Plume test',
+                output_dir=self.output_dir,
+                verbose=VERBOSE)
+
+        self.assertFalse(wrapped['status'])
+        self.assertTrue(len(wrapped['message']))
+
 
 class LH2JetPlumeTestCase(unittest.TestCase):
     """
     Test plume analysis.
     """
     def setUp(self):
-        self.dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.output_dir = os.path.join(self.dir_path, 'temp')
+        self.output_dir = misc_utils.get_temp_folder()
         c_api.setup(self.output_dir, VERBOSE)
 
     def tearDown(self):

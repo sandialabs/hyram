@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -7,27 +7,13 @@ If not, see https://www.gnu.org/licenses/.
 """
 
 import json
-
-import numpy as np
 import ctypes
+import numpy as np
+# NOTE (Cianan): these imports may be unused here but are required by python.net
 import clr
 import System
-from System import Array, Int32
 from System.Runtime.InteropServices import GCHandle, GCHandleType
 
-_MAP_NP_NET = {
-    np.dtype('float32'): System.Single,
-    np.dtype('float64'): System.Double,
-    np.dtype('int8'): System.SByte,
-    np.dtype('int16'): System.Int16,
-    np.dtype('int32'): System.Int32,
-    np.dtype('int64'): System.Int64,
-    np.dtype('uint8'): System.Byte,
-    np.dtype('uint16'): System.UInt16,
-    np.dtype('uint32'): System.UInt32,
-    np.dtype('uint64'): System.UInt64,
-    np.dtype('bool'): System.Boolean,
-}
 _MAP_NET_NP = {
     'Single': np.dtype('float32'),
     'Double': np.dtype('float64'),
@@ -106,51 +92,6 @@ def convert_to_numpy_array(cnet_array):
     return np_array
 
 
-def convert_numpy_array_to_cnet(nparray):
-    '''
-    Given a `numpy.ndarray` returns a CLR `System.Array`.  See _MAP_NP_NET for
-    the mapping of Numpy dtypes to CLR types.
-
-    Note: `complex64` and `complex128` arrays are converted to `float32`
-    and `float64` arrays respectively with shape [m,n,...] -> [m,n,...,2]
-    Reference: https://github.com/pythonnet/pythonnet/issues/514
-    '''
-    dims = nparray.shape
-    dtype = nparray.dtype
-    # For complex arrays, we must make a view of the array as its corresponding
-    # float type.
-    if dtype == np.complex64:
-        dtype = np.dtype('float32')
-        dims.append(2)
-        nparray = nparray.view(np.float32).reshape(dims)
-    elif dtype == np.complex128:
-        dtype = np.dtype('float64')
-        dims.append(2)
-        nparray = nparray.view(np.float64).reshape(dims)
-
-    cnet_dims = Array.CreateInstance(Int32, nparray.ndim)
-    for I in range(nparray.ndim):
-        cnet_dims[I] = Int32(dims[I])
-
-    if not nparray.flags.c_contiguous:
-        nparray = nparray.copy(order='C')
-    assert nparray.flags.c_contiguous
-
-    try:
-        cnet_array = Array.CreateInstance(_MAP_NP_NET[dtype], cnet_dims)
-    except KeyError:
-        raise NotImplementedError("asNetArray does not yet support dtype {}".format(dtype))
-
-    try:  # Memmove
-        dest_handle = GCHandle.Alloc(cnet_array, GCHandleType.Pinned)
-        src_ptr = nparray.__array_interface__['data'][0]
-        dest_ptr = dest_handle.AddrOfPinnedObject().ToInt64()
-        ctypes.memmove(dest_ptr, src_ptr, nparray.nbytes)
-    finally:
-        if dest_handle.IsAllocated: dest_handle.Free()
-    return cnet_array
-
-
 def convert_occupant_json_to_dicts(occ_json):
     """
     Convert C# JSON input into list of dicts in correct format.
@@ -197,8 +138,3 @@ def convert_occupant_json_to_dicts(occ_json):
         occ_groups.append(group)
 
     return occ_groups
-
-
-def parse_nozzle_param(noz_str):
-    ustr = noz_str.upper()
-    return ustr

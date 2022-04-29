@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -19,10 +19,11 @@ import scipy.constants as const
 from matplotlib.collections import LineCollection
 from scipy import interpolate
 
-from ..utilities import misc_utils
+from ._fuel_props import Fuel_Properties
 from ._comps import Fluid, Orifice
 from ._layer import LayeringJet
 from ._therm import Combustion
+from ..utilities import misc_utils
 from ..utilities.custom_warnings import PhysicsWarning
 
 log = logging.getLogger(__name__)
@@ -35,13 +36,13 @@ class IndoorRelease:
     '''
     Class used to calculate physics of an indoor release
     '''
-    def __init__(self, source, orifice, ambient, enclosure, tmax = None,
-                 heat_flux = 0, nmax = 1000, m_empty = 1e-6, p_empty_percent = 1e-2,
-                 release_area = None, theta0 = 0, x0 = 0, y0 = 0,
+    def __init__(self, source, orifice, ambient, enclosure, tmax=None,
+                 heat_flux=0, nmax=1000, m_empty=1e-6, p_empty_percent=1e-2,
+                 release_area=None, theta0=0, x0=0, y0=0,
                  nn_conserve_momentum=True, nn_T='solve_energy',
-                 lam = 1.16, X_lean = 0.04, X_rich = 0.75, tol = 1e-5,
-                 max_steps = 1e5, steady = False, nsteady = 5,
-                 verbose = True):
+                 lam=1.16, X_lean=None, X_rich=None, tol=1e-5,
+                 max_steps=1e5, steady=False, nsteady=5,
+                 verbose=False):
         '''
         Initialization for an indoor release
         
@@ -77,9 +78,11 @@ class IndoorRelease:
         lam : float (optional)
             lambda value, default is 1.16
         X_lean : float (optional)
-            molar lower flammability limit, default is 0.04 (for H2)
+            molar lower flammability limit,
+            default is None: will use default LFL for fuel
         X_rich : float (optional)
-            molar upper flammability limit, default is 0.75 (for H2)
+            molar upper flammability limit,
+            default is None: will use default UFL for fuel
         tol : float (optional)
             Tolerance for h2_jet integration, default is 1e-5
         max_steps : integer (optional)
@@ -91,6 +94,13 @@ class IndoorRelease:
         nsteady: integer (optional)
             number of time divisions to get to steady state
         '''
+        if X_lean is None:
+            fuel_props = Fuel_Properties(source.fluid.species)
+            X_lean = fuel_props.LFL
+        if X_rich is None:
+            fuel_props = Fuel_Properties(source.fluid.species)
+            X_rich = fuel_props.UFL
+
         params = locals()
         log.info(misc_utils.params_as_str(params))
 
@@ -103,7 +113,7 @@ class IndoorRelease:
             if tmax is None:
                 tmax = 30 # this is an arbitrary number - should be long enough to ensure steady-state has been reached
             ts = np.linspace(0, tmax, nsteady) 
-            steady_mdot = source.mdot(orifice, ambient.P)
+            steady_mdot = orifice.mdot(orifice.flow(source.fluid, ambient.P))
             mdots = np.ones(len(ts)) * steady_mdot
             gas_list = [source.fluid for i in range(len(ts))]
         else:

@@ -112,6 +112,11 @@
     <Compile Include="Physics\UnconfinedOverpressureForm.Designer.cs">
       <DependentUpon>UnconfinedOverpressureForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Qra\ConsequenceModelsForm.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -237,12 +242,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Compile>
     <Compile Include="Resources\Narratives.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -347,8 +346,8 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Narratives.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
@@ -373,21 +372,21 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Content Include="Resources\ajax-loader.gif" />
-    <Content Include="Resources\ESD_2020.png" />
+    <Content Include="Resources\ESD.png" />
     <Content Include="Resources\BannerLogo.jpg" />
-    <Content Include="Resources\0p01pctFT_2020.png">
+    <Content Include="Resources\0p01pctFT.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\0p1pctFT_2020.png">
+    <Content Include="Resources\0p1pctFT.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\1pctFT_2020.png">
+    <Content Include="Resources\1pctFT.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\10pctFT_2020.png">
+    <Content Include="Resources\10pctFT.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\100pctFT_2020.png">
+    <Content Include="Resources\100pctFT.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\geometry of flame.png" />

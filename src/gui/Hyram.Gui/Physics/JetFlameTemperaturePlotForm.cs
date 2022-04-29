@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -22,6 +22,7 @@ namespace SandiaNationalLaboratories.Hyram
         private string _resultImageFilepath;
         private float _massFlow;
         private float _srad;
+        private float _flameLength;
 
         public JetFlameTemperaturePlotForm()
         {
@@ -60,8 +61,8 @@ namespace SandiaNationalLaboratories.Hyram
                     StockConverters.PressureConverter),
                 new ParameterWrapper("orificeDiameter", "Leak diameter", DistanceUnit.Meter,
                     StockConverters.DistanceConverter),
-                new ParameterWrapper("releaseHeight", "Leak height from floor (y0)",
-                    DistanceUnit.Meter, StockConverters.DistanceConverter),
+                new ParameterWrapper("orificeDischargeCoefficient", "Discharge coefficient", UnitlessUnit.Unitless,
+                    StockConverters.UnitlessConverter),
                 new ParameterWrapper("releaseAngle", "Release angle", AngleUnit.Degrees,
                     StockConverters.AngleConverter)
             });
@@ -109,16 +110,17 @@ namespace SandiaNationalLaboratories.Hyram
                 .GetValue(PressureUnit.Pa)[0];
             var orificeDiam = StateContainer.Instance.GetStateDefinedValueObject("orificeDiameter")
                 .GetValue(DistanceUnit.Meter)[0];
-            var y0 = StateContainer.Instance.GetStateDefinedValueObject("releaseHeight")
-                .GetValue(DistanceUnit.Meter)[0];
+            var dischargeCoeff = StateContainer.GetNdValue("orificeDischargeCoefficient", UnitlessUnit.Unitless);
             var releaseAngle = StateContainer.Instance.GetStateDefinedValueObject("releaseAngle")
                 .GetValue(AngleUnit.Radians)[0];
             var nozzleModel = StateContainer.GetValue<NozzleModel>("NozzleModel");
 
             var physInt = new PhysicsInterface();
-            _analysisStatus = physInt.CreateFlameTemperaturePlot(ambTemp, ambPres, h2Temp, h2Pres, orificeDiam, y0,
+            _analysisStatus = physInt.CreateFlameTemperaturePlot(ambTemp, ambPres, h2Temp, h2Pres,
+                orificeDiam, dischargeCoeff,
                 releaseAngle, nozzleModel.GetKey(),
-                out _statusMsg, out _warningMsg, out _resultImageFilepath, out _massFlow, out _srad);
+                out _statusMsg, out _warningMsg, out _resultImageFilepath,
+                out _massFlow, out _srad, out _flameLength);
         }
 
         private void DisplayResults()
@@ -134,6 +136,7 @@ namespace SandiaNationalLaboratories.Hyram
                 outputPictureBox.Load(_resultImageFilepath);
                 outputMassFlowRate.Text = _massFlow.ToString("E3");
                 outputSrad.Text = _srad.ToString("E3");
+                outputFlameLength.Text = _flameLength.ToString("F3");
                 tcIO.SelectedTab = outputTab;
 
                 if (_warningMsg.Length != 0)

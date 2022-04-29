@@ -36,6 +36,8 @@ namespace SandiaNationalLaboratories.Hyram
         {
             this.tcIO = new System.Windows.Forms.TabControl();
             this.inputTab = new System.Windows.Forms.TabPage();
+            this.lblContourLevels = new System.Windows.Forms.Label();
+            this.tbContourLevels = new System.Windows.Forms.TextBox();
             this.flameSpeedSelector = new System.Windows.Forms.ComboBox();
             this.flameSpeedLabel = new System.Windows.Forms.Label();
             this.methodSelector = new System.Windows.Forms.ComboBox();
@@ -71,6 +73,8 @@ namespace SandiaNationalLaboratories.Hyram
             this.plotTab = new System.Windows.Forms.TabPage();
             this.plotBox = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.outputWarning = new System.Windows.Forms.Label();
+            this.outputMassFlowRate = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.tcIO.SuspendLayout();
             this.inputTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.spinnerPictureBox)).BeginInit();
@@ -100,6 +104,8 @@ namespace SandiaNationalLaboratories.Hyram
             // 
             // inputTab
             // 
+            this.inputTab.Controls.Add(this.lblContourLevels);
+            this.inputTab.Controls.Add(this.tbContourLevels);
             this.inputTab.Controls.Add(this.flameSpeedSelector);
             this.inputTab.Controls.Add(this.flameSpeedLabel);
             this.inputTab.Controls.Add(this.methodSelector);
@@ -128,6 +134,25 @@ namespace SandiaNationalLaboratories.Hyram
             this.inputTab.TabIndex = 0;
             this.inputTab.Text = "Input";
             this.inputTab.UseVisualStyleBackColor = true;
+            // 
+            // lblContourLevels
+            // 
+            this.lblContourLevels.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblContourLevels.AutoSize = true;
+            this.lblContourLevels.Location = new System.Drawing.Point(13, 515);
+            this.lblContourLevels.Name = "lblContourLevels";
+            this.lblContourLevels.Size = new System.Drawing.Size(109, 13);
+            this.lblContourLevels.TabIndex = 66;
+            this.lblContourLevels.Text = "Contour Levels (kPa):";
+            // 
+            // tbContourLevels
+            // 
+            this.tbContourLevels.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.tbContourLevels.Location = new System.Drawing.Point(175, 512);
+            this.tbContourLevels.Name = "tbContourLevels";
+            this.tbContourLevels.Size = new System.Drawing.Size(170, 20);
+            this.tbContourLevels.TabIndex = 65;
+            this.tbContourLevels.TextChanged += new System.EventHandler(this.tbContourLevels_TextChanged);
             // 
             // flameSpeedSelector
             // 
@@ -392,6 +417,8 @@ namespace SandiaNationalLaboratories.Hyram
             // 
             // dataTab
             // 
+            this.dataTab.Controls.Add(this.outputMassFlowRate);
+            this.dataTab.Controls.Add(this.label2);
             this.dataTab.Controls.Add(this.dgResult);
             this.dataTab.Controls.Add(this.btnCopyToClipboard);
             this.dataTab.Location = new System.Drawing.Point(4, 22);
@@ -416,9 +443,9 @@ namespace SandiaNationalLaboratories.Hyram
             this.colZ,
             this.overpressureCol,
             this.impulseCol});
-            this.dgResult.Location = new System.Drawing.Point(3, 3);
+            this.dgResult.Location = new System.Drawing.Point(3, 35);
             this.dgResult.Name = "dgResult";
-            this.dgResult.Size = new System.Drawing.Size(732, 458);
+            this.dgResult.Size = new System.Drawing.Size(732, 426);
             this.dgResult.TabIndex = 3;
             // 
             // colX
@@ -496,6 +523,23 @@ namespace SandiaNationalLaboratories.Hyram
             this.outputWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.outputWarning.Visible = false;
             // 
+            // outputMassFlowRate
+            // 
+            this.outputMassFlowRate.Location = new System.Drawing.Point(118, 9);
+            this.outputMassFlowRate.Name = "outputMassFlowRate";
+            this.outputMassFlowRate.ReadOnly = true;
+            this.outputMassFlowRate.Size = new System.Drawing.Size(114, 20);
+            this.outputMassFlowRate.TabIndex = 16;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(6, 12);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(106, 13);
+            this.label2.TabIndex = 15;
+            this.label2.Text = "Mass flow rate (kg/s)";
+            // 
             // UnconfinedOverpressureForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -516,6 +560,7 @@ namespace SandiaNationalLaboratories.Hyram
             this.splitContainer1.ResumeLayout(false);
             this.tcOutputs.ResumeLayout(false);
             this.dataTab.ResumeLayout(false);
+            this.dataTab.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgResult)).EndInit();
             this.plotTab.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.plotBox)).EndInit();
@@ -578,5 +623,9 @@ namespace SandiaNationalLaboratories.Hyram
         private DataGridViewTextBoxColumn colZ;
         private DataGridViewTextBoxColumn overpressureCol;
         private DataGridViewTextBoxColumn impulseCol;
+        private Label lblContourLevels;
+        private TextBox tbContourLevels;
+        private TextBox outputMassFlowRate;
+        private Label label2;
     }
 }

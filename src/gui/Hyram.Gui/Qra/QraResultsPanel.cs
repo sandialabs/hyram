@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -74,20 +74,40 @@ namespace SandiaNationalLaboratories.Hyram
             detailsOutcomeGrid.Columns[5].DefaultCellStyle.Format = "P3";
 
             // x,y,z coordinates
-            positionDataGrid.Columns[1].DefaultCellStyle.Format = "N1";
-            positionDataGrid.Columns[2].DefaultCellStyle.Format = "N1";
-            positionDataGrid.Columns[3].DefaultCellStyle.Format = "N1";
+            thermalDataGrid.Columns[1].DefaultCellStyle.Format = "N1";
+            thermalDataGrid.Columns[2].DefaultCellStyle.Format = "N1";
+            thermalDataGrid.Columns[3].DefaultCellStyle.Format = "N1";
+
+            overpressureDataGrid.Columns[1].DefaultCellStyle.Format = "N1";
+            overpressureDataGrid.Columns[2].DefaultCellStyle.Format = "N1";
+            overpressureDataGrid.Columns[3].DefaultCellStyle.Format = "N1";
+
+            impulseDataGrid.Columns[1].DefaultCellStyle.Format = "N1";
+            impulseDataGrid.Columns[2].DefaultCellStyle.Format = "N1";
+            impulseDataGrid.Columns[3].DefaultCellStyle.Format = "N1";
+
             // flux values
-            positionDataGrid.Columns[4].DefaultCellStyle.Format = "E3";
-            positionDataGrid.Columns[5].DefaultCellStyle.Format = "E3";
-            positionDataGrid.Columns[6].DefaultCellStyle.Format = "E3";
-            positionDataGrid.Columns[7].DefaultCellStyle.Format = "E3";
-            positionDataGrid.Columns[8].DefaultCellStyle.Format = "E3";
+            thermalDataGrid.Columns[4].DefaultCellStyle.Format = "E3";
+            thermalDataGrid.Columns[5].DefaultCellStyle.Format = "E3";
+            thermalDataGrid.Columns[6].DefaultCellStyle.Format = "E3";
+            thermalDataGrid.Columns[7].DefaultCellStyle.Format = "E3";
+            thermalDataGrid.Columns[8].DefaultCellStyle.Format = "E3";
+
+            overpressureDataGrid.Columns[4].DefaultCellStyle.Format = "E3";
+            overpressureDataGrid.Columns[5].DefaultCellStyle.Format = "E3";
+            overpressureDataGrid.Columns[6].DefaultCellStyle.Format = "E3";
+            overpressureDataGrid.Columns[7].DefaultCellStyle.Format = "E3";
+            overpressureDataGrid.Columns[8].DefaultCellStyle.Format = "E3";
+
+            impulseDataGrid.Columns[4].DefaultCellStyle.Format = "E3";
+            impulseDataGrid.Columns[5].DefaultCellStyle.Format = "E3";
+            impulseDataGrid.Columns[6].DefaultCellStyle.Format = "E3";
+            impulseDataGrid.Columns[7].DefaultCellStyle.Format = "E3";
+            impulseDataGrid.Columns[8].DefaultCellStyle.Format = "E3";
 
             GenerateResults();
 
             dgRanking.ScrollBars = ScrollBars.Both;
-            //dgRanking.Columns[3].HeaderText = "";
 
             ScenColEndStateType.SortMode = DataGridViewColumnSortMode.Automatic;
 
@@ -130,22 +150,61 @@ namespace SandiaNationalLaboratories.Hyram
                 detailsOutcomeGrid.Rows[3].Cells[i+1].Value = leakRes.ProbNoIgnition;
             }
 
-            // Load position plots
-            pbPositionPlot000d01.SizeMode = PictureBoxSizeMode.Zoom;
-            pbPositionPlot000d01.Load(result.PositionPlotFilenames[0]);
-            pbPositionPlot000d10.Load(result.PositionPlotFilenames[1]);
-            pbPositionPlot001d00.Load(result.PositionPlotFilenames[2]);
-            pbPositionPlot010d00.Load(result.PositionPlotFilenames[3]);
-            pbPositionPlot100d00.Load(result.PositionPlotFilenames[4]);
+            // Load thermal effects data
+            //thermalPic1.SizeMode = PictureBoxSizeMode.Zoom;
+            thermalPic1.Load(result.QradPlotFiles[0]);
+            thermalPic2.Load(result.QradPlotFiles[1]);
+            thermalPic3.Load(result.QradPlotFiles[2]);
+            thermalPic4.Load(result.QradPlotFiles[3]);
+            thermalPic5.Load(result.QradPlotFiles[4]);
 
-            for (var i = 0; i < result.Positions.Length; i++)
+            double[] posXs = result.Positions[0];
+            double[] posYs = result.Positions[1];
+            double[] posZs = result.Positions[2];
+            var numPositions = posXs.Length;
+
+            for (var i = 0; i < numPositions; i++)
             {
-                double[] coordinates = result.Positions[i];
                 double[] fluxes = result.PositionQrads[i];
+                double[] overpressures = result.PositionOverpressures[i];
+                double[] impulses = result.PositionImpulses[i];
 
-                positionDataGrid.Rows.Add(i + 1,
-                    coordinates[0], coordinates[1], coordinates[2],
+                thermalDataGrid.Rows.Add(i + 1,
+                    posXs[i], posYs[i], posZs[i],
                     fluxes[0], fluxes[1], fluxes[2], fluxes[3], fluxes[4]);
+
+                overpressureDataGrid.Rows.Add(i + 1,
+                    posXs[i], posYs[i], posZs[i],
+                    overpressures[0], overpressures[1], overpressures[2], overpressures[3], overpressures[4]);
+
+                impulseDataGrid.Rows.Add(i + 1,
+                    posXs[i], posYs[i], posZs[i],
+                    impulses[0], impulses[1], impulses[2], impulses[3], impulses[4]);
+            }
+
+            // Load overpressure data
+            //thermalPic1.SizeMode = PictureBoxSizeMode.Zoom;
+            overpressurePic1.Load(result.OverpressurePlotFiles[0]);
+            overpressurePic2.Load(result.OverpressurePlotFiles[1]);
+            overpressurePic3.Load(result.OverpressurePlotFiles[2]);
+            overpressurePic4.Load(result.OverpressurePlotFiles[3]);
+            overpressurePic5.Load(result.OverpressurePlotFiles[4]);
+
+            // Load impulse data
+            if (result.ImpulsePlotFiles.Length == 5)
+            {
+                impulsePlotTabs.Visible = true;
+                impulseDataTab.Enabled = true;
+                impulsePic1.Load(result.ImpulsePlotFiles[0]);
+                impulsePic2.Load(result.ImpulsePlotFiles[1]);
+                impulsePic3.Load(result.ImpulsePlotFiles[2]);
+                impulsePic4.Load(result.ImpulsePlotFiles[3]);
+                impulsePic5.Load(result.ImpulsePlotFiles[4]);
+            }
+            else
+            {
+                impulsePlotTabs.Visible = false;
+                impulseDataTab.Enabled = false;
             }
 
             // Add cut set data

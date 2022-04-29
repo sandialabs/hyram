@@ -1,12 +1,10 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
 """
-
-import pandas as pd
 
 from .data import component_data
 from .leaks import Leak
@@ -76,9 +74,6 @@ class ComponentSet:
             self.leaks[leak.size] = leak
 
     def __repr__(self):
-        # return '{} set containing {} components'.format(self.category, self.num_components)
-        # return '{} set of {} with leak data:\n{}\n'.format(self.category, self.num_components,
-        #   self.get_leaks_as_str())
         return str(self)
 
     def __str__(self):
@@ -98,20 +93,14 @@ class ComponentSet:
         freq = 0
         leak = self.get_leak(leak_size)
         if leak:
-            freq = leak.mean * self.num_components
+            freq = leak.get_leak_freq_mean() * self.num_components
         return freq
-
-    def get_leaks_as_str(self):
-        df = pd.DataFrame(columns=['size (%)', 'probability'])
-        leak_list = sorted(self.leaks.values(), key=lambda x: x.size)
-        for i, leak in enumerate(leak_list):
-            df.loc[i] = [leak.size, leak.prob]
-        return df.to_string(index=False)
 
     def get_leaks_str_simple(self):
         """ simplified version of above as '[x, y], [x2, y2]... ' """
         leak_list = sorted(self.leaks.values(), key=lambda x: x.size)
         full_str = ''
         for i, leak in enumerate(leak_list):
-            full_str += '[{}, {}], '.format(leak.prob.mu, leak.prob.sigma)
+            full_str += '[{}, {}], '.format(leak.mu, leak.sigma)
+        full_str = full_str[:-2]  # remove final ", " and end of list
         return full_str

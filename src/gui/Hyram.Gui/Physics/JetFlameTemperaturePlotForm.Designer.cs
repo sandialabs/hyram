@@ -36,12 +36,14 @@ namespace SandiaNationalLaboratories.Hyram {
             this.dgInput = new System.Windows.Forms.DataGridView();
             this.outputTab = new System.Windows.Forms.TabPage();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.outputWarning = new System.Windows.Forms.Label();
             this.outputSrad = new System.Windows.Forms.TextBox();
             this.lblSeconds = new System.Windows.Forms.Label();
             this.outputMassFlowRate = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.outputPictureBox = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.outputWarning = new System.Windows.Forms.Label();
+            this.outputFlameLength = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.tcIO.SuspendLayout();
             this.inputTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.spinnerPictureBox)).BeginInit();
@@ -198,6 +200,8 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.outputFlameLength);
+            this.splitContainer1.Panel1.Controls.Add(this.label3);
             this.splitContainer1.Panel1.Controls.Add(this.outputSrad);
             this.splitContainer1.Panel1.Controls.Add(this.lblSeconds);
             this.splitContainer1.Panel1.Controls.Add(this.outputMassFlowRate);
@@ -211,23 +215,9 @@ namespace SandiaNationalLaboratories.Hyram {
             this.splitContainer1.SplitterDistance = 556;
             this.splitContainer1.TabIndex = 3;
             // 
-            // outputWarning
-            // 
-            this.outputWarning.BackColor = System.Drawing.Color.PaleGoldenrod;
-            this.outputWarning.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.outputWarning.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.outputWarning.ForeColor = System.Drawing.Color.DarkGoldenrod;
-            this.outputWarning.Location = new System.Drawing.Point(0, 0);
-            this.outputWarning.Name = "outputWarning";
-            this.outputWarning.Size = new System.Drawing.Size(633, 25);
-            this.outputWarning.TabIndex = 20;
-            this.outputWarning.Text = "blank";
-            this.outputWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.outputWarning.Visible = false;
-            // 
             // outputSrad
             // 
-            this.outputSrad.Location = new System.Drawing.Point(164, 29);
+            this.outputSrad.Location = new System.Drawing.Point(169, 29);
             this.outputSrad.Name = "outputSrad";
             this.outputSrad.ReadOnly = true;
             this.outputSrad.Size = new System.Drawing.Size(114, 20);
@@ -238,13 +228,13 @@ namespace SandiaNationalLaboratories.Hyram {
             this.lblSeconds.AutoSize = true;
             this.lblSeconds.Location = new System.Drawing.Point(3, 32);
             this.lblSeconds.Name = "lblSeconds";
-            this.lblSeconds.Size = new System.Drawing.Size(155, 13);
+            this.lblSeconds.Size = new System.Drawing.Size(163, 13);
             this.lblSeconds.TabIndex = 9;
-            this.lblSeconds.Text = "Total emitted radiate power (W)";
+            this.lblSeconds.Text = "Total emitted radiative power (W)";
             // 
             // outputMassFlowRate
             // 
-            this.outputMassFlowRate.Location = new System.Drawing.Point(164, 3);
+            this.outputMassFlowRate.Location = new System.Drawing.Point(169, 3);
             this.outputMassFlowRate.Name = "outputMassFlowRate";
             this.outputMassFlowRate.ReadOnly = true;
             this.outputMassFlowRate.Size = new System.Drawing.Size(114, 20);
@@ -267,6 +257,37 @@ namespace SandiaNationalLaboratories.Hyram {
             this.outputPictureBox.Size = new System.Drawing.Size(633, 501);
             this.outputPictureBox.TabIndex = 2;
             this.outputPictureBox.TabStop = false;
+            // 
+            // outputWarning
+            // 
+            this.outputWarning.BackColor = System.Drawing.Color.PaleGoldenrod;
+            this.outputWarning.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.outputWarning.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.outputWarning.ForeColor = System.Drawing.Color.DarkGoldenrod;
+            this.outputWarning.Location = new System.Drawing.Point(0, 0);
+            this.outputWarning.Name = "outputWarning";
+            this.outputWarning.Size = new System.Drawing.Size(633, 25);
+            this.outputWarning.TabIndex = 20;
+            this.outputWarning.Text = "blank";
+            this.outputWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.outputWarning.Visible = false;
+            // 
+            // outputFlameLength
+            // 
+            this.outputFlameLength.Location = new System.Drawing.Point(453, 6);
+            this.outputFlameLength.Name = "outputFlameLength";
+            this.outputFlameLength.ReadOnly = true;
+            this.outputFlameLength.Size = new System.Drawing.Size(114, 20);
+            this.outputFlameLength.TabIndex = 12;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(336, 9);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(114, 13);
+            this.label3.TabIndex = 11;
+            this.label3.Text = "Visible flame length (m)";
             // 
             // JetFlameTemperaturePlotForm
             // 
@@ -312,5 +333,7 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.Label lblSeconds;
         private System.Windows.Forms.TextBox outputMassFlowRate;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox outputFlameLength;
+        private System.Windows.Forms.Label label3;
     }
 }

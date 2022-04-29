@@ -1,14 +1,11 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
-
 """
 
-import os
-import dill as pkl
 
 class Fuel_Properties:
     """
@@ -28,7 +25,8 @@ class Fuel_Properties:
     _data = {'H2': {'LFL': 0.04,
                     'UFL': 0.75,
                     'dHc': 1.20E+08,
-                    'other_name': 'hydrogen'},
+                    'other_name': 'hydrogen'
+                   },
              'CH4': {'LFL': 0.05,
                      'UFL': 0.15,
                      'dHc': 5.00E+07,
@@ -41,13 +39,14 @@ class Fuel_Properties:
                      }
             }
 
-    def __init__(self, species, load_cell_size = False):
+    def __init__(self, species):
         species = species.upper()
         if species not in list(self._data.keys()):
             if species.lower() not in [fuel['other_name'].lower() for fuel in self._data.values()]:
                 raise ValueError('unknown properties for %s' % species)
             else:
                 species = [k for k, v in self._data.items() if v['other_name'].lower() == species.lower()][0]
+        self.species = species
         for k in ['LFL', 'UFL', 'dHc']:
             self.__dict__[k] = self._data[species][k]
         if 'C' in species:
@@ -57,8 +56,3 @@ class Fuel_Properties:
                 self.nC = 1
         else:
             self.nC = 0
-        if load_cell_size:
-            data_dir = os.path.join(os.path.dirname(__file__), 'data')
-            with open(os.path.join(data_dir, 'detonation_cell_size.pkl'), 'rb') as f:
-                data = pkl.load(f)
-            self.detonation_cell_size = lambda equiv_ratio: 1e-3*data.__dict__[species].fit(equiv_ratio)

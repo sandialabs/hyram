@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -7,7 +7,9 @@ If not, see https://www.gnu.org/licenses/.
 """
 
 import logging
+
 import numpy as np
+
 from . import distributions
 
 
@@ -20,7 +22,8 @@ class ComponentFailureSet:
     Parameters
     ----------
     f_failure_override : float or None
-        Manual frequency value for accidents/shutdown failure. Other parameters will be ignored if this is set.
+        Manual frequency value for accidents/shutdown failure.
+        Other parameters will be ignored if this is not None.
 
     num_vehicles : int
         Number of vehicles in use.
@@ -126,7 +129,7 @@ class ComponentFailureSet:
     coupling_ftc = None
 
     def __init__(self, f_failure_override=None,
-                 num_vehicles=None, daily_fuelings=None, vehicle_days=None,
+                 num_vehicles=20, daily_fuelings=2, vehicle_days=250,
                  noz_po_dist='beta', noz_po_a=0.5, noz_po_b=610415.5,
                  noz_ftc_dist='expv', noz_ftc_a=0.002, noz_ftc_b=None,
                  mvalve_ftc_dist='expv', mvalve_ftc_a=0.001, mvalve_ftc_b=None,
@@ -135,7 +138,7 @@ class ComponentFailureSet:
                  overp_dist='beta', overp_a=3.5, overp_b=310289.5,
                  pvalve_fto_dist='logn', pvalve_fto_a=-11.7359368859313, pvalve_fto_b=0.667849415603714,
                  driveoff_dist='beta', driveoff_a=31.5, driveoff_b=610384.5,
-                 coupling_ftc_dist='beta', coupling_ftc_a=0.5, coupling_ftc_b=5031.):
+                 coupling_ftc_dist='beta', coupling_ftc_a=0.5, coupling_ftc_b=5031., verbose=False):
 
         if f_failure_override is not None:
             # User provided vehicle fueling failure frequency directly so ignore individual events
@@ -183,13 +186,26 @@ class ComponentFailureSet:
             f_shutdown_fail = num_fuelings * p_shutdown_fail
             self.f_fueling_fail = np.around(float(f_accidents + f_shutdown_fail), 20)
 
-            log.info("Driveoff p, f: {:.3g}, {:.3g}".format(self.p_driveoff, self.f_driveoff))
-            log.info("Overpressure rupture p, f: {:.3g}, {:.3g}".format(self.p_overp_rupture, self.f_overp_rupture))
-            log.info("Nozzle release p, f: {:.3g}, {:.3g}".format(self.p_nozzle_release, self.f_nozzle_release))
-            log.info("Sol valve FTC p, f: {:.3g}, {:.3g}".format(self.p_sol_valves_ftc, self.f_sol_valves_ftc))
-            log.info("Shutdown fail p, f: {:.3g}, {:.3g}".format(p_shutdown_fail, f_shutdown_fail))
+            if verbose:
+                log.info("\nCOMPONENT FAILURE DATA")
+                log.info("Nozzle popoff {}, {}, {}".format(noz_po_dist, noz_po_a, noz_po_b))
+                log.info("Nozzle FTC {}, {}, {}".format(noz_ftc_dist, noz_ftc_a, noz_ftc_b))
+                log.info("MValve FTC {}, {}, {}".format(mvalve_ftc_dist, mvalve_ftc_a, mvalve_ftc_b))
+                log.info("SValve FTC {}, {}, {}".format(svalve_ftc_dist, svalve_ftc_a, svalve_ftc_b))
+                log.info("SValve CCF {}, {}, {}".format(svalve_ccf_dist, svalve_ccf_a, svalve_ccf_b))
+                log.info("PR Valve FTO {}, {}, {}".format(pvalve_fto_dist, pvalve_fto_a, pvalve_fto_b))
+                log.info("BreakCoup FTC {}, {}, {}".format(coupling_ftc_dist, coupling_ftc_a, coupling_ftc_b))
+                log.info("Fueling overp {}, {}, {}".format(overp_dist, overp_a, overp_b))
+                log.info("Driveoff {}, {}, {}".format(driveoff_dist, driveoff_a, driveoff_b))
 
-        log.info("Total freq of other failures: {:.3g}".format(self.f_fueling_fail))
+                log.info("Driveoff P {:.3g}, F {:.3g}".format(self.p_driveoff, self.f_driveoff))
+                log.info("Overpressure rupture P {:.3g}, F {:.3g}".format(self.p_overp_rupture, self.f_overp_rupture))
+                log.info("Nozzle release P {:.3g}, F {:.3g}".format(self.p_nozzle_release, self.f_nozzle_release))
+                log.info("Sol valve FTC P {:.3g}, F {:.3g}".format(self.p_sol_valves_ftc, self.f_sol_valves_ftc))
+                log.info("Shutdown fail P {:.3g}, F {:.3g}".format(p_shutdown_fail, f_shutdown_fail))
+
+        if verbose:
+            log.info("Total freq of other failures: {:.3g}".format(self.f_fueling_fail))
 
 
 class ComponentFailure:

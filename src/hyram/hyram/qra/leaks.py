@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -7,10 +7,8 @@ If not, see https://www.gnu.org/licenses/.
 """
 
 import logging
-from collections import OrderedDict
 
 import numpy as np
-import pandas as pd
 
 from .distributions import LogNormDistribution
 
@@ -189,7 +187,7 @@ class LeakSizeResult:
 
 class Leak:
     """
-    Random Hydrogen release (leak) chance, defined by an orifice diameter and probability of occurrence.
+    Random release (leak) chance, defined by an orifice diameter and probability of occurrence.
 
     Parameters
     ----------
@@ -232,29 +230,17 @@ class Leak:
 
         self.description = str(description)
 
-        # Log normal distribution object for this leak size if mean/variance not given
         self.size = size
         self.mu = mu
         self.sigma = sigma
-        self.prob = self.p = self.probability = LogNormDistribution(mu=self.mu, sigma=self.sigma)
-        self.mean = self.prob.mean
-        self.variance = self.prob.variance
 
-    def _repr_html_(self):
-        """
-        Output leak parameters as string in HTML format (via dataframe).
-        """
-        df = pd.DataFrame(columns=['description', 'size (%)', 'probability'])
-        df.loc[0] = [self.description, self.size, self.prob]
-        return df.to_html(index=False)
+    def get_leak_freq_mean(self):
+        leak_freq_dist = LogNormDistribution(mu=self.mu, sigma=self.sigma)
+        return leak_freq_dist.mean
 
     def __str__(self):
-        """
-        Output leak as string structured by dataframe.
-        """
-        df = pd.DataFrame(columns=['description', 'size (%)', 'probability'])
-        df.loc[0] = [self.description, self.size, self.prob]
-        param_str = 'Leak {}: {} mu, {} sigma, {} mean, {} var'.format(self.size, self.mu, self.sigma,
-                                                                       self.mean, self.variance)
-        df_str = df.to_string(index=False)
-        return "{}\n{}".format(param_str, df_str)
+        param_str = ('Leak: size: {}%'.format(self.size)
+                     + ', mu: {}'.format(self.mu)
+                     + ', sigma: {}'.format(self.sigma)
+                     + ', description: {}'.format(self.description))
+        return param_str

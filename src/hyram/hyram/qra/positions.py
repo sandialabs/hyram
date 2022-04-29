@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -10,21 +10,12 @@ from __future__ import print_function, absolute_import, division
 
 import numpy as np
 
-# Note: non-interactive agg backend set in GUI. Set MPLBACKEND env variable to change.
-import matplotlib.pyplot as plt
-import matplotlib.patches as mplpatch
-
 
 class PositionGenerator:
     """
     Class used to generate positions.
 
     Generates positions from a list of location distributions and parameters
-    
-    The meaning of param_a and param_b depend on the given distribution
-
-    Exclusion radius is the minimum distance from (0,0,0)
-    that any generated poistion must be
     """
 
     def __init__(self, loc_distributions, exclusion_radius, seed):
@@ -34,23 +25,39 @@ class PositionGenerator:
         Parameters
         ----------
         loc_distributions : list
-            List of location distributions.  Each location distribution
-            should be a list like
-                [n, (xdist_type, xparam_a, xparam_b),
+            List of location distributions
+            Each location distribution within this list should be a list like:
+                [n,
+                 (xdist_type, xparam_a, xparam_b),
                  (ydist_type, yparam_a, yparam_b),
                  (zdist_type, zparam_a, zparam_b)]
-            where *dist_type is one of 'deterministic', 'uniform', or 
-            'normal' and param_a and param_b depend on the distribution type
-            For 'deterministic', param_a = value, param_b = None.
-            For 'uniform', param_a = minval, param_b = maxval
-            For 'normal', param_a = mu, param_b = sigma
+            where
+                n : int
+                    Number of occupants for this distribution
+                *dist_type : str
+                    One of 'deterministic', 'uniform', or 'normal'
+                param_a and param_b depend on the distribution type:
+                    For 'deterministic': param_a = value, param_b = None.
+                    For 'uniform': param_a = min_val, param_b = maxval
+                    For 'normal': param_a = mu, param_b = sigma
         exclusion_radius : float
-            Minimum distance from (0,0,0) that all generated
-            positions must be.
+            Minimum distance in meters from (0,0,0)
+            in any direction that all generated positions must be
         seed : int
             Seed for random number generator
+        
+        Calculated
+        ----------
+        randgen : NumPy RandomState object
+            Random number generator based on seed value
+        totworkers : float
+            Total number of workers for all distributions
+        locs : list of locations
+            List of locations of interest, one for each occupant,
+            each location is a tuple of 3 coordinates (m):
+            [(x1, y1, z1), (x2, y2, z2), ...]
         """
-
+        self.seed = seed
         self.randgen = np.random.RandomState(seed)
         self.exclusion_radius = exclusion_radius
         self.loc_distributions = loc_distributions
@@ -58,27 +65,11 @@ class PositionGenerator:
         # Compute total number of workers (all distributions)
         self.totworkers = sum([dist[0] for dist in loc_distributions])
 
-        # Initialize array for actual locations
-        self.locs = np.zeros((3, self.totworkers), dtype=float)
+        # Generate locations
+        self.gen_positions()
 
-    def get_xlocs(self):
-        """Get x locations"""
-        return self.locs[0,:]
-
-    def get_ylocs(self):
-        """Get y locations"""
-        return self.locs[1,:]
-
-    def get_zlocs(self):
-        """Get z locations"""
-        return self.locs[2,:]
-        
     def gen_positions(self):
-        """
-        Generate positions into self.locs based off of distributions
-        self.locs is an array of 3 rows and sum(workers) columns
-        """
-        curidx = 0
+        locations = []
         for dist in self.loc_distributions:
             # get a valid position with the given distribution
             def get_position():
@@ -94,10 +85,8 @@ class PositionGenerator:
             n = dist[0]
             for _ in range(n):
                 (x, y, z) = get_position()
-                self.locs[0,curidx] = x
-                self.locs[1,curidx] = y
-                self.locs[2,curidx] = z
-                curidx += 1
+                locations.append((float(x), float(y), float(z)))
+        self.locs = locations
 
     def _gen_xyz_locs(self, n, dist_info):
         """
@@ -205,45 +194,14 @@ class PositionGenerator:
         else:
             raise NotImplementedError(dist_type + ' distribution not implemented')
         
-    def plot_positions(self, filename, title, qrad, length, width):
-        """
-        Plots positions on facility grid colored by heatflux
+    def get_xlocs(self):
+        """Get x locations"""
+        return [location[0] for location in self.locs]
 
-        Parameters
-        ----------
-        filename : string
-            filename for saving plot
-        title : string
-            title for plot
-        qrad : array
-            Heatflux at each position for coloring points
-        length : float
-            Facility length
-        width : float
-            Facility width
-        """
-        fig, ax = plt.subplots()
-        
-        # Blue square represents hydrogen release source
-        ax.plot(0, 0, 'bs', markersize=8, label='Hydrogen leak source')
-        # Plot facility border
-        ax.add_patch(mplpatch.Rectangle((-.2, -.2), length+.2,
-                                         width+.2, fill=None))
-        # Arrow representing flame direction, does not represent length/width
-        ax.arrow(0, 0, length/4.0, 0, head_width=0.7, alpha=1.0,
-                 head_length=0.7, linewidth=0.3, fc='blue', ec='blue')
-        # Plot actual occupant positions
-        heatflux_ln = ax.scatter(self.locs[0,:], self.locs[2,:], s=36, c=qrad,
-                                 linewidths=0.5, edgecolors='black',
-                                 cmap=plt.cm.get_cmap('plasma'))
-        # Plot formatting, colorbar, and saving
-        ax.set_aspect('equal') 
-        for spine in ['top', 'bottom', 'left', 'right']:
-            ax.spines[spine].set_visible(False)
-        ax.set_xlabel('Length (m)')
-        ax.set_ylabel('Width (m)')
-        ax.set_title(title)
-        cb = fig.colorbar(heatflux_ln)
-        cb.set_label('Radiative Heat Flux (kW/m$^2$)')
-        plt.savefig(filename, bbox_inches='tight')
-        plt.close()
+    def get_ylocs(self):
+        """Get y locations"""
+        return [location[1] for location in self.locs]
+
+    def get_zlocs(self):
+        """Get z locations"""
+        return [location[2] for location in self.locs]

@@ -87,7 +87,7 @@
             // pbGenericESD
             // 
             this.pbGenericESD.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbGenericESD.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ESD_2020;
+            this.pbGenericESD.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ESD;
             this.pbGenericESD.Location = new System.Drawing.Point(3, 3);
             this.pbGenericESD.Name = "pbGenericESD";
             this.pbGenericESD.Size = new System.Drawing.Size(976, 481);
@@ -140,7 +140,7 @@
             // pictureBox1
             // 
             this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pictureBox1.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ft0p01pct_2020;
+            this.pictureBox1.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ft0p01pct;
             this.pictureBox1.Location = new System.Drawing.Point(0, 0);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(968, 424);
@@ -163,7 +163,7 @@
             // pictureBox2
             // 
             this.pictureBox2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pictureBox2.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ft0p1pct_2020;
+            this.pictureBox2.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ft0p1pct;
             this.pictureBox2.Location = new System.Drawing.Point(2, 2);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(957, 508);
@@ -185,7 +185,7 @@
             // pictureBox5
             // 
             this.pictureBox5.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pictureBox5.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ft1pct_2020;
+            this.pictureBox5.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ft1pct;
             this.pictureBox5.Location = new System.Drawing.Point(0, 0);
             this.pictureBox5.Name = "pictureBox5";
             this.pictureBox5.Size = new System.Drawing.Size(961, 512);
@@ -207,7 +207,7 @@
             // pictureBox6
             // 
             this.pictureBox6.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pictureBox6.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ft10pct_2020;
+            this.pictureBox6.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ft10pct;
             this.pictureBox6.Location = new System.Drawing.Point(0, 0);
             this.pictureBox6.Name = "pictureBox6";
             this.pictureBox6.Size = new System.Drawing.Size(961, 512);
@@ -229,7 +229,7 @@
             // pictureBox4
             // 
             this.pictureBox4.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pictureBox4.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ft100pct_2020;
+            this.pictureBox4.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.ft100pct;
             this.pictureBox4.Location = new System.Drawing.Point(3, 3);
             this.pictureBox4.Name = "pictureBox4";
             this.pictureBox4.Size = new System.Drawing.Size(955, 506);

@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -8,18 +8,19 @@ If not, see https://www.gnu.org/licenses/.
 
 import os
 import unittest
-from unittest import skip
 
 import numpy as np
 from scipy import constants as const
 
 from hyram.phys import c_api
+from hyram.utilities import misc_utils
+
 
 """
 NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
 """
 
-VERBOSE = True
+VERBOSE = False
 
 
 class IndoorReleaseTestCase(unittest.TestCase):
@@ -27,14 +28,12 @@ class IndoorReleaseTestCase(unittest.TestCase):
     Test accumulation analysis.
     """
     def setUp(self):
-        self.dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.output_dir = os.path.join(self.dir_path, 'temp')
+        self.output_dir = misc_utils.get_temp_folder()
         c_api.setup(self.output_dir, verbose=VERBOSE)
 
     def tearDown(self):
         pass
 
-    # @unittest.skip
     def test_default(self):
         amb_temp = 288.
         amb_pres = 101325.
@@ -53,7 +52,6 @@ class IndoorReleaseTestCase(unittest.TestCase):
         nozzle_key = 'yuce'
 
         rel_species = "H2"
-        # rel_pres = 13420000.
         rel_pres = 35000000.
         rel_temp = 287.8
         rel_phase = None
@@ -99,7 +97,6 @@ class IndoorReleaseTestCase(unittest.TestCase):
         self.assertTrue(os.path.isfile(lay_plot_filepath))
         self.assertTrue(os.path.isfile(traj_plot_filepath))
 
-    # @skip
     def test_saturated_vapor(self):
         amb_temp = 288.15
         amb_pres = 101325.
@@ -161,7 +158,6 @@ class IndoorReleaseTestCase(unittest.TestCase):
         self.assertTrue(os.path.isfile(lay_plot_filepath))
         self.assertTrue(os.path.isfile(traj_plot_filepath))
 
-    # @skip
     def test_saturated_vapor_birch(self):
         amb_temp = 288.15
         amb_pres = 101325.
@@ -223,7 +219,6 @@ class IndoorReleaseTestCase(unittest.TestCase):
         self.assertTrue(os.path.isfile(lay_plot_filepath))
         self.assertTrue(os.path.isfile(traj_plot_filepath))
 
-    @skip
     def test_steady(self):
         amb_temp = 288.15
         amb_pres = 101325.
@@ -291,8 +286,7 @@ class TestFlameTempPlotGeneration(unittest.TestCase):
     Test plume analysis.
     """
     def setUp(self):
-        self.dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.output_dir = os.path.join(self.dir_path, 'temp')
+        self.output_dir = misc_utils.get_temp_folder()
         c_api.setup(self.output_dir, verbose=VERBOSE)
 
     def tearDown(self):
@@ -308,15 +302,15 @@ class TestFlameTempPlotGeneration(unittest.TestCase):
         rel_phase = None
 
         rel_angle = 0.
-        rel_height = 0.
         orif_diam = 0.00356
+        discharge_coeff = 1.0
         nozzle_key = "yuce"
 
         wrapped = c_api.jet_flame_analysis(amb_temp, amb_pres,
                                            rel_species, rel_temp, rel_pres, rel_phase,
-                                           orif_diam,
-                                           rel_angle, rel_height,
-                                           nozzle_key, "", 0.89,
+                                           orif_diam, discharge_coeff,
+                                           rel_angle,
+                                           nozzle_key, 0.89,
                                            None, None, None, None, False,
                                            output_dir=self.output_dir, verbose=VERBOSE)
 
@@ -333,15 +327,15 @@ class TestFlameTempPlotGeneration(unittest.TestCase):
         rel_temp = 287.8
         rel_phase = None
         rel_angle = 0.
-        rel_height = 0.
         orif_diam = 0.00356
+        discharge_coeff = 1.0
         nozzle_key = "yuce"
 
         wrapped = c_api.jet_flame_analysis(amb_temp, amb_pres,
                                            rel_species, rel_temp, rel_pres, rel_phase,
-                                           orif_diam,
-                                           rel_angle, rel_height,
-                                           nozzle_key, "", 0.89,
+                                           orif_diam, discharge_coeff,
+                                           rel_angle,
+                                           nozzle_key, 0.89,
                                            None, None, None, None, False,
                                            output_dir=self.output_dir, verbose=VERBOSE)
 
@@ -356,8 +350,7 @@ class TestRadHeatAnalysis(unittest.TestCase):
     Test plume analysis.
     """
     def setUp(self):
-        self.dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.output_dir = os.path.join(self.dir_path, 'temp')
+        self.output_dir = misc_utils.get_temp_folder()
         c_api.setup(self.output_dir, VERBOSE)
 
     def tearDown(self):
@@ -372,12 +365,11 @@ class TestRadHeatAnalysis(unittest.TestCase):
         rel_temp = 287.8
         rel_phase = None
         rel_angle = 0.
-        rel_height = 0.
 
         orif_diam = 0.00356
+        discharge_coeff = 1.0
         nozzle_key = "yuce"
         rel_humid = 0.89
-        rad_source_key = 'single'
 
         xpos = [1.0e-02, 5.0e-01, 1.0e+00, 2.0e+00, 2.5e+00, 5.0e+00, 1.0e+01, 1.5e+01, 2.5e+01, 4.0e+01]
         ypos = [1., 1., 1., 1., 1., 2., 2., 2., 2., 2.]
@@ -387,9 +379,9 @@ class TestRadHeatAnalysis(unittest.TestCase):
 
         wrapped = c_api.jet_flame_analysis(amb_temp, amb_pres,
                                            rel_species, rel_temp, rel_pres, rel_phase,
-                                           orif_diam,
-                                           rel_angle, rel_height,
-                                           nozzle_key, rad_source_key, rel_humid,
+                                           orif_diam, discharge_coeff,
+                                           rel_angle,
+                                           nozzle_key, rel_humid,
                                            xpos, ypos, zpos,
                                            contours,
                                            analyze_flux=True,
@@ -398,6 +390,8 @@ class TestRadHeatAnalysis(unittest.TestCase):
         data = wrapped["data"]
         warning = wrapped["warning"]
         flux = data["flux_data"]
+        srad = data['srad']
+        visible_length = data['visible_length']
         flux_filepath = data["flux_plot_filepath"]
         temp_filepath = data["temp_plot_filepath"]
 
@@ -415,12 +409,11 @@ class TestRadHeatAnalysis(unittest.TestCase):
         rel_temp = None
         rel_phase = 'liquid'
         rel_angle = 0.
-        rel_height = 0.
 
         orif_diam = 0.00356
+        discharge_coeff = 1.0
         nozzle_key = "yuce"
         rel_humid = 0.89
-        rad_source_key = 'single'
 
         xpos = [1.0e-02, 5.0e-01, 1.0e+00, 2.0e+00, 2.5e+00, 5.0e+00, 1.0e+01, 1.5e+01, 2.5e+01, 4.0e+01]
         ypos = [1., 1., 1., 1., 1., 2., 2., 2., 2., 2.]
@@ -430,9 +423,9 @@ class TestRadHeatAnalysis(unittest.TestCase):
 
         wrapped = c_api.jet_flame_analysis(amb_temp, amb_pres,
                                            rel_species, rel_temp, rel_pres, rel_phase,
-                                           orif_diam,
-                                           rel_angle, rel_height,
-                                           nozzle_key, rad_source_key, rel_humid,
+                                           orif_diam, discharge_coeff,
+                                           rel_angle,
+                                           nozzle_key, rel_humid,
                                            xpos, ypos, zpos,
                                            contours,
                                            analyze_flux=True,
@@ -456,12 +449,11 @@ class TestRadHeatAnalysis(unittest.TestCase):
         rel_temp = None
         rel_phase = 'gas'
         rel_angle = 0.
-        rel_height = 0.
 
         orif_diam = 0.00356
+        discharge_coeff = 1.0
         nozzle_key = "bir"
         rel_humid = 0.89
-        rad_source_key = 'single'
 
         xpos = [1.0e-02, 5.0e-01, 1.0e+00, 2.0e+00, 2.5e+00, 5.0e+00, 1.0e+01, 1.5e+01, 2.5e+01, 4.0e+01]
         ypos = [1., 1., 1., 1., 1., 2., 2., 2., 2., 2.]
@@ -471,9 +463,9 @@ class TestRadHeatAnalysis(unittest.TestCase):
 
         wrapped = c_api.jet_flame_analysis(amb_temp, amb_pres,
                                            rel_species, rel_temp, rel_pres, rel_phase,
-                                           orif_diam,
-                                           rel_angle, rel_height,
-                                           nozzle_key, rad_source_key, rel_humid,
+                                           orif_diam, discharge_coeff,
+                                           rel_angle,
+                                           nozzle_key, rel_humid,
                                            xpos, ypos, zpos,
                                            contours,
                                            analyze_flux=True,
@@ -497,12 +489,11 @@ class TestRadHeatAnalysis(unittest.TestCase):
         rel_temp = 287.8
         rel_phase = None
         rel_angle = 0.
-        rel_height = 0.
 
         orif_diam = 0.00356
+        discharge_coeff = 1.0
         nozzle_key = "yuce"
         rel_humid = 0.89
-        rad_source_key = 'single'
 
         xpos = [1.0e-02, 5.0e-01, 1.0e+00, 2.0e+00, 2.5e+00, 5.0e+00, 1.0e+01, 1.5e+01, 2.5e+01, 4.0e+01]
         ypos = [1., 1., 1., 1., 1., 2., 2., 2., 2., 2.]
@@ -512,9 +503,9 @@ class TestRadHeatAnalysis(unittest.TestCase):
 
         wrapped = c_api.jet_flame_analysis(amb_temp, amb_pres,
                                            rel_species, rel_temp, rel_pres, rel_phase,
-                                           orif_diam,
-                                           rel_angle, rel_height,
-                                           nozzle_key, rad_source_key, rel_humid,
+                                           orif_diam, discharge_coeff,
+                                           rel_angle,
+                                           nozzle_key, rel_humid,
                                            xpos, ypos, zpos,
                                            contours,
                                            analyze_flux=True,

@@ -1,31 +1,30 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
 """
 
-import os
 import unittest
 
 import numpy as np
-from scipy import constants as const
 
 from hyram.phys import c_api
+from hyram.utilities import misc_utils
+
 
 """
 NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
 """
 
-VERBOSE = True
+VERBOSE = False
 
 
 class OverpressureTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.output_dir = os.path.join(self.dir_path, 'temp')
+        self.output_dir = misc_utils.get_temp_folder()
         c_api.setup(self.output_dir, verbose=VERBOSE)
 
         self.default_params = {
@@ -40,10 +39,10 @@ class OverpressureTestCase(unittest.TestCase):
             'discharge_coeff': 1.0,
             'nozzle_model': 'yuce',
             'method': 'BST',
-            # 'heat_of_combustion': None,
             'xlocs': np.array([1., 2., 1.]),
             'ylocs': np.array([1., 2., 1.]),
             'zlocs': np.array([0., 0., 1.]),
+            'contours': None,
             'bst_flame_speed': 5.2,
             'tnt_factor': 0.03,
             'output_dir': self.output_dir,
@@ -66,6 +65,3 @@ class OverpressureTestCase(unittest.TestCase):
         self.assertTrue(status)
         self.assertTrue('figure_file_path' in result_dict)
         self.assertTrue(result_dict['figure_file_path'] is not None)
-
-        np.testing.assert_almost_equal(overpressure, [28571., 32697., 28494], decimal=0)
-        np.testing.assert_almost_equal(impulse, [38.2, 42.9, 38.0], decimal=1)

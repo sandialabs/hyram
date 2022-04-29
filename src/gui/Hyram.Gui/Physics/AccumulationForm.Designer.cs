@@ -26,6 +26,8 @@ namespace SandiaNationalLaboratories.Hyram {
             this.InputGrid = new System.Windows.Forms.DataGridView();
             this.GeometryPicture = new System.Windows.Forms.PictureBox();
             this.OutputOptionsTab = new System.Windows.Forms.TabPage();
+            this.label5 = new System.Windows.Forms.Label();
+            this.timeUnitSelector = new System.Windows.Forms.ComboBox();
             this.MaxTimeInput = new System.Windows.Forms.TextBox();
             this.MaxTimeLabel = new System.Windows.Forms.Label();
             this.PlottingOptionsGroupBox = new System.Windows.Forms.GroupBox();
@@ -310,6 +312,8 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // OutputOptionsTab
             // 
+            this.OutputOptionsTab.Controls.Add(this.label5);
+            this.OutputOptionsTab.Controls.Add(this.timeUnitSelector);
             this.OutputOptionsTab.Controls.Add(this.MaxTimeInput);
             this.OutputOptionsTab.Controls.Add(this.MaxTimeLabel);
             this.OutputOptionsTab.Controls.Add(this.PlottingOptionsGroupBox);
@@ -323,9 +327,28 @@ namespace SandiaNationalLaboratories.Hyram {
             this.OutputOptionsTab.Text = "Output Options";
             this.OutputOptionsTab.UseVisualStyleBackColor = true;
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(7, 12);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(65, 13);
+            this.label5.TabIndex = 23;
+            this.label5.Text = "Units of time";
+            // 
+            // timeUnitSelector
+            // 
+            this.timeUnitSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.timeUnitSelector.FormattingEnabled = true;
+            this.timeUnitSelector.Location = new System.Drawing.Point(175, 9);
+            this.timeUnitSelector.Name = "timeUnitSelector";
+            this.timeUnitSelector.Size = new System.Drawing.Size(100, 21);
+            this.timeUnitSelector.TabIndex = 22;
+            this.timeUnitSelector.SelectionChangeCommitted += new System.EventHandler(this.timeUnitSelector_SelectionChangeCommitted);
+            // 
             // MaxTimeInput
             // 
-            this.MaxTimeInput.Location = new System.Drawing.Point(230, 39);
+            this.MaxTimeInput.Location = new System.Drawing.Point(175, 62);
             this.MaxTimeInput.Name = "MaxTimeInput";
             this.MaxTimeInput.Size = new System.Drawing.Size(100, 20);
             this.MaxTimeInput.TabIndex = 6;
@@ -334,11 +357,11 @@ namespace SandiaNationalLaboratories.Hyram {
             // MaxTimeLabel
             // 
             this.MaxTimeLabel.AutoSize = true;
-            this.MaxTimeLabel.Location = new System.Drawing.Point(6, 42);
+            this.MaxTimeLabel.Location = new System.Drawing.Point(7, 65);
             this.MaxTimeLabel.Name = "MaxTimeLabel";
-            this.MaxTimeLabel.Size = new System.Drawing.Size(136, 13);
+            this.MaxTimeLabel.Size = new System.Drawing.Size(76, 13);
             this.MaxTimeLabel.TabIndex = 5;
-            this.MaxTimeLabel.Text = "Maximum time (in seconds):";
+            this.MaxTimeLabel.Text = "Maximum time:";
             // 
             // PlottingOptionsGroupBox
             // 
@@ -349,9 +372,9 @@ namespace SandiaNationalLaboratories.Hyram {
             this.PlottingOptionsGroupBox.Controls.Add(this.PressuresPerTimeGroupBox);
             this.PlottingOptionsGroupBox.Controls.Add(this.PressureLinesGroupBox);
             this.PlottingOptionsGroupBox.Controls.Add(this.PressureLinesCheckbox);
-            this.PlottingOptionsGroupBox.Location = new System.Drawing.Point(6, 66);
+            this.PlottingOptionsGroupBox.Location = new System.Drawing.Point(6, 104);
             this.PlottingOptionsGroupBox.Name = "PlottingOptionsGroupBox";
-            this.PlottingOptionsGroupBox.Size = new System.Drawing.Size(904, 349);
+            this.PlottingOptionsGroupBox.Size = new System.Drawing.Size(904, 311);
             this.PlottingOptionsGroupBox.TabIndex = 4;
             this.PlottingOptionsGroupBox.TabStop = false;
             this.PlottingOptionsGroupBox.Text = "Plotting options";
@@ -377,7 +400,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.PressuresPerTimeGroupBox.Controls.Add(this.PressuresPerTimeGrid);
             this.PressuresPerTimeGroupBox.Location = new System.Drawing.Point(284, 40);
             this.PressuresPerTimeGroupBox.Name = "PressuresPerTimeGroupBox";
-            this.PressuresPerTimeGroupBox.Size = new System.Drawing.Size(316, 300);
+            this.PressuresPerTimeGroupBox.Size = new System.Drawing.Size(316, 262);
             this.PressuresPerTimeGroupBox.TabIndex = 9;
             this.PressuresPerTimeGroupBox.TabStop = false;
             this.PressuresPerTimeGroupBox.Text = "Place dots where pressure/time intersect";
@@ -391,7 +414,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.PressuresPerTimeGrid.Dock = System.Windows.Forms.DockStyle.Fill;
             this.PressuresPerTimeGrid.Location = new System.Drawing.Point(3, 16);
             this.PressuresPerTimeGrid.Name = "PressuresPerTimeGrid";
-            this.PressuresPerTimeGrid.Size = new System.Drawing.Size(310, 281);
+            this.PressuresPerTimeGrid.Size = new System.Drawing.Size(310, 243);
             this.PressuresPerTimeGrid.TabIndex = 4;
             this.PressuresPerTimeGrid.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.PressuresPerTimeGrid_CellValueChanged);
             this.PressuresPerTimeGrid.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.PressuresPerTimeGrid_RowsRemoved);
@@ -399,7 +422,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // MarkTimeGridCol
             // 
-            this.MarkTimeGridCol.HeaderText = "Time (Seconds)";
+            this.MarkTimeGridCol.HeaderText = "Time";
             this.MarkTimeGridCol.Name = "MarkTimeGridCol";
             // 
             // MarkPressureGridCol
@@ -414,7 +437,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.PressureLinesGroupBox.Controls.Add(this.PressureLinesGrid);
             this.PressureLinesGroupBox.Location = new System.Drawing.Point(9, 37);
             this.PressureLinesGroupBox.Name = "PressureLinesGroupBox";
-            this.PressureLinesGroupBox.Size = new System.Drawing.Size(225, 306);
+            this.PressureLinesGroupBox.Size = new System.Drawing.Size(225, 268);
             this.PressureLinesGroupBox.TabIndex = 8;
             this.PressureLinesGroupBox.TabStop = false;
             this.PressureLinesGroupBox.Text = "Specify pressures in kPa";
@@ -427,7 +450,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.PressureLinesGrid.Dock = System.Windows.Forms.DockStyle.Fill;
             this.PressureLinesGrid.Location = new System.Drawing.Point(3, 16);
             this.PressureLinesGrid.Name = "PressureLinesGrid";
-            this.PressureLinesGrid.Size = new System.Drawing.Size(219, 287);
+            this.PressureLinesGrid.Size = new System.Drawing.Size(219, 249);
             this.PressureLinesGrid.TabIndex = 6;
             this.PressureLinesGrid.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.PressureLinesGrid_CellValueChanged);
             this.PressureLinesGrid.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.PressureLinesGrid_RowsRemoved);
@@ -456,7 +479,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             this.PlotTimesInput.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.PlotTimesInput.Location = new System.Drawing.Point(230, 10);
+            this.PlotTimesInput.Location = new System.Drawing.Point(175, 36);
             this.PlotTimesInput.Name = "PlotTimesInput";
             this.PlotTimesInput.Size = new System.Drawing.Size(668, 20);
             this.PlotTimesInput.TabIndex = 1;
@@ -465,11 +488,11 @@ namespace SandiaNationalLaboratories.Hyram {
             // PlotTimesLabel
             // 
             this.PlotTimesLabel.AutoSize = true;
-            this.PlotTimesLabel.Location = new System.Drawing.Point(6, 12);
+            this.PlotTimesLabel.Location = new System.Drawing.Point(7, 39);
             this.PlotTimesLabel.Name = "PlotTimesLabel";
-            this.PlotTimesLabel.Size = new System.Drawing.Size(218, 13);
+            this.PlotTimesLabel.Size = new System.Drawing.Size(158, 13);
             this.PlotTimesLabel.TabIndex = 0;
-            this.PlotTimesLabel.Text = "Output pressures at these times (in seconds):";
+            this.PlotTimesLabel.Text = "Output pressures at these times:";
             // 
             // ExecuteBtn
             // 
@@ -820,8 +843,6 @@ namespace SandiaNationalLaboratories.Hyram {
 		private DataGridView PressuresPerTimeGrid;
 		private DataGridView PressureLinesGrid;
 		private DataGridViewTextBoxColumn PressureLineCol;
-		private DataGridViewTextBoxColumn MarkTimeGridCol;
-		private DataGridViewTextBoxColumn MarkPressureGridCol;
 		private DataGridView overpressureResultGrid;
 		private CheckBox PressureLinesCheckbox;
 		private GroupBox PressureLinesGroupBox;
@@ -864,5 +885,9 @@ namespace SandiaNationalLaboratories.Hyram {
         private DataGridViewTextBoxColumn colDepth2;
         private DataGridViewTextBoxColumn colConcentration2;
         private DataGridViewTextBoxColumn massFlowRate;
+        private ComboBox timeUnitSelector;
+        private Label label5;
+        private DataGridViewTextBoxColumn MarkTimeGridCol;
+        private DataGridViewTextBoxColumn MarkPressureGridCol;
     }
 }

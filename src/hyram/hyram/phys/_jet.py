@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -15,35 +15,42 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import integrate, optimize
 import scipy.constants as const
-from scipy.interpolate import interp1d
 
+from ._fuel_props import Fuel_Properties
 from ._nn import NotionalNozzle
-
-
-########################################################################
-#TODO: untested for alternate fuels
-########################################################################
 from ..utilities.custom_warnings import PhysicsWarning
+
+########################################################################
+# TODO: untested for alternate fuels
+########################################################################
 
 
 class DevelopingFlow:
-    def __init__(self, fluid, orifice, ambient, mdot = None,
-                 theta0 = 0, x0 = 0., y0 = 0.,
-                 lam  = 1.16, betaA = 0.28,
-                 nn_conserve_momentum = True, nn_T = 'solve_energy', 
-                 T_establish_min = -1, suppressWarnings = False):
+    def __init__(self, fluid, orifice, ambient, mdot=None,
+                 theta0=0, x0=0., y0=0.,
+                 lam=1.16, betaA=0.28,
+                 nn_conserve_momentum=True, nn_T='solve_energy', 
+                 T_establish_min=-1, a_calc = 'venetsanos', 
+                 useMLM = False, useMaxFlux = True, 
+                 suppressWarnings=False, verbose=False):
         '''
         Engineering correlations to calculate the Gaussian profile boundary conditions for
         the flow through an orifice
         '''
+        self.verbose = verbose
         S0 = 0 # S always starts at 0. x and y may start somewhere else.
         Y0 = 1.0 # pure fluid
         
         # Orifice flow
         self.orifice = orifice
-        self.fluid_orifice = self._orifice_flow(fluid, orifice, ambient, mdot, suppressWarnings) # plug node at orifice exit
+        if self.verbose:
+            print('solving for orifice flow... ', end='')
+        self.fluid_orifice = self.orifice.flow(fluid, ambient.P, mdot, suppressWarnings) # plug node at orifice exit
+        self.mass_flow_rate = self.orifice.mdot(self.fluid_orifice)
+        if self.verbose:
+            print('done')
         self.d0 = orifice.d
-        self.orifice_node = PlugNode(orifice.d, self.fluid_orifice.v, self.fluid_orifice.rho,
+        self.orifice_node = PlugNode(orifice.d*np.sqrt(orifice.Cd), self.fluid_orifice.v, self.fluid_orifice.rho,# diameter scaled to account for Cd
                                      1, self.fluid_orifice.T, theta0, x0, y0, S0)
 
         # Underexpanded jet (if needed: gets fluid to atmospheric pressure)
@@ -56,35 +63,18 @@ class DevelopingFlow:
         # Develop into established Gaussian profile from plug flow
 
         self.initial_node = self.expanded_plug_node.establish(ambient, self.fluid_exp, lam)
-        
-        
-    def _orifice_flow(self, fluid, orifice, ambient, mdot, suppressWarnings):
-        '''
-        flow thorugh the orifice
-        '''
-        fluid_out = orifice.flow(fluid, ambient.P)
-        if fluid_out._choked and mdot is not None:
-            if not suppressWarnings:
-                warnings.warn('Fluid over-specified. Using choked flow calculation of mass flow.', category=PhysicsWarning)
-        elif not fluid_out._choked and mdot is None:
-            if not suppressWarnings:
-                warnings.warn('Fluid unchoked. Verification or specification of mass flow rate suggested.',
-                              category=PhysicsWarning)
-        elif fluid_out._choked and mdot is None:
-            pass
-        else:
-            fluid_out = copy.copy(fluid)
-            fluid_out.update(T = fluid.T, P = ambient.P)
-            fluid_out.update(v = mdot/(fluid_out.rho*orifice.A))
-        return fluid_out
     
     def _expand(self, orifice, ambient, nn_T, nn_conserve_momentum):
         '''
         expands an underexpanded jet, if needed
         '''
         if self.fluid_orifice.P > ambient.P: # use notional nozzle model
+            if self.verbose:
+                print('solving for notional nozzle... ', end='')
             nn = NotionalNozzle(self.fluid_orifice, orifice, ambient)
             g, o = nn.calculate(nn_T, nn_conserve_momentum)
+            if self.verbose:
+                print('done.')
         else:
             g, o = self.fluid_orifice, orifice
         return g, o
@@ -98,6 +88,8 @@ class DevelopingFlow:
         if fluid.T > T_establish_min:
             plug_node = PlugNode(orifice.d, fluid.v, fluid.rho, Y0, fluid.T, theta0, x0, y0, S0)
         else:
+            if self.verbose:
+                print('solving for zone of initial entrainment and heating... ', end='')
             air_out = copy.copy(ambient)
             air_out.update(T = T_establish_min, P = air_out.P) 
             fluid_out = copy.copy(fluid)
@@ -123,6 +115,8 @@ class DevelopingFlow:
             d_out = np.sqrt(mdot_out/(rho_out*v_out)*4/np.pi)
             plug_node = PlugNode(d_out, v_out, rho_out, Y, fluid_out.T, theta0, 
                                  x0 + S_out*np.cos(theta0), y0 + S_out*np.sin(theta0), S0 + S_out)
+            if self.verbose:
+                print('done.')
         return plug_node
 
 class PlugNode:
@@ -223,15 +217,15 @@ class GaussianNode:
 
 
 class Jet:
-    def __init__(self, fluid, orifice, ambient, mdot = None,
-                 theta0 = 0, x0 = 0., y0 = 0.,
-                 lam  = 1.16, betaA = 0.28,
-                 nn_conserve_momentum = True, nn_T = 'solve_energy', 
-                 T_establish_min = -1, 
-                 Ymin = 7e-4, dS = None, Smax = np.inf, 
-                 max_steps = 5000, tol = 1e-8,
-                 alpha = 0.082, Yamb = 0., numB = 5, numpts = 500,
-                 suppressWarnings = False, verbose = True):
+    def __init__(self, fluid, orifice, ambient, mdot=None,
+                 theta0= 0, x0=0., y0=0.,
+                 lam=1.16, betaA=0.28,
+                 nn_conserve_momentum=True, nn_T='solve_energy', 
+                 T_establish_min=-1, 
+                 Ymin=7e-4, dS=None, Smax=np.inf, 
+                 max_steps=5000, tol=1e-8,
+                 alpha=0.082, Yamb=0., numB=5, numpts=500, 
+                 suppressWarnings=False, verbose=False):
         '''
         Class for solving for a 2D jet. 
         If fluid pressure is <= 2 x ambient pressure, use subsonic initilization (specify mdot).
@@ -308,12 +302,14 @@ class Jet:
         self.verbose = verbose
                
         self.developing_flow = DevelopingFlow(fluid, orifice, ambient, mdot,
-                                              theta0 = theta0, x0 = x0, y0 = y0,
-                                              lam  = lam, betaA = betaA,
-                                              nn_conserve_momentum = nn_conserve_momentum, nn_T = nn_T, 
-                                              T_establish_min = T_establish_min, suppressWarnings = suppressWarnings
-                                              )
+                                              theta0=theta0, x0=x0, y0=y0,
+                                              lam=lam, betaA=betaA,
+                                              nn_conserve_momentum=nn_conserve_momentum,nn_T=nn_T, 
+                                              T_establish_min=T_establish_min,  
+                                              suppressWarnings=suppressWarnings,
+                                              verbose=verbose)
         self.initial_node = self.developing_flow.initial_node
+        self.mass_flow_rate = self.developing_flow.mass_flow_rate
         
         # Set up some entrainment parameters:
         Fr = self.developing_flow.expanded_plug_node.Froude(ambient.rho)
@@ -329,7 +325,6 @@ class Jet:
         # note: method of calculating heat capacity and enthalpy makes a significant difference in terms
         # of trajectory and density in the calculations...
         self.lam, self.fluid, self.ambient = lam, fluid, ambient
-
         #####################################################################################################
         # TODO: account for variations in heat capacity as a function of temperature - used when getting rid of
         #       heat capacity in _gov_eqns
@@ -442,7 +437,7 @@ class Jet:
                             # zero,                                                #d/dS(Y_cl)
                             # zero                                                 #d/dS(theta)
                             # ])*1./(lam**2*B**3)
-        # # todo: remove ideal gas assumption here (low priority)
+        # # TODO: remove ideal gas assumption here (low priority)
         # T = Pamb*MW/(const.R*rho)
         # dTdS = Pamb/(const.R*rho)*dMWdS - Pamb*MW/(const.R*rho**2)*drhodS
         # h_amb = self._h_amb(T) #self.ambient.therm.h(T = T, P = Pamb)
@@ -537,35 +532,46 @@ class Jet:
             plt.plot(self.x,self.y)
         return self
 
-    def m_flammable(self, X_lean = 0.04, X_rich = 0.75, Hmax = np.inf):
+    def m_flammable(self, X_lean=None, X_rich=None, Hmax=np.inf):
         '''
-        calculates the amount of mass in the plume that is within the flammability limits
+        Calculates the amount of mass in the plume
+        that is within the flammability limits
         
         Parameters
         ----------
-        plume: plume class
-          class of plume results
-        X_lean: float
-            mole fraction lower limit
-        X_rich: float
-            mole fraction upper limit
-        Hmax: float
-            maximum height for integration
+        plume : Plume class
+            Class of plume results
+        X_lean : float, optional
+            Mole fraction lower flammability limit
+            Default is None: will use default LFL for fuel
+        X_rich : float, optional
+            Mole fraction upper flammability limit
+            Default is None: will use default UFL for fuel
+        Hmax : float, optional
+            Maximum height for integration
+            Default is infinity (np.inf)
         
         Outputs
         -------
-        mass: float
-          flammable mass in plume, up to height H (kg)
+        mass : float
+            Flammable mass in plume, up to height H (kg)
         '''
-        from scipy import integrate
         MW_fluid = self.fluid.therm.MW
         MW_air = self.ambient.therm.MW
-        Ylean  = X_lean*MW_fluid/(X_lean*MW_fluid+(1.-X_lean)*MW_air)
-        Yrich  = X_rich*MW_fluid/(X_rich*MW_fluid+(1.-X_rich)*MW_air)
+        if X_lean is None:
+            fuel_props = Fuel_Properties(self.fluid.species)
+            X_lean = fuel_props.LFL
+        if X_rich is None:
+            fuel_props = Fuel_Properties(self.fluid.species)
+            X_rich = fuel_props.UFL
+        Ylean = X_lean * MW_fluid / (X_lean * MW_fluid + (1. - X_lean) * MW_air)
+        Yrich = X_rich * MW_fluid / (X_rich * MW_fluid + (1. - X_rich) * MW_air)
 
         # Trim the plume down to below Hmax:
-        S = np.copy(self.S); Y_cl = np.copy(self.Y_cl)
-        B = np.copy(self.B); rho_cl = np.copy(self.rho_cl)
+        S = np.copy(self.S)
+        Y_cl = np.copy(self.Y_cl)
+        B = np.copy(self.B)
+        rho_cl = np.copy(self.rho_cl)
         if np.all(self.y > Hmax) or np.all(self.Y_cl < Ylean) or np.all(self.Y_cl > Yrich): # no flammable mass 
             return 0
         elif np.any(self.y > Hmax): # trim arrays to Hmax
@@ -573,25 +579,31 @@ class Jet:
             Y_cl = np.append(Y_cl[np.argwhere(self.y < Hmax)].T[0], np.interp(Hmax, self.y, Y_cl))
             B = np.append(B[np.argwhere(self.y < Hmax)].T[0], np.interp(Hmax, self.y, B))
             rho_cl = np.append(rho_cl[np.argwhere(self.y < Hmax)].T[0], np.interp(Hmax, self.y, rho_cl))
-     
+                
         def rhoY(r, i):
             'mass fraction and density at radius: r, for plume at node: i'
             rho = (rho_cl[i]-self.ambient.rho)*np.exp(-r**2/(self.lam*B[i]**2))+self.ambient.rho
             Y = rho_cl[i]*Y_cl[i]*np.exp(-r**2/(self.lam*B[i])**2)/rho
             return rho, Y
+
+        Slean = np.interp(Ylean, Y_cl[::-1], S[::-1])
+        Srich = np.interp(Yrich, Y_cl[::-1], S[::-1])
+        ivals = slice(np.argmax(Y_cl <= Yrich), np.argmax(Y_cl <= Ylean))
+
+        Y_cl, B, rho_cl, S = [np.append(np.append(np.interp(Srich, S, var), var[ivals]), np.interp(Slean, S, var)) for var in [Y_cl, B, rho_cl, S]]
         
         # radius of flammable concentration at each node:
-        r_lean = np.array([0 if Y_cl[i] < Ylean else 
+        r_lean = np.array([0 if Y_cl[i] <= Ylean else 
                            optimize.brentq(lambda r: rhoY(r, i)[1] - Ylean, 0, 100*B[i])
                            for i in range(len(S))])
-        r_rich = np.array([0 if Y_cl[i] < Yrich else 
+        r_rich = np.array([0 if Y_cl[i] <= Yrich else 
                            optimize.brentq(lambda r: rhoY(r, i)[1] - Yrich, 0, 100*B[i])
                            for i in range(len(S))])
         # integrate to find the mass/length at each node
-        mass = np.array([integrate.quad(lambda r: np.prod(rhoY(r, i))*2*const.pi*r, 
-                                        r_r, r_l)[0] for i, r_r, r_l in zip(range(len(S)), r_rich, r_lean)])
+        mass_per_len = np.array([integrate.quad(lambda r: np.prod(rhoY(r, i))*2*const.pi*r, 
+                                 r_r, r_l)[0] for i, r_r, r_l in zip(range(len(S)), r_rich, r_lean)])
         # integrate to find the total mass
-        return integrate.trapz(mass, S)
+        return integrate.trapz(mass_per_len, S)
     
     @property
     def _contourdata(self):
@@ -719,10 +731,7 @@ class Jet:
         ax: optional
             axes on which to make the plot
         '''
-
         # Initialize missing params
-        if mark is None:
-            mark = [0.04]
         if subplots_params is None:
             subplots_params = {}
         if fig_params is None:
@@ -781,7 +790,7 @@ class Jet:
         # Add colorbar if desired
         if addColorBar:
             cb = plt.colorbar(cp)
-            cb.set_label('mole fraction', rotation = -90, va = 'bottom')
+            cb.set_label('Mole Fraction', rotation = -90, va = 'bottom')
         
         # Set axis labels
         ax.set_xlabel(xlab)
@@ -854,7 +863,7 @@ class Jet:
         
         if addColorBar:
             cb = plt.colorbar(cp)
-            cb.set_label('Hydrogen Mass Fraction', rotation = -90, va = 'bottom')
+            cb.set_label('Mass Fraction', rotation = -90, va = 'bottom')
         ax.set_xlabel(xlab)
         ax.set_ylabel(ylab)
         if aspect is not None:
@@ -917,19 +926,25 @@ class Jet:
         
         if addColorBar:
             cb = plt.colorbar(cp)
-            cb.set_label('Hydrogen Velocity', rotation = -90, va = 'bottom')
-        ax.set_xlabel(xlab); ax.set_ylabel(ylab)
+            cb.set_label('Velocity', rotation = -90, va = 'bottom')
+        ax.set_xlabel(xlab)
+        ax.set_ylabel(ylab)
         if aspect is not None:
             ax.set_aspect(aspect)
         return plt.gcf()
-
-    def get_mass_flow_rate(self):
-        """
-        Calculates mass flow rate for the jet plume
+    
+    def streamline_distance_to_mole_fraction(self, X = 0.08):
+        '''
+        returns the streamline distance to a given mole fraction
+        
+        Parameters
+        ----------
+        X: float
+          mole fraction
 
         Returns
-        ----------
-        mass_flow_rate : float
-            Mass flow rate (kg/s) of steady release.
-        """
-        return self.developing_flow.orifice.compute_steady_state_mass_flow(self.fluid, self.ambient.P)
+        -------
+        streamline distance to X_cl = X
+        '''
+        return np.interp(X, self.X_cl[::-1], self.S[::-1])
+    

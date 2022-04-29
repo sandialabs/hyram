@@ -24,7 +24,7 @@
     <Button Name="OptionsButton" X="-171" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0" HideWhenDisabled="yes">#(loc.InstallOptionsButton)</Button>
     <Button Name="InstallButton" X="-91" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0">#(loc.InstallInstallButton)</Button>
     <Button Name="WelcomeCancelButton" X="-11" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0">#(loc.InstallCloseButton)</Button>
-    <Text Name="VersionLabel" X="13" Y="-8" Width="90" Height="23" TabStop="no" FontId="0">v. 4.0</Text>
+    <Text Name="VersionLabel" X="13" Y="-8" Width="90" Height="23" TabStop="no" FontId="0">v. 4.1</Text>
   </Page>
   <Page Name="Options">
     <Text X="11" Y="80" Width="-11" Height="30" FontId="2" DisablePrefix="yes">#(loc.OptionsHeader)</Text>

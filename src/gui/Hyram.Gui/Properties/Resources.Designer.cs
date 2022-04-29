@@ -113,9 +113,9 @@ namespace SandiaNationalLaboratories.Hyram.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ESD_2020 {
+        internal static System.Drawing.Bitmap ESD {
             get {
-                object obj = ResourceManager.GetObject("ESD_2020", resourceCulture);
+                object obj = ResourceManager.GetObject("ESD", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -123,9 +123,9 @@ namespace SandiaNationalLaboratories.Hyram.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ft0p01pct_2020 {
+        internal static System.Drawing.Bitmap ft0p01pct {
             get {
-                object obj = ResourceManager.GetObject("ft0p01pct_2020", resourceCulture);
+                object obj = ResourceManager.GetObject("ft0p01pct", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -133,9 +133,9 @@ namespace SandiaNationalLaboratories.Hyram.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ft0p1pct_2020 {
+        internal static System.Drawing.Bitmap ft0p1pct {
             get {
-                object obj = ResourceManager.GetObject("ft0p1pct_2020", resourceCulture);
+                object obj = ResourceManager.GetObject("ft0p1pct", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -143,9 +143,9 @@ namespace SandiaNationalLaboratories.Hyram.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ft100pct_2020 {
+        internal static System.Drawing.Bitmap ft100pct {
             get {
-                object obj = ResourceManager.GetObject("ft100pct_2020", resourceCulture);
+                object obj = ResourceManager.GetObject("ft100pct", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -153,9 +153,9 @@ namespace SandiaNationalLaboratories.Hyram.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ft10pct_2020 {
+        internal static System.Drawing.Bitmap ft10pct {
             get {
-                object obj = ResourceManager.GetObject("ft10pct_2020", resourceCulture);
+                object obj = ResourceManager.GetObject("ft10pct", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -163,9 +163,9 @@ namespace SandiaNationalLaboratories.Hyram.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ft1pct_2020 {
+        internal static System.Drawing.Bitmap ft1pct {
             get {
-                object obj = ResourceManager.GetObject("ft1pct_2020", resourceCulture);
+                object obj = ResourceManager.GetObject("ft1pct", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

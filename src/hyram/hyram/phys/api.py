@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -12,9 +12,8 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-from . import _comps, _therm, _flame, _flux, _jet, _unconfined_overpressure
+from . import _comps, _flame, _fuel_props, _indoor_release, _jet, _unconfined_overpressure
 from ._fuel_props import Fuel_Properties
-from ._indoor_release import IndoorRelease
 from ..utilities import misc_utils, exceptions
 
 """
@@ -126,7 +125,7 @@ def compute_mass_flow(fluid, orif_diam, amb_pres=101325.,
     orif = _comps.Orifice(orif_diam, Cd=dis_coeff)
 
     if is_steady:
-        result['rates'] = [orif.compute_steady_state_mass_flow(fluid, amb_pres)]
+        result['rates'] = [orif.mdot(orif.flow(fluid, amb_pres))]
 
     else:
         source = _comps.Source(tank_vol, fluid)
@@ -151,7 +150,7 @@ def compute_mass_flow(fluid, orif_diam, amb_pres=101325.,
             [a.grid(which='major', color='k', dashes=(2, 2), alpha=.5) for a in axs]
             [a.grid(which='minor', color='k', alpha=.1) for a in axs]
             fig.savefig(filepath, bbox_inches='tight')
-            plt.close()
+            plt.close(fig)
             result['plot'] = filepath
 
         result["time_to_empty"] = t[-1]
@@ -173,13 +172,12 @@ def compute_tank_mass(fluid, tank_vol):
         Release fluid object
 
     tank_vol : float
-        Volume of source in tank (m^3).
+        Volume of source in tank (m^3)
 
     Returns
     ----------
     float
-        Tank mass (kg).
-
+        Tank mass (kg)
     """
     log.info("Tank Mass calculation requested")
     source = _comps.Source(tank_vol, fluid)
@@ -188,45 +186,72 @@ def compute_tank_mass(fluid, tank_vol):
     return mass
 
 
-def compute_thermo_param(species='H2', temp=None, pres=None, density=None):
+def compute_thermo_param(species='H2', phase=None, temp=None, pres=None, density=None):
     """
-    Calculate temperature, pressure or density of species.
+    Calculates temperature, pressure or density of species.
+    Requires two of [pressure, density, and (temperature or phase)]
+    If unsaturated phase, this returns whichever parameter was not provided.
+    If saturated phase, this returns temperature and whichever other parameter was not provided.
 
     Parameters
     ----------
     species : str
-        Fluid species formula or name (see CoolProp documentation).
+        Fluid species formula or name
+        (see CoolProp documentation)
 
-    temp : float
-        Fluid temperature (K).
+    phase : None or str
+        CoolProp specifier for phase
+        ('liquid' for saturated liquid,
+        'gas' for saturated vapor,
+        or None to specify temperature and pressure)
 
-    pres : float
-        Fluid pressure (Pa).
+    temp : float or None
+        Fluid temperature (K)
 
-    density : float
-        Fluid density (kg/m^3).
+    pres : float or None
+        Fluid pressure (Pa)
+
+    density : float or None
+        Fluid density (kg/m^3)
 
     Returns
-    ----------
-    result : float
-        Temp, pressure, or density, depending on provided parameters.
+    -------
+    float
+        Fluid temperature, pressure, or density, depending on provided input parameters.
+        If saturated phase, first parameter is either density or pressure.
 
+    float or None
+        If unsaturated, None returned.
+        If saturated phase, this will be temperature.
     """
     log.info("TPD Parameter calculation requested")
 
-    fluid = create_fluid(species, temp, pres, density, phase=None)
+    phase = misc_utils.parse_phase_key(phase)
+    if pres is not None and density is not None and (temp is not None or phase is not None):
+        msg = ('Wrong number of inputs provided'
+               ' - two of [temperature (or phase), pressure, density] are required')
+        raise ValueError(msg)
 
-    if temp is not None and pres is not None:
-        result = fluid.rho
-    elif temp is not None and density is not None:
-        result = fluid.P
-    elif pres is not None and density is not None:
-        result = fluid.T
+    fluid = create_fluid(species, temp, pres, density, phase)
+
+    result1 = None
+    result2 = None
+
+    if phase is not None:
+        # saturated phase
+        result1 = fluid.rho if density is None else fluid.P
+        result2 = fluid.T
+
     else:
-        # TODO: best return val here?
-        result = None
+        if density is None:
+            result1 = fluid.rho
+        elif pres is None:
+            result1 = fluid.P
+        else:
+            result1 = fluid.T
+
     log.info("TPD Parameter calculation complete")
-    return result
+    return result1, result2
 
 
 def compute_equivalent_tnt_mass(vapor_mass, percent_yield, fuel):
@@ -236,24 +261,23 @@ def compute_equivalent_tnt_mass(vapor_mass, percent_yield, fuel):
     Parameters
     ----------
     vapor_mass : float
-    Mass of flammable vapor released (kg)
+        Mass of flammable vapor released (kg)
 
     percent_yield : float
         Explosive energy yield (0 to 100)
     
-    fuel: string
+    fuel : string
         fuel being used (H2, CH4, C3H8, etc.)
 
     Returns
     ----------
     result : float
         Equivalent mass of TNT (kg)
-
     """
 
-    heat_of_combustion = Fuel_Properties(fuel).dHc  # heat of combustion, J/kg
+    heat_of_combustion = _fuel_props.Fuel_Properties(fuel).dHc # heat of combustion, J/kg
     log.info("TNT mass calculation: vapor mass {:,.4f} kg, yield {:,.1f}%, heat of combustion {:,.5f} kj/kg".format(
-            vapor_mass, percent_yield, heat_of_combustion / 1000))
+             vapor_mass, percent_yield, heat_of_combustion/1000))
     result = vapor_mass * (percent_yield / 100.) * heat_of_combustion / 1000 / 4500.
 
     log.info("TNT mass calculation complete")
@@ -262,7 +286,7 @@ def compute_equivalent_tnt_mass(vapor_mass, percent_yield, fuel):
 
 def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam,
                       rel_angle=0., dis_coeff=1., nozzle_model='yuce',
-                      create_plot=True, contour=0.04, contour_min=0., contour_max=0.1,
+                      create_plot=True, contour=None, contour_min=0., contour_max=0.1,
                       xmin=-2.5, xmax=2.5, ymin=0., ymax=10., plot_title="Mole Fraction of Leak",
                       filename=None, output_dir=None, verbose=False):
     """
@@ -293,6 +317,7 @@ def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam,
 
     contour : list or int or float
         define contour lines
+        Default is None: will use default LFL for selected fuel
 
     contour_min : float
         minimum value of contour line
@@ -344,6 +369,10 @@ def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam,
             Mass flow rate (kg/s) of steady release.
     """
     log.info("Plume plot requested")
+    if contour is None:
+        fuel_props = Fuel_Properties(rel_fluid.species)
+        contour = fuel_props.LFL
+
     log.info('Creating components')
     orifice = _comps.Orifice(orif_diam, dis_coeff)
 
@@ -352,32 +381,55 @@ def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam,
 
     log.info('Creating jet')
     jet_obj = _jet.Jet(rel_fluid, orifice, amb_fluid, theta0=rel_angle,
-                       nn_conserve_momentum=nozzle_cons_momentum, nn_T=nozzle_t_param, verbose=verbose)
+                       nn_conserve_momentum=nozzle_cons_momentum,
+                       nn_T=nozzle_t_param, verbose=verbose)
 
     xs, ys, mole_fracs, mass_fracs, vs, temps = jet_obj.get_contour_data()
-    mass_flow_rate = jet_obj.get_mass_flow_rate()
+    mass_flow_rate = jet_obj.mass_flow_rate
 
     if create_plot:
         log.info("Creating mole fraction contour plot")
         if output_dir is None:
-            output_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp')
+            output_dir = misc_utils.get_temp_folder()
 
         if filename is None:
             filename = "plume-mole-plot-{}.png".format(misc_utils.get_now_str())
 
-        xlims = np.array([xmin, xmax])
-        ylims = np.array([ymin, ymax])
+        if xmax >= xmin:
+            xlims = (xmin, xmax)
+        else:
+            raise ValueError(f'xmin ({xmin}) is greater than xmax ({xmax})')
+        if ymax >= ymin:
+            ylims = (ymin, ymax)
+        else:
+            raise ValueError(f'ymin ({ymin}) is greater than ymax ({ymax})')
+
         contours = [contour] if type(contour) in [int, float] else contour
+        for contour in contours:
+            if contour <= 0 or contour >=1:
+                error_msg = ('Mole fraction contour values must be >0 and <1'
+                             + ' (current value: {})'.format(contour))
+                raise ValueError(error_msg)
         plot_filepath = os.path.join(output_dir, filename)
-        plot_fig = jet_obj.plot_moleFrac_Contour(xlims=xlims, ylims=ylims, plot_title=plot_title, mark=contours,
-                                                 vmin=contour_min, vmax=contour_max)
+        plot_fig = jet_obj.plot_moleFrac_Contour(xlims=xlims, ylims=ylims,
+                                                 plot_title=plot_title,
+                                                 mark=contours,
+                                                 vmin=contour_min,
+                                                 vmax=contour_max)
         plot_fig.savefig(plot_filepath, bbox_inches='tight')
+        plt.close(plot_fig)
         log.info("Plume plot complete")
     else:
         plot_filepath = ''
 
-    result_dict = {'xs': xs, 'ys': ys, 'mole_fracs': mole_fracs, 'mass_fracs': mass_fracs, 'vs': vs,
-                   'temps': temps, 'plot': plot_filepath, 'mass_flow_rate': mass_flow_rate}
+    result_dict = {'xs': xs,
+                   'ys': ys,
+                   'mole_fracs': mole_fracs,
+                   'mass_fracs': mass_fracs,
+                   'vs': vs,
+                   'temps': temps,
+                   'plot': plot_filepath,
+                   'mass_flow_rate': mass_flow_rate}
     return result_dict
 
 
@@ -525,15 +577,18 @@ def analyze_accumulation(amb_fluid, rel_fluid,
     enclosure = _comps.Enclosure(enclos_height, floor_ceil_area, rel_height, ceil_vent, floor_vent,
                                  Xwall=dist_rel_to_wall)
 
-    release_obj = IndoorRelease(rel_source, orifice, amb_fluid, enclosure,
-                                tmax=tmax, release_area=rel_area, steady=is_steady,
-                                nn_conserve_momentum=conserve_momentum, nn_T=notional_nozzle_t,
-                                theta0=rel_angle, x0=x0, y0=y0, nmax=nmax, verbose=verbose)
+    release_obj = _indoor_release.IndoorRelease(rel_source, orifice, amb_fluid, enclosure,
+                                                tmax=tmax, release_area=rel_area, steady=is_steady,
+                                                nn_conserve_momentum=conserve_momentum, nn_T=notional_nozzle_t,
+                                                theta0=rel_angle, x0=x0, y0=y0, nmax=nmax, verbose=verbose)
 
     mass_flow_result = compute_mass_flow(rel_fluid, orif_diam, amb_fluid.P, is_steady=is_steady, tank_vol=tank_volume,
                                          dis_coeff=orif_dis_coeff, output_dir=output_dir, create_plot=create_plots)
     # interpolate mass flow rates for given times
-    rates = np.interp(times, mass_flow_result['times'], mass_flow_result['rates'])
+    if is_steady:
+        rates = np.full_like(times, mass_flow_result['rates'])
+    else:
+        rates = np.interp(times, mass_flow_result['times'], mass_flow_result['rates'])
 
     # Generate plots
     if create_plots:
@@ -548,15 +603,19 @@ def analyze_accumulation(amb_fluid, rel_fluid,
 
         pfig = release_obj.plot_overpressure(temp_pres_points, pres_ticks)
         pfig.savefig(pres_plot_fpath, bbox_inches='tight')
+        plt.close(pfig)
 
         lfig = release_obj.plot_layer()
         lfig.savefig(layer_plot_fpath, bbox_inches='tight')
+        plt.close(lfig)
 
         tfig = release_obj.plot_trajectories()
         tfig.savefig(traj_plot_fpath, bbox_inches='tight')
+        plt.close(tfig)
 
         mfig = release_obj.plot_mass()
         mfig.savefig(mass_plot_fpath, bbox_inches='tight')
+        plt.close(mfig)
 
         mass_flow_plot_fpath = mass_flow_result['plot']
 
@@ -589,14 +648,12 @@ def analyze_accumulation(amb_fluid, rel_fluid,
 
 
 def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam,
-                       dis_coeff=1., rel_angle=0., rel_height=0.,
-                       nozzle_key='yuce', rad_src_key='multi', rel_humid=0.89, contours=None,
-                       create_temp_plot=True, analyze_flux=True, create_3dplot=False,
+                       dis_coeff=1., rel_angle=0.,
+                       nozzle_key='yuce', rel_humid=0.89, contours=None,
+                       create_temp_plot=True, analyze_flux=True,
                        temp_plot_filename=None,
-                       plot3d_filename=None,
-                       plot2d_filename=None,
-                       xpos=None, ypos=None, zpos=None,
-                       chem_filepath=None,
+                       heatflux_plot_filename=None,
+                       flux_coordinates=None,
                        output_dir=None, verbose=False):
     """
     Assess jet flame behavior and flux data and create corresponding plots.
@@ -610,85 +667,68 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam,
         Release fluid object
 
     orif_diam : float
-        Orifice diameter (m).
+        Orifice diameter (m)
 
     dis_coeff : float
-        Orifice discharge coeffecient [unitless].
+        Orifice discharge coeffecient [unitless]
 
     rel_angle : float
-        Angle of release (0 is horizontal) (radians).
-
-    rel_height : float, optional
-        Height of release (m) above floor at 0.
+        Angle of release (0 is horizontal) (radians)
 
     nozzle_key : {'yuce', 'ewan', 'birc', 'bir2', 'molk'}
         Notional nozzle model identifier (i.e. for under-expanded jet zone)
 
-    rad_src_key : {'single', 'multi'}
-        Radiative source model.
-
     rel_humid : float
-        Relative humidity between 0 and 1.
+        Relative humidity between 0 and 1
 
     contours : array-like
+        Values at which to plot heat flux contours
+        (default: 1.577, 4.732, and 25.237 kW/m2)
 
     create_temp_plot : bool, True
         Whether temperature plot should be created
 
     analyze_flux : bool, True
-        whether radiative heat flux analysis should be performed.
-        Includes creating heat flux plots and generating flux data.
-
-    create_3dplot : bool, False
-        Whether 3D flux plot should be created
+        Whether radiative heat flux analysis should be performed,
+        including creating heat flux plots and generating flux data
 
     temp_plot_filename : str or None
-        Desired filename of output temp plot file.
+        Desired filename of output temp plot file
 
-    plot3d_filename : str or None
-        Filename of 3D plot output.
+    heatflux_plot_filename : str or None
+        Filename of heat flux plot file
 
-    plot2d_filename : str or None
-        Filename of 2D plot output.
-
-    xpos : ndarray
-        Array of x-coordinates, following flame center-line, of positions (m) at which to determine flux.
-
-    ypos : ndarray
-        Array of y-coordinates (vertical) of positions (m) at which to determine flux.
-
-    zpos : ndarray
-        Array of z-coordinates of positions (m) at which to determine flux.
-
-    chem_filepath : str
-        Path to .pkl file storing Combustion chemistry class data.
+    flux_coordinates : list of locations
+        List of locations at which to determine flux,
+        each location is a tuple of 3 coordinates (m):
+        [(x1, y1, z1), (x2, y2, z2), ...]
 
     output_dir : str
-        Filepath of output directory in which to place plots. Will use cwd if not provided.
+        Filepath of output directory in which to place plots,
+        will use cwd if not provided
 
     verbose : bool
-        Verbosity of logging and print statements.
+        Verbosity of logging and print statements
 
     Returns
     -------
     temp_plot_filepath : str or None
         absolute path to temperature plot file
 
-    flux3d_filepath : str or None
-        absolute path to temperature plot file
-
-    slice_filepath : str or None
+    heatflux_filepath : str or None
         absolute path to temperature plot file
 
     pos_flux : ndarray or None
-        positional flux data
+        positional flux data (W/m2)
 
     mass_flow_rate : float
         mass flow rate (kg/s) of the jet flame
 
     srad : float
-        total emitted power of the jet flame (W)
+        total emitted radiative power of the jet flame (W)
 
+    visible_length : float
+        length of visible flame (m)
     """
     log.info("Jet flame analysis requested")
     now_str = misc_utils.get_now_str()
@@ -701,164 +741,44 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam,
     log.info('Creating components')
     orifice = _comps.Orifice(orif_diam, Cd=dis_coeff)
 
-    if chem_filepath:
-        chem_obj = _therm.Combustion(_comps.Fluid(T=amb_fluid.T, P=amb_fluid.P, species=rel_fluid.species))
-    else:
-        chem_obj = None
-
     conserve_momentum, notional_nozzle_t = misc_utils.convert_nozzle_model_to_params(nozzle_key, rel_fluid)
     flame_obj = _flame.Flame(rel_fluid, orifice, amb_fluid,
-                             theta0=rel_angle, y0=rel_height,
-                             nn_conserve_momentum=conserve_momentum, nn_T=notional_nozzle_t, chem=chem_obj,
+                             theta0=rel_angle, y0=0,
+                             nn_conserve_momentum=conserve_momentum, nn_T=notional_nozzle_t,
                              verbose=verbose)
 
-    mass_flow = flame_obj.get_mass_flow_rate()
+    mass_flow = flame_obj.mass_flow_rate
     srad = flame_obj.get_srad()
+    visible_length = flame_obj.get_visible_length()
 
     if create_temp_plot:
-        log.info("Creating flux plot")
+        log.info("Creating temp plot")
         if temp_plot_filename is None:
             temp_plot_filename = 'flame_temp_plot_{}.png'.format(now_str)
         temp_plot_filepath = os.path.join(output_dir, temp_plot_filename)
         fig, _ = flame_obj.plot_Ts()
         fig.savefig(temp_plot_filepath, bbox_inches='tight')
+        plt.close(fig)
     else:
         log.info("Skipping temp plot")
         temp_plot_filepath = None
 
     if analyze_flux:
         log.info("Assessing flux and creating plots")
-        if plot3d_filename is None:
-            plot3d_filename = 'flame_flux3d_{}.png'.format(now_str)
-        if plot2d_filename is None:
-            plot2d_filename = 'flame_flux2d_{}.png'.format(now_str)
-        flux3d_filepath, slice_filepath = flame_obj.iso_heat_flux_plot_sliced(plot3d_filename=plot3d_filename,
-                                                                              plot2d_filename=plot2d_filename,
-                                                                              directory=output_dir,
-                                                                              smodel=rad_src_key,
-                                                                              RH=rel_humid, contours=contours,
-                                                                              plot3d=create_3dplot, plot_sliced=True,
-                                                                              savefigs=True)
-        pos_flux = flame_obj.generate_positional_flux(xpos, ypos, zpos, rel_humid, rad_src_key)
+        if heatflux_plot_filename is None:
+            heatflux_plot_filename = 'flame_heatflux_{}.png'.format(now_str)
+        heatflux_filepath = flame_obj.plot_heat_flux_sliced(filename=heatflux_plot_filename,
+                                                            directory=output_dir,
+                                                            RH=rel_humid, contours=contours,
+                                                            savefig=True)
+        pos_flux = flame_obj.generate_positional_flux(flux_coordinates, rel_humid)
     else:
-        log.info("skipping flux analysis")
-        flux3d_filepath = None
-        slice_filepath = None
+        log.info("Skipping flux analysis")
+        heatflux_filepath = None
         pos_flux = None
 
     log.info("Jet flame analysis complete")
-    return temp_plot_filepath, flux3d_filepath, slice_filepath, pos_flux, mass_flow, srad
-
-
-def flux_analysis(amb_fluid, rel_fluid,
-                  rel_height, rel_angle,
-                  site_length, site_width,
-                  orif_diams, rel_humid, dis_coeff,
-                  rad_src_key, not_nozzle_key,
-                  loc_distributions,
-                  excl_radius, rand_seed,
-                  create_plots=True, output_dir=None, verbose=False):
-    """
-    QRA flux analysis for designated positions.
-
-    Parameters
-    ----------
-    rel_height : float
-        Height of release (m) above floor at 0.
-
-    rel_angle : float
-        Angle of release (0 is horizontal) (radians).
-
-    site_length : float
-        Facility length (m).
-
-    site_width : float
-        Facility width (m).
-
-    orif_diams : ndarray of floats
-        Orifice leak diameters (m), one per leak size.
-
-    rel_humid : float
-        Relative humidity between 0 and 1.
-
-    dis_coeff : float
-        Leak discharge coefficient to account for non-plug flow (always <=1, assumed to be 1 for plug flow).
-
-    rad_src_key : {'single', 'multi'}
-        Radiative source model.
-
-    not_nozzle_key : {'yuce', 'ewan', 'birc', 'bir2', 'molk'}
-        Notional nozzle model identifier (i.e. for under-expanded jet zone).
-
-    loc_distributions : list of lists
-        Parameters describing positions of workers. See _positions for more information.
-
-    excl_radius : float
-        Exclusion radius describing area around source to ignore.
-
-    rand_seed : int
-        Seed for random generation during flame calculation.
-
-    verbose : bool
-        Verbosity of logging and print statements.
-
-    create_plots : bool
-        Whether plot files should be created.
-
-    output_dir : str
-        File path to directory in which to create files and plots.
-
-    Returns
-    -------
-    dict
-        fluxes : ndarray
-            [kW/m2] Heat flux data for each position, flattened into 1d array
-
-        fluxes_by_pos : ndarray
-            [kW/m2] Heat flux data for each position, p x n where p is # positions, n is # leak sizes
-
-        all_iso_fname : list of str
-            iso plot filenames for each leak size
-
-        all_t_fname : list of str
-            temp plot filenames for each leak size
-
-        all_pos_fname : list of str
-            position plot filenames for each leak size
-
-        all_pos_files : list of str
-            position plot file paths
-
-        xlocs : ndarray
-            x location of positions
-
-        ylocs : ndarray
-            y location of positions
-
-        zlocs : ndarray
-            z location of positions
-
-        positions : ndarray
-            3d positions
-
-    """
-    log.info("Flux Analysis requested")
-    params = locals()
-    log.info(misc_utils.params_as_str(params))
-
-    if output_dir is None:
-        output_dir = os.getcwd()
-
-    result_dict = _flux.positional_flux_analysis(amb_fluid, rel_fluid, rel_angle, rel_height,
-                                                 site_length, site_width,
-                                                 orif_diams, rel_humid, dis_coeff,
-                                                 rad_src_key, not_nozzle_key,
-                                                 loc_distributions, excl_radius, rand_seed,
-                                                 create_plots=create_plots,
-                                                 output_dir=output_dir, verbose=verbose)
-
-    log.info("Flux Analysis complete")
-    return result_dict
+    return temp_plot_filepath, heatflux_filepath, pos_flux, mass_flow, srad, visible_length
 
 
 def compute_overpressure(method: str, locations,
@@ -869,18 +789,20 @@ def compute_overpressure(method: str, locations,
                          origin_at_orifice=False,
                          create_overpressure_plot: bool = True,
                          overpressure_plot_filename=None,
-                         output_dir=None, verbose=False,
+                         output_dir=None, contours=None, verbose=False,
                          xmin=None, xmax=None, ymin=None, ymax=None, zmin=None, zmax=None):
     """
-    Calculate the overpressure and impulse at a specified locations.
+    Calculate the overpressure and impulse at a specified locations
 
     Parameters
     ----------
     method : {'bst', 'tnt', 'bauwens'}
-        unconfined overpressure calculation method.
+        Unconfined overpressure calculation method
     
-    locations : list or ndarray of ndarrays
-        list of (x, y, z) arrays for location x,y,z positions
+    locations : list of locations
+        List of locations at which to determine flux,
+        each location is a tuple of 3 coordinates (m):
+        [(x1, y1, z1), (x2, y2, z2), ...]
 
     ambient_fluid : _comps.Fluid
         Ambient fluid object
@@ -925,6 +847,9 @@ def compute_overpressure(method: str, locations,
     output_dir : str
         Filepath of output directory in which to place plots. Will use cwd if not provided.
 
+    contours : array-like or None
+        Overpressure values at which to plot contours
+
     verbose : bool, False
 
     xmin : float, None
@@ -954,46 +879,39 @@ def compute_overpressure(method: str, locations,
             impulse in Pa*s
         figure_file_path : str or None
             path to overpressure figure
+        mass_flow_rate : float
+            Mass flow rate (kg/s) of release
 
     """
     log.info("Unconfined overpressure calculation requested")
     params = locals()
     log.info(misc_utils.params_as_str(params))
 
-    # create Orifice object for overpressure scenario
     orifice = _comps.Orifice(orifice_diameter, discharge_coefficient)
-    # Jet requires parameters defining notional nozzle model, rather than model itself.
     nozzle_cons_momentum, nozzle_t_param = misc_utils.convert_nozzle_model_to_params(nozzle_model, release_fluid)
-    # Create Jet object for overpressure scenario
     log.info('Creating jet')
     jet_object = _jet.Jet(release_fluid, orifice, ambient_fluid, theta0=release_angle,
                           nn_conserve_momentum=nozzle_cons_momentum, nn_T=nozzle_t_param, verbose=verbose)
 
-    # Use specified overpressure method to solve for overpressure, impulse
     method = method.lower()
     if method == 'bst':
         log.info("Calculating overpressure with BST method")
         over_pressure_model = _unconfined_overpressure.BST_method(jet_object=jet_object,
                                                                   mach_flame_speed=BST_mach_flame_speed,
                                                                   origin_at_orifice=origin_at_orifice)
-        overpressure = over_pressure_model.calc_overpressure(locations)
-        impulse = over_pressure_model.calc_impulse(locations)
-
     elif method == 'tnt':
         log.info("Calculating overpressure with TNT method")
         over_pressure_model = _unconfined_overpressure.TNT_method(jet_object=jet_object,
                                                                   equivalence_factor=TNT_equivalence_factor,
                                                                   origin_at_orifice=origin_at_orifice)
-        overpressure = over_pressure_model.calc_overpressure(locations)
-        impulse = over_pressure_model.calc_impulse(locations)
     elif method == 'bauwens':
         log.info("Calculating overpressure with Bauwens method")
         over_pressure_model = _unconfined_overpressure.Bauwens_method(jet_object=jet_object,
                                                                       origin_at_orifice=origin_at_orifice)
-        overpressure = over_pressure_model.calc_overpressure(locations)
-        impulse = over_pressure_model.calc_impulse(locations)
     else:
         raise exceptions.InputError(function="Overpressure analysis", message='Invalid method name')
+    overpressure = over_pressure_model.calc_overpressure(locations)
+    impulse = over_pressure_model.calc_impulse(locations)
 
     if create_overpressure_plot:
         log.info("Creating overpressure plot")
@@ -1002,15 +920,23 @@ def compute_overpressure(method: str, locations,
             output_dir = os.getcwd()
         if overpressure_plot_filename is None:
             overpressure_plot_filename = 'overpressure_plot_{}.png'.format(now_str)
-        overpressure_plot_filepath = os.path.join(output_dir, overpressure_plot_filename)
-        fig = over_pressure_model.iso_overpressure_plot_sliced(title='',
-                                                               plot_filename='2DcutsIsoPlotOverpressure.png',
-                                                               directory=os.getcwd(),
-                                                               xlims=[xmin, xmax], ylims=[ymin, ymax], zlims=[zmin, zmax])
-        fig.savefig(overpressure_plot_filepath, bbox_inches='tight')
+        overpressure_plot_filepath = over_pressure_model.plot_overpressure_sliced(
+                                                            plot_filename=overpressure_plot_filename,
+                                                            directory=output_dir,
+                                                            contours=contours,
+                                                            xlims=[xmin, xmax],
+                                                            ylims=[ymin, ymax],
+                                                            zlims=[zmin, zmax],
+                                                            savefig=True)
     else:
         log.info("Skipping overpressure plot")
         overpressure_plot_filepath = None
 
     log.info("Unconfined overpressure calculation complete")
-    return {'overpressure': overpressure, 'impulse': impulse, 'figure_file_path': overpressure_plot_filepath}
+    results = {
+        'overpressure': overpressure,
+        'impulse': impulse,
+        'figure_file_path': overpressure_plot_filepath,
+        'mass_flow_rate': jet_object.mass_flow_rate,
+    }
+    return results

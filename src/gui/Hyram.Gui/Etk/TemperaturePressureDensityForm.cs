@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -14,24 +14,130 @@ namespace SandiaNationalLaboratories.Hyram
 {
     public partial class TemperaturePressureDensityForm : UserControl
     {
-        // TODO (Cianan): Update only changed the _click func to use python.
-        // In future, this class could be simplified.
         private double _mTemperatureValue = double.NaN;
         private double _mPressureValue = double.NaN;
         private double _mDensityValue = double.NaN;
-
-        private enum CalculationOption
-        {
-            CalculatePressure,
-            CalculateTemperature,
-            CalculateDensity
-        }
-
-        private CalculationOption _mCalculationOption;
+        private PressureUnit _mActivePressureUnit = PressureUnit.Pa;
+        private TempUnit _mActiveTempUnit = TempUnit.Kelvin;
+        private DensityUnit _mActiveDensityUnit = DensityUnit.KilogramPerCubicMeter;
+        private bool _changeSilently = false;
 
         public TemperaturePressureDensityForm()
         {
             InitializeComponent();
+        }
+
+        private void cpEtkTempPressureDensity_Load(object sender, EventArgs e)
+        {
+            ProcessLoadEvent(sender, e);
+        }
+
+        private void ProcessLoadEvent(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                SetRadiobuttonSavedSettings();
+
+                fuelPhaseSelector.DataSource = StateContainer.Instance.FluidPhases;
+                fuelPhaseSelector.SelectedItem = StateContainer.GetValue<FluidPhase>("ReleaseFluidPhase");
+
+                temperatureUnitSelector.Converter = StockConverters.GetConverterByName("Temperature");
+                _mActiveTempUnit = GetDefaultActiveTempUnit();
+                temperatureUnitSelector.SelectedItem = _mActiveTempUnit;
+
+                _mActivePressureUnit = GetDefaultActivePressureUnit();
+                pressureUnitSelector.Converter = StockConverters.GetConverterByName("Pressure");
+                pressureUnitSelector.SelectedItem = _mActivePressureUnit;
+
+                _mActiveDensityUnit = GetDefaultActiveDensityUnit();
+
+                densityUnitSelector.Converter = StockConverters.GetConverterByName("Density");
+                densityUnitSelector.SelectedItem = _mActiveDensityUnit;
+
+                RefreshInputs();
+            }
+        }
+
+        public void EnteringForm()
+        {
+            fuelPhaseSelector.SelectedItem = StateContainer.GetValue<FluidPhase>("ReleaseFluidPhase");
+            RefreshInputs();
+        }
+
+        // Updates state of input fields based on parameter values and phase.
+        public void RefreshInputs()
+        {
+            if (_changeSilently)
+            {
+                return;
+            }
+
+            // if saturated, required inputs are either pressure or density, not both
+            var phase = StateContainer.Instance.GetFluidPhase();
+            bool isSaturated = (phase != FluidPhase.GasDefault);
+
+            bool input1Valid = true;
+            bool input2Valid = true;
+            densityInput.Enabled = true;
+            pressureInput.Enabled = true;
+            temperatureInput.Enabled = true;
+
+            if (isSaturated)
+            {
+                temperatureInput.Enabled = false;
+                temperatureInput.Text = "";
+            }
+
+            if (densitySelector.Checked)
+            {
+                // If not saturated, verify that two other parameters are valid
+                densityInput.Enabled = false;
+                input1Valid = ParseUtility.IsParseableNumber(pressureInput.Text);
+                if (!isSaturated)
+                {
+                    // If saturated, second parameter not required
+                    input2Valid = ParseUtility.IsParseableNumber(temperatureInput.Text);
+                }
+            }
+            else if (pressureSelector.Checked)
+            {
+                pressureInput.Enabled = false;
+                input1Valid = ParseUtility.IsParseableNumber(densityInput.Text);
+                if (!isSaturated)
+                {
+                    input2Valid = ParseUtility.IsParseableNumber(temperatureInput.Text);
+                }
+            }
+            else
+            {
+                // compute temperature; check which other input is provided
+                temperatureInput.Enabled = false;
+                if (isSaturated)
+                {
+                    // only 1 other input needed
+                    if (pressureInput.Text.Length > 0)
+                    {
+                        input1Valid = ParseUtility.IsParseableNumber(pressureInput.Text);
+                        densityInput.Enabled = false;
+                    }
+                    else if (densityInput.Text.Length > 0)
+                    {
+                        input1Valid = ParseUtility.IsParseableNumber(densityInput.Text);
+                        pressureInput.Enabled = false;
+                    }
+                    else
+                    {
+                        input1Valid = false;
+                    }
+                }
+                else
+                {
+                    input1Valid = ParseUtility.IsParseableNumber(densityInput.Text);
+                    input2Valid = ParseUtility.IsParseableNumber(pressureInput.Text);
+                }
+            }
+
+            submitButton.Enabled = input1Valid && input2Valid;
         }
 
         private void temperatureUnitSelector_OnSelectedIndexChange(object sender, EventArgs e)
@@ -48,13 +154,14 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
+        // Restores input states from last ETK form display
         private void SetRadiobuttonSavedSettings()
         {
             densitySelector.Checked = Settings.Default.TPDDensityControl;
-            densitySelector.Refresh();
             pressureSelector.Checked = Settings.Default.TPDPressureControl;
-            pressureSelector.Refresh();
             temperatureSelector.Checked = Settings.Default.TPDTempControl;
+            densitySelector.Refresh();
+            pressureSelector.Refresh();
             temperatureSelector.Refresh();
         }
 
@@ -98,19 +205,19 @@ namespace SandiaNationalLaboratories.Hyram
         private void tbDensity_TextChanged(object sender, EventArgs e)
         {
             ParseUtility.TryParseDouble(densityInput.Text, out _mDensityValue);
-            SetCalcButtonProperties();
+            RefreshInputs();
         }
 
         private void temperatureInput_TextChanged(object sender, EventArgs e)
         {
             ParseUtility.TryParseDouble(temperatureInput.Text, out _mTemperatureValue);
-            SetCalcButtonProperties();
+            RefreshInputs();
         }
 
         private void pressureInput_TextChanged(object sender, EventArgs e)
         {
             ParseUtility.TryParseDouble(pressureInput.Text, out _mPressureValue);
-            SetCalcButtonProperties();
+            RefreshInputs();
         }
 
         private TempUnit GetDefaultActiveTempUnit()
@@ -120,100 +227,58 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void CalcOptionRbCheckedChanged(object sender, EventArgs e)
         {
-            SetTextboxEnabled();
             Settings.Default.TPDDensityControl = densitySelector.Checked;
             Settings.Default.TPDPressureControl = pressureSelector.Checked;
             Settings.Default.TPDTempControl = temperatureSelector.Checked;
+            RefreshInputs();
         }
 
-        private void SetTextboxEnabled()
-        {
-            var densEnabled = !densitySelector.Checked;
-            var presEnabled = !pressureSelector.Checked;
-            var tempEnabled = !temperatureSelector.Checked;
 
-            if (tempEnabled && presEnabled)
-                _mCalculationOption = CalculationOption.CalculateDensity;
-            else if (tempEnabled && densEnabled)
-                _mCalculationOption = CalculationOption.CalculatePressure;
-            else if (presEnabled && densEnabled)
-                _mCalculationOption = CalculationOption.CalculateTemperature;
-            else
-                MessageBox.Show(@"Unable to determine calculation option.");
-
-            if (densityInput.Enabled != densEnabled) densityInput.Enabled = densEnabled;
-
-            if (pressureInput.Enabled != presEnabled) pressureInput.Enabled = presEnabled;
-
-            if (temperatureInput.Enabled != tempEnabled) temperatureInput.Enabled = tempEnabled;
-
-            SetCalcButtonProperties();
-        }
-
-        private void SetCalcButtonProperties()
-        {
-            string leftValue, rightValue;
-
-            switch (_mCalculationOption)
-            {
-                case CalculationOption.CalculateDensity:
-                    leftValue = temperatureInput.Text;
-                    rightValue = pressureInput.Text;
-                    submitButton.Text = "Calculate Density";
-                    break;
-                case CalculationOption.CalculatePressure:
-                    leftValue = temperatureInput.Text;
-                    rightValue = densityInput.Text;
-                    submitButton.Text = "Calculate Pressure";
-                    break;
-                case CalculationOption.CalculateTemperature:
-                    leftValue = densityInput.Text;
-                    rightValue = pressureInput.Text;
-                    submitButton.Text = "Calculate Temperature";
-                    break;
-                default:
-                    submitButton.Text = "Unknown Option Selected";
-                    throw new Exception("Calculation option of " + _mCalculationOption + " unknown.");
-            }
-
-            var enableButton = false;
-            if (ParseUtility.IsParseableNumber(leftValue) && ParseUtility.IsParseableNumber(rightValue))
-                enableButton = true;
-
-            submitButton.Enabled = enableButton;
-        }
-
-        /// <summary>
-        ///     Compute missing parameter via python call
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        // Computes missing parameter(s). If saturated, second missing parameter will also be calculated.
         private void calculateButton_Click(object sender, EventArgs e)
         {
             double? temp = null;
             double? pressure = null;
             double? density = null;
+            var phase = StateContainer.Instance.GetFluidPhase();
+            bool isSaturated = (phase != FluidPhase.GasDefault);
 
-            switch (_mCalculationOption)
+            _changeSilently = true;
+
+            if (densitySelector.Checked)
             {
-                case CalculationOption.CalculateDensity:
-                    temp = GetTempInCorrectUnits();
+                pressure = GetPressureValueInCorrectUnits();
+                temp = !isSaturated ? (double?)GetTempInCorrectUnits() : null;
+            }
+            else if (pressureSelector.Checked)
+            {
+                density = GetDensityInCorrectUnits();
+                temp = !isSaturated ? (double?)GetTempInCorrectUnits() : null;
+            }
+            else
+            {
+                // compute temperature; only 1 input needed if saturated
+                if (isSaturated)
+                {
+                    if (ParseUtility.IsParseableNumber(pressureInput.Text))
+                    {
+                        pressure = GetPressureValueInCorrectUnits();
+                    }
+                    else
+                    {
+                        density = GetDensityInCorrectUnits();
+                    }
+                }
+                else
+                {
                     pressure = GetPressureValueInCorrectUnits();
-                    break;
-                case CalculationOption.CalculatePressure:
                     density = GetDensityInCorrectUnits();
-                    temp = GetTempInCorrectUnits();
-                    break;
-                case CalculationOption.CalculateTemperature:
-                    density = GetDensityInCorrectUnits();
-                    pressure = GetPressureValueInCorrectUnits();
-                    break;
-                default:
-                    throw new Exception("Calculation option of " + _mCalculationOption + " unknown.");
+                }
             }
 
             var physApi = new PhysicsInterface();
-            bool status = physApi.ComputeTpd(temp, pressure, density, out string statusMsg, out double? result);
+            bool status = physApi.ComputeTpd(temp, pressure, density, phase.GetKey(),
+                                             out string statusMsg, out double? param1, out double? param2);
 
             if (!status)
             {
@@ -221,43 +286,56 @@ namespace SandiaNationalLaboratories.Hyram
             }
             else
             {
-                var valueToUse = double.NaN;
-                switch (_mCalculationOption)
+                if (densitySelector.Checked)
                 {
-                    case CalculationOption.CalculateDensity:
-                        valueToUse =
-                            densityUnitSelector.ConvertValue(DensityUnit.KilogramPerCubicMeter, _mActiveDensityUnit, (double)result);
-                        break;
-                    case CalculationOption.CalculatePressure:
-                        valueToUse = pressureUnitSelector.ConvertValue(PressureUnit.Pa, _mActivePressureUnit, (double)result);
-                        break;
-                    case CalculationOption.CalculateTemperature:
-                        valueToUse = temperatureUnitSelector.ConvertValue(TempUnit.Kelvin, _mActiveTempUnit, (double)result);
-                        break;
-                }
+                    densityInput.Text = densityUnitSelector.ConvertValue(DensityUnit.KilogramPerCubicMeter,
+                                                                  _mActiveDensityUnit, (double)param1).ToString();
+                    if (isSaturated)
+                    {
+                        temperatureInput.Text = temperatureUnitSelector.ConvertValue(TempUnit.Kelvin,
+                                                                      _mActiveTempUnit, (double)param2).ToString();
+                    }
 
-                var resultContainer = GetResultContainer();
-                resultContainer.Text = ParseUtility.DoubleToString(valueToUse);
+                }
+                else if (pressureSelector.Checked)
+                {
+                    pressureInput.Text = pressureUnitSelector.ConvertValue(PressureUnit.Pa,
+                                                                  _mActivePressureUnit, (double)param1).ToString();
+                    if (isSaturated)
+                    {
+                        temperatureInput.Text = temperatureUnitSelector.ConvertValue(TempUnit.Kelvin,
+                                                                      _mActiveTempUnit, (double)param2).ToString();
+                    }
+                }
+                else
+                {
+                    // get temperature and missing param if saturated
+                    if (isSaturated)
+                    {
+                        temperatureInput.Text = temperatureUnitSelector.ConvertValue(TempUnit.Kelvin,
+                                                                      _mActiveTempUnit, (double)param2).ToString();
+                        if (pressure == null)
+                        {
+                            pressureInput.Text = pressureUnitSelector.ConvertValue(PressureUnit.Pa,
+                                                                          _mActivePressureUnit, (double)param1).ToString();
+                        }
+                        else
+                        {
+                            densityInput.Text = densityUnitSelector.ConvertValue(DensityUnit.KilogramPerCubicMeter,
+                                                                          _mActiveDensityUnit, (double)param1).ToString();
+                        }
+                    }
+                    else
+                    {
+                        temperatureInput.Text = temperatureUnitSelector.ConvertValue(TempUnit.Kelvin,
+                                                                      _mActiveTempUnit, (double)param1).ToString();
+                    }
+                }
             }
+
+            _changeSilently = false;
         }
 
-        private TextBox GetResultContainer()
-        {
-            TextBox[] candidates = {densityInput, pressureInput, temperatureInput};
-            var numberOfWritable = 0; // Will throw exception if this isn't set to 1.
-            TextBox result = null;
-
-            foreach (var thisCandidate in candidates)
-                if (!thisCandidate.Enabled)
-                {
-                    numberOfWritable++;
-                    result = thisCandidate;
-                }
-
-            if (numberOfWritable != 1) throw new Exception("Output textbox candidate could not be determined");
-
-            return result;
-        }
 
         private double GetDensityInCorrectUnits()
         {
@@ -280,38 +358,11 @@ namespace SandiaNationalLaboratories.Hyram
             return temperatureUnitSelector.ConvertValue(oldUnit, newUnit, _mTemperatureValue);
         }
 
-        private void ProcessLoadEvent(object sender, EventArgs e)
+        private void fuelPhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            if (!DesignMode)
-            {
-                SetRadiobuttonSavedSettings();
-
-                temperatureUnitSelector.Converter = StockConverters.GetConverterByName("Temperature");
-                _mActiveTempUnit = GetDefaultActiveTempUnit();
-                temperatureUnitSelector.SelectedItem = _mActiveTempUnit;
-
-                _mActivePressureUnit = GetDefaultActivePressureUnit();
-                pressureUnitSelector.Converter = StockConverters.GetConverterByName("Pressure");
-                pressureUnitSelector.SelectedItem = _mActivePressureUnit;
-
-                _mActiveDensityUnit = GetDefaultActiveDensityUnit();
-
-                densityUnitSelector.Converter = StockConverters.GetConverterByName("Density");
-                densityUnitSelector.SelectedItem = _mActiveDensityUnit;
-
-                SetTextboxEnabled();
-            }
+            var phase = fuelPhaseSelector.SelectedItem;
+            StateContainer.SetValue("ReleaseFluidPhase", phase);
+            RefreshInputs();
         }
-
-
-        private PressureUnit _mActivePressureUnit = PressureUnit.Pa;
-        private TempUnit _mActiveTempUnit = TempUnit.Kelvin;
-        private DensityUnit _mActiveDensityUnit = DensityUnit.KilogramPerCubicMeter;
-
-        private void cpEtkTempPressureDensity_Load(object sender, EventArgs e)
-        {
-            ProcessLoadEvent(sender, e);
-        }
-
     }
 }

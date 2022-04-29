@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -12,7 +12,7 @@ This file should NOT import from any QRA-specific code.
 """
 
 import numpy as np
-from scipy.stats import beta, lognorm, uniform, norm
+from scipy.stats import beta, uniform, norm
 
 
 class DistributionWrapper(object):

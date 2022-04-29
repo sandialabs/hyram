@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -148,7 +148,7 @@ namespace SandiaNationalLaboratories.Hyram
         public List<OverpressureProbitModel> OverpressureProbitModels = new List<OverpressureProbitModel>
         {
             OverpressureProbitModel.LungEis, OverpressureProbitModel.LungHse, OverpressureProbitModel.Head,
-            OverpressureProbitModel.Collapse  //  OverpressureProbitModel.Debris
+            OverpressureProbitModel.Collapse
         };
 
 
@@ -166,15 +166,14 @@ namespace SandiaNationalLaboratories.Hyram
         private const string ParamTableName = "PARAMETERS";
         private const string DefaultsTableName = "DEFAULTS";
 
-        // Do not delete
-        private bool _mGasAndFlameDetectionOn = true;
-
         private static StateContainer _mInstance = new StateContainer();
 
         private const string OccupantDistributionsCollectionKey = "OccupantDistributions";
 
+        // NOTE (Cianan): don't delete these, even if IDE suggests they're not used. Accessed by public methods below.
         public PressureUnit CfdPressureUnit = PressureUnit.Pa;
         private ElapsingTimeConversionUnit _mExposureTimeUnit = ElapsingTimeConversionUnit.Second;
+        private ElapsingTimeConversionUnit _mAccumulationTimeUnit = ElapsingTimeConversionUnit.Second;
 
         private ParameterDatabase Database { get; set; }
 
@@ -406,6 +405,11 @@ namespace SandiaNationalLaboratories.Hyram
             get => _mExposureTimeUnit;
             set => _mExposureTimeUnit = value;
         }
+        public ElapsingTimeConversionUnit AccumulationTimeUnit
+        {
+            get => _mAccumulationTimeUnit;
+            set => _mAccumulationTimeUnit = value;
+        }
 
         /// <summary>
         /// Initialize database set objects which hold all analysis parameters (default and parameter sets)
@@ -483,33 +487,17 @@ namespace SandiaNationalLaboratories.Hyram
             database["ImmedIgnitionProbs"] = new[] {0.008D, 0.053D, 0.23D};
             database["DelayIgnitionProbs"] = new[] {0.004D, 0.027D, 0.12D};
             database["IgnitionThresholds"] = new[] {0.125, 6.25};
-            ;
 
             database["FuelType"] = FuelType.Hydrogen;
             database["ReleaseFluidPhase"] = FluidPhase.GasDefault;
             database["ThermalProbit"] = ThermalProbitModel.Eisenberg;
-            database["OverpressureProbit"] = OverpressureProbitModel.Collapse;
-
-            database["RadiativeSourceModel"] = RadiativeSourceModels.Multi;  // unused as of 3.1
-
-            // Overpressure consequences
-            database["OverpressureConsequences"] = new ConvertibleValue(GetConverterByDatabaseKey("OverpressureConsequences"), PressureUnit.Pa,
-                new[] {2.5e3, 2.5e3, 5e3, 16e3, 30e3});
-            database["Impulses"] = new ConvertibleValue(GetConverterByDatabaseKey("Impulses"), PressureUnit.Pa,
-                new double[] {250, 500, 1000, 2000, 4000});
+            database["OverpressureProbit"] = OverpressureProbitModel.Head;
 
             //Nozzle model for gas jets
             database["NozzleModel"] = NozzleModel.YuceilOtugen;
 
             //Stores the last/default inputted unit for all stored variables
             database["VarUnitDict"] = new Dictionary<string, Enum>();
-
-            database["OpWrapper.PlotDotsPressureAtTimes"] = new[]
-            {
-                new NdPressureAtTime(1, 13.8D),
-                new NdPressureAtTime(15, 15.0D),
-                new NdPressureAtTime(20, 55.2D)
-            };
 
             // Optional overrides whereby user can control release for each size. -1 to ignore it.
             database["H2Release.000d01"] = new ConvertibleValue(StockConverters.UnitlessConverter,
@@ -560,13 +548,7 @@ namespace SandiaNationalLaboratories.Hyram
                 new double[] {20}, 0D);
             database["facilityWidth"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter,
                 new double[] {12}, 0D);
-            database["facilityHeight"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter,
-                new double[] {5}, 0D);
 
-            // Discharge coefficient of the hole; 1.0 is a conservative value, 0.6 is suggested value for screening
-            database["DischargeCoefficient"] = new ConvertibleValue(
-                    GetConverterByDatabaseKey("DischargeCoefficient"),
-                    UnitlessUnit.Unitless, new[] {1D}, 0D);
             database["numVehicles"] = new ConvertibleValue(
                     GetConverterByDatabaseKey("numVehicles"),
                 UnitlessUnit.Unitless, new double[] {20}, 0D);
@@ -629,9 +611,6 @@ namespace SandiaNationalLaboratories.Hyram
                     StockConverters.UnitlessConverter,
                     UnitlessUnit.Unitless, new[] {1D});
 
-            database["releaseDischargeCoefficient"] = new ConvertibleValue(
-                    StockConverters.UnitlessConverter,
-                    UnitlessUnit.Unitless, new[] {1D});
             database["releaseToWallDistance"] = new ConvertibleValue(
                     StockConverters.DistanceConverter,
                     DistanceUnit.Meter, new[] {2.1255D});
@@ -653,14 +632,25 @@ namespace SandiaNationalLaboratories.Hyram
             database["floorVentHeight"] = new ConvertibleValue(StockConverters.DistanceConverter,
                 DistanceUnit.Meter, new[] {0.044});
 
+            // NOTE (Cianan): for simplicity, all accum. time values are stored unitless and converted to seconds,
+            // corresponding to selected time unit, prior to analysis in execute() function.
+            database["OpWrapper.PlotDotsPressureAtTimes"] = new[]
+            {
+                new NdPressureAtTime(1, 13.8D),
+                new NdPressureAtTime(15, 15.0D),
+                new NdPressureAtTime(20, 55.2D)
+            };
+            database["maxSimTime"] = new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, new[] { 30D });
             database["OpWrapper.SecondsToPlot"] = new ConvertibleValue(
-                GetConverterByDatabaseKey("OpWrapper.SecondsToPlot"), ElapsingTimeConversionUnit.Second,
-                new[]
+                StockConverters.UnitlessConverter, UnitlessUnit.Unitless, new[]
                 {
-                    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
-                    28, 29, 29.5
+                    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                    21, 22, 23, 24, 25, 26, 27, 28, 29, 29.5
                 });
-
+            //database["OpWrapper.SecondsToPlot"] = new[] {
+            //        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+            //        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 29.5
+            //    };
             database["OpWrapper.LimitLinePressures"] = new ConvertibleValue(
                 GetConverterByDatabaseKey("OpWrapper.LimitLinePressures"), PressureUnit.kPa,
                 new[] {13.8D, 15.0D, 55.2D});
@@ -668,16 +658,11 @@ namespace SandiaNationalLaboratories.Hyram
             // Fill Plume wrapper defaults
             // co-volume constant (default is 7.6921e-3 m^3/kg, valid for H2)
             database["PlumeWrapper.PlotTitle"] = "Mole Fraction of Leak";
-            database["PlumeWrapper.XMin"] = new ConvertibleValue(StockConverters.DistanceConverter,
-                DistanceUnit.Meter, new[] {-2.5D});
-            database["PlumeWrapper.XMax"] = new ConvertibleValue(StockConverters.DistanceConverter,
-                DistanceUnit.Meter, new[] {2.5D});
-            database["PlumeWrapper.YMin"] = new ConvertibleValue(StockConverters.DistanceConverter,
-                DistanceUnit.Meter, new[] {0D});
-            database["PlumeWrapper.YMax"] = new ConvertibleValue(StockConverters.DistanceConverter,
-                DistanceUnit.Meter, new[] {10D});
-            database["PlumeWrapper.Contours"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new[] {0.04});
+            database["PlumeWrapper.XMin"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, new[] {-2.5D});
+            database["PlumeWrapper.XMax"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, new[] {2.5D});
+            database["PlumeWrapper.YMin"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, new[] {0D});
+            database["PlumeWrapper.YMax"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, new[] {10D});
+            database["PlumeWrapper.Contours"] = new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, new[] {0.04}, 0.00001, 0.99);
 
             database["PlumeWrapper.co_volume_constant"] = new ConvertibleValue(
                 GetConverterByDatabaseKey("PlumeWrapper.co_volume_constant"), DensityUnit.KilogramPerCubicMeter,
@@ -700,25 +685,6 @@ namespace SandiaNationalLaboratories.Hyram
             database["Enclosure.XWall"] = new ConvertibleValue(GetConverterByDatabaseKey("Enclosure.XWall"),
                 DistanceUnit.Meter, new[] {3D});
 
-#if false
-            // Vent inputs
-            foreach (WhichVent ventPurpose in Enum.GetValues(typeof(WhichVent)))
-            {
-                var crossSectionalAreaKey = ventPurpose + ".CrossSectionalArea";
-                var heightFromFloorKey = ventPurpose + ".VentHeightFromFloor";
-                var dischargeCoefficientKey = ventPurpose + ".DischargeCoefficient";
-                var windVelocityKey = ventPurpose + ".WindVelocity";
-
-                database[crossSectionalAreaKey] = new ConvertibleValue( StockConverters.AreaConverter, AreaUnit.SqMeters, new[] {.1D});
-                database[dischargeCoefficientKey] = new ConvertibleValue( StockConverters.UnitlessConverter, UnitlessUnit.Unitless, new[] {1D});
-                database[windVelocityKey] = new ConvertibleValue(StockConverters.SpeedConverter, SpeedUnit.MetersPerSecond, new[] {1D});
-
-                var heightFromFloorDefault = (ventPurpose == WhichVent.Ceiling) ? 2.5D : 0D;
-                database[heightFromFloorKey] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, new[] {heightFromFloorDefault});
-            }
-#endif
-
-            database["maxSimTime"] = new ConvertibleValue(StockConverters.ElapsingTimeConverter, ElapsingTimeConversionUnit.Second, new[] { 30D });
             database["releaseAngle"] = new ConvertibleValue(StockConverters.AngleConverter, AngleUnit.Radians, new[] {0D});
 
             // Person's flame exposure time [s] 
@@ -754,9 +720,11 @@ namespace SandiaNationalLaboratories.Hyram
             database["overpressure.x"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter,
                 new[] {1D, 2D});
             database["overpressure.y"] = new ConvertibleValue( StockConverters.DistanceConverter, DistanceUnit.Meter,
-                new[] {1D, 2D});
-            database["overpressure.z"] = new ConvertibleValue( StockConverters.DistanceConverter, DistanceUnit.Meter,
                 new[] {0D, 0D});
+            database["overpressure.z"] = new ConvertibleValue( StockConverters.DistanceConverter, DistanceUnit.Meter,
+                new[] {1D, 2D});
+            database["overpressure.contours"] = new ConvertibleValue( StockConverters.UnitlessConverter, UnitlessUnit.Unitless,
+                new[] {5.0, 16.0, 70.0}, 0.0);
 
             //database["overpressure.xmin"] = (float?)null;
             // no conversion allowed because constrained options
@@ -859,6 +827,28 @@ namespace SandiaNationalLaboratories.Hyram
             SetNdValue("numExtraComponent2", UnitlessUnit.Unitless, quantities[13]);
         }
 
+        public void RefreshIgnitionProbabilities()
+        {
+            var thresholds = new[] { 0.125, 6.25 };
+            var immediate = new[] { 0.008D, 0.053D, 0.23D };
+            var delayed = new[] { 0.004D, 0.027D, 0.12D };
+
+            FuelType fuel = GetFuel();
+            if (fuel == FuelType.Hydrogen)
+            {
+                ;
+            }
+            else
+            {
+                thresholds = new[] { 1D, 50D };
+                immediate = new[] { 0.007D, 0.047D, 0.20D };
+                delayed = new[] { 0.003D, 0.023D, 0.10D };
+            }
+            SetValue("ImmedIgnitionProbs", immediate);
+            SetValue("DelayIgnitionProbs", delayed);
+            SetValue("IgnitionThresholds", thresholds);
+        }
+
 
 
         /// <summary>
@@ -877,9 +867,6 @@ namespace SandiaNationalLaboratories.Hyram
             switch (ucKey)
             {
                 case "T_EXPOSE_THERMAL":
-                case "OPWRAPPER.SECONDSTOPLOT":
-                case "OPWRAPPER.MAXSIMTIME":
-                case "MAXSIMTIME":
                 case "FLAMEEXPOSURETIME":
                     result = StockConverters.ElapsingTimeConverter;
                     break;
@@ -891,8 +878,6 @@ namespace SandiaNationalLaboratories.Hyram
                     result = StockConverters.TemperatureConverter;
                     break;
                 case "FLAMEWRAPPER.P_H2":
-                case "OVERPRESSURECONSEQUENCES":
-                case "IMPULSES":
                 case "OPWRAPPER.LIMITLINEPRESSURES":
                 case "SYSPARAM.EXTERNALPRESMPA":
                 case "SYSPARAM.INTERNALPRESMPA":
@@ -919,7 +904,6 @@ namespace SandiaNationalLaboratories.Hyram
                 case "PIPETHICKNESS":
                 case "FACILITYLENGTH":
                 case "FACILITYWIDTH":
-                case "FACILITYHEIGHT":
                 case "OPWRAPPER.S0":
                 case "OPWRAPPER.XWALL":
                 case "OPWRAPPER.HV":
@@ -1134,13 +1118,6 @@ namespace SandiaNationalLaboratories.Hyram
             return result;
         }
 
-        public bool GasAndFlameDetectionOn
-        {
-            get => _mGasAndFlameDetectionOn;
-
-            set => _mGasAndFlameDetectionOn = value;
-        }
-
         /// <summary>
         /// Clear current DB parameter values and set to defaults
         /// </summary>
@@ -1252,6 +1229,7 @@ namespace SandiaNationalLaboratories.Hyram
             SetValue("FuelType", fuel);
             Instance.RefreshLeakFrequencyData();
             Instance.RefreshComponentQuantities();
+            Instance.RefreshIgnitionProbabilities();
 
             EventHandler handler = Instance.FuelTypeChangedEvent;
             if (handler != null)

@@ -4,40 +4,96 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.0.0] - 2021-10-23
+## [4.1.0] = 2022-04-29
+
 ### Added
-* Ability to select hydrogen, methane, or propane as the fuel
-* Additional components in QRA mode
-* Unconfined overpressure model
-* Default leak frequencies for liquid hydrogen, methane (liquid and gas), and propane (liquid and gas)
-* Fuel specific critical pressure check
-* Mass flow rate graph for indoor accumulation model
-* Python tests for QRA mode and unconfined overpressure models
-* Scenario details in QRA results
-* Positional heat flux table in QRA results
-* Flame temperature/trajectory model output displays mass flow rate and emitted power
+- Added basic automatic Python tests for QRA probits, positions, effects, and fatalities
+- Added basic utility to create temporary folder in current working directory if one doesn't already exist
+- Added functions to calculate and plot overpressure effects for positions in QRA
+- Added function to calculate fatality probability based on overpressure effects for QRA
+- Added visible flame length as output to the Physics mode flame analysis
+- Added mass flow rate as output to Physics mode Plume Dispersion and Unconfined Overpressure analyses
+- Added automatic tests to verify zero-risk cases for QRA calculations
+- Added check for Physics mode Plume Dispersion mole fraction contour values that reject 0.0 or 1.0 as possible inputs
+- Added ambient pressure to Python engineering toolkit mass flow rate inputs
+- Added wind to Python flame analyses
+- Added Python calculation of hydrogen peak overpressures using modified BST method from Jallais et al. (2018) https://doi.org/10.1002/prs.11965
+- Added impulse and overpressure data to QRA results
+- Added discharge coefficient input to flame and QRA analyses
+- Added phase input to Engineering Toolkit temperature, pressure, density calculations
+- ETK temperature-pressure-density tool now calculates second missing parameter when phase is saturated.
 
 ### Changed
-* Name change to HyRAM+, along with new logo and icons
-* Default leak frequencies for gaseous hydrogen updated based on more recent Bayesian analysis
-* Overpressure physics model renamed to accumulation to differentiate from unconfined overpressure model
-* Occupant location calculation in QRA mode 
-* TNT equivalent model in ETK looks up heat of combustion
-* Fuel properties data table converted to pythonic dictionary
-* Plot labels specific to hydrogen were changed to 'fuel'
-* Sketch of accumulation scenario (without secondary area)
-* Improved warning and error notifications
-* Data directory now cleared on program launch
-* Updated copyright
+- Changed calculation of flow through an orifice to find maximum flux rather than relying on calculated speeds of sound
+- Moved positions and heat flux effects from hyram.phys to hyram.qra and removed flux-analysis call from physics api
+- Moved position generation to main QRA analysis instead of inside heat flux effects
+- Moved calculation of thermal fatalities loop to seperate fatalities module
+- Changed QRA main analysis to calulate overpressure harm using unconfined overpressure model rather than overpressure/impulse direct inputs
+- Changed QRA main analysis to utilize refactored code in new effects, fatalities, ignition probabilities, pipe size, and risk modules
+- Changed internal calculations to use W/m2 for heat flux and Pa for peak ovrepressure for consistancy; GUI and plots still report kW/m2 and kPa
+- Figures are explicitly closed after saving to file to avoid taking up memory
+- Changed the origin of unconfined overpressure blast wave to be the point at which the jet concentration is midway between the upper and lower flammability limits, instead of half the distance to the lower flammability limit
+- Changed Bauwens/Dorofeev unconfined overpressure models to utilze fitted curves for detonation cell size rather than a saved spline-fit object in a pickle file
+- Some Python optional arguments had default values that were specific to hydrogen (e.g., LFL and UFL), changed the default to select values specific to the fuel selected rather than hydrogen
+- Fixed overpressure origin calculation, y- and z-coordinates were flipped
+- Changed default overpressure probit model to TNO - Head Impact
+- Changed ode integrator within Flame objects to use implicit Adams/BDF method rather than explicit Runge-Kutta method
+- Improved accuracy of calculation of flammable mass within a jet/plume by interpolating the endpoints near the rich and lean regions
+- Updated fault tree images in GUI to reflect added components in version 4.0
 
 ### Removed
-* Release area input from accumulation model
+- Removed unused debris fatality probit
+- Removed numerical comparison tests for QRA C-API, the tests now just check that the interface is working and that calculations run without error
+- Removed saving and loading of flame data object file in QRA calculations since old results could stay in there despite model changes
+- Removed unused save and load object functions from physics thermo module and utilities
+- Removed value-specific checks from Python C-API tests, these may be incorporated in separate future validation tests
+- Removed single-point radiation model from jet flame entirely from the Python code
+- Removed unused 3D ISO heat flux plot, along with associated scikit-image dependency
+- Removed unused unconfined overpressure contour plot
+- Removed package dill as a dependency of the hyram Python package
+- Removed package pandas as a dependency of the hyram Python package
+- Removed overpressure impulse table inputs from GUI
+- Removed unused facility height input in QRA
+- Removed unused leak height input in QRA calculations
+- Removed Python 2-phase speed of sound calculations
+
+
+## [4.0.0] - 2021-10-23
+
+### Added
+- Ability to select hydrogen, methane, or propane as the fuel
+- Additional components in QRA mode
+- Unconfined overpressure model
+- Default leak frequencies for liquid hydrogen, methane (liquid and gas), and propane (liquid and gas)
+- Fuel specific critical pressure check
+- Mass flow rate graph for indoor accumulation model
+- Python tests for QRA mode and unconfined overpressure models
+- Scenario details in QRA results
+- Positional heat flux table in QRA results
+- Flame temperature/trajectory model output displays mass flow rate and emitted power
+
+### Changed
+- Name change to HyRAM+, along with new logo and icons
+- Default leak frequencies for gaseous hydrogen updated based on more recent Bayesian analysis
+- Overpressure physics model renamed to accumulation to differentiate from unconfined overpressure model
+- Occupant location calculation in QRA mode 
+- TNT equivalent model in ETK looks up heat of combustion
+- Fuel properties data table converted to pythonic dictionary
+- Plot labels specific to hydrogen were changed to 'fuel'
+- Sketch of accumulation scenario (without secondary area)
+- Improved warning and error notifications
+- Data directory now cleared on program launch
+- Updated copyright
+
+### Removed
+- Release area input from accumulation model
 
 ### Fixed
-* Suppressed interpolation bounds errors in indoor accumulation model
+- Suppressed interpolation bounds errors in indoor accumulation model
 
 
 ## [3.1.0] - 2021-05-11
+
 ### Added
 - Jet _radial_profile method outputs temperatures
 - Input label clarification that pressure units are absolute, not gauge

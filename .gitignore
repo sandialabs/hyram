@@ -4,10 +4,7 @@
 # Python dist contained within App
 python/
 
-*/temp/*
-*/altram/tests/temp/*
-*/hyram/hyram/qra/tests/temp/*
-*/hyram/tests/temp/*
+**/temp/
 
 ## Standard python ignore settings
 # Byte-compiled / optimized / DLL files

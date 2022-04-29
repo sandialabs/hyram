@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -437,7 +437,6 @@ namespace SandiaNationalLaboratories.Hyram
         public static readonly OverpressureProbitModel LungHse = new OverpressureProbitModel(1, "Lung (HSE)", "lhse");
         public static readonly OverpressureProbitModel Head = new OverpressureProbitModel(2, "Head Impact", "head");
         public static readonly OverpressureProbitModel Collapse = new OverpressureProbitModel(3, "Collapse", "coll");
-        //public static readonly OverpressureProbitModel Debris = new OverpressureProbitModel(4, "Debris", "debr");
         private readonly string _key;
         private readonly string _name;
         private readonly int _value;
@@ -787,24 +786,10 @@ namespace SandiaNationalLaboratories.Hyram
     }
 
 
-    // Provides names to prepend database key for floor and ceiling grid input variables.
-    public enum WhichVent
-    {
-        Floor,
-        Ceiling
-    }
-
     public enum FailureDistributionType
     {
         Beta,
         LogNormal,
         ExpectedValue
-    }
-
-    public enum RadiativeSourceModels
-    {
-        None,
-        Single,
-        Multi
     }
 }

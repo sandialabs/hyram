@@ -49,6 +49,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.temperaturePressureDensityTabPage.TabIndex = 1;
             this.temperaturePressureDensityTabPage.Text = "Temperature, Pressure, and Density";
             this.temperaturePressureDensityTabPage.UseVisualStyleBackColor = true;
+            this.temperaturePressureDensityTabPage.Enter += new System.EventHandler(this.temperaturePressureDensityTabPage_Enter);
             // 
             // temperaturePressureDensityForm
             // 

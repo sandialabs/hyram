@@ -1,5 +1,5 @@
 """
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -17,7 +17,6 @@ import numpy as np
 from mpl_toolkits.axes_grid1 import ImageGrid
 from scipy import constants as const
 from scipy import integrate, interpolate, optimize
-from skimage import measure
 
 from ._jet import DevelopingFlow
 from ._therm import Combustion
@@ -31,10 +30,10 @@ class Flame:
                  nn_conserve_momentum=True, nn_T='solve_energy',
                  chem=None,
                  lamf=1.24, lamv=1.24, betaA=3.42e-2, alpha_buoy=5.75e-4, af=0.23,
-                 T_establish_min=-1, verbose=True,
-                 Smax=np.inf, dS=None, tol=1e-8, max_steps=5000,
-                 numB=5, n_pts_integral=100
-                 ):
+                 T_establish_min=-1, verbose=False,
+                 Smax=np.inf, dS=None, tol=1e-6, 
+                 numB=5, n_pts_integral=100, 
+                 wind_speed = 0):
         '''
         class for calculating the characteristics of a 2-D flame, without wind
         see Ekoto et al. International Journal of Hydrogen Energy, 39, 2014 (20570-20577)
@@ -47,8 +46,6 @@ class Flame:
             orifice through which fluid is being released
         ambient: Fluid object (hc_comps)
             fluid into which release is occuring
-        nC: int
-            number of carbon atoms (0 for H2, 1 for CH4, 3 for C3H8)
         mdot: float, optional 
             should only be specified for subsonic release, mass flow rate (kg/s)
         theta0 : float, optional
@@ -79,9 +76,11 @@ class Flame:
         alpha_buoy : float
             buoyancy entrainment coefficient    
         af : float
-            Plank's mean absorption coefficient for H2O
+            Plank's mean absorption coefficient for an optically thin flame
         T_establish_min: float, optional
             minimum temperature for start of integral model
+        verbose : bool, optional
+            If True, extra output will be printed (default True)
         Smax: float, optional
             limit of integration, integrator will stop when it reaches minimum of Flame.length() or Smax
         dS: float, optional
@@ -101,19 +100,20 @@ class Flame:
                                               lam=lamf, betaA=betaA,
                                               nn_conserve_momentum=nn_conserve_momentum, nn_T=nn_T,
                                               T_establish_min=T_establish_min,
-                                              )
+                                              verbose=verbose)
         self.initial_node = self.developing_flow.initial_node
+        self.mass_flow_rate = self.developing_flow.mass_flow_rate
         expanded_plug_node = self.developing_flow.expanded_plug_node
 
         self.fluid, self.ambient = fluid, ambient
         self.Emom = betaA * np.sqrt(const.pi / 4.0 * expanded_plug_node.d ** 2 *
                                     expanded_plug_node.rho * expanded_plug_node.v ** 2 / ambient.rho)
-        self.theta0, self.lamf, self.lamv, self.alpha_buoy = theta0, lamf, lamv, alpha_buoy
+        self.lamf, self.lamv, self.alpha_buoy = lamf, lamv, alpha_buoy
         self.chem = chem
         self.af = af
-        self.x0, self.y0, self.S0 = x0, y0, self.initial_node.S
         self.verbose = verbose
-        self.solve(Smax, dS, tol, max_steps, numB, n_pts_integral)
+        self.wind_speed = wind_speed
+        self.solve(Smax, dS, tol, numB, n_pts_integral)
 
     def _govEqns(self, S, ind_vars, numB=5, n_pts_integral=100):
         '''
@@ -122,15 +122,15 @@ class Flame:
         A matrix soluition to the continuity, x-momentum, y-mometum and mixture fraction equations
         solves for d/dS of the dependent variables V_cl, B, theta, and f_cl.  Numerically integrated
         to infinity = numB * B(S) using numpts discrete points.'''
-
+        
         # break independent variables out of ind_vars
         [V_cl, B, theta, f_cl, x, y] = ind_vars
-
-        # needed to integrate to infinity (6B):
+        
+        # needed to integrate to infinity (numB*B):
         r = np.zeros(n_pts_integral)
         r[1:] = np.logspace(-7, np.log10(numB * B), n_pts_integral - 1)
 
-        # mass fraction and velocity have Gaussian shapes
+        # mixture fraction and velocity have Gaussian shapes
         f = f_cl * np.exp(-(r / (self.lamf * B)) ** 2)
         V = V_cl * np.exp(-(r / (self.lamv * B)) ** 2)
 
@@ -146,13 +146,13 @@ class Flame:
 
         rho_int = integrate.trapz(self.ambient.rho - rho, r)
 
-        Ebuoy = 2 * np.pi * self.alpha_buoy * np.sin(theta) * (
+        Ebuoy = (2 * np.pi * self.alpha_buoy * np.sin(theta) * 
                     const.g * (rho_int) / (B * V_cl * self.developing_flow.fluid_exp.rho))  # m**2/s
         E = self.Emom + Ebuoy
 
         # right-hand side of governing equations:
         RHS = np.array([self.ambient.rho * E / (2 * const.pi),  # continuity
-                        0,  # x-momentum
+                        self.wind_speed * self.ambient.rho * E / (2 * const.pi),  # x-momentum
                         integrate.trapz((self.ambient.rho - rho) * const.g * r, r),  # y-momentum
                         0])  # mixture fraction
 
@@ -170,12 +170,12 @@ class Flame:
                             theta) * r + rho * V ** 2 * np.cos(theta) * dthetadS * r,  # y-momentum
                         drhodS * V * f * r + rho * dVdS * f * r + rho * V * dfdS * r])  # mixture fraction
         LHS = integrate.trapz(LHS, r)
-
+        
         dz = np.append(np.linalg.solve(LHS, RHS), np.array([np.cos(theta), np.sin(theta)]), axis=0)
 
         return dz
 
-    def solve(self, Smax=np.inf, dS=None, tol=1e-8, max_steps=5000,
+    def solve(self, Smax=np.inf, dS=None, tol=1e-6,
               numB=5, n_pts_integral=100):
         '''
         Solves for a flame. Returns a dictionary of flame results.  Also updates the Flame class with those results.
@@ -201,45 +201,32 @@ class Flame:
             print('solving for the flame...', end='')
         Smax = min(Smax, self.length())
 
-        Y_clE = self.initial_node.Y_cl
-        f_clE = optimize.newton(lambda f: Y_clE - self.chem._Yreac(f)[self.chem.reac],
-                                Y_clE)  # ESH-04/05/21 - updated _Yprod in line above to _Yreac
-        thetaE = self.theta0
-        SE = self.initial_node.S
-        xE = self.x0 + SE * np.cos(thetaE)
-        yE = self.y0 + SE * np.sin(thetaE)
-        
-        r = integrate.ode(self._govEqns).set_integrator('dopri5', atol=tol, rtol=tol, nsteps = max_steps)
-        S, solution = [], []
-        r.set_f_params(numB, n_pts_integral)
-        r.set_initial_value(np.array([self.initial_node.v_cl, self.initial_node.B, thetaE, f_clE, xE, yE]), SE)
-
-        # Srad calculation
-        # Xrad is calculated in self.length() which is called above
-        # DHc is available after computation abovee
-        # self.developing_flow initialized in __init__
-        mdot = self.developing_flow.orifice_exp.mdot(self.developing_flow.fluid_exp)  # mass flow rate [kg/s]
-        self.Srad = self.Xrad * mdot * self.chem.DHc
-
-        def solout(s, solution_s):
-            S.append(s)
-            solution.append(np.array(solution_s))
-
-        r.set_solout(solout)
+        Y_cl0 = self.initial_node.Y_cl
+        f_cl0 = optimize.newton(lambda f: Y_cl0 - self.chem._Yreac(f)[self.chem.reac],
+                                Y_cl0)  # ESH-04/05/21 - updated _Yprod in line above to _Yreac
 
         if dS == None:
-            dS = Smax - r.t
-        while r.successful() and r.t < Smax:
-            r.integrate(r.t + dS)
+            max_step = np.inf
+            first_step = None
+        else:
+            max_step = dS
+            first_step = dS
+        sol = integrate.solve_ivp(self._govEqns, [self.initial_node.S, Smax], 
+                                  np.array([self.initial_node.v_cl, self.initial_node.B, self.initial_node.theta, f_cl0, 
+                                            self.initial_node.x, self.initial_node.y]),
+                                  max_step = max_step, first_step = first_step,
+                                  args = (numB, n_pts_integral),
+                                  atol=tol, rtol=tol,
+                                  method = 'LSODA'
+                                  )
 
-        S, solution = np.array(S), np.array(solution)
-        res = dict(zip(['V_cl', 'B', 'theta', 'f_cl', 'x', 'y'], solution.T))
-        res['S'] = S
-        for k, v in res.items():
+        result = dict(zip(['V_cl', 'B', 'theta', 'f_cl', 'x', 'y'], sol.y))
+        result['S'] = sol.t
+        for k, v in result.items():
             self.__dict__[k] = v
         if self.verbose:
             print('done.')
-        return res
+        return result
 
     def length(self):
         '''
@@ -282,15 +269,18 @@ class Flame:
         self.tauf = (const.pi / 12) * (rhof * (self.Wf ** 2) * self.Lvis * fs) / (orifice1.mdot(gas1)) * 1000
         # self.Xrad = (0.08916*np.log10(self.tauf*self.af*Tad**4) - 1.2172) # comes from Molina et al.
         self.Xrad = 9.45e-9 * (self.tauf * self.af * Tad ** 4) ** 0.47  # see Panda, Hecht, IJHE 2016
+        mdot = self.developing_flow.orifice_exp.mdot(self.developing_flow.fluid_exp)  # mass flow rate [kg/s]
+        self.Srad = self.Xrad * mdot * self.chem.DHc
+
         return self.Lvis
 
     def Qrad_multi(self, x, y, z, RH, WaistLoc=0.75, N=50):
         '''
-        MultiSource radiation model -- follows Hankinson & Lowesmith, CNF 159, 2012: 1165-1177       
+        MultiSource radiation model
+        follows Hankinson & Lowesmith, CNF 159, 2012: 1165-1177       
         '''
         obsOrg = np.array([x, y, z]).T
 
-        DHc = self.chem.DHc  # heat of combustion [J/kg]
         try:
             Lvis = self.Lvis  # length of visible flame [m]
         except:
@@ -317,26 +307,6 @@ class Flame:
 
         Qrad = np.zeros(obsOrg.shape[:-1])
 
-        def tau(L, T, RH, CO2_ppm=400):
-            ''' transmissivity from Wayne, J. Loss Prev. Proc. Ind. 1991
-            Parameters
-            ----------
-            L : path length (m)
-            T : atmospheric temperature (K)
-            RH: fractional relative humidity (0-1)
-            CO2_ppm: atmospheric CO2 (ppm) - assumed to be 400 
-            
-            Returns
-            -------
-            tau - transmissivity
-            '''
-            Smm = np.exp(20.386 - 5132 / T)  # saturated vapor pressure [mmHg] - Wikipedia
-            XH2O = RH * L * Smm * 288.651 / T
-            XCO2 = L * 273. / T * CO2_ppm / 335.  # m
-            tau = (1.006 - 0.01171 * np.log10(XH2O) - 0.02368 * (np.log10(XH2O)) ** 2 -
-                   0.03188 * np.log10(XCO2) + 0.001164 * np.log10(XCO2) ** 2)
-            return tau
-
         for j in range(len(w)):
             v = sourceOrg[j] - obsOrg
             if obsOrg.ndim > 1:
@@ -356,63 +326,8 @@ class Flame:
             elif obsOrg.ndim == 1:
                 len_v = np.linalg.norm(v)
                 phi = np.arcsin(np.linalg.norm(np.cross(obsNorm, v)) / len_v)
-            Qrad += w[j] / (4 * const.pi * len_v ** 2) * np.cos(phi) * self.Srad * tau(len_v, T, RH)
+            Qrad += w[j] / (4 * const.pi * len_v ** 2) * np.cos(phi) * self.Srad * calc_transmissivity(len_v, T, RH)
 
-        return Qrad.T / 1000
-
-    def Qrad_single(self, x, y, z, flameCen, RH):
-        '''
-        single point radiation model
-        '''
-        obsOrg = np.array([x, y, z]).T
-        DHc = self.chem.DHc  # heat of combustion [J/kg]
-        try:
-            Lvis = self.Lvis  # length of visible flame [m]
-        except:
-            Lvis = self.length()
-
-        # Fit to normalized radiant power curve, C*
-
-        Distance = obsOrg - flameCen
-        if np.size(obsOrg.shape) == 4:
-            Xbar_temp = obsOrg[:, :, :, 0] / Lvis
-            Rad = np.linalg.norm(Distance[:, :, :, 1:], axis=3)
-        elif np.size(obsOrg.shape) == 3:
-            Xbar_temp = obsOrg[:, :, 0] / Lvis
-            Rad = np.linalg.norm(Distance[:, :, 1:], axis=2)
-        elif np.size(obsOrg.shape) == 2:
-            Xbar_temp = obsOrg[:, 0] / Lvis
-            Rad = np.linalg.norm(Distance[:, 1:], axis=1)
-        elif np.size(obsOrg.shape) == 1:
-            Xbar_temp = obsOrg[0] / Lvis
-            Rad = np.linalg.norm(Distance[1:])
-
-        val1 = -2.7579 * (np.abs(Xbar_temp - 0.6352))
-        Cstar = 0.85985 * np.exp(val1)
-        # Radiative heat flux [kW/s]
-        VF = Cstar / (4 * const.pi * Rad ** 2) / 1000
-
-        def tau(L, T, RH, CO2_ppm=400):
-            ''' transmissivity from Wayne, J. Loss Prev. Proc. Ind. 1991
-            Parameters
-            ----------
-            L : path length (m)
-            T : atmospheric temperature (K)
-            RH: fractional relative humidity (0-1)
-            CO2_ppm: atmospheric CO2 (ppm) - assumed to be 400 
-            
-            Returns
-            -------
-            tau - transmissivity
-            '''
-            Smm = np.exp(20.386 - 5132 / T)  # saturated vapor pressure [mmHg] - Wikipedia
-            XH2O = RH * L * Smm * 288.651 / T
-            XCO2 = L * 273. / T * CO2_ppm / 335.  # m
-            tau = (1.006 - 0.01171 * np.log10(XH2O) - 0.02368 * (np.log10(XH2O)) ** 2 -
-                   0.03188 * np.log10(XCO2) + 0.001164 * np.log10(XCO2) ** 2)
-            return tau
-
-        Qrad = VF * self.Srad * tau(Rad, self.ambient.T, RH)
         return Qrad.T
 
     def _contourdata(self):
@@ -501,48 +416,50 @@ class Flame:
 
         return fig, cb
 
-    def iso_heat_flux_plot_sliced(self, title='',
-                                  plot3d_filename='3DisoPlot.png',
-                                  plot2d_filename='2DcutsIsoPlot.png',
-                                  directory=os.getcwd(),
-                                  smodel='multi',
-                                  RH=0.89,
-                                  contours=None,
-                                  nx=50, ny=50, nz=50,
-                                  xlims=None, ylims=None, zlims=None,
-                                  savefigs=True, plot3d=True, plot_sliced=True):
+    def plot_heat_flux_sliced(self, title='',
+                              filename='HeatFluxSliced.png',
+                              directory=os.getcwd(),
+                              RH=0.89,
+                              contours=None,
+                              nx=50, ny=50, nz=50,
+                              xlims=None, ylims=None, zlims=None,
+                              WaistLoc=0.75,
+                              savefig=True):
         '''
         plots slices of heat flux levels
 
         Parameters
         ----------
-        title: string (optional)
+        title : string (optional)
             title shown on plot
-        fname: string, optional
+        filename : string, optional
             file name to write
-        directory: string, optional
+        directory : string, optional
             directory in which to save file
-        smodel: string, optional
-            'multi' or 'single' defining radiaion model used
-        RH: float
+        RH : float
             relative humidity
-        contours: ndarray or list (optional)
-            contour levels shown on plot (default values are 2012 International Fire Code (IFC) exposure limits 
-            for property lines (1.577 kW/m2), employees (4.732 kW/ m2), and non-combustible equipment (25.237 kW/m2))
+        contours : ndarray or list (optional)
+            contour levels shown on plot in kW/m^2 (default values are 2012 International Fire Code (IFC) exposure limits 
+            for property lines (1.577 kW/m2), employees (4.732 kW/m2), and non-combustible equipment (25.237 kW/m2))
         nx, ny, nz: float (optional)
             number of points to solve for the heat flux in the x, y, and z directions
+        xlims, ylims, zlims: tuple (optional)
+            plot limits of (min, max) in each dimension 
+        WaistLoc: float (optoinal)
+            value between 0 and 1 along flame length at which to make xz slice
+        savefig: boolean (optional)
+            whether to save the figure as filename
 
         Returns
         -------
-        If savefig is True, returns two filenames corresponding to 3dplot and 2dplot.
-        If savefig is false, returns fig object.
+        If savefig is True, returns full filepath of saved figure;
+        if savefig is False, returns figure object.
         '''
         if contours is None:
             contours = [1.577, 4.732, 25.237]
-
         Lvis = self.length()
-        flameCen = np.array([self.x[np.argmin(np.abs(self.S - Lvis / 2))],
-                             self.y[np.argmin(np.abs(self.S - Lvis / 2))],
+        flameCen = np.array([np.interp(Lvis*WaistLoc, self.S, self.x),
+                             np.interp(Lvis*WaistLoc, self.S, self.y),
                              0])
         if xlims is None:
             dx = 4.5 * Lvis / nx
@@ -570,187 +487,184 @@ class Flame:
         x_y, z_y = np.mgrid[x0, z0]
         y_x, z_x = np.mgrid[y0, z0]
 
-        if plot3d:
-            # 3D figure:
-            fig_iso = plt.figure(figsize=(8, 3))
-            if smodel == 'multi':
-                flux = self.Qrad_multi(x, y, z, RH)
-                fluxy0 = self.Qrad_multi(x_y, np.ones_like(x_y) * y.min(), z_y, RH)
-            elif smodel == 'single':
-                flux = self.Qrad_single(x, y, z, flameCen, RH)
-                fluxy0 = self.Qrad_single(x_y, np.ones_like(x_y) * y.min(), z_y, flameCen, RH)
-            ax = fig_iso.gca(projection='3d')
-            for contour in contours:
-                try:
-                    verts, faces, normals, values = measure.marching_cubes(flux, contour,
-                                                                           spacing=(dx, dy, dz))
-                except AttributeError:
-                    verts, faces, normals, values = measure.marching_cubes_lewiner(flux, contour,
-                                                                                   spacing=(dx, dy, dz))
-                px, py, pz = verts.T
-                ax.plot(self.x, self.y, color='k')
-                ax.plot_trisurf(px + x.min(),
-                                py + y.min(),
-                                faces,
-                                pz + z.min(),
-                                alpha=0.2,
-                                color=plt.cm.get_cmap()(contour / max(contours))
-                                )
-                ax.set_xlabel('x [m]')
-                ax.set_ylabel('y [m]')
-                ax.set_zlabel('z [m]')
-            ax.view_init(120, -95)
-            ax.set_xlim3d(x.min(), x.max())
-            ax.set_ylim3d(y.min(), y.max())
-            ax.set_zlim3d(z.min(), z.max())
-            ax.contourf(x_y, fluxy0, z_y, zdir='y', offset=y.min(), alpha=.3,
-                        levels=np.append(0, contours))
-            fig_iso.tight_layout()
-            plot3d_filepath = os.path.join(directory, plot3d_filename)
-            if savefigs:
-                plt.savefig(plot3d_filepath, dpi=200)
+        fig = plt.figure(figsize=(8, 4.5))
+        fig.subplots_adjust(top=0.967,
+                            bottom=0.378)  # not sure if this will always be right---tight_layout incompatible with ImageGrid
+        grid = ImageGrid(fig, 111,  # similar to subplot(111)
+                         nrows_ncols=(2, 2),  # creates 2x2 grid of axes
+                         axes_pad=0.1,  # pad between axes in inch.
+                         label_mode="L",
+                         cbar_mode='edge',
+                         cbar_location='bottom',
+                         cbar_size='10%',
+                         cbar_pad=-1)
+        ax_xy, ax_zy, ax_xz = grid[0], grid[1], grid[2]
+        for ax in [ax_xy, ax_zy, ax_xz]:
+            ax.cax.set_visible(False)
+        ax_zy.axis['bottom'].toggle(all=True)
+        grid[3].set_frame_on(False)
+        grid[3].set_axis_off()
+        ax_cb = grid[3].cax
+        ax_cb.set_visible(True)
 
+        fxy = self.Qrad_multi(x_z, y_z, flameCen[2] * np.ones_like(x_z), RH)
+        fxz = self.Qrad_multi(x_y, flameCen[1] * np.ones_like(x_y), z_y, RH)
+        fzy = self.Qrad_multi(flameCen[0] * np.ones_like(z_x), y_x, z_x, RH)
+        fxy = fxy / 1000  # kW/m2 from W/m2
+        fxz = fxz / 1000  # kW/m2 from W/m2
+        fzy = fzy / 1000  # kW/m2 from W/m2
+
+        ClrMap = copy.copy(plt.cm.get_cmap('RdYlGn_r'))
+        ClrMap.set_under('white')
+        
+        if len(contours) == 2:
+            vmin = min(contours) - abs(np.diff(contours)[0])
         else:
-            if smodel == 'multi':
-                flux = self.Qrad_multi(x, y, z, RH)
-                fluxy0 = self.Qrad_multi(x_y, np.ones_like(x_y) * y.min(), z_y, RH)
-            elif smodel == 'single':
-                flux = self.Qrad_single(x, y, z, flameCen, RH)
-                fluxy0 = self.Qrad_single(x_y, np.ones_like(x_y) * y.min(), z_y, flameCen, RH)
+            vmin = min(contours)
+        
+        # xy axis:
+        ax_xy.contourf(x_z, y_z, fxy, cmap=ClrMap,
+                        levels=contours, extend='both', vmin = vmin)
+        ax_xy.plot(self.x[self.S<=self.Lvis], self.y[self.S<=self.Lvis], color='k',  
+                   linewidth=3, solid_capstyle='round')
+        ax_xy.set_ylabel('Height (y) [m]')
+        ax_xy.annotate('z = %0.2f' % flameCen[2], xy=(0.02, .98),
+                        xycoords='axes fraction', va='top', color='k')
+        # xz axis:
+        ax_xz.contourf(x_y, z_y, fxz, cmap=ClrMap,
+                        levels=contours, extend='both', vmin = vmin)
+        ax_xz.plot(self.x[self.S<=self.Lvis], np.ones_like(self.x)[self.S<=self.Lvis] * flameCen[2], color='k', 
+                   linewidth=3, solid_capstyle='round')
+        ax_xz.set_xlabel('Horizontal Distance (x) [m]')
+        ax_xz.set_ylabel('Perpendicular Distance (z) [m]')
+        ax_xz.annotate('y = %0.2f' % flameCen[1], xy=(0.02, .98),
+                        xycoords='axes fraction', va='top', color='k')
+        # zy axis
+        im = ax_zy.contourf(z_x, y_x, fzy, cmap=ClrMap,
+                            levels=contours, extend='both', vmin = vmin)
+        ax_zy.plot(np.ones_like(self.y[self.S<=self.Lvis]) * flameCen[2], self.y[self.S<=self.Lvis], color='k',
+                   linewidth=3, solid_capstyle='round')
+        ax_zy.set_xlabel('Perpendicular Distance (z) [m]')
+        ax_zy.annotate('x = %0.2f' % flameCen[0], xy=(0.02, .98), xycoords='axes fraction',
+                        va='top', color='k')
+        # colorbar
+        cb = plt.colorbar(im, cax=ax_cb, orientation='horizontal', extendfrac='auto')
+        cb.set_label('Heat Flux [kW/m$^2$]')
+        for ax in [ax_xy, ax_xz, ax_zy]:
+            ax.minorticks_on()
+            ax.grid(alpha=.2, color='k')
+            ax.grid(which='minor', alpha=.1, color='k')
+            ax.set_aspect(1)
 
-            plot3d_filepath = None
-
-        if plot_sliced:
-            # 2D cuts (new figure)
-            fig = plt.figure(figsize=(8, 4.5))
-            fig.subplots_adjust(top=0.967,
-                                bottom=0.378)  # not sure if this will always be right---tight_layout incompatible with ImageGrid
-            grid = ImageGrid(fig, 111,  # similar to subplot(111)
-                             nrows_ncols=(2, 2),  # creates 2x2 grid of axes
-                             axes_pad=0.1,  # pad between axes in inch.
-                             label_mode="L",
-                             cbar_mode='edge',
-                             cbar_location='bottom',
-                             cbar_size='10%',
-                             cbar_pad=-1.5)
-            ax_xy, ax_zy, ax_xz = grid[0], grid[1], grid[2]
-            for ax in [ax_xy, ax_zy, ax_xz]:
-                ax.cax.set_visible(False)
-            ax_zy.axis['bottom'].toggle(all=True)
-            grid[3].set_frame_on(False)
-            grid[3].set_axis_off()
-            ax_cb = grid[3].cax
-            ax_cb.set_visible(True)
-
-            if smodel == 'multi':
-                fxy = self.Qrad_multi(x_z, y_z, flameCen[2] * np.ones_like(x_z), RH)
-                fxz = self.Qrad_multi(x_y, flameCen[1] * np.ones_like(x_y), z_y, RH)
-                fzy = self.Qrad_multi(flameCen[0] * np.ones_like(z_x), y_x, z_x, RH)
-            elif smodel == 'single':
-                fxy = self.Qrad_single(x_z, y_z, flameCen[2] * np.ones_like(x_z), flameCen, RH)
-                fxz = self.Qrad_single(x_y, flameCen[1] * np.ones_like(x_y), z_y, flameCen, RH)
-                fzy = self.Qrad_single(flameCen[0] * np.ones_like(z_x), y_x, z_x, flameCen, RH)
-
-            ClrMap = copy.copy(plt.cm.get_cmap('RdYlGn_r'))
-            ClrMap.set_under('white')
-
-            # xy axis:
-            ax_xy.contourf(x_z, y_z, fxy, cmap=ClrMap,
-                           levels=contours, extend='both')
-            ax_xy.plot(self.x, self.y, color='k', marker='.', linewidth=1.5)
-            ax_xy.set_ylabel('Height (y) [m]')
-            ax_xy.annotate('z = %0.2f' % flameCen[2], xy=(0.02, .98),
-                           xycoords='axes fraction', va='top', color='k')
-            # xz axis:
-            ax_xz.contourf(x_y, z_y, fxz, cmap=ClrMap,
-                           levels=contours, extend='both')
-            ax_xz.plot(self.x, np.ones_like(self.x) * flameCen[2], color='k',
-                       marker='.', linewidth=1.5)
-            ax_xz.set_xlabel('Horizontal Distance (x) [m]')
-            ax_xz.set_ylabel('Perpendicular Distance (z) [m]')
-            ax_xz.annotate('y = %0.2f' % flameCen[1], xy=(0.02, .98),
-                           xycoords='axes fraction', va='top', color='k')
-            # zy axis
-            im = ax_zy.contourf(z_x, y_x, fzy, cmap=ClrMap,
-                                levels=contours, extend='both')
-            ax_zy.plot(np.ones_like(self.y) * flameCen[2], self.y, color='k',
-                       marker='.', linewidth=1.5)
-            ax_zy.set_xlabel('Perpendicular Distance (z) [m]')
-            ax_zy.annotate('x = %0.2f' % flameCen[0], xy=(0.02, .98), xycoords='axes fraction',
-                           va='top', color='k')
-            # colorbar
-            cb = plt.colorbar(im, cax=ax_cb, orientation='horizontal', extendfrac='auto')
-            cb.set_label('Heat Flux [kW/m$^2$]')
-            for ax in [ax_xy, ax_xz, ax_zy]:
-                ax.minorticks_on()
-                ax.grid(alpha=.2, color='k')
-                ax.grid(which='minor', alpha=.1, color='k')
-                ax.set_aspect(1)
-
-            plot2d_filepath = os.path.join(directory, plot2d_filename)
-            # fig.tight_layout(rect = [0, .08, 1, 1]) # tightlayout not compatable with ImageGrid
-            if savefigs:
-                plt.savefig(plot2d_filepath, dpi=200)
-        else:
-            plot2d_filepath = None
-            fig = None
-
-        if savefigs:
-            return plot3d_filepath, plot2d_filepath
+        filepath = os.path.join(directory, filename)
+        # fig.tight_layout(rect = [0, .08, 1, 1]) # tightlayout not compatable with ImageGrid
+        if savefig:
+            fig.savefig(filepath, dpi=200)
+            plt.close(fig)
+            return filepath
         else:
             return fig
 
-    def generate_positional_flux(self, x, y, z, rel_humid, rad_src_model):
+    def generate_positional_flux(self, flux_coordinates, rel_humid):
         """ Calculate flux at positions according to radiative source model
 
         Parameters
         ----------
-        x : ndarray
-            x coordinates (m)
-
-        y : ndarray
-            y coordinates (m)
-
-        z : ndarray
-            z coordinates (m)
+        flux_coordinates : list of locations
+            List of locations at which to determine flux,
+            each location is a tuple of 3 coordinates (m):
+            [(x1, y1, z1), (x2, y2, z2), ...]
 
         rel_humid : flat
             relative humitidy
 
-        rad_src_model : str
-            radiative source model
-
         Returns
         -------
         flux : ndarray
-            flux values at specified positions (kW/m^2)
+            flux values at specified positions (W/m^2)
         """
-        if rad_src_model == "multi":
-            flux = self.Qrad_multi(x, y, z, rel_humid)
-
-        else:
-            Lvis = self.length()
-            flame_center = np.array([self.x[np.argmin(np.abs(self.S - Lvis / 2))],
-                                     self.y[np.argmin(np.abs(self.S - Lvis / 2))],
-                                     0])
-            flux = self.Qrad_single(x, y, z, flame_center, rel_humid)
-
+        
+        x_values = [flux_coordinate[0] for flux_coordinate in flux_coordinates]
+        y_values = [flux_coordinate[1] for flux_coordinate in flux_coordinates]
+        z_values = [flux_coordinate[2] for flux_coordinate in flux_coordinates]
+        flux = self.Qrad_multi(x_values, y_values, z_values, rel_humid)
         return flux
-
-    def get_mass_flow_rate(self):
-        """
-        Calculates mass flow rate for the jet plume
-
-        Returns
-        ----------
-        mass_flow_rate : float
-            Mass flow rate (kg/s) of steady release.
-        """
-        return self.developing_flow.orifice.compute_steady_state_mass_flow(self.fluid, self.ambient.P)
 
     def get_srad(self):
         """
         Returns : float
-            total emitted radiate power for flame (W)
+            Total emitted radiative power for flame (W)
         """
         return self.Srad
+
+    def get_visible_length(self):
+        """
+        Returns : float
+            Visible flame length (m)
+        """
+        return self.Lvis
+    
+    @property    
+    def birds_eye_flame_length(self):
+        '''
+        returns : float 
+            flame length from above
+        '''
+        return np.interp(self.Lvis, self.S, self.x)
+
+    def x_distance_to_heat_flux_val(self, heat_flux_level, RH = 0.89, WaistLoc=0.75, xmax = 500):
+        '''
+        Parameters-
+        ----------
+        heat flux level: float
+          heat flux level for which one wants to know the distance to (W/m^2)
+        RH : float
+            relative humidity
+        WaistLoc: float  
+          distance along flame at which to look for the x-distance
+        xmax: float (optional)
+          maximum distance to look for heat flux level
+        
+        Returns
+        -------
+        distance: float
+          x distance to heat_flux_level (m)
+        '''
+        ycen = np.interp(self.Lvis*WaistLoc, self.S, self.y)
+        xvals = np.linspace(xmax, 0, 10000)
+        Q = self.Qrad_multi(xvals, ycen*np.ones_like(xvals), np.zeros_like(xvals), RH = RH)
+        imax = np.argmax(Q)
+        return np.interp(heat_flux_level, Q[:imax], xvals[:imax])
+
+
+def calc_transmissivity(path_length, ambient_temperature, relative_humidity, atmospheric_CO2_ppm=335):
+    '''
+    Calculates atmospheric transmissivity from:
+    Wayne, J. Loss Prev. Proc. Ind. 1991
+
+    Parameters
+    ----------
+    path_length : float
+        Path length (m) through which radiative light must travel
+
+    ambient_temperature : float
+        Ambient temperature (K)
+
+    relative_humidity : float
+        Fractional relative humidity (0-1)
+
+    atmospheric_CO2_ppm : float
+        Atmospheric CO2 concentration (ppm),
+        default is 335 ppm
+    
+    Returns
+    -------
+    transmissivity : float
+        Atmospheric transmissivity 
+    '''
+    sat_water_vap_pressure_mmHg = np.exp(20.386 - 5132 / ambient_temperature)  # mmHg, saturated vapor pressure from Wikipedia
+    XH2O = relative_humidity * path_length * sat_water_vap_pressure_mmHg * 2.88651e2 / ambient_temperature
+    XCO2 = path_length * 273. / ambient_temperature * atmospheric_CO2_ppm / 335.
+    transmissivity = (1.006 - 0.01171 * np.log10(XH2O) - 0.02368 * np.log10(XH2O) ** 2
+                       - 0.03188 * np.log10(XCO2) + 0.001164 * np.log10(XCO2) ** 2)
+    return transmissivity

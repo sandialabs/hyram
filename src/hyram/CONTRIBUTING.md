@@ -1,13 +1,13 @@
-# HyRAM Python Library Development
+# HyRA+ Python Library Development
 
-The HyRAM module contains models for physics and QRA calculations for hydrogen. These are written in the Python language, and can be modified for a variety of reasons. 
+The HyRAM+ library contains models for physics and QRA calculations. These are written in the Python language, and can be modified for a variety of reasons. 
 
 
 # Installation for Development
 
-It is recommended to install the HyRAM source code to your Python environment as a symbolic link for modifications/development. This way, when local modifications are made, there is no need to reinstall the python package. This is especially useful with the `%load_ext autoreload` and `%autorelaod 2` commands. 
+It is recommended to install the HyRAM+ source code to your Python environment as a symbolic link for modifications/development. This way, when local modifications are made, there is no need to reinstall the Python package. This is especially useful with the `%load_ext autoreload` and `%autorelaod 2` commands in iPython/Jupyter Notebooks. 
 
-To install as a symbolic link, use the command:
+To install as a symbolic link, use the command in this directory:
 
 ~~~~ 
 pip install -e .

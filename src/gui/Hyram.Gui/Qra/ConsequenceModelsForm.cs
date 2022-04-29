@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -15,9 +15,6 @@ namespace SandiaNationalLaboratories.Hyram
 {
     public partial class ConsequenceModelsForm : AnalysisForm
     {
-        private const string PsVariableName = "Peak overpressure";
-        private const string ImpulseVariableName = "Impulse";
-
         public ConsequenceModelsForm(MainForm mainForm)
         {
             MainForm = mainForm;
@@ -27,33 +24,20 @@ namespace SandiaNationalLaboratories.Hyram
             notionalNozzleSelector.DataSource = db.NozzleModels;
             notionalNozzleSelector.SelectedItem = StateContainer.GetValue<NozzleModel>("NozzleModel");
 
+            overpMethodSelector.DataSource = StateContainer.Instance.OverpressureMethods;
+            overpMethodSelector.SelectedItem =
+                StateContainer.GetValue<UnconfinedOverpressureMethod>("unconfinedOverpressureMethod");
+
+            flameSpeedSelector.DataSource = StateContainer.Instance.MachFlameSpeeds;
+            flameSpeedSelector.SelectedItem =
+                StateContainer.GetNdValue("overpressureFlameSpeed");
+
             thermalProbitSelector.DataSource = db.ThermalProbitModels;
             thermalProbitSelector.SelectedItem = StateContainer.GetValue<ThermalProbitModel>("ThermalProbit");
 
             overpressureProbitSelector.DataSource = db.OverpressureProbitModels;
             overpressureProbitSelector.SelectedItem =
                 StateContainer.GetValue<OverpressureProbitModel>("OverpressureProbit");
-
-            radiativeSourceSelector.DataSource = Enum.GetValues(typeof(RadiativeSourceModels));
-            radiativeSourceSelector.SelectedItem = StateContainer.GetValue<RadiativeSourceModels>("RadiativeSourceModel");
-
-            // fill Cfd unit selection
-            var pressureUnits = PressureUnit.Pa.GetType().GetEnumValues();
-            var pressureUnitObjects = new object[pressureUnits.GetLength(0)];
-            for (var index = 0; index < pressureUnitObjects.Length; index++)
-                pressureUnitObjects[index] = pressureUnits.GetValue(index);
-            consequenceInputUnitSelector.Items.AddRange(pressureUnitObjects);
-
-            // Set CFD unit
-            for (var index = 0; index < consequenceInputUnitSelector.Items.Count; index++)
-            {
-                var unitFound = consequenceInputUnitSelector.Items[index].ToString();
-                if (unitFound == StateContainer.Instance.CfdPressureUnit.ToString())
-                {
-                    consequenceInputUnitSelector.SelectedIndex = index;
-                    break;
-                }
-            }
 
             // Fill exposure time unit selector
             var exposureTimeUnit = StateContainer.Instance.ExposureTimeUnit;
@@ -64,13 +48,28 @@ namespace SandiaNationalLaboratories.Hyram
             {
                 timeUnitObjects[index] = timeUnits.GetValue(index);
                 if (timeUnitObjects[index].ToString() == exposureTimeUnit.ToString())
+                {
                     defaultIndex = index;
+                }
             }
             exposureTimeUnitSelector.Items.AddRange(timeUnitObjects);
             exposureTimeUnitSelector.SelectedIndex = defaultIndex;
 
             StateContainer.SetValue("ResultsAreStale", true);
             CheckFormValid();
+            RefreshParameterDisplay();
+        }
+
+        private void RefreshParameterDisplay()
+        {
+            var method = StateContainer.GetOverpressureMethod();
+
+            flameSpeedSelector.Enabled = method == UnconfinedOverpressureMethod.BstMethod;
+            flameSpeedLabel.Enabled = method == UnconfinedOverpressureMethod.BstMethod;
+
+            tntLabel.Enabled = method == UnconfinedOverpressureMethod.TntMethod;
+            tntInput.Enabled = method == UnconfinedOverpressureMethod.TntMethod;
+            tntInput.Text = StateContainer.GetNdValue("tntEquivalenceFactor").ToString("F2");
         }
 
         public override void CheckFormValid()
@@ -80,7 +79,6 @@ namespace SandiaNationalLaboratories.Hyram
             AlertDisplayed = false;
 
             FuelType fuel = StateContainer.GetValue<FuelType>("FuelType");
-            FluidPhase phase = StateContainer.GetValue<FluidPhase>("ReleaseFluidPhase");
 
             if (fuel != FuelType.Hydrogen)
             {
@@ -90,112 +88,29 @@ namespace SandiaNationalLaboratories.Hyram
                                "high pressure gaseous hydrogen systems and may not be appropriate for the selected fuel";
             }
 
+            // Disallow Bauwens overpressure model with TNO overpressure probits
+            var unconfinedOverpMethod = StateContainer.GetValue<UnconfinedOverpressureMethod>("unconfinedOverpressureMethod");
+            if (unconfinedOverpMethod == UnconfinedOverpressureMethod.BauwensMethod)
+            {
+                var overpProbitMethod = StateContainer.GetValue<OverpressureProbitModel>("OverpressureProbit");
+                if (overpProbitMethod == OverpressureProbitModel.Collapse ||
+                    overpProbitMethod == OverpressureProbitModel.Head)
+                {
+                    AlertDisplayed = true;
+                    AlertType = 2;
+                    AlertMessage =
+                        "Overpressure method 'Bauwens' does not produce impulse values and cannot be used with " +
+                        "overpressure probit models 'TNO - Head Impact' or 'TNO - Structural Collapse'";
+                }
+
+            }
+
             formWarning.Visible = AlertDisplayed;
             formWarning.Text = AlertMessage;
             formWarning.BackColor = AlertType == 1 ? MainForm.WarningBackColor : MainForm.ErrorBackColor;
             formWarning.ForeColor = AlertType == 1 ? MainForm.WarningForeColor : MainForm.ErrorForeColor;
 
             MainForm.NotifyOfChildPublicStateChange();
-        }
-
-        private void AddCfdInputRow(string variableName, double[] variableValues, PressureUnit unit)
-        {
-            var input = new object[variableValues.Length + 1];
-            input[0] = variableName;
-            for (var index = 0; index < variableValues.Length; index++)
-                input[index + 1] = variableValues[index].ToString("F4");
-
-            consequenceInputGrid.Rows.Add(input);
-        }
-
-        private void consequenceInputUnitSelector_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (Enum.TryParse<PressureUnit>(consequenceInputUnitSelector.SelectedItem.ToString(), out var parsedUnit))
-            {
-                StateContainer.Instance.CfdPressureUnit = parsedUnit;
-                var ps = ReadOverpressureConsequences(StateContainer.Instance.CfdPressureUnit);
-                var impulse = ReadImpulse(StateContainer.Instance.CfdPressureUnit);
-
-                // Fill grid
-                consequenceInputGrid.Rows.Clear();
-                AddCfdInputRow(PsVariableName, ps, StateContainer.Instance.CfdPressureUnit);
-                AddCfdInputRow(ImpulseVariableName, impulse, StateContainer.Instance.CfdPressureUnit);
-            }
-            else
-            {
-                MessageBox.Show("Could not parse selected unit.");
-            }
-        }
-
-        private double[] ReadOverpressureConsequences(PressureUnit unit)
-        {
-            return StateContainer.Instance.GetStateDefinedValueObject("OverpressureConsequences").GetValue(unit);
-        }
-        private void WriteOverpressureConsequences(PressureUnit unit, double[] values)
-        {
-            var valueObj = new ConvertibleValue(StockConverters.PressureConverter, unit, values);
-            StateContainer.SetValue("OverpressureConsequences", valueObj);
-        }
-
-        private double[] ReadImpulse(PressureUnit unit)
-        {
-            return StateContainer.Instance.GetStateDefinedValueObject("Impulses").GetValue(unit);
-        }
-        private void WriteImpulse(PressureUnit unit, double[] values)
-        {
-            var valueObj = new ConvertibleValue(StockConverters.PressureConverter, unit, values);
-            StateContainer.SetValue("Impulses", valueObj);
-        }
-
-        private void consequenceInputGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
-        {
-            var rowIndex = e.RowIndex;
-            if (rowIndex > -1)
-            {
-                var currentRow = consequenceInputGrid.Rows[rowIndex];
-                var variableNameCell = currentRow.Cells[0];
-                var variableName = variableNameCell.Value.ToString();
-
-                if (variableName != PsVariableName && variableName != ImpulseVariableName)
-                {
-                    MessageBox.Show("Unknown variable name of " + variableName);
-                }
-                else
-                {
-                    var rowValues = GetCdfInputValuesFromGrid(currentRow, out var canUse);
-                    if (canUse)
-                    {
-                        if (variableName == PsVariableName)
-                            WriteOverpressureConsequences(StateContainer.Instance.CfdPressureUnit, rowValues);
-                        else if (variableName == ImpulseVariableName)
-                            WriteImpulse(StateContainer.Instance.CfdPressureUnit, rowValues);
-                        else
-                            MessageBox.Show("Parameter type " + variableNameCell + " not recognized.");
-                    }
-                    else
-                    {
-                        MessageBox.Show("Some input values were invalid. Database not updated.");
-                    }
-                }
-            }
-        }
-
-        private double[] GetCdfInputValuesFromGrid(DataGridViewRow currentRow, out bool allValuesGood)
-        {
-            allValuesGood = true;
-
-            var result = new double[currentRow.Cells.Count - 1];
-            for (var colIndex = 1; colIndex < currentRow.Cells.Count; colIndex++)
-            {
-                var thevalue = double.NaN;
-                var strValue = currentRow.Cells[colIndex].Value.ToString();
-                if (ParseUtility.TryParseDouble(strValue, out thevalue))
-                    result[colIndex - 1] = thevalue;
-                else
-                    allValuesGood = false;
-            }
-
-            return result;
         }
 
         private double GetThermalExposureTime(ElapsingTimeConversionUnit unit)
@@ -226,6 +141,7 @@ namespace SandiaNationalLaboratories.Hyram
         private void overpressureProbitSelector_SelectionChangeCommotted(object sender, EventArgs e)
         {
             StateContainer.SetValue("OverpressureProbit", overpressureProbitSelector.SelectedItem);
+            CheckFormValid();
         }
 
         private void exposureTimeInput_TextChanged(object sender, EventArgs e)
@@ -259,9 +175,25 @@ namespace SandiaNationalLaboratories.Hyram
             return result;
         }
 
-        private void radiativeSourceSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        private void overpMethodSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            StateContainer.SetValue("RadiativeSourceModel", radiativeSourceSelector.SelectedValue);
+            string methodName = overpMethodSelector.SelectedItem.ToString();
+            UnconfinedOverpressureMethod method = UnconfinedOverpressureMethod.ParseName(methodName);
+            StateContainer.SetValue("UnconfinedOverpressureMethod", method);
+            CheckFormValid();
+            RefreshParameterDisplay();
+        }
+
+        private void flameSpeedSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            double speed = (double)flameSpeedSelector.SelectedItem;
+            StateContainer.SetNdValue("overpressureFlameSpeed", UnitlessUnit.Unitless, speed);
+        }
+
+        private void tntInput_TextChanged(object sender, EventArgs e)
+        {
+            double val = double.Parse(tntInput.Text);
+            StateContainer.SetNdValue("tntEquivalenceFactor", UnitlessUnit.Unitless, val);
         }
     }
 }
