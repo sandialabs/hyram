@@ -7,5 +7,5 @@ If not, see https://www.gnu.org/licenses/.
 """
 
 from __future__ import absolute_import
-__version__ = '4.1.0'
+__version__ = '4.1.1'
 from . import phys, qra

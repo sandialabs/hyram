@@ -5,37 +5,20 @@ Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
 """
+from setuptools import setup
+from setuptools.command.egg_info import egg_info
 
-import codecs
-import os
+class egg_info_ex(egg_info):
+    """Includes license file into `.egg-info` folder."""
 
-from setuptools import setup, find_packages
+    def run(self):
+        # don't duplicate license into `.egg-info` when building a distribution
+        if not self.distribution.have_run.get('sdist', True):
+            # `sdist` command is in progress, copy license
+            self.mkpath(self.egg_info)
+            self.copy_file('../../COPYING.txt', self.egg_info)
 
+        egg_info.run(self)
 
-def read(rel_path):
-    here = os.path.abspath(os.path.dirname(__file__))
-    with codecs.open(os.path.join(here, rel_path), 'r') as fp:
-        return fp.read()
-
-
-def get_version(rel_path):
-    for line in read(rel_path).splitlines():
-        if line.startswith('__version__'):
-            # format: __version__ = "0.9"
-            delim = '"' if '"' in line else "'"
-            return line.split(delim)[1]
-    raise RuntimeError("Unable to find version string.")
-
-
-setup(name='hyram',
-      packages = find_packages(),
-      version = get_version(os.path.join('hyram', '__init__.py')),
-      author = 'Ethan Hecht',
-      author_email = 'ehecht@sandia.gov',
-      description = 'Hydrogen Plus Other Alternative Fuels Risk Assessment Models - physics and QRA modules',
-      url = 'https://hyram.sandia.gov/',
-      license = 'GNU General Public License v3 (GPLv3)',
-      classifiers = 'Development Status :: 3 - Alpha',
-      install_requires = ['numpy', 'matplotlib', 'scipy', 'coolprop>=6.3', 'pythonnet'],
-      keywords = 'hydrogen, methane, propane, flame, plume, jet, overpressure, quantitiave risk assessment',
-)
+if __name__ == "__main__":
+    setup(cmdclass={'egg_info': egg_info_ex})

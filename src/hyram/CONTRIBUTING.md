@@ -1,4 +1,4 @@
-# HyRA+ Python Library Development
+# HyRAM+ Python Library Development
 
 The HyRAM+ library contains models for physics and QRA calculations. These are written in the Python language, and can be modified for a variety of reasons. 
 
