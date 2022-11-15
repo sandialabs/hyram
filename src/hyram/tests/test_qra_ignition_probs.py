@@ -8,7 +8,7 @@ If not, see https://www.gnu.org/licenses/.
 
 import unittest
 
-import hyram.qra.ignition_probs as hyram_ignitionprob
+from hyram.qra import ignition_probs
 
 
 class TestIgnitionProbability(unittest.TestCase):
@@ -24,16 +24,16 @@ class TestIgnitionProbability(unittest.TestCase):
     def test_reject_bad_thresholds(self):
         unsorted_ignition_thresholds = [1.1, 3.1, 2.1]  # kg/s
         self.assertRaises(ValueError,
-                          hyram_ignitionprob.get_ignition_probability,
+                          ignition_probs.get_ignition_probability,
                           self.mass_flow_rate,
                           unsorted_ignition_thresholds,
                           self.immed_ign_probs,
                           self.delayed_ign_probs)
-    
+
     def test_reject_wrong_prob_length(self):
         bad_immed_ign_probs = [.008, .053, .23, 123]
         self.assertRaises(ValueError,
-                          hyram_ignitionprob.get_ignition_probability,
+                          ignition_probs.get_ignition_probability,
                           self.mass_flow_rate,
                           self.ign_thresholds,
                           bad_immed_ign_probs,
@@ -41,28 +41,28 @@ class TestIgnitionProbability(unittest.TestCase):
 
     def test_get_first_ignition_probability(self):
         mass_flow_rate = 0.01  # kg/s
-        (immediate_ignition_prob, delayed_ignition_prob) = hyram_ignitionprob.get_ignition_probability(mass_flow_rate,
-                                                                                                       self.ign_thresholds,
-                                                                                                       self.immed_ign_probs,
-                                                                                                       self.delayed_ign_probs)
+        (immediate_ignition_prob, delayed_ignition_prob) = ignition_probs.get_ignition_probability(mass_flow_rate,
+                                                                                                   self.ign_thresholds,
+                                                                                                   self.immed_ign_probs,
+                                                                                                   self.delayed_ign_probs)
         self.assertAlmostEqual(immediate_ignition_prob, 0.008)
         self.assertAlmostEqual(delayed_ignition_prob, 0.004)
 
     def test_get_middle_ignition_probability(self):
         mass_flow_rate = 1  # kg/s
-        (immediate_ignition_prob, delayed_ignition_prob) = hyram_ignitionprob.get_ignition_probability(mass_flow_rate,
-                                                                                                       self.ign_thresholds,
-                                                                                                       self.immed_ign_probs,
-                                                                                                       self.delayed_ign_probs)
+        (immediate_ignition_prob, delayed_ignition_prob) = ignition_probs.get_ignition_probability(mass_flow_rate,
+                                                                                                   self.ign_thresholds,
+                                                                                                   self.immed_ign_probs,
+                                                                                                   self.delayed_ign_probs)
         self.assertAlmostEqual(immediate_ignition_prob, 0.053)
         self.assertAlmostEqual(delayed_ignition_prob, 0.027)
 
     def test_get_last_ignition_probability(self):
         mass_flow_rate = 7  # kg/s
-        (immediate_ignition_prob, delayed_ignition_prob) = hyram_ignitionprob.get_ignition_probability(mass_flow_rate,
-                                                                                                       self.ign_thresholds,
-                                                                                                       self.immed_ign_probs,
-                                                                                                       self.delayed_ign_probs)
+        (immediate_ignition_prob, delayed_ignition_prob) = ignition_probs.get_ignition_probability(mass_flow_rate,
+                                                                                                   self.ign_thresholds,
+                                                                                                   self.immed_ign_probs,
+                                                                                                   self.delayed_ign_probs)
         self.assertAlmostEqual(immediate_ignition_prob, 0.23)
         self.assertAlmostEqual(delayed_ignition_prob, 0.12)
 

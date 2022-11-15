@@ -6,19 +6,14 @@ You should have received a copy of the GNU General Public License along with HyR
 If not, see https://www.gnu.org/licenses/.
 """
 
-from __future__ import print_function, absolute_import, division
-
-import numpy as np
+import random
 
 
 class PositionGenerator:
     """
-    Class used to generate positions.
-
     Generates positions from a list of location distributions and parameters
     """
-
-    def __init__(self, loc_distributions, exclusion_radius, seed):
+    def __init__(self, loc_distributions, exclusion_radius=0.01, seed=None):
         """
         Initializes position generator
 
@@ -34,21 +29,23 @@ class PositionGenerator:
             where
                 n : int
                     Number of occupants for this distribution
-                *dist_type : str
+                dist_type : str
                     One of 'deterministic', 'uniform', or 'normal'
                 param_a and param_b depend on the distribution type:
                     For 'deterministic': param_a = value, param_b = None.
                     For 'uniform': param_a = min_val, param_b = maxval
                     For 'normal': param_a = mu, param_b = sigma
-        exclusion_radius : float
-            Minimum distance in meters from (0,0,0)
-            in any direction that all generated positions must be
-        seed : int
-            Seed for random number generator
-        
+        exclusion_radius : float (optional)
+            Minimum distance in meters from origin (0,0,0)
+            in any direction that all generated positions must be;
+            default value is 0.01 m
+        seed : int or None (optional)
+            Seed for random number generator;
+            default value is None, will generate new seed
+
         Calculated
         ----------
-        randgen : NumPy RandomState object
+        randgen : Random object
             Random number generator based on seed value
         totworkers : float
             Total number of workers for all distributions
@@ -58,66 +55,87 @@ class PositionGenerator:
             [(x1, y1, z1), (x2, y2, z2), ...]
         """
         self.seed = seed
-        self.randgen = np.random.RandomState(seed)
+        self.randgen = random.Random(seed)
         self.exclusion_radius = exclusion_radius
         self.loc_distributions = loc_distributions
-        
-        # Compute total number of workers (all distributions)
-        self.totworkers = sum([dist[0] for dist in loc_distributions])
-
-        # Generate locations
+        self.totworkers = self.calc_total_workers()
         self.gen_positions()
+
+    def calc_total_workers(self):
+        total_workers = 0
+        for dist_group in self.loc_distributions:
+            n = dist_group[0]
+            if n < 0 or not isinstance(n, int):
+                raise ValueError(f'Number of wokers ({n}) must be a non-negative integer')
+            total_workers += n
+        return total_workers
 
     def gen_positions(self):
         locations = []
-        for dist in self.loc_distributions:
-            # get a valid position with the given distribution
-            def get_position():
-                (x, y, z) = (0, 0, 0)
-                counter = 0
-                while x**2 + y**2 + z**2 <= self.exclusion_radius**2:
-                   (x, y, z) = self._gen_xyz_locs(1, dist[1:])
-                   counter += 1
-                   if counter > 500:
-                       raise ValueError('Unable to produce desired number of valid positions outside exclusion radius')
-                return x, y, z
-            # generate n positions with this distribution
-            n = dist[0]
+        for dist_group in self.loc_distributions:
+            n = dist_group[0]
+            xyz_dists = dist_group[1:]
             for _ in range(n):
-                (x, y, z) = get_position()
-                locations.append((float(x), float(y), float(z)))
+                (x, y, z) = self._gen_valid_position(xyz_dists)
+                locations.append((x, y, z))
         self.locs = locations
 
-    def _gen_xyz_locs(self, n, dist_info):
+    def _gen_valid_position(self, xyz_dists):
+        max_guesses = 500
+        for _ in range(max_guesses):
+            (x, y, z) = self._gen_xyz_loc(xyz_dists)
+            distance = (x**2 + y**2 + z**2)**(1/2)
+            if distance > self.exclusion_radius:
+                return x, y, z
+        raise ValueError('Unable to produce desired number of valid positions outside exclusion radius')
+
+    def _gen_xyz_loc(self, xyz_dists):
         """
-        Generates x, y, and z locations for one distribution
+        Generates an (x, y, z) location for one distribution-set
 
         Parameters
         ----------
-        n : int
-            Number to generate
-        dist_info : list
+        xyz_dists : list
             Distribution information for x, y, and z in that order
 
         Returns
         -------
-        list
-            List of arrays for x, y, and z locations
+        locs : list
+            List of lists for x, y, and z locations
         """
+        if len(xyz_dists) != 3:
+            raise ValueError('List of distributions for a single location must contain 3 items')
         locs = []
-        for i in range(3):
-            locs.append(self._gen_locs(n, dist_info[i]))
+        for dist in xyz_dists:
+            locs.append(self._gen_loc(dist))
         return locs
 
-    def _gen_normal(self, n, mu, sigma):
+    def _gen_loc(self, dist_params):
         """
-        Generates numbers from normal distribution
-        Simply wraps numpy random generator
+        Generates a location on single dimension (x, y, or z) from distribution
 
         Parameters
         ----------
-        n : int
-            Number to generate
+        dist_params : list or tuple
+            Distribution information as
+            (dist_type, param_a, param_b)
+        """
+        dist_type = dist_params[0]
+        if dist_type in ['dete', 'det', 'deterministic']:
+            return self._gen_deterministic(dist_params[1])
+        elif dist_type in ['norm', 'normal']:
+            return self._gen_normal(dist_params[1], dist_params[2])
+        elif dist_type in ['unif', 'uni', 'uniform']:
+            return self._gen_uniform(dist_params[1], dist_params[2])
+        else:
+            raise NotImplementedError(dist_type + ' distribution not implemented')
+        
+    def _gen_normal(self, mu, sigma):
+        """
+        Generates a number from normal distribution
+
+        Parameters
+        ----------
         mu : float
             Mean of normal distribution
         sigma : float
@@ -125,75 +143,45 @@ class PositionGenerator:
 
         Returns
         -------
-        array
-            Normally distributed numbers
+        number : float
+            Normally distributed number
         """
-        return self.randgen.normal(mu, sigma, n)
+        return self.randgen.gauss(mu, sigma)
 
-    def _gen_uniform(self, n, minpos, maxpos):
+    def _gen_uniform(self, min_pos, max_pos):
         """
-        Generates numbers from uniform distribution
-        Simply wraps numpy random generator
+        Generates a number from uniform distribution
 
         Parameters
         ----------
-        n : int
-            Number to generate
-        minpos : float
+        min_pos : float
             Minimum of range to generate from
-        maxpos : float
+        max_pos : float
             Maximum of range to generate from
 
         Returns
         -------
-        array
-            Normally distributed numbers
+        number : float
+            Uniformly distributed number
         """
-        return self.randgen.uniform(minpos, maxpos, n)
+        return self.randgen.uniform(min_pos, max_pos)
     
-    def _gen_deterministic(self, n, val):
+    def _gen_deterministic(self, val):
         """
-        Generates array of deterministic value
+        Generates a number of deterministic value
         
         Parameters
         ----------
-        n : int
-            Number to generate
-        val :
+        val : float
             Value to generate
 
         Returns
         -------
-        array
-            Filled with deterministic value
+        number : float
+            Deterministic number
         """
-        return np.ones(n, dtype=float)*val
+        return val
 
-    def _gen_locs(self, n, dist_params):
-        """
-        Generates array of locations on single coordinate (x, y, or z) from distribution
-
-        Parameters
-        ----------
-        n : int
-            Number to generate
-        dist_params : list or tuple
-            Distribution information as
-            (dist_type, param_a, param_b)
-        """
-        dist_type = dist_params[0]
-        
-        if dist_type in ['dete', 'det', 'deterministic']:
-            return self._gen_deterministic(n, dist_params[1])
-        elif dist_type in ['norm', 'normal']:
-            return self._gen_normal(n, dist_params[1], dist_params[2])
-        elif dist_type in ['unif', 'uni', 'uniform']:
-            if dist_params[1] > dist_params[2]:
-                raise ValueError('First parameter cannot be larger than second parameter for uniform distribution')
-            return self._gen_uniform(n, dist_params[1], dist_params[2])
-        else:
-            raise NotImplementedError(dist_type + ' distribution not implemented')
-        
     def get_xlocs(self):
         """Get x locations"""
         return [location[0] for location in self.locs]

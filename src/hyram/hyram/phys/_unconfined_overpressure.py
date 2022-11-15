@@ -6,17 +6,15 @@ You should have received a copy of the GNU General Public License along with HyR
 If not, see https://www.gnu.org/licenses/.
 """
 
-import copy
-import csv
 import os
 
 import numpy as np
 import scipy as sp
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import ImageGrid
 
-from ._fuel_props import Fuel_Properties
-
+from ._fuel_props import FuelProperties
+from ._plots import plot_sliced_contour
+from ._utils import get_distance_to_effect
+from . import _overpressure_data as opdata
 
 class Generic_overpressure_method:
     """
@@ -39,11 +37,11 @@ class Generic_overpressure_method:
         self.ambient_pressure = self.jet_object.ambient.P  # Pa
 
     def set_fuel_properties(self) -> None:
-        fuel_props = Fuel_Properties(self.jet_object.fluid.species)
+        fuel_props = FuelProperties(self.jet_object.fluid.species)
         self.species = fuel_props.species
         nC = fuel_props.nC  # number of carbons (nC)
         # Mole fraction of fuel to mole fraction of air at stoichiometric condition
-        self.fuel_to_air_stoich_ratio = 1./(4.76*(1+3*nC)/2)
+        self.fuel_to_air_stoich_ratio = 1/(4.76*(1+3*nC)/2)
         self.set_flammability_limits(fuel_props)
         self.set_heat_of_combustion(fuel_props)
 
@@ -67,7 +65,7 @@ class Generic_overpressure_method:
 
     def set_overpressure_origin(self, origin_at_orifice:bool) -> None:
         if origin_at_orifice:
-            self.origin = (0.0, 0.0, 0.0)
+            self.origin = (0, 0, 0)
         else:
             # Overpressure-origin is the point at which the concentration
             # is mid-way between the lower and upper flamability limits
@@ -84,7 +82,7 @@ class Generic_overpressure_method:
             jet_x = np.interp(s_coord, self.jet_object.S, self.jet_object.x)
             jet_y = np.interp(s_coord, self.jet_object.S, self.jet_object.y)
 
-            self.origin = (jet_x, jet_y, 0.0)
+            self.origin = (jet_x, jet_y, 0)
 
     @staticmethod
     def calc_distance(locations:list, origin) -> list:
@@ -185,86 +183,129 @@ class Generic_overpressure_method:
         overpressures = overpressures.reshape(x_y_shape)
         return overpressures
 
-    def calc_distance_to_overpressure(self, overpressure):
+    def calculate_impulse_for_list_of_locations(self, x:np.array, y:np.array, z:np.array) -> np.array:
+        evaluation_locations = []
+        x_y_shape = x.shape
+        for x_value, y_value, z_location in zip(x.reshape(-1), y.reshape(-1), z.reshape(-1)):
+            evaluation_locations += [np.array([x_value, y_value, z_location])]
+        impulses = self.calc_impulse(evaluation_locations)
+        impulses = impulses.reshape(x_y_shape)
+        return impulses
+
+    def calc_distance_to_overpressure(self, overpressure, direction='x', negative_direction=False):
         """
-        Calculate horizontal distance in x-direction to a given overpressure
+        Calculate distance from leak point to a given overpressure in the direction specified
 
         Parameters
         ----------
-        overpressure, float
+        overpressure : float
             Overpressure in Pa
+        direction : 'x', 'y', or 'z' (optional)
+            Direction for which to calculate the distance
+            (default is 'x')
+        negative_direction : Boolean (optional)
+            Whether or not to look in the negative direction instead of positive
+            (default is False)
 
         Returns
         -------
-        distance, float
-            Real distance in meters
+        distance : float
+            Real distance (m) to overpressure from leak-point
         """
         scaled_overpressure = self.calc_scaled_overpressure(overpressure=overpressure)  # unitless
         scaled_distance = self.get_scaled_distance_from_scaled_overpressure(scaled_overpressure=scaled_overpressure)
-        distance = self.calc_unscaled_distance(scaled_distance=scaled_distance)  # m
+        distance_from_overpressure_origin = self.calc_unscaled_distance(scaled_distance=scaled_distance)  # m
+        if direction == 'x':
+            distance_from_leakpoint_to_overpressure_origin = self.origin[0]
+        elif direction == 'y':
+            distance_from_leakpoint_to_overpressure_origin = self.origin[1]
+        elif direction == 'z':
+            distance_from_leakpoint_to_overpressure_origin = self.origin[2]
+        else:
+            raise ValueError(f"Direction ('{direction}') must be 'x', 'y', or 'z'")
+        if negative_direction:
+            distance = distance_from_leakpoint_to_overpressure_origin - distance_from_overpressure_origin
+        else:
+            distance = distance_from_leakpoint_to_overpressure_origin + distance_from_overpressure_origin
         return distance
 
     def calc_scaled_overpressure(self, overpressure):
         scaled_overpressure = overpressure / self.ambient_pressure  # unitless
         return scaled_overpressure
 
-    def get_scaled_distance_from_scaled_overpressure(self, scaled_overpressure):
-        # Solver by interpolation; may be re-written by sub-classes below
-        maxguess = 500
-        xvals = np.linspace(maxguess, self.origin[0], 10000)
-        overpressures = self.calculate_overpressure_for_list_of_locations(xvals,
-                                                                          self.origin[1]*np.ones_like(xvals),
-                                                                          self.origin[2]*np.ones_like(xvals))
-        scaled_overpressures = self.calc_scaled_overpressure(overpressures)
-        distance = np.interp(scaled_overpressure, scaled_overpressures, xvals)
-        return distance
+    def get_scaled_distance_from_scaled_overpressure(self, scaled_overpressure, max_distance=500):
+        # May be re-written by sub-classes below to use single interpolation rather than solver; 
+        # currently calculates distance and scales it in order to match syntax of re-written methods below
+        overpressure = self.calc_unscaled_overpressure(scaled_overpressure)
+        distance = get_distance_to_effect(value=overpressure,
+                                          from_point=self.origin,
+                                          direction='x',  # does not matter, since overpressure is omni-directional
+                                          effect_func=self.calculate_overpressure_for_list_of_locations,
+                                          max_distance=max_distance)
+        scaled_distance = self.calc_scaled_distance(distance)
+        return scaled_distance
 
     def calc_unscaled_distance(self, scaled_distance):
         # Placeholder method; this may be over-written by each sub-class below
         distance = scaled_distance
         return distance
 
-    def calc_distance_to_impulse(self, impulse):
+    def calc_distance_to_impulse(self, impulse, direction='x', negative_direction=False):
         """
-        Calculate horizontal distance in x-direction to a given impulse
+        Calculate distance from leak point to a given impulse in the direction specified
 
         Parameters
         ----------
-        impulse, float
+        impulse : float
             Impulse in Pa*s
+        direction : 'x', 'y', or 'z', optional
+            Direction for which to calculate the distance
+            (default is 'x')
+        negative_direction : Boolean (optional)
+            Whether or not to look in the negative direction instead of positive
+            (default is False)
 
         Returns
         -------
-        distance, float
-            Real distance in meters
+        distance : float
+            Real distance (m) to impulse from leak-point
         """
         scaled_impulse = self.calc_scaled_impulse(impulse=impulse)
         scaled_distance = self.get_scaled_distance_from_scaled_impulse(scaled_impulse=scaled_impulse)
-        distance = self.calc_unscaled_distance(scaled_distance=scaled_distance)  # m
+        distance_from_overpressure_origin = self.calc_unscaled_distance(scaled_distance=scaled_distance)  # m
+        if direction == 'x':
+            distance_from_leakpoint_to_overpressure_origin = self.origin[0]
+        elif direction == 'y':
+            distance_from_leakpoint_to_overpressure_origin = self.origin[1]
+        elif direction == 'z':
+            distance_from_leakpoint_to_overpressure_origin = self.origin[2]
+        else:
+            raise ValueError(f"Direction ('{direction}') must be 'x', 'y', or 'z'")
+        if negative_direction:
+            distance = distance_from_leakpoint_to_overpressure_origin - distance_from_overpressure_origin
+        else:
+            distance = distance_from_leakpoint_to_overpressure_origin + distance_from_overpressure_origin
         return distance
 
     def calc_scaled_impulse(self, impulse):
         # Placeholder method; this will be over-written by sub-classes below
-        scaled_impulse = np.empty(len(impulse))
-        scaled_impulse.fill(np.nan)
+        scaled_impulse = np.full_like(impulse, np.nan)
         return scaled_impulse
 
     def get_scaled_distance_from_scaled_impulse(self, scaled_impulse):
         # Placeholder method; this will be over-written by sub-classes below
-        scaled_distance = np.empty(len(scaled_impulse))
-        scaled_distance.fill(np.nan)
+        scaled_distance = np.full_like(scaled_impulse, np.nan)
         return scaled_distance
 
-    def plot_overpressure_sliced(self, title='',
-                                 plot_filename='OverpressureSliced.png',
+    def plot_overpressure_sliced(self, title=None,
+                                 plot_filename='overpressure_sliced_contour.png',
                                  directory=os.getcwd(),
                                  contours=None,
-                                 length_scale=None,
                                  nx=50, ny=50, nz=50,
                                  xlims=None, ylims=None, zlims=None,
                                  savefig=False):
         '''
-        plots slices of overpressure levels
+        Plots contour slices of overpressure levels
 
         Parameters
         ----------
@@ -282,6 +323,8 @@ class Generic_overpressure_method:
             number of points to solve for the overpressure in the x, y, and z directions
         xlims, ylims, zlims: tuples (optional)
             limits for x, y, and z axes
+        savefig: Boolean (optional)
+            determines if figure file is saved
 
         Returns
         -------
@@ -289,151 +332,68 @@ class Generic_overpressure_method:
         If savefig is false, returns fig object.
         '''
         if contours is None:
-            contours = [5.*1000, 16.*1000., 70.*1000.]  # kPa -> Pa
+            contours = [5, 16, 70]  # kPa
 
-        overpressure_center = self.origin
-        if length_scale == None:
-            length_overpressure = self.calc_distance(locations=[np.array([self.jet_object.x[-1],
-                                                                          self.jet_object.y[-1],
-                                                                          0.])],
-                                                     origin=overpressure_center)/4.0
-        else:
-            length_overpressure = length_scale
+        colorbar_label = 'Overpressure [kPa]'
 
-        if xlims is None or xlims[0] is None:
-            dx = length_overpressure / nx
-            x0 = slice(overpressure_center[0] - 3 * length_overpressure, (overpressure_center[0] + 3 * length_overpressure), dx)
-        else:
-            dx = (xlims[1] - xlims[0]) / nx
-            x0 = slice(xlims[0], xlims[1], dx)
+        fig_or_filepath = plot_sliced_contour(contours, xlims, ylims, zlims, nx, ny, nz,
+                                              self.calc_distance_to_overpressure,
+                                              self.calculate_overpressure_for_list_of_locations,
+                                              self.origin, colorbar_label,
+                                              title=title, savefig=savefig,
+                                              directory=directory, filename=plot_filename)
+        return fig_or_filepath
 
-        if ylims is None or ylims[0] is None:
-            dy = length_overpressure / ny
-            y0 = slice(0, (overpressure_center[1] + 2*length_overpressure), dy)
-        else:
-            dy = (ylims[1] - ylims[0]) / ny
-            y0 = slice(ylims[0], ylims[1], dy)
-
-        if zlims is None or zlims[0] is None:
-            dz = length_overpressure / nz
-            z0 = slice(overpressure_center[2] - 2 * length_overpressure, (overpressure_center[2] + 2 * length_overpressure), dz)
-        else:
-            dz = (zlims[1] - zlims[0]) / nz
-            z0 = slice(zlims[0], zlims[1], dz)
-
-        x, y, z = np.mgrid[x0, y0, z0]
-        x_z, y_z = np.mgrid[x0, y0]
-        x_y, z_y = np.mgrid[x0, z0]
-        y_x, z_x = np.mgrid[y0, z0]
-
-
-        # 2D cuts
-        fig = plt.figure(figsize=(8, 4.5))
-        fig.subplots_adjust(top=0.967,
-                            bottom=0.378)  # not sure if this will always be right---tight_layout incompatible with ImageGrid
-        grid = ImageGrid(fig, 111,  # similar to subplot(111)
-                         nrows_ncols=(2, 2),  # creates 2x2 grid of axes
-                         axes_pad=0.1,  # pad between axes in inch.
-                         label_mode="L",
-                         cbar_mode='edge',
-                         cbar_location='bottom',
-                         cbar_size='10%',
-                         cbar_pad=-1.5)
-        ax_xy, ax_zy, ax_xz = grid[0], grid[1], grid[2]
-        for ax in [ax_xy, ax_zy, ax_xz]:
-            ax.cax.set_visible(False)
-        ax_zy.axis['bottom'].toggle(all=True)
-        grid[3].set_frame_on(False)
-        grid[3].set_axis_off()
-        ax_cb = grid[3].cax
-        ax_cb.set_visible(True)
-
-        fxy = self.calculate_overpressure_for_list_of_locations(x_z, y_z, overpressure_center[2] * np.ones_like(x_z))
-        fxz = self.calculate_overpressure_for_list_of_locations(x_y, overpressure_center[1] * np.ones_like(x_y), z_y)
-        fzy = self.calculate_overpressure_for_list_of_locations(overpressure_center[0] * np.ones_like(z_x), y_x, z_x)
-
-        ClrMap = copy.copy(plt.cm.get_cmap('RdYlGn_r'))
-        ClrMap.set_under('white')
-
-        # xy axis:
-        ax_xy.contourf(x_z, y_z, fxy, cmap=ClrMap,
-                        levels=contours, extend='both')
-        # change to be from origin to 4% centerline
-        #ax_xy.plot(self.jet_object.x, self.jet_object.y, color='k', marker='.', linewidth=1.5)
-        ax_xy.set_ylabel('Height (y) [m]')
-        ax_xy.annotate('z = %0.2f' % overpressure_center[2], xy=(0.02, .98),
-                        xycoords='axes fraction', va='top', color='k')
-        # xz axis:
-        ax_xz.contourf(x_y, z_y, fxz, cmap=ClrMap,
-                        levels=contours, extend='both')
-        #ax_xz.plot(self.jet_object.x, np.ones_like(self.jet_object.x) * overpressure_center[2],
-        #           color='k', marker='.', linewidth=1.5)
-        ax_xz.set_xlabel('Horizontal Distance (x) [m]')
-        ax_xz.set_ylabel('Perpendicular Distance (z) [m]')
-        ax_xz.annotate('y = %0.2f' % overpressure_center[1], xy=(0.02, .98),
-                        xycoords='axes fraction', va='top', color='k')
-        # zy axis
-        im = ax_zy.contourf(z_x, y_x, fzy, cmap=ClrMap,
-                            levels=contours, extend='both')
-        #ax_zy.plot(np.ones_like(self.jet_object.y) * overpressure_center[2], self.jet_object.y,
-        #           color='k', marker='.', linewidth=1.5)
-        ax_zy.set_xlabel('Perpendicular Distance (z) [m]')
-        ax_zy.annotate('x = %0.2f' % overpressure_center[0], xy=(0.02, .98), xycoords='axes fraction',
-                        va='top', color='k')
-        # colorbar
-        cb = plt.colorbar(im, cax=ax_cb, orientation='horizontal', extendfrac='auto')
-        cb.set_label('Overpressure [Pa]')
-        for ax in [ax_xy, ax_xz, ax_zy]:
-            ax.minorticks_on()
-            ax.grid(alpha=.2, color='k')
-            ax.grid(which='minor', alpha=.1, color='k')
-            ax.set_aspect(1)
-
-        if savefig:
-            plot_filepath = os.path.join(directory, plot_filename)
-            fig.savefig(plot_filepath, bbox_inches='tight')
-            plt.close(fig)
-            return plot_filepath
-        else:
-            return fig
-
-    @staticmethod
-    def read_blast_wave_csv(filepath):
-        """
-        Read blast wave csv files
-
-        Assumes that the csv files have
-        a title string in the first item of the first row
-        and column headers in the second row
+    def plot_impulse_sliced(self, title=None,
+                            plot_filename='impulse_sliced_contour.png',
+                            directory=os.getcwd(),
+                            contours=None,
+                            nx=50, ny=50, nz=50,
+                            xlims=None, ylims=None, zlims=None,
+                            savefig=False):
+        '''
+        Plots contour slices of impulse levels
 
         Parameters
         ----------
-        filepath : string
-            Full filepath of csv file to be read
+        title: string (optional)
+            title shown on plot
+        plot_filename: string, optional
+            file name to write
+        directory: string, optional
+            directory in which to save file
+        contours: ndarray or list (optional)
+            contour levels to be shown on plot
+            (default values are mean to be examples only;
+            they are obtained by calculating the impulse value
+            that would yield a 1% probability of fatality
+            using the TNO Head Impact probit
+            for the default peak overpressure values used:
+            70, 16, and 5 kPa)
+        nx, ny, nz: float (optional)
+            number of points to solve for the impulse in the x, y, and z directions
+        xlims, ylims, zlims: tuples (optional)
+            limits for x, y, and z axes
+        savefig: Boolean (optional)
+            determines if figure file is saved
 
         Returns
         -------
-        values_dict : dictionary
-            Each column header is a key in the dictionary,
-            each column of values is a list of floats
-            that correspond to the column header key
-        """
-        with open(filepath, newline='') as csvfile:
-            reader = csv.reader(csvfile)
-            for row_num, row_content in enumerate(reader):
-                if row_num == 0:
-                    title_str = row_content[0]
-                elif row_num == 1:
-                    column_headers = row_content
-                    values_dict = {}
-                    for column_name in column_headers:
-                        values_dict[column_name] = []
-                else:
-                    for column_num, column_name in enumerate(column_headers):
-                        value = row_content[column_num]
-                        if value != '':
-                            values_dict[column_name].append(float(value))
-        return values_dict
+        If savefig is True, returns filename corresponding plot.
+        If savefig is false, returns fig object.
+        '''
+        if contours is None:
+            contours = [0.13, 0.18, 0.27]  # kPa*s
+
+        colorbar_label = 'Impulse [kPa*s]'
+
+        fig_or_filepath = plot_sliced_contour(contours, xlims, ylims, zlims, nx, ny, nz,
+                                              self.calc_distance_to_impulse,
+                                              self.calculate_impulse_for_list_of_locations,
+                                              self.origin, colorbar_label,
+                                              title=title, savefig=savefig,
+                                              directory=directory, filename=plot_filename)
+        return fig_or_filepath
 
 
 class BST_method(Generic_overpressure_method):
@@ -458,7 +418,7 @@ class BST_method(Generic_overpressure_method):
         If True, the origin of the overpressure will be at the orifice
         Default is False: will calculate location of origin,
         the point at which the concentration in the unignited jet
-        is mid-way between the default lower and upper flamability limits
+        is mid-way between the default lower and upper flammability limits
 
     From: CCPS, "Guidelines for Vapor Cloud Explosion, Pressure Vessel Burst, BLEVE, and Flash Fire Hazards",
         Second Edition, Center for Chemical Process Safety, American Institute of Chemical Engineers,
@@ -471,10 +431,8 @@ class BST_method(Generic_overpressure_method):
         Generic_overpressure_method.__init__(self, jet_object, heat_of_combustion,
                                              flammability_limits, origin_at_orifice)
         self.set_mach_flame_speed(mach_flame_speed)
-        overpressure_data_file = os.path.join(self.data_dir, 'BST_OverpressureCurves.csv')
-        self.scaled_peak_overpressure_data = self.read_blast_wave_csv(overpressure_data_file)
-        impulse_data_file = os.path.join(self.data_dir, 'BST_ImpulseCurves.csv')
-        self.all_scaled_impulse_data = self.read_blast_wave_csv(impulse_data_file)
+        self.scaled_peak_overpressure_data = opdata.scaled_peak_overpressure_data
+        self.all_scaled_impulse_data = opdata.all_scaled_impulse_data
         self.energy = self.calc_energy()
 
     def set_mach_flame_speed(self, mach_flame_speed):
@@ -490,7 +448,7 @@ class BST_method(Generic_overpressure_method):
         self.mach_flame_speed = mach_flame_speed
 
     def calc_energy(self):
-        ground_reflection_factor = 2.0
+        ground_reflection_factor = 2
         energy = ground_reflection_factor * self.flammable_mass * self.heat_of_combustion  # J
         return energy
 
@@ -553,7 +511,7 @@ class TNT_method(Generic_overpressure_method):
 
     Parameters
     ----------
-    jet_object : hyram Jet object
+    jet_object : HyRAM Jet object
         Jet object representing fuel leak
     equivalence_factor : float
         TNT mass equivalency factor, unitless
@@ -568,7 +526,7 @@ class TNT_method(Generic_overpressure_method):
         If True, the origin of the overpressure will be at the orifice
         Default is False: will calculate location of origin,
         the point at which the concentration in the unignited jet
-        is mid-way between the default lower and upper flamability limits
+        is mid-way between the default lower and upper flammability limits
 
     From: CCPS, "Guidelines for Vapor Cloud Explosion, Pressure Vessel Burst, BLEVE, and Flash Fire Hazards",
         Second Edition, Center for Chemical Process Safety, American Institute of Chemical Engineers,
@@ -579,15 +537,16 @@ class TNT_method(Generic_overpressure_method):
         Generic_overpressure_method.__init__(self, jet_object, heat_of_combustion,
                                              flammability_limits, origin_at_orifice)
         self.equivalence_factor = equivalence_factor  # unitless
-        self.equiv_TNT_mass = self.calc_TNT_equiv_mass()  # kg
-        overpressure_data_file = os.path.join(self.data_dir, 'TNT_scaled_peak_overpressure.csv')
-        self.scaled_peak_overP_data = self.read_blast_wave_csv(overpressure_data_file)
-        impulse_data_file = os.path.join(self.data_dir, 'TNT_scaled_impulse.csv')
-        self.scaled_impulse_data = self.read_blast_wave_csv(impulse_data_file)
+        self.equiv_TNT_mass = self.calc_TNT_equiv_mass(self.equivalence_factor,
+                                                       self.flammable_mass,
+                                                       self.heat_of_combustion)  # kg
+        self.scaled_peak_overP_data = opdata.scaled_peak_overP_data
+        self.scaled_impulse_data = opdata.scaled_impulse_data
 
-    def calc_TNT_equiv_mass(self):
+    @staticmethod
+    def calc_TNT_equiv_mass(equivalence_factor, flammable_mass, heat_of_combustion):
         blast_energy_TNT = 4.68e6  # J/kg
-        TNT_equiv_mass = self.equivalence_factor * self.flammable_mass * self.heat_of_combustion / blast_energy_TNT  # kg
+        TNT_equiv_mass = equivalence_factor * flammable_mass * heat_of_combustion / blast_energy_TNT  # kg
         return TNT_equiv_mass
 
     def calc_scaled_distance(self, distance):
@@ -671,7 +630,7 @@ class Bauwens_method(Generic_overpressure_method):
         If True, the origin of the overpressure will be at the orifice
         Default is False: will calculate location of origin,
         the point at which the concentration in the unignited jet
-        is mid-way between the default lower and upper flamability limits
+        is mid-way between the default lower and upper flammability limits
     """
     def __init__(self, jet_object, heat_of_combustion=None, min_streamline_divisions=50, number_radial_divisions=50,
                  max_cell_gradient=0.1, minimum_number_detonable_cell=5, origin_at_orifice=False):
@@ -711,7 +670,7 @@ class Bauwens_method(Generic_overpressure_method):
         # Calculates logspaced points around 0 out to np.log10(3*np.max(self.B))
         # poshalf[::-1] just notation for reversing a numpy array
         poshalf = np.logspace(-5, np.log10(3*np.max(self.jet_object.B)), number_radial_divisions)
-        radial_values = np.concatenate((-1.0 * poshalf[::-1], [0], poshalf))
+        radial_values = np.concatenate((-1 * poshalf[::-1], [0], poshalf))
         radial_coordinate_values, streamline_indice_values = np.meshgrid(radial_values, streamline_point_interpolated_indices)
         return radial_coordinate_values, streamline_indice_values
 
@@ -756,7 +715,7 @@ class Bauwens_method(Generic_overpressure_method):
         massFractionField_det = np.copy(massFractionField)
         # determine plume locations where sufficient fuel for detonation or negative (integration only needs radius)
         massFractionField_det[(number_detonable_cells <= minimum_number_detonable_cell) | (radial_coordinate_values < 0)] = 0
-        detonableFuelField = densityField*massFractionField_det*2.*np.pi*radial_coordinate_values
+        detonableFuelField = densityField*massFractionField_det*2*np.pi*radial_coordinate_values
         detonable_mass = sp.integrate.simpson(sp.integrate.simpson(detonableFuelField, radial_coordinate_values), streamline_points)
         return detonable_mass
 
@@ -785,23 +744,23 @@ class Bauwens_method(Generic_overpressure_method):
         return [condition1, condition2]
 
     def dimensionless_distance(self, distance):
-        return distance*(self.ambient_pressure/self.energy)**(1./3.)
+        return distance*(self.ambient_pressure/self.energy)**(1/3)
 
     def calc_energy(self):
         return self.detonable_mass*self.heat_of_combustion
 
     def get_scaled_overpressure(self, scaled_distance):
-        scaled_overpressure = (0.34 / scaled_distance ** (4./3.)
+        scaled_overpressure = (0.34 / scaled_distance ** (4/3)
                                + 0.062 / scaled_distance ** 2
                                + 0.0033 / scaled_distance ** 3)
         return scaled_overpressure
 
     def calc_detonable_cell_size(self, moleFractionField):
-        equivalence_ratio = moleFractionField/(1. - moleFractionField)/self.fuel_to_air_stoich_ratio
+        equivalence_ratio = moleFractionField/(1 - moleFractionField)/self.fuel_to_air_stoich_ratio
         molar_flammability_limits = np.array([self.molar_lower_flammability_limit, self.molar_upper_flammability_limit])
         (equivalence_ratio_lean_limit,
          equivalence_ratio_rich_limit) = (molar_flammability_limits /
-                                         (1.-molar_flammability_limits)/self.fuel_to_air_stoich_ratio)
+                                         (1-molar_flammability_limits)/self.fuel_to_air_stoich_ratio)
         # check if equiv_ratio is outside of ER region or within it
         condition_list = self.create_cell_size_condition_list(equivalence_ratio, equivalence_ratio_lean_limit, equivalence_ratio_rich_limit)
         # evaluate piecewise function for equiv_ratio where if it is outside of ER range it is set to 1e99 otherwise it
@@ -891,9 +850,9 @@ class JallaisOverpressureH2(BST_method):
         # From Jallais et al., for ignition at 30%:
         if mass_flow_rate < 0.5:  # kg/s
             flame_speed = 100  # m/s
-        elif mass_flow_rate > 0.5 and mass_flow_rate < 1.0:  # kg/s
+        elif mass_flow_rate > 0.5 and mass_flow_rate < 1:  # kg/s
             flame_speed = 140  # m/s
-        elif mass_flow_rate > 1.0 and mass_flow_rate < 10.0:  # kg/s
+        elif mass_flow_rate > 1 and mass_flow_rate < 10:  # kg/s
             flame_speed = 240  # m/s
         else:
             raise ValueError(f'Invalid jet mass flow rate: {mass_flow_rate}')

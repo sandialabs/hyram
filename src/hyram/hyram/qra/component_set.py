@@ -6,6 +6,8 @@ You should have received a copy of the GNU General Public License along with HyR
 If not, see https://www.gnu.org/licenses/.
 """
 
+import numpy as np
+
 from .data import component_data
 from .leaks import Leak
 
@@ -23,7 +25,10 @@ class ComponentSet:
     num_components : int
         Number of components in this category/type
 
-    species : {'h2', 'ch4', 'c3h8'}
+    species : str or dict
+        If string, expect one of {'h2', 'ch4', 'c3h8'}.
+        If dict, fluid is blend with key of species, value of concentration.
+
 
     saturated_phase : None or str
         CoolProp parameter for fuel phase.
@@ -31,10 +36,10 @@ class ComponentSet:
         use the liquid leak frequency data.
         Typical h2 gas should have parameter value of None.
 
-    leak_frequency_lists: list of lists
-        Leak frequency parameters for each leak size of format [[mu, sigma]]
+    leak_frequency_lists: list or None
+        List of lists; Leak frequency parameters for each leak size of format [[mu, sigma]]
 
-    leak_sizes : list
+    leak_sizes : list or None
         List of floats representing % leakage
 
     Attributes
@@ -48,7 +53,10 @@ class ComponentSet:
     leaks : dict of {size: LeakSet}
 
     """
-    def __init__(self, category, num_components, species='H2', saturated_phase=None,
+    
+    default_leak_sizes = [0.01, 0.10, 1, 10, 100]
+    
+    def __init__(self, category, num_components, species, saturated_phase=None,
                  leak_frequency_lists=None, leak_sizes=None):
         if type(category) != str:
             raise ValueError("Category must be string")
@@ -56,7 +64,11 @@ class ComponentSet:
             raise ValueError("# of components must be 0 or greater")
 
         if leak_sizes is None:
-            leak_sizes = [0.01, 0.10, 1.00, 10.00, 100.00]
+            leak_sizes = self.default_leak_sizes
+        
+        leak_sizes.sort()
+        if leak_sizes[-1] != 100:
+            leak_sizes.append(100)
 
         self.category = category
         self.num_components = num_components
@@ -69,7 +81,8 @@ class ComponentSet:
                                                                                 saturated_phase=saturated_phase)
 
         # Create leak representations for each size
-        for leak_size, leak_freq_pair in zip(leak_sizes, leak_frequency_lists):
+        for leak_size in leak_sizes:
+            leak_freq_pair = self.interpolate_leak_size_dist(leak_size, leak_frequency_lists)
             leak = Leak(leak_size, leak_freq_pair[0], leak_freq_pair[1])
             self.leaks[leak.size] = leak
 
@@ -78,6 +91,14 @@ class ComponentSet:
 
     def __str__(self):
         return "{} ({}) freqs: {}".format(self.category, self.num_components, self.get_leaks_str_simple())
+    
+    def interpolate_leak_size_dist(self, leak_size, leak_frequency_lists):
+        alpha_1 = 1
+        alpha_2 = 1
+        #predicted_mean = alpha_1 + alpha_2*np.log(leak_size)
+        predicted_mean = np.interp(np.log(leak_size), np.log(self.default_leak_sizes), np.array(leak_frequency_lists)[:, 0])
+        predicted_sigma = np.interp(np.log(leak_size), np.log(self.default_leak_sizes), np.array(leak_frequency_lists)[:, 1])
+        return predicted_mean, predicted_sigma
 
     def get_leak(self, leak_size):
         """ Retrieve leak object at specified size for this component type. """

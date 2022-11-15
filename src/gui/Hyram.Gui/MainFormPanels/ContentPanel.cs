@@ -27,45 +27,35 @@ namespace SandiaNationalLaboratories.Hyram
             set
             {
                 _mChildControl = value;
+                ChildPane.Controls.Clear();
                 ChildPane.Controls.Add(_mChildControl);
                 _mChildControl.Dock = DockStyle.Fill;
             }
         }
 
-        public static void SetNarrative(Control childControl, string resourcePath = null)
+        public void UpdateNarrative(string narrString = null)
         {
-            if (resourcePath != null)
+            if (narrString != null)
             {
-                var cp = GetContentPanel(childControl);
-                cp.SetNarrative(resourcePath);
+                tbNarrative.BackColor = BackColor;
+                tbNarrative.Rtf = narrString;
+                tbNarrative.Visible = tbNarrative.Text.Length > 0;
             }
-        }
-
-        private static ContentPanel GetContentPanel(Control childControl)
-        {
-            ContentPanel result = null;
-
-            if (childControl is ContentPanel)
-                result = (ContentPanel) childControl;
             else
-                result = (ContentPanel) childControl.Parent.Parent;
-
-            return result;
-        }
-
-
-        public void SetNarrative(string narrString)
-        {
-            tbNarrative.BackColor = BackColor;
-            tbNarrative.Rtf = narrString;
-            var narrativeVisible = tbNarrative.Text.Length > 0;
-            if (tbNarrative.Visible != narrativeVisible) tbNarrative.Visible = narrativeVisible;
+            {
+                tbNarrative.Text = "";
+            }
         }
 
 
         private void _ContentPanel_Load(object sender, EventArgs e)
         {
-            SetNarrative(this);
+        }
+
+        private void tbNarrative_Enter(object sender, EventArgs e)
+        {
+            // Disable interaction with narrative area to get rid of blinking cursor
+            ActiveControl = ChildControl;
         }
     }
 }

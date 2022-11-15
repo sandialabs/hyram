@@ -10,54 +10,120 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using SandiaNationalLaboratories.Hyram.Resources;
 
 
 namespace SandiaNationalLaboratories.Hyram
 {
-    public enum ApButtonClickOption
+    enum FormMode
     {
-        PerformClick,
-        NoClick
+        Qra,
+        Physics
     }
 
     /// <summary>
-    /// Main GUI
+    /// Primary container form and UI
     /// </summary>
     public partial class MainForm : Form
     {
+        private StateContainer _state = State.Data;
         private static UserControl _currentControl;
-        //private string genericNavErrorMsg = @"Action could not be completed due to error: ";
-        public static MainForm ActiveScreen { get; private set; }
-        public Color WarningBackColor = Color.Cornsilk;
-        public Color WarningForeColor = Color.DarkGoldenrod;
-        public Color ErrorBackColor = Color.MistyRose;
-        public Color ErrorForeColor = Color.Maroon;
-        //public Color InfoBackColor = Color.LightCyan;
-        //public Color InfoForeColor = Color.PaleTurquoise;
+        public static MainForm TheMainForm { get; private set; }
+        private ContentPanel _rightFormPanel;
+        private FuelForm _fuelForm;
+
+        private CancellationTokenSource _token;
+        private string _progressMessage;
+        private int _progressStatus;
+        private ProgressDisplay _progressDisplay;
+        private delegate void Delegate();
+
+        private bool _ignoreStateChange;
 
         private static SystemDescriptionForm _systemDescriptionForm;
         private static ProbabilitiesForm _probabilitiesForm;
         private static ScenariosForm _scenariosForm;
-        private static ConsequenceModelsForm _consequenceModelsForm;
-        private static List<AnalysisForm> _qraForms;
-        private static List<UserControl> _qraFormControls;
-        private static int _mode = 0;  // 0 QRA, 1 physics
-        private static string _topAlertMessage = "";
-        private static int _topAlertType = 0;
+        private static ConsequenceModelsForm _consequencesForm;
+        private static List<AnalysisForm> _qraForms = new List<AnalysisForm>();
+        private static FormMode _mode = FormMode.Qra;
 
 
         public MainForm()
         {
-            _qraForms = new List<AnalysisForm>();
-            _qraFormControls = new List<UserControl>();
-
             InitializeComponent();
-            StateContainer.Instance.InitDatabase();
-            GotoAppStartDefaultLocation();
+
+            State.Data.InitializeState();
+            RefreshState();
+
+            _ignoreStateChange = true;
+            _scenariosForm = new ScenariosForm(this);
+            _probabilitiesForm = new ProbabilitiesForm(this);
+            _consequencesForm = new ConsequenceModelsForm(this);
+            _systemDescriptionForm = new SystemDescriptionForm(this);
+            _qraForms = new List<AnalysisForm> { _scenariosForm, _probabilitiesForm, _consequencesForm, _systemDescriptionForm };
+            _ignoreStateChange = false;
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            TheMainForm = this;
+            ModeTabs.SelectedIndex = 0;
+            ModeTabs.SelectedTab = null;
+            ModeTabs.SelectedTab = qraModeTab;
+
+            _rightFormPanel = new ContentPanel { Dock = DockStyle.Fill };
+            TheMainForm.formArea.Controls.Clear();
+            TheMainForm.formArea.Controls.Add(_rightFormPanel);
+
+            PhysicsFuelBtn.Click += (o, args) => DisplayFuelForm();
+            QraFuelBtn.Click += (o, args) => DisplayFuelForm();
+            ExitMenuItem.Click += (o, args) => Close();
+
+            ScenariosFormBtn.Click += (o, args) => ChangeForm(o, _scenariosForm, Narratives.QraScenariosDescrip);
+            ProbabilitiesFormBtn.Click += (o, args) => ChangeForm(o, _probabilitiesForm, Narratives.QraProbabilitiesDescrip);
+            ConsequenceFormBtn.Click += (o, args) => ChangeForm(o, _consequencesForm, Narratives.QraConsequenceModelsDescrip);
+            SystemDescripFormBtn.Click += (o, args) => ChangeForm(o, _systemDescriptionForm, Narratives.QraSystemDescriptionDescrip);
+
+            PlumeFormBtn.Click += (o, args) => ChangeForm(o, new PlumeForm(), Narratives.PhysPlumeDescrip);
+            AccumulationFormBtn.Click += (o, args) => ChangeForm(o, new AccumulationForm(), Narratives.PhysAccumulationDescrip);
+            JetPlotFormBtn.Click += (o, args) => ChangeForm(o, new JetFlameTemperaturePlotForm(), Narratives.PhysJetFlameDescrip);
+            JetFluxFormBtn.Click += (o, args) => ChangeForm(o, new JetFlameHeatAnalysisForm(), Narratives.PhysRadHeatDescrip);
+            OverpressureFormBtn.Click += (o, args) => ChangeForm(o, new UnconfinedOverpressureForm(), Narratives.PhysUnconfinedOverpressureDescrip);
+
+            TpdFormBtn.Click += (o, args) => ChangeForm(o, new TpdForm(), Narratives.PhysTpdDescrip);
+            TankMassFormBtn.Click += (o, args) => ChangeForm(o, new TankMassForm(), Narratives.PhysTankMassDescrip);
+            MassFlowFormBtn.Click += (o, args) => ChangeForm(o, new MassFlowForm(), Narratives.PhysMassFlowDescrip);
+            TntFormBtn.Click += (o, args) => ChangeForm(o, new TntForm(), Narratives.PhysTntDescrip);
+
+            DataDirectoryMenuItem.Click += (o, args) => Process.Start(StateContainer.UserDataDir);
+
+            FuelType.FuelChangedEvent += (o, args) => RefreshState();
+
             TheSplashscreen.FadeOut();
+            SystemDescripFormBtn.PerformClick();
+        }
+
+
+        private void RefreshState()
+        {
+            _state = State.Data;
+
+            if (!_ignoreStateChange)
+            {
+                FuelType fuel = _state.GetActiveFuel();
+                List<FuelType> displayFuels = new List<FuelType> { _state.FuelH2, _state.FuelMethane, _state.FuelPropane, _state.FuelBlend };
+                QraFuelTypeSelector.DataSource = null;
+                QraFuelTypeSelector.DataSource = displayFuels;
+                QraFuelTypeSelector.SelectedItem = fuel;
+                PhysicsFuelTypeSelector.DataSource = null;
+                PhysicsFuelTypeSelector.DataSource = displayFuels;
+                PhysicsFuelTypeSelector.SelectedItem = fuel;
+            }
+            RefreshQraForms();
+            RefreshAlerts();
         }
 
         private static Splashscreen _mTheSplashscreen;
@@ -71,278 +137,87 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
-        // Engineering Toolkit form
-        private EtkMainForm _mEtkForm;
-
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-            ActiveScreen = this;
-            modeTabs.SelectedIndex = 0;
-            modeTabs.SelectedTab = null;
-            modeTabs.SelectedTab = qraModeTab;
-
-            // Populate fuel selection dropdowns.
-            // One dropdown on phys UI, one on QRA. Both sync to same backend param.
-            physicsFuelTypeSelector.DataSource = StateContainer.Instance.FuelTypes;
-            qraFuelTypeSelector.DataSource = StateContainer.Instance.FuelTypes;
-            // Hide until other fuels are used
-            //fuelTypeLabel1.Visible = false;
-            //fuelTypeLabel2.Visible = false;
-            //physicsFuelTypeSelector.Visible = false;
-            //qraFuelTypeSelector.Visible = false;
-
-            RefreshTopState();
-            _mEtkForm = new EtkMainForm();
-
-            // refresh main form when ETK closed
-            _mEtkForm.Closing += (o, args) => GotoAppStartDefaultLocation();
-        }
-
-        private void RefreshTopState()
-        {
-            physicsFuelTypeSelector.SelectedItem = StateContainer.GetValue<FuelType>("FuelType");
-            qraFuelTypeSelector.SelectedItem = StateContainer.GetValue<FuelType>("FuelType");
-        }
 
         /// <summary>
         /// Child forms call this to let MainForm know of a large change, i.e. to update alert messages.
         /// </summary>
         public void NotifyOfChildPublicStateChange()
         {
-            ValidateTopParameters();
+            if (!_ignoreStateChange)
+            {
+                RefreshAlerts();
+            }
         }
+
+        /// <summary>
+        /// Loads form in right UI section
+        /// </summary>
+        public void ChangeForm(object caller, UserControl form, string rtfFilepath = null)
+        {
+            UiHelpers.UnselectButtons(qraNavPanel);
+            UiHelpers.UnselectButtons(physicsNavPanel);
+            UiHelpers.UnselectButton(QraSubmitBtn);
+
+            _currentControl = form;
+            _rightFormPanel.ChildControl = form;
+            _rightFormPanel.UpdateNarrative(rtfFilepath);
+
+            // refresh persisted QRA forms
+            if (_mode == FormMode.Qra && form is AnalysisForm)
+            {
+                ((AnalysisForm)form).RefreshForm();
+            }
+
+            UiHelpers.ShowButtonActive((Button)caller);
+            RefreshAlerts();
+        }
+
+        /// <summary>
+        /// Toggle usability of navigation buttons and tabs
+        /// </summary>
+        public void ToggleNavigability(bool enabled)
+        {
+            ModeTabs.Enabled = enabled;
+        }
+        // container function for delegate
+        public void ToggleNavigability() { ToggleNavigability(true);}
+
 
         /// <summary>
         /// Update display of notifications and alerts.
         /// Will prioritize top-level messages and hoist child-level messages if current form has none but siblings do.
         /// </summary>
-        private void RefreshAlertDisplays()
+        private void RefreshAlerts()
         {
-            int alertType = 0;
+            AlertLevel alert = AlertLevel.AlertNull;
             string alertMessage = "";
 
-            if (_topAlertType > 0)
+            // top-level alerts
+            if (_mode == FormMode.Qra && _state.GetActiveFuel() == _state.FuelBlend)
             {
-                alertType = _topAlertType;
-                alertMessage = _topAlertMessage;
+                alert = AlertLevel.AlertError;
+                alertMessage = "QRA cannot assess blends at this time.";
+                QraSubmitBtn.Enabled = false;
             }
             else
             {
-                // no top-level alerts so check child forms
+                QraSubmitBtn.Enabled = true;
+                // display sibling child alert from QRA form if no top alert
                 foreach (AnalysisForm form in _qraForms)
                 {
-                    alertMessage = form.AlertMessage;
-                    alertType = form.AlertType;
-
-                    if (alertType > 0)
+                    if (form.Alert != AlertLevel.AlertNull && form != _currentControl)
                     {
+                        alertMessage = form.AlertMessage;
+                        alert = form.Alert;
                         break;
                     }
                 }
             }
 
-            if (_mode == 1 || alertType == 0)
-            {
-                mainMessage.Visible = false;
-            }
-            else
-            {
-                mainMessage.Visible = true;
-                mainMessage.BackColor = (alertType == 1) ? WarningBackColor : ErrorBackColor;
-                mainMessage.ForeColor = (alertType == 1) ? WarningForeColor : ErrorForeColor;
-            }
+            mainMessage.BackColor = _state.AlertBackColors[(int)alert];
+            mainMessage.ForeColor = _state.AlertTextColors[(int)alert];
             mainMessage.Text = alertMessage;
-
-            // hide if active form already has msg up and planned alert is child-level
-            // i.e. only show if it's a top-level alert or childform has no alert but sibling does.
-            if ((_mode == 0) && 
-                ((_currentControl != null) && ((AnalysisForm) _currentControl).AlertDisplayed && _topAlertType == 0))
-            {
-                mainMessage.Visible = false;
-            }
-        }
-
-
-        private void scenariosFormButton_Click(object sender, EventArgs e)
-        {
-            if (_scenariosForm == null)
-            {
-                _scenariosForm = new ScenariosForm(this);
-                _qraForms.Add(_scenariosForm);
-                _qraFormControls.Add(_scenariosForm);
-            }
-            ChangePanel(sender, _scenariosForm, Narratives.QraScenariosDescrip);
-        }
-
-        private void probabilitiesFormButton_Click(object sender, EventArgs e)
-        {
-            if (_probabilitiesForm == null)
-            {
-                _probabilitiesForm = new ProbabilitiesForm(this);
-                _qraForms.Add(_probabilitiesForm);
-                _qraFormControls.Add(_probabilitiesForm);
-            }
-            ChangePanel(sender, _probabilitiesForm, Narratives.QraProbabilitiesDescrip);
-        }
-
-        private void consequenceModelsFormButton_Click(object sender, EventArgs e)
-        {
-            if (_consequenceModelsForm == null)
-            {
-                _consequenceModelsForm = new ConsequenceModelsForm(this);
-                _qraForms.Add(_consequenceModelsForm);
-            }
-            ChangePanel(sender, _consequenceModelsForm, Narratives.QraConsequenceModelsDescrip);
-        }
-
-        private void systemDescriptionFormButton_Click(object sender, EventArgs e)
-        {
-            if (_systemDescriptionForm == null)
-            {
-                _systemDescriptionForm = new SystemDescriptionForm(this);
-                _qraForms.Add(_systemDescriptionForm);
-                _qraFormControls.Add(_systemDescriptionForm);
-            }
-            ChangePanel(sender, _systemDescriptionForm, Narratives.QraSystemDescriptionDescrip);
-        }
-        private void plumeDispersionFormButton_Click(object sender, EventArgs e)
-        {
-            ChangePanel(sender, new PlumeForm(), Narratives.PhysPlumeDescrip, new PlumeDispersionPanel());
-        }
-
-        private void accumulationFormButton_Click(object sender, EventArgs e)
-        {
-            ChangePanel(sender, new AccumulationForm(), Narratives.PhysAccumulationDescrip, new AccumulationPanel());
-        }
-
-        private void jetPlotTempFormButton_Click(object sender, EventArgs e)
-        {
-            ChangePanel(sender, new JetFlameTemperaturePlotForm(), Narratives.PhysJetFlameDescrip, new AccumulationPanel());
-        }
-
-        private void jetHeatAnalysisFormButton_Click(object sender, EventArgs e)
-        {
-            ChangePanel(sender, new JetFlameHeatAnalysisForm(), Narratives.PhysRadHeatDescrip, new AccumulationPanel());
-        }
-
-        private void overpressureFormBtn_Click(object sender, EventArgs e)
-        {
-            ChangePanel(sender, new UnconfinedOverpressureForm(), Narratives.PhysUnconfinedOverpressureDescrip,
-                new AccumulationPanel());
-        }
-
-        /// <summary>
-        /// Change inner panel (form) based on button click, e.g. selecting Data & Probabilities button
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="nextControl"></param>
-        /// <param name="descripFilepath"></param>
-        /// <param name="panelToActivate"></param>
-        private void ChangePanel(object sender, UserControl nextControl = null, string descripFilepath = null,
-            UserControl panelToActivate = null, ApButtonClickOption clickOption = ApButtonClickOption.NoClick)
-        {
-            // Activate action panel
-            SuspendLayout();
-            try
-            {
-                //var modeNavPanel = (Panel) ((Button)sender).Parent;
-                if (panelToActivate is null)
-                {
-                    panelToActivate = new QraOutputNavPanel();
-                }
-
-                mainOutputNavPanel.Controls.Clear();
-                mainOutputNavPanel.Controls.Add(panelToActivate);
-                panelToActivate.Dock = DockStyle.Fill;
-
-                UiStateRoutines.UnselectButtons(qraNavPanel);
-                UiStateRoutines.UnselectButtons(physicsNavPanel);
-
-                if (clickOption == ApButtonClickOption.PerformClick)
-                {
-                    var firstButton = QuickFunctions.GetTopButton(panelToActivate, ChildNavOptions.NavigateChildren);
-                    firstButton?.PerformClick();
-                }
-            }
-            finally
-            {
-                ResumeLayout();
-            }
-
-            if (nextControl != null)
-            {
-                //_currentControl?.Dispose();
-                _currentControl = nextControl;
-                SetContentScreen((Button) sender, nextControl);
-            }
-
-            if (nextControl != null && descripFilepath != null)
-            {
-                ContentPanel.SetNarrative(nextControl, descripFilepath);
-            }
-            ValidateTopParameters();
-        }
-
-        public static void SetContentScreen(Button caller, UserControl contentControl)
-        {
-            UiStateRoutines.UnselectButtons(caller.Parent);
-
-            contentControl.Dock = DockStyle.Fill;
-            var cpParent = new ContentPanel();
-            ActiveScreen.mainFormPanel.Controls.Clear();
-            ActiveScreen.mainFormPanel.Controls.Add(cpParent);
-
-            cpParent.Dock = DockStyle.Fill;
-            cpParent.ChildControl = contentControl;
-
-            // qra-specific form load function to e.g. refresh data since forms are persisted
-            if ((_mode == 0) && _qraFormControls.Contains(contentControl))
-            {
-                ((AnalysisForm)contentControl).OnFormDisplay();
-            }
-
-            caller.ForeColor = Color.Green;
-        }
-
-        /// <summary>
-        /// Disable QRA content panels and phys tab, e.g. during analysis.
-        /// </summary>
-        public void DisableNavigation()
-        {
-            mainOutputNavPanel.Enabled = false;
-            navContainer.Panel1.Enabled = false;
-            modeTabs.Enabled = false;
-        }
-
-        /// <summary>
-        /// Enable QRA content panels and phys tab, e.g. after analysis completes
-        /// </summary>
-        public void EnableNavigation()
-        {
-            mainOutputNavPanel.Enabled = true;
-            navContainer.Panel1.Enabled = true;
-            modeTabs.Enabled = true;
-        }
-
-
-        private void ValidateTopParameters()
-        {
-            _topAlertType = 0;
-            _topAlertMessage = "";
-            if (_mode == 0)
-            {
-                // QRA mode
-                if (StateContainer.GetValue<FuelType>("FuelType") != FuelType.Hydrogen)
-                {
-                    _topAlertType = 1;
-                    _topAlertMessage = "QRA mode inputs are currently tailored to H2";
-                }
-            }
-            else
-            {
-
-            }
-            RefreshAlertDisplays();
+            mainMessage.Visible = _mode == FormMode.Qra && alert != AlertLevel.AlertNull;
         }
 
         /// <summary>
@@ -350,25 +225,27 @@ namespace SandiaNationalLaboratories.Hyram
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void modeTabs_SelectedIndexChanged(object sender, EventArgs e)
+        private void ModeTabs_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var activeTab = modeTabs.SelectedTab;
-            Panel activePanel = null;
-
-            if (activeTab == qraModeTab)
+            if (ModeTabs.SelectedTab == qraModeTab || ModeTabs.SelectedTab == null)
             {
-                activePanel = qraNavPanel;
-                _mode = 0;
+                _mode = FormMode.Qra;
+                SystemDescripFormBtn.PerformClick();
             }
             else
             {
-                activePanel = physicsNavPanel;
-                _mode = 1;
+                _mode = FormMode.Physics;
+                PlumeFormBtn.PerformClick();
             }
+            RefreshAlerts();
+        }
 
-            mainOutputNavPanel.Controls.Clear();  // Clear nav panel
-            QuickFunctions.GetTopButton(activePanel, ChildNavOptions.NavigateChildren).PerformClick();
-            ValidateTopParameters();
+        private void RefreshQraForms()
+        {
+            foreach (AnalysisForm form in _qraForms)
+            {
+                form.RefreshForm();
+            }
         }
 
         /// <summary>
@@ -376,32 +253,29 @@ namespace SandiaNationalLaboratories.Hyram
         /// </summary>
         private void GotoAppStartDefaultLocation()
         {
-            modeTabs.SelectedIndex = 0;
-            RefreshTopState();
-            systemDescriptionFormButton.PerformClick();
-            ValidateTopParameters();
+            ModeTabs.SelectedIndex = 0;
+            RefreshState();
 
-            foreach (AnalysisForm form in _qraForms)
-            {
-                form.CheckFormValid();
-            }
+            SystemDescripFormBtn.PerformClick();
+            RefreshQraForms();
+            RefreshAlerts();
         }
 
 
-        private void aboutMenuItem_Click(object sender, EventArgs e)
+        private void AboutMenuItem_Click(object sender, EventArgs e)
         {
             var aboutForm = new AboutForm();
             aboutForm.Show();
         }
 
-        private void saveMenuItem_Click(object sender, EventArgs e)
+        private void SaveMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
                 var saveDialog = new FileSaveLoadForm
                 {
                     IsSaveFileForm = true,
-                    CurrentLoadedState = StateContainer.Instance
+                    CurrentLoadedState = State.Data,
                 };
                 saveDialog.ShowDialog();
                 saveDialog.Hide();
@@ -412,7 +286,7 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
-        private void loadMenuItem_Click(object sender, EventArgs e)
+        private void LoadMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
@@ -421,7 +295,10 @@ namespace SandiaNationalLaboratories.Hyram
                     IsSaveFileForm = false
                 };
                 loadDialog.ShowDialog();
-                if (loadDialog.CurrentLoadedState != null) StateContainer.Instance = loadDialog.CurrentLoadedState;
+                if (loadDialog.CurrentLoadedState != null)
+                {
+                    State.Data = loadDialog.CurrentLoadedState;
+                }
 
                 loadDialog.Dispose();
             }
@@ -430,60 +307,143 @@ namespace SandiaNationalLaboratories.Hyram
                 MessageBox.Show(@"Could not open input file. Error: " + ex.Message);
             }
 
-            StateContainer.Instance.UndoStateDamageCausedByLoad();
-
+            RefreshState();
             GotoAppStartDefaultLocation();
         }
 
-        private void exitMenuItem_Click(object sender, EventArgs e)
+        private void PhysicsFuelTypeSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            Close();
-        }
+            _ignoreStateChange = true;
 
-        private void resetMenuItem_Click(object sender, EventArgs e)
-        {
-            var dlgResult = MessageBox.Show(this,
-                "Resetting parameters. Restart to revert this action. " +
-                "To continue, click \"OK.\" To abort, click \"Cancel.\"",
-                "Confirm input reset action", MessageBoxButtons.OKCancel);
-            if (dlgResult == DialogResult.OK)
+            FuelType fuel = (FuelType)PhysicsFuelTypeSelector.SelectedItem;
+            _state.SetFuel(fuel);
+
+            _ignoreStateChange = false;
+
+            if (fuel == _state.FuelBlend)
             {
-                StateContainer.Instance.ResetInputsAndDefaults();
-                //if (ActiveContentPanel != null) ActiveContentPanel.Notify_LoadComplete();
+                PhysicsFuelBtn.PerformClick();
             }
         }
 
-        /// <summary>
-        /// Display Engineering Toolkit window
-        /// </summary>
-        private void etkMenuItem_Click(object sender, EventArgs e)
+        private void QraFuelTypeSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            _mEtkForm.Visible = true;
-            _mEtkForm.TopMost = true;
-            _mEtkForm.TopMost = false;
+            _ignoreStateChange = true;
+
+            FuelType fuel = (FuelType)QraFuelTypeSelector.SelectedItem;
+            _state.SetFuel(fuel);
+
+            _ignoreStateChange = false;
+            RefreshAlerts();
+
+            if (fuel == _state.FuelBlend)
+            {
+                QraFuelBtn.PerformClick();
+            }
+        }
+
+        private void DisplayFuelForm()
+        {
+            _fuelForm = new FuelForm();
+            _fuelForm.ShowDialog();
+        }
+
+
+        // /////////////////////
+        // QRA ANALYSIS
+
+        private void QraSubmitBtn_Click(object sender, EventArgs e)
+        {
+            PrepareQraAnalysisTask((Button) sender);
+        }
+
+        private void PrepareQraAnalysisTask(Button sender)
+        {
+            try
+            {
+                UiHelpers.UnselectButtons(FindForm());
+                _progressDisplay = new ProgressDisplay();
+                ChangeForm(sender, _progressDisplay);
+
+                TheMainForm.ToggleNavigability(false);
+                _token = new CancellationTokenSource();
+                var task = Task.Factory.StartNew(ConductAnalysis, _token.Token);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                MessageBox.Show("Action failed: " + ex.Message);
+            }
+        }
+
+        // Async updates progress for QRA analysis.
+        private void AnalysisTaskUpdate(int prog, string msg)
+        {
+            _progressStatus = prog;
+            _progressMessage = msg;
+            if (_progressDisplay.InvokeRequired)
+            {
+                var myDelegate = new Delegate(UpdateProgress);
+                _progressDisplay.Invoke(myDelegate);
+            }
+            else
+            {
+                UpdateProgress();
+            }
+        }
+
+        // Container function for delegate to update progress display
+        private void UpdateProgress()
+        {
+            _progressDisplay.UpdateProgress(_progressStatus, _progressMessage);
         }
 
         /// <summary>
-        ///     Opens Windows Explorer view of User AppData folder
+        ///     Execute QRA analysis while updating progress bar via delegate.
+        ///     Assume this runs in separate thread. When complete, will trigger callback.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void dataDirectoryMenuItem_Click(object sender, EventArgs e)
+        private void ConductAnalysis()
         {
-            Process.Start(StateContainer.UserDataDir);
+            AnalysisTaskUpdate(10, "Gathering parameters...");
+            var qra = new QraInterface();
+            AnalysisTaskUpdate(30, "Conducting analysis... this may take several minutes.");
+
+            try
+            {
+                qra.Execute();
+            }
+            catch (Exception ex)
+            {
+                // If execution fails, display error on progress bar and re-enable navigation
+                AnalysisTaskUpdate(-1, ex.Message);
+                if (TheMainForm.InvokeRequired)
+                {
+                    Invoke(new Action(ToggleNavigability));
+                }
+                else
+                {
+                    ToggleNavigability();
+                }
+
+                return;
+            }
+
+            AnalysisTaskUpdate(100, "Analysis complete");
+            Thread.Sleep(2000);
+
+            // trigger callback to load results panel.
+            if (InvokeRequired)
+            {
+                var myDelegate = new Delegate(ShowQraResults);
+                Invoke(myDelegate);
+            }
         }
 
-
-        private void physicsFuelTypeSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        private void ShowQraResults()
         {
-            StateContainer.SetFuel((FuelType)physicsFuelTypeSelector.SelectedItem);
-            GotoAppStartDefaultLocation();
-        }
-
-        private void qraFuelTypeSelector_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            StateContainer.SetFuel((FuelType)qraFuelTypeSelector.SelectedItem);
-            GotoAppStartDefaultLocation();
+            TheMainForm.ToggleNavigability(true);
+            ChangeForm(QraSubmitBtn, new QraResultsPanel(), Narratives.QraOutputDescrip);
+            _progressDisplay?.Dispose();
         }
     }
 }

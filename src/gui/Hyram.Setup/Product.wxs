@@ -11,10 +11,10 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 -->
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="E31A5568-8497-4972-8C93-C8222B9DD5C9"
+  <Product Id="C43A602E-82BA-4D0A-8AD7-1A69381EAB5C"
            Name="HyRAM+"
            Language="1033"
-           Version="4.1"
+           Version="5.0"
            Manufacturer="Sandia National Laboratories"
            UpgradeCode="A6256A13-D1FE-4D2E-9BB8-DEE9FF314047"
            >
@@ -40,6 +40,7 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="PythonComponentGroup" />
       <ComponentGroupRef Id="PythonLibsComponentGroup" />
+      <ComponentGroupRef Id="PythonCsApiComponentGroup" />
       <ComponentRef Id='ProgramMenuDir' />
     </Feature>
     <Icon Id="HyRAM.exe" SourceFile="$(var.Hyram.Gui.ProjectDir)Resources\LogoNoNameSm.ico" />
@@ -64,7 +65,12 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
                 <Directory Id="HyramPythonLib" Name="hyram"
                            ComponentGuidGenerationSeed="{6660035D-36BD-4C46-9253-29AD90CBB24C}"/>
                 <Directory Id="PythonLibsComponentGroup" ></Directory>
+
+                <Directory Id="PythonCsApi" Name="cs_api"
+                           ComponentGuidGenerationSeed="{AA82690E-6F9A-467D-98D6-0E1BDD00AFF4}"/>
+                <Directory Id="PythonCsApiComponentGroup" ></Directory>
               </Directory>
+
             </Directory>
           </Directory>
         </Directory>
@@ -84,15 +90,63 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <!--<Component Id="Shortcuts" Guid="{C49F1B53-51CF-46BC-97A8-93B347CCDDD1}" KeyPath="yes">-->
       <!--</Component>-->
+      <Component Id="Microsoft.Bcl.AsyncInterfaces.dll" Guid="*">
+        <File Id="Microsoft.Bcl.AsyncInterfaces.dll" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)Microsoft.Bcl.AsyncInterfaces.dll" />
+      </Component>
+      <Component Id="System.Runtime.CompilerServices.Unsafe.dll" Guid="*">
+        <File Id="System.Runtime.CompilerServices.Unsafe.dll" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)System.Runtime.CompilerServices.Unsafe.dll" />
+      </Component>
+      <Component Id="System.Text.Encodings.Web.dll" Guid="*">
+        <File Id="System.Text.Encodings.Web.dll" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)System.Text.Encodings.Web.dll" />
+      </Component>
+      <Component Id="System.Buffers.dll" Guid="*">
+        <File Id="System.Buffers.dll" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)System.Buffers.dll" />
+      </Component>
+      <Component Id="System.Memory.dll" Guid="*">
+        <File Id="System.Memory.dll" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)System.Memory.dll" />
+      </Component>
+      <Component Id="System.Numerics.Vectors.dll" Guid="*">
+        <File Id="System.Numerics.Vectors.dll" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)System.Numerics.Vectors.dll" />
+      </Component>
+      <Component Id="System.Threading.Tasks.Extensions.dll" Guid="*">
+        <File Id="System.Threading.Tasks.Extensions.dll" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)System.Threading.Tasks.Extensions.dll" />
+      </Component>
+      <Component Id="System.ValueTuple.dll" Guid="*">
+        <File Id="System.ValueTuple.dll" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)System.ValueTuple.dll" />
+      </Component>
+      <Component Id="System.Text.Json.dll" Guid="*">
+        <File Id="System.Text.Json.dll" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)System.Text.Json.dll" />
+      </Component>
+
       <Component Id="HyramUnits">
         <File Source="$(var.Hyram.Units.TargetPath)" />
       </Component>
+      <Component Id="Hyram.Units.dll.config" Guid="*">
+        <File Id="Hyram.Units.dll.config" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)Hyram.Units.dll.config" />
+      </Component>
+
       <Component Id="HyramUtilities">
         <File Source="$(var.Hyram.Utilities.TargetPath)" />
       </Component>
+
       <Component Id="HyramState">
         <File Source="$(var.Hyram.State.TargetPath)" />
       </Component>
+      <Component Id="Hyram.State.dll.config" Guid="*">
+        <File Id="Hyram.State.dll.config" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)Hyram.State.dll.config" />
+      </Component>
+
       <Component Id="HyramPythonApi">
         <File Source="$(var.Hyram.PythonApi.TargetPath)" />
       </Component>
@@ -103,14 +157,18 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
                   WorkingDirectory='INSTALLDIR' Icon="HyRAM.exe" IconIndex="0" Advertise="yes" />
         <File Source="$(var.Hyram.Gui.TargetPath)" />
       </Component>
+      <Component Id="Hyram.exe.config" Guid="*">
+        <File Id="Hyram.exe.config" KeyPath="yes"
+              Source="$(var.Hyram.Gui.TargetDir)Hyram.exe.config" />
+      </Component>
       <Component Id="MathNet.Numerics.dll" Guid="*">
         <File Id="MathNet.Numerics.dll" KeyPath="yes"
               Source="$(var.Hyram.Gui.TargetDir)MathNet.Numerics.dll" />
       </Component>
-      <Component Id="Newtonsoft.Json.dll" Guid="*">
-        <File Id="Newtonsoft.Json.dll" KeyPath="yes"
-              Source="$(var.Hyram.Gui.TargetDir)Newtonsoft.Json.dll" />
-      </Component>
+      <!-- <Component Id="Newtonsoft.Json.dll" Guid="*"> -->
+      <!--   <File Id="Newtonsoft.Json.dll" KeyPath="yes" -->
+      <!--         Source="$(var.Hyram.Gui.TargetDir)Newtonsoft.Json.dll" /> -->
+      <!-- </Component> -->
       <Component Id="Python.Runtime.dll" Guid="*">
         <File Id="Python.Runtime.dll" KeyPath="yes"
               Source="$(var.Hyram.Gui.TargetDir)Python.Runtime.dll" />

@@ -29,7 +29,7 @@
     <ProductVersion>3.10</ProductVersion>
     <ProjectGuid>374eb47c-2755-4eb7-abe9-598bd6683135</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>Hyram-4.1.Setup</OutputName>
+    <OutputName>Hyram-5.0.Setup</OutputName>
     <OutputType>Package</OutputType>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -49,6 +49,7 @@
     <Compile Include="Product.wxs" />
     <Compile Include="PythonInstallFiles.wxs" />
     <Compile Include="PythonLibsFiles.wxs" />
+    <Compile Include="PythonCsApiFiles.wxs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hyram.Gui\Hyram.Gui.csproj">
@@ -114,16 +115,21 @@
 
   -->
   <PropertyGroup>
-    <DefineConstants>SourceDir=..\Hyram.PythonDirectory\python;PythonLibsDir=..\..\hyram\hyram;</DefineConstants>
+    <DefineConstants>SourceDir=..\Hyram.PythonDirectory\python;PythonLibsDir=..\..\hyram\hyram;PythonCsApiDir=..\..\cs_api;</DefineConstants>
     <SuppressIces>ICE60;ICE80</SuppressIces>
   </PropertyGroup>
   <Target Name="BeforeBuild">
     <HeatDirectory OutputFile="$(ProjectDir)\PythonInstallFiles.wxs" Directory="..\Hyram.PythonDirectory\python" PreprocessorVariable="var.SourceDir" ComponentGroupName="PythonComponentGroup" DirectoryRefId="python" AutogenerateGuids="true" SuppressRegistry="true" SuppressRootDirectory="true" ToolPath="$(WixToolPath)" NoLogo="true" />
     <HeatDirectory OutputFile="$(ProjectDir)\PythonLibsFiles.wxs" Directory="..\..\hyram\hyram" PreprocessorVariable="var.PythonLibsDir" ComponentGroupName="PythonLibsComponentGroup" DirectoryRefId="HyramPythonLib" AutogenerateGuids="true" SuppressRegistry="true" SuppressRootDirectory="true" ToolPath="$(WixToolPath)" NoLogo="true" />
+    <HeatDirectory OutputFile="$(ProjectDir)\PythonCsApiFiles.wxs" Directory="..\..\cs_api" PreprocessorVariable="var.PythonCsApiDir" ComponentGroupName="PythonCsApiComponentGroup" DirectoryRefId="PythonCsApi" AutogenerateGuids="true" SuppressRegistry="true" SuppressRootDirectory="true" ToolPath="$(WixToolPath)" NoLogo="true" />
   </Target>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <PropertyGroup>
+      <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+      <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\WiX.3.11.2\build\wix.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WiX.3.11.2\build\wix.props'))" />
   </Target>

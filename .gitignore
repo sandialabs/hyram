@@ -466,6 +466,3 @@ ASALocalRun/
 
 # Visual Studio Code
 .vscode/
-
-# Image files from tests
-*.png

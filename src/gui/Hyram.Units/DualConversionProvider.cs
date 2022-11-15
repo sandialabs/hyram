@@ -16,14 +16,6 @@ namespace SandiaNationalLaboratories.Hyram
     {
         public ConversionData ConversionObject = null;
         public IISpecialConversionDelegate ConversionDelegate = null;
-
-        public bool HasBadConversionFactor()
-        {
-            var result = false;
-            if (ConversionObject != null) result = ConversionObject.HasBadConversionFactor();
-
-            return result;
-        }
     }
 
     public interface IISpecialConversionDelegate

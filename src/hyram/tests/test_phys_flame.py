@@ -8,9 +8,9 @@ If not, see https://www.gnu.org/licenses/.
 
 import unittest
 
-from hyram.phys import _flame
 import hyram.phys.api as phys_api
-import hyram.phys._comps as phys_comps
+from hyram.phys import Orifice, Flame
+from hyram.phys._flame import calc_transmissivity
 
 
 VERBOSE = False
@@ -43,7 +43,7 @@ class TestAtmosphericTransmissivity(unittest.TestCase):
         for path_length, amb_temp, rel_humid in zip(path_lengths,
                                                     temperatures,
                                                     relative_humidities):
-            tau = _flame.calc_transmissivity(path_length, amb_temp, rel_humid)
+            tau = calc_transmissivity(path_length, amb_temp, rel_humid)
             calc_taus.append(tau)
         taus_from_paper = [
             0.96, 0.86, 0.72,
@@ -69,11 +69,11 @@ class TestFlameObject(unittest.TestCase):
                                               temp=288,  # K
                                               pres=101325)  # Pa
         leak_diam = 0.003  # m
-        orifice = phys_comps.Orifice(leak_diam)
-        flame = _flame.Flame(release_fluid,
-                             orifice,
-                             ambient_fluid,
-                             verbose=VERBOSE)
+        orifice = Orifice(leak_diam)
+        flame = Flame(release_fluid,
+                      orifice,
+                      ambient_fluid,
+                      verbose=VERBOSE)
         self.flame = flame
 
     def test_zero_occupants_positional_flux(self):

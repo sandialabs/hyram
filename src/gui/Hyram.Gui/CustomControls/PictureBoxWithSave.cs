@@ -34,16 +34,27 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
+        public void Unload()
+        {
+            if (pbPicture.Image != null)
+            {
+                var existingFile = pbPicture.Image;
+                pbPicture.Image = null;
+                existingFile?.Dispose();
+            }
+        }
+
         private void btnSave_Click(object sender, EventArgs e)
         {
             try
             {
                 string plotSavePath = Settings.Default.plotSavePath;
-                //var outputFilename = QuickFunctions.SelectSaveAsFilename("Save image", ref plotSavePath,
-                    //"tiff", "Tiff Files(*.tiff)|*.tiff");
-                    var outputFilename = QuickFunctions.SelectSaveAsFilename("save image", ref plotSavePath, "png", "PNG files (*.png)|*.png");
+                var outputFilename = QuickFunctions.SelectSaveAsFilename("save image", ref plotSavePath, "png", "PNG files (*.png)|*.png");
 
-                if (outputFilename.Length > 0) pbPicture.Image.Save(outputFilename);
+                if (outputFilename.Length > 0)
+                {
+                    pbPicture.Image.Save(outputFilename);
+                }
             }
             catch (Exception ex)
             {

@@ -11,4 +11,5 @@ from ._indoor_release import IndoorRelease
 from ._flame import Flame
 from ._comps import Fluid, Orifice, Source, Enclosure, Vent
 from ._unconfined_overpressure import BST_method, TNT_method, Bauwens_method
-from . import c_api, api
+from ._fuel_props import FuelProperties
+from . import api

@@ -151,4 +151,16 @@
   <data name="PhysUnconfinedOverpressureDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>PhysUnconfinedOverpressureDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="PhysMassFlowDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>PhysMassFlowDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="PhysTankMassDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>PhysTankMassDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="PhysTntDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>PhysTntDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="PhysTpdDescrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>PhysTpdDescrip.rtf;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
 </root>

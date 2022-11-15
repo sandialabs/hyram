@@ -11,7 +11,7 @@ def get_ignition_probability(mass_flow_rate, mass_flow_thresholds, immed_ign_pro
     """
     Get the ignition probabilities based on mass flow rate
     from a list immediate and delayed ignition probabilities
-    that are seperated into mass flow rate thresholds
+    that are separated into mass flow rate thresholds
 
     For the lists of ignition probabilities,
     the first value will be used if the input mass_flow_rate

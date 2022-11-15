@@ -7,1260 +7,931 @@ You should have received a copy of the GNU General Public License along with
 HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
+using Python.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
+using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 
 namespace SandiaNationalLaboratories.Hyram
 {
-    /// <summary>
-    /// Collection of param containers
-    /// </summary>
-    public class ParameterWrapperCollection : Dictionary<string, ParameterWrapper>
+    public enum AlertLevel
     {
-        public ParameterWrapperCollection(ParameterWrapper[] initValues)
-        {
-            foreach (var thisObject in initValues) Add(thisObject.Key, thisObject);
-        }
+        AlertNull,
+        AlertWarning,
+        AlertError,
+        AlertInfo,
     }
 
     /// <summary>
-    /// Convenience container which holds analysis parameters and references to their units of measurement and conversion helpers
+    /// Represents all selectable fuel options, including blend presets. Used in FuelForm in advanced fuel selector.
+    /// Actual molar concentrations are stored in Fuel objects within StateContainer.
     /// </summary>
-    public class ParameterWrapper
+    public enum SpeciesOptions
     {
-        /// <summary>
-        /// Realistic parameter container
-        /// </summary>
-        /// <param name="key">Param key</param>
-        /// <param name="variableDisplayName">Param label</param>
-        /// <param name="unit">Actual parameter unit of measurement</param>
-        /// <param name="converter">Which object to use to convert between units of measurement (e.g. feet to meters)</param>
-        public ParameterWrapper(string key, string variableDisplayName, Enum unit = null,
-            UnitOfMeasurementConverters converter = null)
-        {
-            if (unit == null) unit = UnitlessUnit.Unitless;
-            if (converter == null) converter = StockConverters.UnitlessConverter;
+        EFuelH2,
+        EFuelMethane,
+        EFuelPropane,
+        EFuelBlendEmpty,
+        EFuelBlendNist1,
+        EFuelBlendNist2,
+        EFuelBlendRg2,
+        EFuelBlendGu1,
+        EFuelBlendGu2,
+    }
 
-            Key = key;
-            Unit = unit;
-            MConverter = converter;
-            VariableDisplayName = variableDisplayName;
-        }
-
-        public string Key { get; set; }
-
-        public UnitOfMeasurementConverters Converter
-        {
-            get => MConverter;
-            set => MConverter = value;
-        }
-
-        public string VariableDisplayName { get; }
-
-        public double[] OriginalValues { get; set; } = null;
-
-        public Enum Unit { get; set; }
-
-        public UnitOfMeasurementConverters MConverter
-        {
-            get => MConverter1;
-            set => MConverter1 = value;
-        }
-
-        public UnitOfMeasurementConverters MConverter1 { get; set; }
+    public class State
+    {
+        public static StateContainer Data = new StateContainer();
     }
 
     /// <summary>
-    /// Locking mechanism for modifying the db state container
+    /// Database-like object stores parameter values used in all analyses.
+    /// The backbone data model of the GUI.
     /// </summary>
-    public class Synchronize
-    {
-        public static object LockId = new object();
-    }
-
-    /// <summary>
-    /// Database containing all analysis parameters.
-    /// Params are updated when user changes an input and are retrieved from DB when analysis is requested.
-    /// </summary>
-    [Serializable]
     public class StateContainer
     {
-        // TODO wishlist: The following updates could improve this storage class
-        // - All param values are known so store them as properties on a DBTable object 
-        // - Add suitable wrapper for setting min/max, unit conversions to reinforce MVC
-        // - Centralize all external parameter edits to use single function/db entry point
-        // (these would help to get rid of this old technical debt)
+        public string Comments = "";
+        [JsonIgnore]
+        public object QraResult;
 
-        // Main store of parameter values. Initialized in InitDatabase.
-        // Analysis parameters stored in mDatabase["PARAMETERS"]. Default values stored in mDatabase["DEFAULTS"]
+        public OccupantDistributionInfoCollection OccupantInfo = new OccupantDistributionInfoCollection(true);
 
-        public string[] Distributions = {"Beta", "LogNormal", "Normal", "ExpectedValue", "Uniform"};
+        // Fuel objects store concentrations and species-specific properties. Rename to SpeciesType?
+        public FuelType FuelH2 = new FuelType(0, "Hydrogen", "h2", 1.899, 1296400, 1.0, 0.04, true),
+                        FuelMethane = new FuelType(1, "Methane", "ch4", 1.839, 4599200, 0, 0.05),
+                        FuelPropane = new FuelType(2, "Propane", "c3h8", 1.719, 4251200, 0, 0.021),
+                        FuelN2 = new FuelType(3, "Nitrogen", "n2", 1.889, 0, 0),
+                        FuelCo2 = new FuelType(4, "Carbon Dioxide", "co2", 1.829, 0, 0),
+                        FuelEthane = new FuelType(5, "Ethane", "c2h6", 1.769, 0, 0, 0.03),
+                        FuelNButane = new FuelType(6, "n-Butane", "n-c4h10", 1.689, 0, 0, 0.018),
+                        FuelIsoButane = new FuelType(7, "Isobutane", "ISOBUTANE", 1.689, 0, 0, 0.018),
+                        FuelNPentane = new FuelType(8, "n-Pentane", "n-c5h12", 0, 0, 0, 0.014),
+                        FuelIsoPentane = new FuelType(9, "Isopentane", "ISOPENTANE", 0, 0, 0, 0.014),
+                        FuelNHexane = new FuelType(10, "n-Hexane", "n-c6h14", 0, 0, 0, 0.012),
 
-        // Custom event to listen for fuel type changes
-        //public delegate void FuelTypeChangedDelegate(object sender, FuelType fuelType);
+                        FuelBlend = new FuelType(99, "Blend", "blend", -1.0, -1.0, 0);
+        [JsonIgnore]
+        public List<FuelType> Fuels = new List<FuelType>();
 
-        // Event for when fuel type is changed
+        // Track dropdown selection in fuel form, which includes all possible species.
+        public SpeciesOptions SpeciesOption = SpeciesOptions.EFuelH2;
+
+        // Fuel phases
+        [JsonIgnore]
+        public ModelPair GasDefault = new ModelPair("Gas", "none"),
+                         SatGas = new ModelPair("Saturated vapor", "gas"),
+                         SatLiquid = new ModelPair("Saturated liquid", "liquid"),
+
+                         // Notional nozzle options
+                         NozzleBirch = new ModelPair("Birch", "birc"),
+                         NozzleBirch2 = new ModelPair("Birch2", "bir2"),
+                         NozzleEwanMoodie = new ModelPair("Ewan/Moodie", "ewan"),
+                         NozzleMolkov = new ModelPair("Molkov", "molk"),
+                         NozzleYuceilOtugen = new ModelPair("Yuceil/Otugen", "yuce"),
+                         BstMethod = new ModelPair("BST", "bst"),
+                         TntMethod = new ModelPair("TNT", "tnt"),
+                         BauwensMethod = new ModelPair("Bauwens", "bauwens"),
+
+                         // Overpressure probit options
+                         ProbitLungEis = new ModelPair("Lung (Eisenberg)", "leis"),
+                         ProbitLungHse = new ModelPair("Lung (HSE)", "lhse"),
+                         ProbitHead = new ModelPair("Head Impact", "head"),
+                         ProbitCollapse = new ModelPair("Collapse", "coll"),
+
+                         // Thermal probit options
+                         ThermalEisenberg = new ModelPair("Eisenberg", "eise"),
+                         ThermalTsao = new ModelPair("Tsao", "tsao"),
+                         ThermalTno = new ModelPair("TNO", "tno"),
+                         ThermalLees = new ModelPair("Lees", "lees");
+
+        [JsonIgnore]
+        public List<ModelPair> Phases = new List<ModelPair>(),
+                               NozzleModels = new List<ModelPair>(),
+                               OverpressureMethods = new List<ModelPair>(),
+                               OverpressureProbitModels = new List<ModelPair>(),
+                               ThermalProbitModels = new List<ModelPair>();
+
+        private ModelPair _phase;
+        public ModelPair Phase
+        {
+            get => _phase;
+            set
+            {
+                _phase = value;
+                RefreshLeakFrequencyData();
+                RefreshComponentQuantities();
+            }
+        }
+
+        public ModelPair Nozzle;
+        public ModelPair ThermalProbit;
+        public ModelPair OverpressureProbit;
+        public ModelPair SelectedOverpressureMethod;
+
+        public Parameter AmbientTemperature = new Parameter(Converters.Temperature, 288, "Ambient temperature", -273.14);
+        public Parameter AmbientPressure = new Parameter(Converters.Pressure, PressureUnit.MPa, .101325, "Ambient pressure", 0);
+        public Parameter FluidTemperature = new Parameter(Converters.Temperature, 287.8, "Tank fluid temperature", -273.14);
+        public Parameter FluidPressure = new Parameter(Converters.Pressure, PressureUnit.MPa, 35, "Tank fluid pressure (absolute)", 0);
+        public double? FluidMassFlow = null;
+        public Parameter Density = new Parameter(Converters.Density, DensityUnit.KilogramPerCubicMeter, 35, "Fluid density", 0);
+
+        public Parameter OrificeDischargeCoefficient = new Parameter(1, "Discharge coefficient", 0, 1);
+
+        public Parameter ReleaseAngle = new Parameter(Converters.Angle, AngleUnit.Degrees, 0, "Release angle", 0, 180.0);
+        public Parameter TankVolume = new Parameter(Converters.Volume, 3.63 / 1000, "Tank volume");
+
+        public Parameter EnclosureHeight = new Parameter(Converters.Distance, 2.72, "Enclosure height");
+        public Parameter FloorCeilingArea = new Parameter(Converters.Area, 16.72216, "Floor/ceiling area");
+        public Parameter ReleaseToWallDistance = new Parameter(Converters.Distance,  2.1255, "Distance from release to wall");
+        public Parameter ReleaseArea = new Parameter(Converters.Area, 0.01716, "Release area");
+        public Parameter CeilingVentArea = new Parameter(Converters.Area, Math.Round(Math.Pow(0.34, 2) * Math.PI / 4, 6), 
+                                                    "Vent 1 (ceiling vent) cross-sectional area");
+        public Parameter CeilingVentHeight = new Parameter(Converters.Distance, 2.42, "Vent 1 (ceiling vent) height from floor");
+
+        public Parameter FloorVentArea = new Parameter(Converters.Area, 0.12 * 0.0635, "Vent 2 (floor vent) cross-sectional area");
+        public Parameter FloorVentHeight = new Parameter(Converters.Distance, 0.044, "Vent 2 (floor vent) height from floor");
+
+        // Speed of wind
+        public Parameter VentFlowRate = new Parameter(Converters.VolumetricFlow, 0, "Vent volumetric flow rate");
+
+        // All accum. time values are stored unitless and converted to seconds prior to analysis, based on selected time unit.
+        public List<(double, double)> OpTimePressures = new List<(double, double)>{(1, 13.8), (15, 15), (20, 55.2)};
+        public TimeUnit AccumulationTimeUnit { get; set; } = TimeUnit.Second;
+        public Parameter MaxSimTime = new Parameter(30 );
+
+        public string PlumePlotTitle = "Mole Fraction of Leak";
+        public Parameter PlumeXMin = new Parameter(Converters.Distance, -2.5, "X min");
+        public Parameter PlumeXMax = new Parameter(Converters.Distance, 2.5, "X max");
+        public Parameter PlumeYMin = new Parameter(Converters.Distance, 0, "Y min");
+        public Parameter PlumeYMax = new Parameter(Converters.Distance, 10, "Y max");
+        public Parameter PlumeContours = new Parameter(0.04, "Contours (mole fraction)", 0.00001, 0.99);
+        public Parameter PlumeReleaseAngle = new Parameter(Converters.Angle, AngleUnit.Radians, 1.5708D, "Angle of jet");
+
+        public Parameter PlumeVMin = new Parameter(0, "Mole fraction scale minimum", 0, 1);
+        public Parameter PlumeVMax = new Parameter(0.1, "Mole fraction scale maximum", 0, 1);
+
+        public string FlamePlotTitle = "";
+        public Parameter FlameXMin = new Parameter(Converters.Distance, 0, "Temperature plot X min");
+        public Parameter FlameXMax = new Parameter(Converters.Distance, 9, "Temperature plot X max");
+        public Parameter FlameYMin = new Parameter(Converters.Distance, -3.5, "Temperature plot Y min");
+        public Parameter FlameYMax = new Parameter(Converters.Distance, 3.5, "Temperature plot Y max");
+        public bool FlameAutoLimits = true;
+        public double[] TempContourLevels = {};
+
+        public Parameter FluxXMin = new Parameter(Converters.Distance, -5, "Heat flux plot X min");
+        public Parameter FluxXMax = new Parameter(Converters.Distance, 15, "Heat flux plot X max");
+        public Parameter FluxYMin = new Parameter(Converters.Distance, -10, "Heat flux plot Y min");
+        public Parameter FluxYMax = new Parameter(Converters.Distance, 10, "Heat flux plot Y max");
+        public Parameter FluxZMin = new Parameter(Converters.Distance, -10, "Heat flux plot Z min");
+        public Parameter FluxZMax = new Parameter(Converters.Distance, 10, "Heat flux plot Z max");
+
+        public double[] RadiativeFluxX = { 0.01D, 0.5D, 1D, 2D, 2.5D, 5D, 10D, 15D, 25D, 40D};
+        public double[] RadiativeFluxY = { 1D, 1D, 1D, 1D, 1D, 2D, 2D, 2D, 2D, 2D};
+        public double[] RadiativeFluxZ = { 0.01D, 0.5D, 0.5D, 1D, 1D, 1D, 0.5D, 0.5D, 1D, 2D};
+        public double[] FlameContourLevels = { 1.577, 4.732, 25.237};
+
+        // Person's flame exposure time [s] 
+        public Parameter FlameExposureTime = new Parameter(Converters.ElapsingTime, 30, "", 0);
+
+        public Parameter RelativeHumidity = new Parameter(0.89D, "Relative humidity", 0D);
+        public Parameter OrificeDiameter = new Parameter(Converters.Distance, 0.00356, "Leak diameter", 0);
+        public Parameter ReleaseHeight = new Parameter(Converters.Distance, 0, "Release height", 0);
+
+        public Parameter RandomSeed = null;
+
+        public List<double> MachFlameSpeeds = new List<double> { 0.2D, 0.35, 0.7, 1.0, 1.4, 2.0, 3.0, 4.0, 5.2D };
+        public double OverpressureFlameSpeed = 0.35;
+        public Parameter TntEquivalenceFactor = new Parameter(0.03D, "TNT equivalence factor");
+
+        public Parameter ExclusionRadius = new Parameter(0.01, 0);
+
+        public double[] OverpressureX = { 1, 2 };
+        public double[] OverpressureY = { 0, 0 };
+        public double[] OverpressureZ = { 1, 2};
+        public double[] OverpressureContours = { 5, 16, 70 };  // always kPa
+        public double[] ImpulseContours = { 0.13, 0.18, 0.27 };  // always kPa*s
+        public bool OverpAutoLimits = true;
+        public Parameter OverpXMin = new Parameter(Converters.Distance, -35, "Overpressure plot X min");
+        public Parameter OverpXMax = new Parameter(Converters.Distance, 35, "Overpressure plot X max");
+        public Parameter OverpYMin = new Parameter(Converters.Distance, 0, "Overpressure plot Y min");
+        public Parameter OverpYMax = new Parameter(Converters.Distance, 35, "Overpressure plot Y max");
+        public Parameter OverpZMin = new Parameter(Converters.Distance, -35, "Overpressure plot Z min");
+        public Parameter OverpZMax = new Parameter(Converters.Distance, 35, "Overpressure plot Z max");
+        public Parameter ImpulseXMin = new Parameter(Converters.Distance, -2, "Impulse plot X min");
+        public Parameter ImpulseXMax = new Parameter(Converters.Distance, 4.5, "Impulse plot X max");
+        public Parameter ImpulseYMin = new Parameter(Converters.Distance, 0, "Impulse plot Y min");
+        public Parameter ImpulseYMax = new Parameter(Converters.Distance, 3, "Impulse plot Y max");
+        public Parameter ImpulseZMin = new Parameter(Converters.Distance, -3, "Impulse plot Z min");
+        public Parameter ImpulseZMax = new Parameter(Converters.Distance, 3, "Impulse plot Z max");
+
+        // units of these times vary based on selected input. Converted to seconds at execution time.
+        public double[] AccumulationPlotTimes = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                                                    11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                                                    21, 22, 23, 24, 25, 26, 27, 28, 29, 29.5 };
+
+        public double[] AccumulationPlotPressures = {13.8D, 15.0D, 55.2D};  // always kPa
+        public double[] ImmediateIgnitionProbs = { 0.008D, 0.053D, 0.23D};
+        public double[] DelayedIgnitionProbs = { 0.004, 0.027, 0.12 };
+        public double[] IgnitionThresholds = { 0.125, 6.25 };
+
+        public Parameter NumCompressors = new Parameter(0, "# Compressors", 0D);
+        public Parameter NumVessels = new Parameter(0, "# Vessels (cylinders, tanks)", 0D);
+        public Parameter NumValves = new Parameter(5, "# Valves", 0D);
+        public Parameter NumInstruments = new Parameter(3, "# Instruments", 0D);
+        public Parameter NumJoints = new Parameter(35, "# Joints", 0D);
+        public Parameter NumHoses = new Parameter(1, "# Hoses", 0D);
+        public Parameter PipeLength = new Parameter(Converters.Distance, DistanceUnit.Meter, 20, "Pipes (length)", 0D);
+        public Parameter NumFlanges = new Parameter(0, "# Flanges", 0D);
+        public Parameter NumFilters = new Parameter(0, "# Filters", 0D);
+        public Parameter NumExchangers = new Parameter(0, "# Heat exchangers", 0D);
+        public Parameter NumVaporizers = new Parameter(0, "# Vaporizers", 0D);
+        public Parameter NumArms = new Parameter(0, "# Loading arms", 0D);
+        public Parameter NumExtraComponents1 = new Parameter(0, "# Extra component 1", 0D);
+        public Parameter NumExtraComponents2 = new Parameter(0, "# Extra component 2", 0D);
+
+        public List<ComponentProbability> ProbCompressor = FuelData.ActiveLeakSet.Compressor;
+        public List<ComponentProbability> ProbVessel = FuelData.ActiveLeakSet.Vessel;
+        public List<ComponentProbability> ProbFilter = FuelData.ActiveLeakSet.Filter;
+        public List<ComponentProbability> ProbFlange = FuelData.ActiveLeakSet.Flange;
+        public List<ComponentProbability> ProbHose = FuelData.ActiveLeakSet.Hose;
+        public List<ComponentProbability> ProbJoint = FuelData.ActiveLeakSet.Joint;
+        public List<ComponentProbability> ProbPipe = FuelData.ActiveLeakSet.Pipe;
+        public List<ComponentProbability> ProbValve = FuelData.ActiveLeakSet.Valve;
+        public List<ComponentProbability> ProbInstrument = FuelData.ActiveLeakSet.Instrument;
+        public List<ComponentProbability> ProbExchanger = FuelData.ActiveLeakSet.HeatExchanger;
+        public List<ComponentProbability> ProbVaporizer = FuelData.ActiveLeakSet.Vaporizer;
+        public List<ComponentProbability> ProbArm = FuelData.ActiveLeakSet.LoadingArm;
+        public List<ComponentProbability> ProbExtra1 = FuelData.ActiveLeakSet.Extra1;
+        public List<ComponentProbability> ProbExtra2 = FuelData.ActiveLeakSet.Extra2;
+
+        public Parameter VehicleCount = new Parameter(20,"Number of Vehicles", 0);
+        public Parameter VehicleFuelings = new Parameter(2,"Number of Fuelings Per Vehicle Day", 0);
+        public Parameter VehicleDays = new Parameter(250, "Number of Vehicle Operating Days per Year", 0, 366);
+        public Parameter VehicleAnnualDemand = new Parameter(10000,"Annual Demands (calculated)", 0);
+        public Parameter FacilityLength = new Parameter(Converters.Distance, 20, "Length (x-direction)", 0);
+        public Parameter FacilityWidth = new Parameter(Converters.Distance,12, "Width (z-direction)", 0);
+        // Pipe outer diameter
+        public Parameter PipeDiameter = new Parameter(Converters.Distance, DistanceUnit.Inch, 0.375, "Pipe outer diameter", 0);
+        // Pipe wall thickness
+        public Parameter PipeThickness = new Parameter(Converters.Distance, DistanceUnit.Inch, 0.065, "Pipe wall thickness", 0);
+
+        // Optional overrides whereby user can control release for each size. Use -1 to disable override.
+        public Parameter Release000d01 = new Parameter(Converters.Frequency, -1, "0.01% release annual frequency", -1);
+        public Parameter Release000d10 = new Parameter(Converters.Frequency,-1, "0.10% release annual frequency", -1);
+        public Parameter Release001d00 = new Parameter(Converters.Frequency,-1, "1% release annual frequency", -1);
+        public Parameter Release010d00 = new Parameter(Converters.Frequency,-1, "10% release annual frequency", -1);
+        public Parameter Release100d00 = new Parameter(Converters.Frequency,-1, "100% release annual frequency", -1);
+        public Parameter FailureOverride = new Parameter(Converters.Frequency, -1, "100% release annual frequency (accidents and shutdown failures)", -1);
+
+        public Parameter GasDetectionProb = new Parameter(0.9, "Gas detection credit probability", 0, 1);
+
+        public FailureMode FailureNozPo = new FailureMode("Nozzle", "Pop-off", DistributionChoice.Beta, 0.5, 610415.5);
+        public FailureMode FailureNozFtc = new FailureMode("Nozzle", "Failure to close", DistributionChoice.ExpectedValue, 0.002D, 0D);
+        public FailureMode FailureMValveFtc = new FailureMode("Manual valve", "Failure to close", DistributionChoice.ExpectedValue, 0.001D, 0D);
+        public FailureMode FailureSValveFtc = new FailureMode("Solenoid valve", "Failure to close", DistributionChoice.ExpectedValue, 0.002D, 0D);
+        public FailureMode FailureSValveCcf = new FailureMode("Solenoid valve", "Common-cause failure", DistributionChoice.ExpectedValue, 0.000128D, 0D);
+        public FailureMode FailureOverp = new FailureMode("Overpressure during fueling", "Accident", DistributionChoice.Beta, 3.5, 310289.5);
+        public FailureMode FailurePValveFto = new FailureMode("Pressure relief valve", "Failure to open", DistributionChoice.LogNormal, -11.74D, 0.67D);
+        public FailureMode FailureDriveoff = new FailureMode("Driveoff", "Accident", DistributionChoice.Beta, 31.5D, 610384.5D);
+        public FailureMode FailureCouplingFtc = new FailureMode("Breakaway coupling", "Failure to close", DistributionChoice.Beta, 0.5D, 5031.0D);
+
+        public TimeUnit ExposureTimeUnit { get; set; } = TimeUnit.Second;
+
         [field:NonSerialized]
         public event EventHandler FuelTypeChangedEvent;
 
-        public List<NozzleModel> NozzleModels = new List<NozzleModel>
-        {
-            NozzleModel.Birch,
-            NozzleModel.Birch2,
-            NozzleModel.EwanMoodie,
-            NozzleModel.Molkov,
-            NozzleModel.YuceilOtugen
-            //NozzleModel.HarstadBellan
-        };
+        [JsonIgnore]
+        public double FuelPrecision = 1E-5;
 
-        public List<UnconfinedOverpressureMethod> OverpressureMethods = new List<UnconfinedOverpressureMethod>
-        {
-            UnconfinedOverpressureMethod.BstMethod,
-            UnconfinedOverpressureMethod.TntMethod,
-            UnconfinedOverpressureMethod.BauwensMethod
-        };
-
-        public List<double> MachFlameSpeeds = new List<double>
-        {
-            0.2D, 0.35, 0.7, 1.0, 1.4, 2.0, 3.0, 4.0, 5.2D
-        };
-
-        // Note that fuel type has custom event which is controlled in SetValue method below
-        public List<FuelType> FuelTypes = new List<FuelType>
-        {
-            FuelType.Hydrogen, FuelType.Methane, FuelType.Propane
-        };
-
-        public List<FluidPhase> FluidPhases = new List<FluidPhase>
-        {
-            FluidPhase.GasDefault, FluidPhase.SatGas, FluidPhase.SatLiquid
-        };
-
-        public List<ThermalProbitModel> ThermalProbitModels = new List<ThermalProbitModel>
-        {
-            ThermalProbitModel.Eisenberg, ThermalProbitModel.Tsao, ThermalProbitModel.Tno, ThermalProbitModel.Lees
-        };
-
-        public List<OverpressureProbitModel> OverpressureProbitModels = new List<OverpressureProbitModel>
-        {
-            OverpressureProbitModel.LungEis, OverpressureProbitModel.LungHse, OverpressureProbitModel.Head,
-            OverpressureProbitModel.Collapse
-        };
-
-
-
-        // AppData/HyRAM dir for non-user-specific output
-        //public static string AppDataDir =
-        //    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-        //        "HyRAM");
+        // Index into these with Alert enum
+        [field: NonSerialized]
+        [JsonIgnore]
+        public List<Color> AlertBackColors = new List<Color>{Color.LightCyan, Color.Cornsilk, Color.MistyRose};
+        [field: NonSerialized]
+        [JsonIgnore]
+        public List<Color> AlertTextColors = new List<Color>{Color.PaleTurquoise, Color.DarkGoldenrod, Color.Maroon};
 
         // User AppData/HyRAM dir for user-specific output like logs, plots, etc.
-        public static string UserDataDir =
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "HyRAM");
-
-        private const string ParamTableName = "PARAMETERS";
-        private const string DefaultsTableName = "DEFAULTS";
-
-        private static StateContainer _mInstance = new StateContainer();
-
-        private const string OccupantDistributionsCollectionKey = "OccupantDistributions";
-
-        // NOTE (Cianan): don't delete these, even if IDE suggests they're not used. Accessed by public methods below.
-        public PressureUnit CfdPressureUnit = PressureUnit.Pa;
-        private ElapsingTimeConversionUnit _mExposureTimeUnit = ElapsingTimeConversionUnit.Second;
-        private ElapsingTimeConversionUnit _mAccumulationTimeUnit = ElapsingTimeConversionUnit.Second;
-
-        private ParameterDatabase Database { get; set; }
+        public static string UserDataDir = Path.Combine(Environment.GetFolderPath(
+                                                Environment.SpecialFolder.LocalApplicationData), "HyRAM");
 
         /// <summary>
-        /// Get parameter set stored in Database
+        /// Returns component probability data as 2d array with outer dimension representing leak sizes.
         /// </summary>
-        public ParameterDatabase Parameters
+        /// <param name="probabilitiesList"></param>
+        /// <returns>Array of probabilities for each leak size and component.</returns>
+        public double[][] GetProbabilitiesAsArray(List<ComponentProbability> probabilitiesList)
         {
-            get
-            {
-                ParameterDatabase result = null;
-                lock (Synchronize.LockId)
-                {
-                    result = (ParameterDatabase) Database[ParamTableName];
-                }
-
-                return result;
-            }
-        }
-
-        /// <summary>
-        ///     Get default values of parameters, stored in Database
-        /// </summary>
-        public ParameterDatabase Defaults
-        {
-            get
-            {
-                ParameterDatabase result = null;
-                lock (Synchronize.LockId)
-                {
-                    result = (ParameterDatabase) Database[DefaultsTableName];
-                }
-
-                return result;
-            }
-        }
-
-        public static StateContainer Instance
-        {
-            get
-            {
-                StateContainer result = null;
-                lock (Synchronize.LockId)
-                {
-                    result = _mInstance;
-                }
-
-                return result;
-            }
-            set
-            {
-                lock (Synchronize.LockId)
-                {
-                    _mInstance = value;
-                }
-            }
-        }
-        // TODO (Cianan): Added these to simplify data binding. Propagate their use.
-        /// <summary>
-        /// Retrieve parameter value in specified unit of measurement
-        /// </summary>
-        /// <param name="key">string key of param in DB</param>
-        /// <param name="unit">Unit of measurement </param>
-        /// <returns></returns>
-        public static double GetNdValue(string key, Enum unit = null)
-        {
-            if (unit == null) unit = UnitlessUnit.Unitless;
-
-            return Instance.GetStateDefinedValueObject(key).GetValue(unit)[0];
-        }
-
-        /// <summary>
-        /// Set parameter value in DB based on incoming value and unit of measurement
-        /// </summary>
-        /// <param name="key">DB string of param</param>
-        /// <param name="unit">Unit of measurement</param>
-        /// <param name="value">Value of param, in specified units</param>
-        public static void SetNdValue(string key, Enum unit, double value)
-        {
-            var valueNode = Instance.GetStateDefinedValueObject(key);
-            valueNode.SetValue(unit, new[] {value});
-        }
-
-        /// <summary>
-        /// Retrieve parameter from DB (from Parameter collection, or default if former doesn't exist yet)
-        /// </summary>
-        /// <typeparam name="T">Type of parameter we're getting</typeparam>
-        /// <param name="key">Reference key of parameter</param>
-        /// <returns>Parameter value of type T</returns>
-        public static T GetValue<T>(string key)
-        {
-            T result;
-            var uKey = key.ToUpper();
-
-            if (Instance.Parameters.ContainsKey(uKey))
-                result = (T) Instance.Parameters[uKey];
-            else if (Instance.Defaults.ContainsKey(uKey))
-                result = (T) Instance.Defaults[uKey];
-            else
-                throw new Exception(key + " not present in state database");
-
-            return result;
-        }
-
-        /// <summary>
-        /// Retrieve param from DB as generic object
-        /// </summary>
-        /// <param name="key">Param string ref in DB</param>
-        /// <returns></returns>
-        public static object GetObject(string key)
-        {
-            var result = default(object);
-            var uKey = key.ToUpper();
-
-            if (Instance.Parameters.ContainsKey(uKey))
-                result = Instance.Parameters[uKey];
-            else if (Instance.Defaults.ContainsKey(uKey))
-                result = Instance.Defaults[uKey];
-            else
-                throw new Exception(key + " not present in state database");
-
-            return result;
-        }
-
-        /// <summary>
-        ///     Set parameter value
-        /// </summary>
-        /// <typeparam name="T">Type of parameter we're setting</typeparam>
-        /// <param name="key">Reference key of parameter</param>
-        public static void SetValue<T>(string key, T newVal)
-        {
-            var uKey = key.ToUpper();
-            if (Instance.Parameters.ContainsKey(uKey))
-            {
-                Instance.Parameters[uKey] = newVal;
-            }
-            else
-                throw new Exception(key + " not present in parameters");
-        }
-
-        /// <summary>
-        /// Retrieve param, which is list, from DB
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="unit"></param>
-        /// <returns></returns>
-        public static double[] GetNdValueList(string key, Enum unit = null)
-        {
-            if (unit == null) unit = UnitlessUnit.Unitless;
-
-            return Instance.GetStateDefinedValueObject(key).GetValue(unit);
-        }
-
-        /// <summary>
-        /// Retrieve comment param
-        /// </summary>
-        public string Comments
-        {
-            get
-            {
-                if (Parameters.Contains("Comments"))
-                    return (string) Parameters["Comments"];
-                return "";
-            }
-            set => Parameters["Comments"] = value;
-        }
-
-        public bool IsItemInDatabase(string key)
-        {
-            var convertibleValue = GetStateDefinedValueObject(key);
-            return convertibleValue != null;
-        }
-
-        /// <summary>
-        /// Retrieve param storage object from DB
-        /// </summary>
-        /// <param name="key">Param ref in DB</param>
-        /// <returns>Storage object holding param value and converter</returns>
-        public ConvertibleValue GetStateDefinedValueObject(string key)
-        {
-            // Debug.WriteLine($"DVO {key}");
-            var result =
-                GetStateDefinedValueObject(key, out var throwAwayConverter);
-            if (result == null)
-            {
-                var errorMsg = "Cannot find " + key + " in state-defined values";
-                Trace.TraceError(errorMsg);
-                throw new Exception(errorMsg);
-            }
-
-            if (result.Converters.HasBadConversionFactor())
-            {
-                result.Converters = GetConverterByDatabaseKey(key);
-            }
-            return result;
-        }
-
-        // Retrieve value of key as ndConvertibleValue from Parameters or from Defaults, including converter.
-        public ConvertibleValue GetStateDefinedValueObject(string key, out UnitOfMeasurementConverters converter)
-        {
-            ConvertibleValue
-                result = null; // Will be checked on all cases, even first, to prevent bugs when code reordered
-            var ukey = key.ToUpper();
-
-            if (Parameters.ContainsKey(ukey)) result = (ConvertibleValue) Parameters[ukey];
-
-            if (result == null)
-                if (Defaults.ContainsKey(ukey))
-                    result = (ConvertibleValue) Defaults[ukey];
-
-            converter = result?.Converters;
-            return result;
-
-        }
-
-        public double[][] GetComponentProbabilities(string key)
-        {
-            var componentProbabilityList = GetValue<List<ComponentProbability>>(key);
             double[][] probabilities =
             {
-                componentProbabilityList[0].GetParameters(), componentProbabilityList[1].GetParameters(), componentProbabilityList[2].GetParameters(),
-                componentProbabilityList[3].GetParameters(), componentProbabilityList[4].GetParameters()
+                probabilitiesList[0].GetParameters(), probabilitiesList[1].GetParameters(), probabilitiesList[2].GetParameters(),
+                probabilitiesList[3].GetParameters(), probabilitiesList[4].GetParameters()
             };
             return probabilities;
         }
 
-        public ElapsingTimeConversionUnit ExposureTimeUnit
-        {
-            get => _mExposureTimeUnit;
-            set => _mExposureTimeUnit = value;
-        }
-        public ElapsingTimeConversionUnit AccumulationTimeUnit
-        {
-            get => _mAccumulationTimeUnit;
-            set => _mAccumulationTimeUnit = value;
-        }
 
         /// <summary>
-        /// Initialize database set objects which hold all analysis parameters (default and parameter sets)
-        /// and ensure occupant distributions are initialized within DB.
-        /// 
+        /// Initializes dependent parameters and lists used throughout the GUI.
         /// </summary>
-        public void InitDatabase()
+        public void InitializeState(bool fromFile = false)
         {
-            Database = new ParameterDatabase();
-
-            Database[ParamTableName] = new ParameterDatabase();
-            Database[DefaultsTableName] = new ParameterDatabase();
-
-            Database[ParamTableName] = InitDefaults();
-            RefreshLeakFrequencyData();
-
-            Database[DefaultsTableName] = InitDefaults();
-            InitOccupantDistributions();
-        }
-
-
-
-        public OccupantDistributionInfoCollection OccupantDistributionInfoCollection =>
-            (OccupantDistributionInfoCollection) Parameters[OccupantDistributionsCollectionKey];
-
-        public void InitOccupantDistributions(bool force = false)
-        {
-            if (!Parameters.ContainsKey(OccupantDistributionsCollectionKey) || force)
-                Parameters[OccupantDistributionsCollectionKey] = new OccupantDistributionInfoCollection(true);
-        }
-
-        /// <summary>
-        /// Set up all parameter default values in DB set.
-        /// Note that the full DB contains two of these sets: Parameters and Defaults. (old technical debt).
-        /// </summary>
-        /// <returns></returns>
-        private ParameterDatabase InitDefaults()
-        {
-            var database = new ParameterDatabase();
-
-#if DEBUG
-            database["debug"] = true;
-#else
-            database["debug"] = false;
-#endif
-
-            // Track whether QRA must be run when next visiting results tabs.
-            // Naive for now; set to true on load and whenever user visits an input tab. False after analysis executed.
-            // NOTE: this is disabled for now. May delete this functionality because it's bug-prone
-            // (easy to forget to update the stale check so results aren't fresh)
-            database["ResultsAreStale"] = true;  // 
-            database["Result"] = null;
-
-            // Pipe outer diameter [inches]
-            database["pipeDiameter"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Inch,
-                new[] {0.375D}, 0D);
-            // Pipe wall thickness [inches]
-            database["pipeThickness"] = new ConvertibleValue(StockConverters.DistanceConverter,
-                DistanceUnit.Inch, new[] {0.065D}, 0D);
-
-            database["ambientTemperature"] = new ConvertibleValue(StockConverters.TemperatureConverter,
-                TempUnit.Kelvin, new[] {288D}, -273.14D);
-            database["ambientPressure"] = new ConvertibleValue(StockConverters.PressureConverter,
-                PressureUnit.MPa, new[] {.101325}, 0D);
-
-            //System temperature [C]
-            database["fluidTemperature"] = new ConvertibleValue(StockConverters.TemperatureConverter,
-                TempUnit.Kelvin, new[] {287.8}, -273.14D);
-            database["fluidPressure"] = new ConvertibleValue(StockConverters.PressureConverter,
-                PressureUnit.MPa, new[] {35D}, 0D);
-
-            database["exclusionRadius"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new[] {.01});
-
-            database["ImmedIgnitionProbs"] = new[] {0.008D, 0.053D, 0.23D};
-            database["DelayIgnitionProbs"] = new[] {0.004D, 0.027D, 0.12D};
-            database["IgnitionThresholds"] = new[] {0.125, 6.25};
-
-            database["FuelType"] = FuelType.Hydrogen;
-            database["ReleaseFluidPhase"] = FluidPhase.GasDefault;
-            database["ThermalProbit"] = ThermalProbitModel.Eisenberg;
-            database["OverpressureProbit"] = OverpressureProbitModel.Head;
-
-            //Nozzle model for gas jets
-            database["NozzleModel"] = NozzleModel.YuceilOtugen;
-
-            //Stores the last/default inputted unit for all stored variables
-            database["VarUnitDict"] = new Dictionary<string, Enum>();
-
-            // Optional overrides whereby user can control release for each size. -1 to ignore it.
-            database["H2Release.000d01"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new[] {-1D}, -1D, 1D);
-            database["H2Release.000d10"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new[] {-1D}, -1D, 1D);
-            database["H2Release.001d00"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new[] {-1D}, -1D, 1D);
-            database["H2Release.010d00"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new[] {-1D}, -1D, 1D);
-            database["H2Release.100d00"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new[] {-1D}, -1D, 1D);
-            database["Pdetectisolate"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new[] {.9D}, 0D, 1D);
-            database["Failure.ManualOverride"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new[] {-1D}, -1D, 1D);
-
-            database["numCompressors"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new double[] {0}, 0D);
-            database["numVessels"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new double[] {0}, 0D);
-            database["numValves"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new double[] {5}, 0D);
-            database["numInstruments"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new double[] {3}, 0D);
-            database["numJoints"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new double[] {35}, 0D);
-            database["numHoses"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new double[] {1}, 0D);
-            database["pipeLength"] = new ConvertibleValue(StockConverters.DistanceConverter,
-                DistanceUnit.Meter, new double[] {20}, 0D);
-            database["numFlanges"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new double[] {0}, 0D);
-            database["numFilters"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new double[] {0}, 0D);
-            database["numExchangers"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new double[] {0}, 0D);
-            database["numVaporizers"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new double[] {0}, 0D);
-            database["numArms"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new double[] {0}, 0D);
-            database["numExtraComponent1"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new double[] {0}, 0D);
-            database["numExtraComponent2"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new double[] {0}, 0D);
-
-            database["facilityLength"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter,
-                new double[] {20}, 0D);
-            database["facilityWidth"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter,
-                new double[] {12}, 0D);
-
-            database["numVehicles"] = new ConvertibleValue(
-                    GetConverterByDatabaseKey("numVehicles"),
-                UnitlessUnit.Unitless, new double[] {20}, 0D);
-            database["dailyFuelings"] = new ConvertibleValue(
-                GetConverterByDatabaseKey("dailyFuelings"),
-                UnitlessUnit.Unitless, new double[] {2}, 0D);
-            database["annualDemand"] = new ConvertibleValue(
-                    GetConverterByDatabaseKey("annualDemand"),
-                    UnitlessUnit.Unitless, new[] {10000D}, 0D);
-            database["vehicleOperatingDays"] = new ConvertibleValue(
-                GetConverterByDatabaseKey("vehicleOperatingDays"),
-                UnitlessUnit.Unitless, new[] {250D}, 0D, 366D);
-
-            database["LeakHeight"] = new ConvertibleValue(
-                    StockConverters.DistanceConverter,
-                    DistanceUnit.Meter, new[] {0.0D}, 0D);  // lacks input field; used by QRA
-            database["ReleaseAngle"] = new ConvertibleValue(
-                    StockConverters.AngleConverter,
-                    AngleUnit.Degrees, new[] {0.0D}, 0D, 180.0D);
-
-            database["Failure.NozPO"] = new FailureMode("Nozzle", "Pop-off", FailureDistributionType.Beta, 0.5D, 610415.5D);
-            //Database["Failure.NozFTC"] = new FailureMode("Nozzle", "Failure to close", FailureDistributionType.Beta, 31.5D, 610384.5D);
-            database["Failure.NozFTC"] = new FailureMode("Nozzle", "Failure to close",
-                FailureDistributionType.ExpectedValue, 0.002D, 0D);
-            database["Failure.MValveFTC"] = new FailureMode("Manual valve", "Failure to close",
-                FailureDistributionType.ExpectedValue, 0.001D, 0D);
-            database["Failure.SValveFTC"] = new FailureMode("Solenoid valve", "Failure to close",
-                FailureDistributionType.ExpectedValue, 0.002D, 0D);
-            database["Failure.SValveCCF"] = new FailureMode("Solenoid valve", "Common-cause failure",
-                FailureDistributionType.ExpectedValue, 0.000128D, 0D);
-
-            database["Failure.Overp"] = new FailureMode("Overpressure during fueling", "Accident",
-                FailureDistributionType.Beta, 3.5D, 310289.5D);
-            database["Failure.PValveFTO"] = new FailureMode("Pressure relief valve", "Failure to open",
-                FailureDistributionType.LogNormal, -11.74D, 0.67D);
-            database["Failure.Driveoff"] =
-                new FailureMode("Driveoff", "Accident", FailureDistributionType.Beta, 31.5D, 610384.5D);
-            database["Failure.CouplingFTC"] = new FailureMode("Breakaway coupling", "Failure to close",
-                FailureDistributionType.Beta, 0.5D, 5031.0D);
-
-            database["Prob.Compressor"] = FuelData.ActiveLeakSet.Compressor;
-            database["Prob.Vessel"] = FuelData.ActiveLeakSet.Vessel;
-            database["Prob.Filter"] = FuelData.ActiveLeakSet.Filter;
-            database["Prob.Flange"] = FuelData.ActiveLeakSet.Flange;
-            database["Prob.Hose"] = FuelData.ActiveLeakSet.Hose;
-            database["Prob.Joint"] = FuelData.ActiveLeakSet.Joint;
-            database["Prob.Pipe"] = FuelData.ActiveLeakSet.Pipe;
-            database["Prob.Valve"] = FuelData.ActiveLeakSet.Valve;
-            database["Prob.Instrument"] = FuelData.ActiveLeakSet.Instrument;
-            database["Prob.Exchanger"] = FuelData.ActiveLeakSet.HeatExchanger;
-            database["Prob.Vaporizer"] = FuelData.ActiveLeakSet.Vaporizer;
-            database["Prob.Arm"] = FuelData.ActiveLeakSet.LoadingArm;
-            database["Prob.Extra1"] = FuelData.ActiveLeakSet.Extra1;
-            database["Prob.Extra2"] = FuelData.ActiveLeakSet.Extra2;
-
-            database["tankVolume"] = new ConvertibleValue(
-                    StockConverters.VolumeConverter,
-                    VolumeUnit.CubicMeter, new[] {3.63 / 1000});
-            database["orificeDischargeCoefficient"] = new ConvertibleValue(
-                    StockConverters.UnitlessConverter,
-                    UnitlessUnit.Unitless, new[] {1D});
-
-            database["releaseToWallDistance"] = new ConvertibleValue(
-                    StockConverters.DistanceConverter,
-                    DistanceUnit.Meter, new[] {2.1255D});
-            database["ceilingVentArea"] = new ConvertibleValue(StockConverters.AreaConverter,
-                AreaUnit.SqMeters, new[] {Math.Pow(0.34, 2) * Math.PI / 4});
-            // Floor vent (area?)
-            database["floorVentArea"] = new ConvertibleValue(StockConverters.AreaConverter,
-                AreaUnit.SqMeters, new[] {0.12 * 0.0635});
-            database["enclosureHeight"] = new ConvertibleValue(StockConverters.DistanceConverter,
-                DistanceUnit.Meter, new[] {2.72});
-            // Speed of wind
-            database["ventVolumetricFlowRate"] = new ConvertibleValue(StockConverters.VolumetricFlowConverter,
-                VolumetricFlowUnit.CubicMetersPerSecond,
-                new[] {0D});
-            database["releaseArea"] = new ConvertibleValue(StockConverters.AreaConverter, AreaUnit.SqMeters, new[] {0.01716});
-            database["floorCeilingArea"] = new ConvertibleValue(StockConverters.AreaConverter, AreaUnit.SqMeters, new[] {16.72216D});
-            database["ceilingVentHeight"] = new ConvertibleValue(StockConverters.DistanceConverter,
-                DistanceUnit.Meter, new[] {2.42D});
-            database["floorVentHeight"] = new ConvertibleValue(StockConverters.DistanceConverter,
-                DistanceUnit.Meter, new[] {0.044});
-
-            // NOTE (Cianan): for simplicity, all accum. time values are stored unitless and converted to seconds,
-            // corresponding to selected time unit, prior to analysis in execute() function.
-            database["OpWrapper.PlotDotsPressureAtTimes"] = new[]
+            Fuels.Clear();
+            Fuels.AddRange(new List<FuelType>
             {
-                new NdPressureAtTime(1, 13.8D),
-                new NdPressureAtTime(15, 15.0D),
-                new NdPressureAtTime(20, 55.2D)
-            };
-            database["maxSimTime"] = new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, new[] { 30D });
-            database["OpWrapper.SecondsToPlot"] = new ConvertibleValue(
-                StockConverters.UnitlessConverter, UnitlessUnit.Unitless, new[]
-                {
-                    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-                    21, 22, 23, 24, 25, 26, 27, 28, 29, 29.5
-                });
-            //database["OpWrapper.SecondsToPlot"] = new[] {
-            //        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-            //        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 29.5
-            //    };
-            database["OpWrapper.LimitLinePressures"] = new ConvertibleValue(
-                GetConverterByDatabaseKey("OpWrapper.LimitLinePressures"), PressureUnit.kPa,
-                new[] {13.8D, 15.0D, 55.2D});
+                FuelH2, FuelMethane, FuelPropane,
+                FuelN2, FuelCo2, FuelEthane, FuelNButane, FuelIsoButane,
+                FuelNPentane, FuelIsoPentane, FuelNHexane,
+            });
+            // update choked flow ratio and critical p for blends when conc changed.
+            FuelType.FuelChangedEvent += (o, args) => RefreshFuelProperties();
 
-            // Fill Plume wrapper defaults
-            // co-volume constant (default is 7.6921e-3 m^3/kg, valid for H2)
-            database["PlumeWrapper.PlotTitle"] = "Mole Fraction of Leak";
-            database["PlumeWrapper.XMin"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, new[] {-2.5D});
-            database["PlumeWrapper.XMax"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, new[] {2.5D});
-            database["PlumeWrapper.YMin"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, new[] {0D});
-            database["PlumeWrapper.YMax"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, new[] {10D});
-            database["PlumeWrapper.Contours"] = new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, new[] {0.04}, 0.00001, 0.99);
+            Phases.Clear();
+            Phases.AddRange(new List<ModelPair> {GasDefault, SatGas, SatLiquid});
+            if (Phase == null)
+            {
+                Phase = GasDefault;
+            }
 
-            database["PlumeWrapper.co_volume_constant"] = new ConvertibleValue(
-                GetConverterByDatabaseKey("PlumeWrapper.co_volume_constant"), DensityUnit.KilogramPerCubicMeter,
-                new[] {7.6921e-3});
-            database["PlumeWrapper.distance_to_wall"] = new ConvertibleValue(
-                GetConverterByDatabaseKey("PlumeWrapper.distance_to_wall"), DistanceUnit.Meter, new[] {100D});
-            database["PlumeWrapper.jet_angle"] = new ConvertibleValue(
-                GetConverterByDatabaseKey("PlumeWrapper.jet_angle"), AngleUnit.Radians, new[] {1.5708D});
-            database["PlumeWrapper.FlameBoundary"] = new ConvertibleValue(
-                GetConverterByDatabaseKey("PlumeWrapper.FlameBoundary"), UnitlessUnit.Unitless,
-                new[] {0.04D, 0.08D});
+            NozzleModels.Clear();
+            NozzleModels.AddRange(new List<ModelPair>{ NozzleBirch, NozzleBirch2, NozzleEwanMoodie, NozzleMolkov, NozzleYuceilOtugen });
+            if (Nozzle == null)
+            {
+                Nozzle = NozzleYuceilOtugen;
+            }
 
-            // Fill QRA enclosure upper and lower vent defaults
-            database["Enclosure.Height"] = new ConvertibleValue(GetConverterByDatabaseKey("Enclosure.Height"),
-                DistanceUnit.Meter, new[] {2D});
-            database["Enclosure.AreaOfFloorAndCeiling"] = new ConvertibleValue(
-                GetConverterByDatabaseKey("Enclosure.AreaOfFloorAndCeiling"), AreaUnit.SqMeters, new[] {10D});
-            database["Enclosure.HeightOfRelease"] = new ConvertibleValue(
-                GetConverterByDatabaseKey("Enclosure.HeightOfRelease"), DistanceUnit.Meter, new[] {0D});
-            database["Enclosure.XWall"] = new ConvertibleValue(GetConverterByDatabaseKey("Enclosure.XWall"),
-                DistanceUnit.Meter, new[] {3D});
+            OverpressureMethods.Clear();
+            OverpressureMethods.AddRange(new List<ModelPair> { BstMethod, TntMethod, BauwensMethod });
+            if (SelectedOverpressureMethod == null)
+            {
+                SelectedOverpressureMethod = BstMethod;
+            }
 
-            database["releaseAngle"] = new ConvertibleValue(StockConverters.AngleConverter, AngleUnit.Radians, new[] {0D});
+            OverpressureProbitModels.Clear();
+            OverpressureProbitModels.AddRange(new List<ModelPair> {ProbitLungEis, ProbitLungHse, ProbitHead, ProbitCollapse});
+            if (OverpressureProbit == null)
+            {
+                OverpressureProbit = ProbitHead;
+            }
 
-            // Person's flame exposure time [s] 
-            database["flameExposureTime"] = new ConvertibleValue(StockConverters.ElapsingTimeConverter,
-                ElapsingTimeConversionUnit.Second, new[] {60D}, 0D);
+            ThermalProbitModels.Clear();
+            ThermalProbitModels.AddRange(new List<ModelPair> {ThermalEisenberg, ThermalTsao, ThermalTno, ThermalLees});
+            if (ThermalProbit == null)
+            {
+                ThermalProbit = ThermalEisenberg;
+            }
 
-            database["relativeHumidity"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new[] {0.89D}, 0D);
-            database["orificeDiameter"] = new ConvertibleValue(
-                StockConverters.DistanceConverter, DistanceUnit.Meter, new[] {0.00356}, 0D);
+            // don't overwrite possibly-customized data
+            if (!fromFile)
+            {
+                RefreshLeakFrequencyData();
+            }
 
-            database["releaseHeight"] = new ConvertibleValue( StockConverters.DistanceConverter,
-                DistanceUnit.Meter, new double[] {0}, 0D);
+            var rand = new Random();
+            if (RandomSeed == null)
+            {
+                var seed = rand.Next(1000000, 10000000);
+                RandomSeed = new Parameter(seed);
+            }
 
-            database["FlameWrapper.radiative_heat_flux_point:x"] = new ConvertibleValue( StockConverters.DistanceConverter, DistanceUnit.Meter,
-                new[] {0.01D, 0.5D, 1D, 2D, 2.5D, 5D, 10D, 15D, 25D, 40D});
-            database["FlameWrapper.radiative_heat_flux_point:y"] = new ConvertibleValue( StockConverters.DistanceConverter, DistanceUnit.Meter,
-                new[] {1D, 1D, 1D, 1D, 1D, 2D, 2D, 2D, 2D, 2D});
-            database["FlameWrapper.radiative_heat_flux_point:z"] = new ConvertibleValue( StockConverters.DistanceConverter, DistanceUnit.Meter,
-                new[] {0.01D, 0.5D, 0.5D, 1D, 1D, 1D, 0.5D, 0.5D, 1D, 2D});
-            database["FlameWrapper.contour_levels"] = new ConvertibleValue( StockConverters.UnitlessConverter, UnitlessUnit.Unitless,
-                new[] {1.577, 4.732, 25.237}, 0.0);
-
-            // Defaults to arbitrary value - in this case, the number of steps the Glenn Frey statue unveiled 9/23/2016 would have
-            // take to walk from Standin' on a Corner Park in Winslow Arizona to the Rock And Roll Hall of Fame in Cincinnatti, OH.
-            database["randomSeed"] = new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, new double[] {3632850});
-
-            database["Dist.LeakScenarios"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                UnitlessUnit.Unitless, new[] {0.0001, 0.001, 0.01, 0.1, 1.0});
-
-            database["unconfinedOverpressureMethod"] = UnconfinedOverpressureMethod.BstMethod;
-            //database["heatofCombustion"] = new ConvertibleValue(StockConverters.SpecificEnergyConverter, SpecificEnergyUnit.JoulePerKilogram, new [] {});
-            database["overpressure.x"] = new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter,
-                new[] {1D, 2D});
-            database["overpressure.y"] = new ConvertibleValue( StockConverters.DistanceConverter, DistanceUnit.Meter,
-                new[] {0D, 0D});
-            database["overpressure.z"] = new ConvertibleValue( StockConverters.DistanceConverter, DistanceUnit.Meter,
-                new[] {1D, 2D});
-            database["overpressure.contours"] = new ConvertibleValue( StockConverters.UnitlessConverter, UnitlessUnit.Unitless,
-                new[] {5.0, 16.0, 70.0}, 0.0);
-
-            //database["overpressure.xmin"] = (float?)null;
-            // no conversion allowed because constrained options
-            database["overpressureFlameSpeed"] = new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, new[] {5.2D});
-            database["tntEquivalenceFactor"] = new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, new[] {0.03D});
-
-            return database;
+            AlertBackColors = new List<Color>{Color.LightCyan, Color.Cornsilk, Color.MistyRose};
+            AlertTextColors = new List<Color>{Color.PaleTurquoise, Color.DarkGoldenrod, Color.Maroon};
         }
 
-        public List<ComponentProbability> GetLeakData(string key)
-        {
-            return GetValue<List<ComponentProbability>>(key);
-        }
 
+        /// <summary>
+        /// Sets leak frequency state to default values for fuel and phase.
+        /// </summary>
         public void RefreshLeakFrequencyData()
         {
-            FuelType fuel = GetFuel();
-            FluidPhase phase = GetValue<FluidPhase>("ReleaseFluidPhase");
+            FuelType fuel = GetActiveFuel();
+            ComponentProbabilitySet newP;
 
-            ComponentProbabilitySet newP = null;
-
-            if (fuel == FuelType.Hydrogen)
+            if (fuel == FuelH2)
             {
-                newP = phase == FluidPhase.GasDefault ? FuelData.H2GasLeaks : FuelData.H2LiquidLeaks;
+                newP = Phase == GasDefault ? FuelData.H2GasLeaks : FuelData.H2LiquidLeaks;
             }
-            else if (fuel == FuelType.Methane)
+            else if (fuel == FuelMethane)
             {
-                newP = phase == FluidPhase.GasDefault ? FuelData.MethaneGasLeaks : FuelData.MethaneLiquidLeaks;
+                newP = Phase == GasDefault ? FuelData.MethaneGasLeaks : FuelData.MethaneLiquidLeaks;
             }
-            else if (fuel == FuelType.Propane)
+            else if (fuel == FuelPropane)
             {
-                newP = phase == FluidPhase.GasDefault ? FuelData.PropaneGasLeaks : FuelData.PropaneLiquidLeaks;
+                newP = Phase == GasDefault ? FuelData.PropaneGasLeaks : FuelData.PropaneLiquidLeaks;
             }
             else
             {
                 newP = FuelData.H2GasLeaks;
             }
 
-            List<ComponentProbability> compressorData = GetLeakData("Prob.Compressor");
-            List<ComponentProbability> vesselData = GetLeakData("Prob.Vessel");
-            List<ComponentProbability> filterData = GetLeakData("Prob.Filter");
-            List<ComponentProbability> flangeData = GetLeakData("Prob.Flange");
-            List<ComponentProbability> hoseData = GetLeakData("Prob.Hose");
-            List<ComponentProbability> jointData = GetLeakData("Prob.Joint");
-            List<ComponentProbability> pipeData = GetLeakData("Prob.Pipe");
-            List<ComponentProbability> valveData = GetLeakData("Prob.Valve");
-            List<ComponentProbability> instrumentData = GetLeakData("Prob.Instrument");
-            List<ComponentProbability> exchangerData = GetLeakData("Prob.Exchanger");
-            List<ComponentProbability> vaporData = GetLeakData("Prob.Vaporizer");
-            List<ComponentProbability> armData = GetLeakData("Prob.Arm");
-            List<ComponentProbability> extra1Data = GetLeakData("Prob.Extra1");
-            List<ComponentProbability> extra2Data = GetLeakData("Prob.Extra2");
-
             for (int i = 0; i < 5; i++)
             {
-                compressorData[i].SetParameters(newP.Compressor[i].Mu, newP.Compressor[i].Sigma);
-                vesselData[i].SetParameters(newP.Vessel[i].Mu, newP.Vessel[i].Sigma);
-                filterData[i].SetParameters(newP.Filter[i].Mu, newP.Filter[i].Sigma);
-                flangeData[i].SetParameters(newP.Flange[i].Mu, newP.Flange[i].Sigma);
-                hoseData[i].SetParameters(newP.Hose[i].Mu, newP.Hose[i].Sigma);
-                jointData[i].SetParameters(newP.Joint[i].Mu, newP.Joint[i].Sigma);
-                pipeData[i].SetParameters(newP.Pipe[i].Mu, newP.Pipe[i].Sigma);
-                valveData[i].SetParameters(newP.Valve[i].Mu, newP.Valve[i].Sigma);
-                instrumentData[i].SetParameters(newP.Instrument[i].Mu, newP.Instrument[i].Sigma);
-                exchangerData[i].SetParameters(newP.HeatExchanger[i].Mu, newP.HeatExchanger[i].Sigma);
-                vaporData[i].SetParameters(newP.Vaporizer[i].Mu, newP.Vaporizer[i].Sigma);
-                armData[i].SetParameters(newP.LoadingArm[i].Mu, newP.LoadingArm[i].Sigma);
-                extra1Data[i].SetParameters(newP.Extra1[i].Mu, newP.Extra1[i].Sigma);
-                extra2Data[i].SetParameters(newP.Extra2[i].Mu, newP.Extra2[i].Sigma);
+                ProbCompressor[i].SetParameters(newP.Compressor[i].Mu, newP.Compressor[i].Sigma);
+                ProbVessel[i].SetParameters(newP.Vessel[i].Mu, newP.Vessel[i].Sigma);
+                ProbFilter[i].SetParameters(newP.Filter[i].Mu, newP.Filter[i].Sigma);
+                ProbFlange[i].SetParameters(newP.Flange[i].Mu, newP.Flange[i].Sigma);
+                ProbHose[i].SetParameters(newP.Hose[i].Mu, newP.Hose[i].Sigma);
+                ProbJoint[i].SetParameters(newP.Joint[i].Mu, newP.Joint[i].Sigma);
+                ProbPipe[i].SetParameters(newP.Pipe[i].Mu, newP.Pipe[i].Sigma);
+                ProbValve[i].SetParameters(newP.Valve[i].Mu, newP.Valve[i].Sigma);
+                ProbInstrument[i].SetParameters(newP.Instrument[i].Mu, newP.Instrument[i].Sigma);
+                ProbExchanger[i].SetParameters(newP.HeatExchanger[i].Mu, newP.HeatExchanger[i].Sigma);
+                ProbVaporizer[i].SetParameters(newP.Vaporizer[i].Mu, newP.Vaporizer[i].Sigma);
+                ProbArm[i].SetParameters(newP.LoadingArm[i].Mu, newP.LoadingArm[i].Sigma);
+                ProbExtra1[i].SetParameters(newP.Extra1[i].Mu, newP.Extra1[i].Sigma);
+                ProbExtra2[i].SetParameters(newP.Extra2[i].Mu, newP.Extra2[i].Sigma);
             }
         }
 
+        /// <summary>
+        /// Updates component quantities to default values for selected fuel and phase.
+        /// </summary>
         public void RefreshComponentQuantities()
         {
-            FuelType fuel = GetFuel();
-            FluidPhase phase = GetFluidPhase();
+            FuelType fuel = GetActiveFuel();
             double[] quantities;
 
-            if (fuel == FuelType.Hydrogen && phase == FluidPhase.GasDefault)
+            if (fuel == FuelH2 && Phase == GasDefault)
             {
                 quantities = new [] {0d, 0, 5, 3, 35, 1, 20, 0, 0, 0, 0, 0, 0, 0};
-            } else
+            }
+            else
             {
                 quantities = new [] {0d, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
             } 
 
-            SetNdValue("numCompressors", UnitlessUnit.Unitless, quantities[0]);
-            SetNdValue("numVessels",  UnitlessUnit.Unitless, quantities[1]);
-            SetNdValue("numValves",  UnitlessUnit.Unitless, quantities[2]);
-            SetNdValue("numInstruments",  UnitlessUnit.Unitless, quantities[3]);
-            SetNdValue("numJoints",  UnitlessUnit.Unitless, quantities[4]);;
-            SetNdValue("numHoses",  UnitlessUnit.Unitless, quantities[5]);;
-            SetNdValue("pipeLength",  DistanceUnit.Meter, quantities[6]);;
-            SetNdValue("numFilters",  UnitlessUnit.Unitless, quantities[7]);
-            SetNdValue("numFlanges",  UnitlessUnit.Unitless, quantities[8]);;
-            SetNdValue("numExchangers",  UnitlessUnit.Unitless, quantities[9]);
-            SetNdValue("numVaporizers",  UnitlessUnit.Unitless, quantities[10]);
-            SetNdValue("numArms",  UnitlessUnit.Unitless, quantities[11]);
-            SetNdValue("numExtraComponent1",  UnitlessUnit.Unitless, quantities[12]);
-            SetNdValue("numExtraComponent2", UnitlessUnit.Unitless, quantities[13]);
+            NumCompressors.SetValue(quantities[0]);
+            NumVessels.SetValue(quantities[1]);
+            NumValves.SetValue(quantities[2]);
+            NumInstruments.SetValue(quantities[3]);
+            NumJoints.SetValue(quantities[4]);
+            NumHoses.SetValue(quantities[5]);
+            PipeLength.SetValue(DistanceUnit.Meter, quantities[6]);
+            NumFilters.SetValue(quantities[7]);
+            NumFlanges.SetValue(quantities[8]);
+            NumExchangers.SetValue(quantities[9]);
+            NumVaporizers.SetValue(quantities[10]);
+            NumArms.SetValue(quantities[11]);
+            NumExtraComponents1.SetValue(quantities[12]);
+            NumExtraComponents2.SetValue(quantities[13]);
         }
 
+        /// <summary>
+        /// Updates ignition probability data based on selected fuel.
+        /// </summary>
         public void RefreshIgnitionProbabilities()
         {
             var thresholds = new[] { 0.125, 6.25 };
             var immediate = new[] { 0.008D, 0.053D, 0.23D };
             var delayed = new[] { 0.004D, 0.027D, 0.12D };
 
-            FuelType fuel = GetFuel();
-            if (fuel == FuelType.Hydrogen)
-            {
-                ;
-            }
-            else
+            FuelType fuel = GetActiveFuel();
+            if (fuel != FuelH2)
             {
                 thresholds = new[] { 1D, 50D };
                 immediate = new[] { 0.007D, 0.047D, 0.20D };
                 delayed = new[] { 0.003D, 0.023D, 0.10D };
             }
-            SetValue("ImmedIgnitionProbs", immediate);
-            SetValue("DelayIgnitionProbs", delayed);
-            SetValue("IgnitionThresholds", thresholds);
+
+            ImmediateIgnitionProbs = immediate;
+            DelayedIgnitionProbs = delayed;
+            IgnitionThresholds = thresholds;
+        }
+
+        /// <summary>
+        /// Computes choked flow ratio as weighted average and minimum critical pressure for blend compositions
+        /// </summary>
+        public void RefreshFuelProperties()
+        {
+            FuelType fuel = GetActiveFuel();
+            if (fuel == FuelBlend)
+            {
+                double ratio = 0;
+                double p = 0;
+
+                foreach (FuelType next in Fuels)
+                {
+                    if (next != FuelBlend && next.Active && next.Amount > 0)
+                    {
+                        ratio += next.ChokedFlowRatio * next.Amount;
+                        if (next.CriticalP < p)
+                        {
+                            p = next.CriticalP;
+                        }
+                    }
+                }
+
+                FuelBlend.ChokedFlowRatio = ratio;
+                FuelBlend.CriticalP = p;
+            }
+        }
+
+        /// <summary>
+        /// Writes this StateContainer parameter data to JSON file.
+        /// </summary>
+        /// <param name="filepath">Path to JSON file</param>
+        public void Save(string filepath)
+        {
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                IncludeFields = true,
+                NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+            };
+            string json = JsonSerializer.Serialize(this, options);
+            File.WriteAllText(filepath, json);
+        }
+
+        /// <summary>
+        /// Loads parameter data from JSON file into StateContainer object and refreshes it's dependent parameters.
+        /// </summary>
+        /// <param name="filepath">Path to JSON file</param>
+        /// <returns>StateContainer</returns>
+        public static StateContainer Load(string filepath)
+        {
+            var result = Deserialize(filepath);
+            result.InitializeState(true);
+            return result;
+        }
+
+        /// <summary>
+        /// Loads JSON data into state object and returns it.
+        /// </summary>
+        /// <param name="filepath">Path to JSON file</param>
+        /// <returns></returns>
+        public static StateContainer Deserialize(string filepath)
+        {
+            StateContainer result;
+
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                IncludeFields = true,
+                NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+            };
+            string json = File.ReadAllText(filepath);
+            result = JsonSerializer.Deserialize<StateContainer>(json, options);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Checks whether active phase is saturated.
+        /// </summary>
+        /// <returns>bool</returns>
+        public bool PhaseIsSaturated()
+        {
+            return (Phase == SatLiquid || Phase == SatGas);
+        }
+
+        /// <summary>
+        /// Checks if temperature input should be used according to selected phase.
+        /// </summary>
+        /// <returns></returns>
+        public bool DisplayTemperature()
+        {
+            return !PhaseIsSaturated();
+        }
+
+        /// <summary>
+        /// Sets all fuel concentrations to 0 and deactivates all fuels.
+        /// </summary>
+        public void ClearFuels()
+        {
+            foreach (var fuel in Fuels)
+            {
+                if (fuel.Amount > 0)
+                {
+                    fuel.Amount = 0;
+                    fuel.Active = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Calculates total concentration summed from all fuels.
+        /// </summary>
+        /// <returns></returns>
+        public double SumFuelAmounts()
+        {
+            double result = 0;
+            foreach (var fuelType in Fuels)
+            {
+                result += fuelType.Amount;
+            }
+
+            result = Math.Round(result, 5);
+            return result;
+        }
+
+        /// <summary>
+        /// Returns active fuel object.
+        /// </summary>
+        /// <returns>FuelType</returns>
+        public FuelType GetActiveFuel()
+        {
+            FuelType result = FuelH2;
+            int numActiveFuels = 0;
+            foreach (var fuel in Fuels)
+            {
+                if (fuel.Amount > 0)
+                {
+                    numActiveFuels++;
+                    result = fuel;
+                }
+            }
+
+            result = (numActiveFuels > 1 || numActiveFuels == 0) ? FuelBlend : result;
+            return result;
+        }
+
+        /// <summary>
+        /// Sets active status of all fuels to provided value.
+        /// </summary>
+        /// <param name="enable">boolean</param>
+        public void ToggleFuelStatus(bool enable = true)
+        {
+            foreach (var fuel in Fuels)
+            {
+                fuel.Active = enable;
+            }
+        }
+
+        /// <summary>
+        /// Returns the fuel object matches the provided id.
+        /// </summary>
+        /// <param name="id">Fuel ID</param>
+        /// <returns>FuelType</returns>
+        public FuelType GetFuel(int id)
+        {
+            FuelType result = null;
+            foreach (var fuel in Fuels)
+            {
+                if (id == fuel.Id)
+                {
+                    result = fuel;
+                    break;
+                }
+            }
+            if (result == null)
+            {
+                result = FuelBlend;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Adjusts fuel concentrations to activate the selected fuel, and refreshes related parameters and displayed data.
+        /// </summary>
+        /// <param name="fuel"></param>
+        public void SetFuel(FuelType fuel)
+        {
+            ClearFuels();
+
+            if (fuel == FuelH2)
+            {
+                FuelH2.Amount = 1;
+                SpeciesOption = SpeciesOptions.EFuelH2;
+            }
+            else if (fuel == FuelMethane)
+            {
+                FuelMethane.Amount = 1;
+                SpeciesOption = SpeciesOptions.EFuelMethane;
+            }
+            else if (fuel == FuelPropane)
+            {
+                FuelPropane.Amount = 1;
+                SpeciesOption = SpeciesOptions.EFuelPropane;
+            }
+            else
+            {
+                // clear previous option selection
+                if (SpeciesOption == SpeciesOptions.EFuelH2 || SpeciesOption == SpeciesOptions.EFuelMethane ||
+                    SpeciesOption == SpeciesOptions.EFuelPropane)
+                {
+                    SpeciesOption = SpeciesOptions.EFuelBlendEmpty;
+                }
+            }
+
+            RefreshLeakFrequencyData();
+            RefreshComponentQuantities();
+            RefreshIgnitionProbabilities();
+
+            FuelTypeChangedEvent?.Invoke(this, EventArgs.Empty);
         }
 
 
-
         /// <summary>
-        /// Retrieve unit converter object based on param key.
+        /// Updates selected fuel amounts from preset blend (e.g. NIST1) or from single species.
         /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        private static UnitOfMeasurementConverters GetConverterByDatabaseKey(string key)
+        /// <param name="species"></param>
+        public void SetFuel(SpeciesOptions species)
         {
-            UnitOfMeasurementConverters result = null;
-            var ucKey = key.ToUpper();
+            ClearFuels();
+            SpeciesOption = species;
 
-            // TODO: update db field names and this lookup to use consistent naming conventions.
-            // Avoid forced uppercase so that search will find names.
-            // Updating the db names will likely break saves.
-            switch (ucKey)
+            switch (species)
             {
-                case "T_EXPOSE_THERMAL":
-                case "FLAMEEXPOSURETIME":
-                    result = StockConverters.ElapsingTimeConverter;
+                case SpeciesOptions.EFuelH2:
+                    SetFuel(FuelH2);
                     break;
-                case "FLAMEWRAPPER.T_H2":
-                case "SYSPARAM.EXTERNALTEMPC":
-                case "SYSPARAM.INTERNALTEMPC":
-                case "AMBIENTTEMPERATURE":
-                case "FLUIDTEMPERATURE":
-                    result = StockConverters.TemperatureConverter;
+                case SpeciesOptions.EFuelMethane:
+                    SetFuel(FuelMethane);
                     break;
-                case "FLAMEWRAPPER.P_H2":
-                case "OPWRAPPER.LIMITLINEPRESSURES":
-                case "SYSPARAM.EXTERNALPRESMPA":
-                case "SYSPARAM.INTERNALPRESMPA":
-                case "AMBIENTPRESSURE":
-                case "FLUIDPRESSURE":
-                    result = StockConverters.PressureConverter;
+                case SpeciesOptions.EFuelPropane:
+                    SetFuel(FuelPropane);
                     break;
-                case "FLAMEWRAPPER.D_ORIFICE":
-                case "FLAMEWRAPPER.RELEASEHEIGHT":
-                case "FLAMEWRAPPER.RADIATIVE_HEAT_FLUX_POINT:X":
-                case "FLAMEWRAPPER.RADIATIVE_HEAT_FLUX_POINT:Y":
-                case "FLAMEWRAPPER.RADIATIVE_HEAT_FLUX_POINT:Z":
-                case "OVERPRESSURE.X":
-                case "OVERPRESSURE.Y":
-                case "OVERPRESSURE.Z":
-                case "PLUMEWRAPPER.XMIN":
-                case "PLUMEWRAPPER.XMAX":
-                case "PLUMEWRAPPER.YMIN":
-                case "PLUMEWRAPPER.YMAX":
-                case "PLUMEWRAPPER.DISTANCE_TO_WALL":
-                case "ORIFICEDIAMETER":
-                case "PIPELENGTH":
-                case "PIPEDIAMETER":
-                case "PIPETHICKNESS":
-                case "FACILITYLENGTH":
-                case "FACILITYWIDTH":
-                case "OPWRAPPER.S0":
-                case "OPWRAPPER.XWALL":
-                case "OPWRAPPER.HV":
-                case "OPWRAPPER.H":
-                case "OPWRAPPER.CVHF":
-                case "OPWRAPPER.FVHF":
-                case "SYSPARAM.PIPEOD":
-                case "SYSPARAM.PIPEWALLTHICK":
-                case "FLOOR.VENTHEIGHTFROMFLOOR":
-                case "CEILING.VENTHEIGHTFROMFLOOR":
-                case "RELEASETOWALLDISTANCE":
-                case "RELEASEHEIGHT":
-                case "ENCLOSUREHEIGHT":
-                case "LEAKHEIGHT":
-                case "CEILINGVENTHEIGHT":
-                case "FLOORVENTHEIGHT":
-                // used in QRA
-                case "ENCLOSURE.HEIGHT":
-                case "ENCLOSURE.HEIGHTOFRELEASE":
-                case "ENCLOSURE.XWALL":
-                    result = StockConverters.DistanceConverter;
-                    break;
-                case "OPWRAPPER.TANKVOLUME":
-                case "TANKVOLUME":
-                    result = StockConverters.VolumeConverter;
-                    break;
-                case "OPWRAPPER.WINDANGLE":
-                case "OPWRAPPER.RELEASEANGLE":
-                case "PLUMEWRAPPER.JET_ANGLE":
-                case "RELEASEANGLE":
-                    result = StockConverters.AngleConverter;
-                    break;
-                case "OPWRAPPER.ACEIL":
-                case "OPWRAPPER.AV_CEIL":
-                case "OPWRAPPER.AV_FLOOR":
-                case "OPWRAPPER.SECONDARYAREA":
-                case "OPWRAPPER.FCA":
-                case "ENCLOSURE.AREAOFFLOORANDCEILING":
-                case "FLOOR.CROSSSECTIONALAREA":
-                case "CEILING.CROSSSECTIONALAREA":
-                case "CEILINGVENTAREA":
-                case "FLOORVENTAREA":
-                case "RELEASEAREA":
-                case "FLOORCEILINGAREA":
-                    result = StockConverters.AreaConverter;
-                    break;
-                case "OPWRAPPER.VOLUMEFLOWRATE":
-                case "VENTVOLUMETRICFLOWRATE":
-                    result = StockConverters.VolumetricFlowConverter;
-                    break;
-                case "PLUMEWRAPPER.CO_VOLUME_CONSTANT":
-                    result = StockConverters.DensityConverter;
-                    break;
-                case "FLOOR.WINDVELOCITY":
-                case "CEILING.WINDVELOCITY":
-                    result = StockConverters.SpeedConverter;
-                    break;
-                case "HEATOFCOMBUSTION":
-                    result = StockConverters.SpecificEnergyConverter;
-                    break;
-                case "PLUMEWRAPPER.CONTOURS":
                 default:
-                    result = StockConverters.UnitlessConverter;
+                    // blend, possibly a preset
+                    SetFuel(FuelBlend);
+                    if (species == SpeciesOptions.EFuelBlendEmpty)
+                    {
+                        ;
+                    }
+                    else if (species == SpeciesOptions.EFuelBlendNist1)
+                    {
+                        FuelMethane.Amount = 0.965210;
+                        FuelN2.Amount = 0.00260;
+                        FuelCo2.Amount = 0.00596;
+                        FuelEthane.Amount = 0.018190;
+                        FuelPropane.Amount = 0.00460;
+                        FuelNButane.Amount = 0.00101;
+                        FuelIsoButane.Amount = 0.00098;
+                        FuelNPentane.Amount = 0.00032;
+                        FuelIsoPentane.Amount = 0.00047;
+                        FuelNHexane.Amount = 0.00066;
+                    }
+                    else if (species == SpeciesOptions.EFuelBlendNist2)
+                    {
+                        FuelMethane.Amount = 0.906729;
+                        FuelN2.Amount = 0.03128;
+                        FuelCo2.Amount = 0.00468;
+                        FuelEthane.Amount = 0.045280;
+                        FuelPropane.Amount = 0.00828;
+                        FuelNButane.Amount = 0.00156;
+                        FuelIsoButane.Amount = 0.00104;
+                        FuelNPentane.Amount = 0.00044;
+                        FuelIsoPentane.Amount = 0.00032;
+                        FuelNHexane.Amount = 0.00039;
+                    }
+                    else if (species == SpeciesOptions.EFuelBlendRg2)
+                    {
+                        FuelMethane.Amount = 0.859051;
+                        FuelN2.Amount = 0.01007;
+                        FuelCo2.Amount = 0.01495;
+                        FuelEthane.Amount = 0.084919;
+                        FuelPropane.Amount = 0.02302;
+                        FuelNButane.Amount = 0.00351;
+                        FuelIsoButane.Amount = 0.00349;
+                        FuelNPentane.Amount = 0.00048;
+                        FuelIsoPentane.Amount = 0.00051;
+                        FuelNHexane.Amount = 0;
+                    }
+                    else if (species == SpeciesOptions.EFuelBlendGu1)
+                    {
+                        FuelMethane.Amount = 0.814410;
+                        FuelN2.Amount = 0.13465;
+                        FuelCo2.Amount = 0.00985;
+                        FuelEthane.Amount = 0.033000;
+                        FuelPropane.Amount = 0.00605;
+                        FuelNButane.Amount = 0.00104;
+                        FuelIsoButane.Amount = 0.00100;
+                        FuelNPentane.Amount = 0;
+                        FuelIsoPentane.Amount = 0;
+                        FuelNHexane.Amount = 0;
+                    }
+                    else if (species == SpeciesOptions.EFuelBlendGu2)
+                    {
+                        FuelMethane.Amount = 0.812120;
+                        FuelN2.Amount = 0.05702;
+                        FuelCo2.Amount = 0.07585;
+                        FuelEthane.Amount = 0.043030;
+                        FuelPropane.Amount = 0.00895;
+                        FuelNButane.Amount = 0.00152;
+                        FuelIsoButane.Amount = 0.00151;
+                        FuelNPentane.Amount = 0;
+                        FuelIsoPentane.Amount = 0;
+                        FuelNHexane.Amount = 0;
+                    }
                     break;
             }
-
-            return result;
         }
 
+
         /// <summary>
-        /// Serialize container (DB) into file
+        /// Triggers updates related to fuelchange.
         /// </summary>
-        /// <param name="filename"></param>
-        public void Save(string filename)
+        public void NotifyFuelChange()
         {
-            Serialize(filename, this);
+            RefreshLeakFrequencyData();
+            RefreshComponentQuantities();
+            RefreshIgnitionProbabilities();
+            FuelTypeChangedEvent?.Invoke(this, EventArgs.Empty);
         }
 
-        /// <summary>
-        /// Fill out param values based on saved data in file.
-        /// </summary>
-        /// <param name="filename"></param>
-        /// <returns></returns>
-        public static StateContainer Load(string filename)
-        {
-            SetValue("ResultsAreStale", true);
-            SetValue<object>("Result", null);
-            var result = Deserialize(filename);
-            result.RefreshLeakFrequencyData();
-            return result;
-        }
 
         /// <summary>
-        /// Write state to file
+        /// Adjusts fuel amounts to ensure 100% capacity, based on fuel type.
+        /// If fuel type is a single fuel, remainder is set to that fuel.
+        /// If fuel type is blend, remainder is proportionally applied to all fuels with amount > 0.
         /// </summary>
-        /// <param name="filename"></param>
-        /// <param name="objectToSerialize"></param>
-        public static void Serialize(string filename, StateContainer objectToSerialize)
+        public void AllocateFuelRemainder(FuelType fuel)
         {
-            var formatter = new BinaryFormatter();
+            double epsilon = 0.00005;
+            var fuelSum = SumFuelAmounts();
+            double remainder = (1 - fuelSum);
 
-            // Open writable binary file
-            var fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
-
-            try
+            if (Math.Abs(fuelSum - 1.0f) <= epsilon)
             {
-                formatter.Serialize(fs, objectToSerialize);
+                return;
             }
-            finally
+
+            if (fuel != FuelBlend)
             {
-                fs.Close();
+                fuel.Amount += remainder;
             }
-        }
-
-        /// <summary>
-        /// Load parameter data from file and populate complex parameters accordingly
-        /// </summary>
-        /// <param name="filename">Path to save file</param>
-        /// <returns>Populated state container</returns>
-        public static StateContainer Deserialize(string filename)
-        {
-            StateContainer result = null;
-
-            var fs =
-                new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-            try
+            else
             {
-                var formatter = new BinaryFormatter();
-                var oResult = formatter.Deserialize(fs);
-                var typeName = oResult.GetType().ToString().ToUpper();
-                result = (StateContainer) oResult;
-                var savedParams = (ParameterDatabase) result.Database[ParamTableName];
+                // allocate remainder across active fuels
+                int numActiveFuels = 0;
+                // remember first used to give it any final remainder
+                FuelType firstActive = null;
 
-                //Backward compatibility fix for changing the unit type on vehicleOperatingDays
-                if (result.GetStateDefinedValueObject("vehicleOperatingDays").InputUnit is JulianTimeConversionUnit)
-                    savedParams["vehicleOperatingDays"] = new ConvertibleValue(StockConverters.UnitlessConverter,
-                        UnitlessUnit.Unitless,
-                        result.GetStateDefinedValueObject("vehicleOperatingDays")
-                            .GetValue(JulianTimeConversionUnit.Day), 0, 366);
-
-                if (savedParams.Keys.Intersect(new[]
-                        {"NWORKERS", "YEARLYWORKINGHOURS", "MINDIST", "MAXDIST", "WORKERDISTMEAN", "WORKERDISTSTDDEV"})
-                    .Any())
+                // check how many fuels are being used
+                foreach (var next in Fuels)
                 {
-                    var distributions =
-                        (OccupantDistributionInfoCollection) savedParams["OccupantDistributions"];
-                    var nworkers = result.GetStateDefinedValueObject("nworkers");
-                    var workinghours = result.GetStateDefinedValueObject("yearlyworkinghours");
-                    var varUnitDict = (Dictionary<string, Enum>) savedParams["VarUnitDict"];
-
-                    if (((string) savedParams["WorkerDistribution"]).ToUpper() == "UNIFORM")
+                    if (next.Active)
                     {
-                        var mindist = result.GetStateDefinedValueObject("mindist");
-                        var maxdist = result.GetStateDefinedValueObject("maxdist");
-                        var unit = DistanceUnit.Meter;
-                        Enum passUnit =
-                            DistanceUnit
-                                .Meter; // Not sure why Greg was passing basic Enums, trying to fix that. May roll back.
-
-                        varUnitDict.TryGetValue("UniDistUnit", out passUnit);
-                        unit = (DistanceUnit) passUnit; // If this fails, explains previous comment.
-
-                        distributions.Clear();
-                        var dmindist = mindist.GetValue(unit)[0];
-                        var dmaxdist = maxdist.GetValue(unit)[0];
-
-                        var workersOdi = new OccupantDistributionInfo(
-                            (int) nworkers.GetValue(UnitlessUnit.Unitless)[0], "<imported from old save file>",
-                            EWorkerDistribution.Uniform, dmindist, dmaxdist, EWorkerDistribution.Uniform, dmindist,
-                            dmaxdist, EWorkerDistribution.Uniform, dmindist, dmaxdist,
-                            DistanceUnit.Meter, 2000);
-
-
-                        distributions.Add(workersOdi);
-                    }
-                    else if (((string) savedParams["WorkerDistribution"]).ToUpper() == "NORMAL")
-                    {
-                        Enum unit = DistanceUnit.Meter;
-                        varUnitDict.TryGetValue("NormDistUnit", out unit);
-
-                        distributions.Clear();
-                        var workersOdi = new OccupantDistributionInfo(
-                            (int) nworkers.GetValue(UnitlessUnit.Unitless)[0], "<imported from old save file>",
-                            EWorkerDistribution.Uniform,
-                            20, 12, EWorkerDistribution.Uniform, 20, 12, EWorkerDistribution.Uniform, .2, 1,
-                            DistanceUnit.Meter, 2000);
-
-                        distributions.Add(workersOdi);
+                        if (numActiveFuels == 0)
+                        {
+                            firstActive = next;
+                        }
+                        numActiveFuels++;
                     }
                 }
 
-                //Backward compatibility fix for max/min value checking
-                foreach (var key in savedParams.Keys)
+                double amountPerFuel = remainder / numActiveFuels;
+
+                // apply remainder to those active fuels
+                foreach (var next in Fuels)
                 {
-                    var userValue = savedParams[key];
-                    if (userValue is ConvertibleValue)
+                    if (next.Active)
                     {
-                        var value = userValue as ConvertibleValue;
-                        if (value.MaxValue == 0 && value.MinValue == 0 && result.Defaults.ContainsKey(key))
-                        {
-                            value.MaxValue = ((ConvertibleValue) result.Defaults[key]).MaxValue;
-                            value.MinValue = ((ConvertibleValue) result.Defaults[key]).MinValue;
-                        }
+                        next.Amount += amountPerFuel;
                     }
+
+                }
+
+                // handle any final remainder due to float calcs
+                if (firstActive != null)
+                {
+                    firstActive.Amount += (1.0 - SumFuelAmounts());
                 }
             }
-            finally
-            {
-                fs.Close();
-            }
-
-            return result;
         }
 
         /// <summary>
-        /// Clear current DB parameter values and set to defaults
+        /// Returns list of fuels as python dictionary(key, amount)
+        /// NOTE: must be called from within python GIL (i.e. inside Py.GIL() clause).
         /// </summary>
-        public void ResetInputsAndDefaults()
+        /// <returns>PyObject</returns>
+        public PyObject GetFuelsPyDict()
         {
-            ResetDatabases();
-            //ResetGlobalData();
-        }
-
-        /// <summary>
-        /// Zero out stored parameter values
-        /// Note (Cianan): this may not be functional after 2.0
-        /// </summary>
-        private void ResetDatabases()
-        {
-            foreach (var dbKeyValue in Database.Keys)
             {
-                var thisItem = Database[dbKeyValue];
-                if (thisItem is ParameterDatabase propsItem)
-                    foreach (var propsItemKey in propsItem.Keys)
-                    {
-                        var thisValue = propsItem[propsItemKey];
-                        if (thisValue is ConvertibleValue cv)
-                        {
-                            for (var baseValueIndex = 0; baseValueIndex < cv.BaseValue.Length; baseValueIndex++)
-                                cv.BaseValue[baseValueIndex] = 0.0D;
-                        }
-                        else if (thisValue is OccupantDistributionInfoCollection)
-                        {
-                            ; // Do not zero out.
-                        }
-                        else
-                        {
-                            var typeName = thisValue.GetType().Name;
-
-                            throw new Exception("Value " + propsItemKey + " in sub-element " + dbKeyValue +
-                                                " is an invalid type of " + typeName +
-                                                ". ndConvertibleValue was expected.");
-                        }
-                    }
-                else
-                    throw new Exception("Database element " + dbKeyValue +
-                                        " is not a valid type.  It is unsupported type " + thisItem.GetType().Name +
-                                        ".");
+                PyDict dict = new PyDict();
+                foreach (var fuel in Fuels)
+                {
+                    var next = new PyFloat(fuel.Amount);
+                    dict[fuel.Key] = next;
+                }
+                return dict;
             }
         }
 
-        public void UndoStateDamageCausedByLoad()
-        {
-            // Some things in the QRA StateContainer container are dependent upon the local system.
-            // Make sure that these things are reset back to their correct and local values.
-            ResetUnitConverters();
-        }
-
-        private void ResetUnitConverters()
-        {
-            // Note (Cianan): not sure when this is applicable or when a converter is broken, per John's comment below.
-            //
-            //Make sure the latest version of a converter is being used after load.
-            //clsProperties[] Databases = new clsProperties[] { UserSessionValues, Defaults, Constants };
-            ParameterDatabase[] databases = {Parameters, Defaults};
-            foreach (var thisDatabase in databases)
-            foreach (var itemKey in thisDatabase.Keys)
-            {
-                var oValueNode = thisDatabase[itemKey];
-                if (oValueNode is ConvertibleValue valueNode)
-                    valueNode.Converters = GetConverterByDatabaseKey(itemKey);
-            }
-        }
-
-        public FluidPhase GetFluidPhase()
-        {
-            return GetValue<FluidPhase>("ReleaseFluidPhase");
-        }
-
-        /// <summary>
-        /// Check whether results based on current parameters.
-        /// If params have changed since analysis submitted, results will be stale.
-        /// </summary>
-        /// <returns>true if results based on current params.</returns>
-        public static bool ResultsPristine()
-        {
-            var areStale = GetValue<bool>("ResultsAreStale");
-            return !areStale;
-        }
-
-
-
-        public static bool FuelTypeIsGaseous()
-        {
-            FluidPhase phase = Instance.GetFluidPhase();
-            bool isGaseous = (phase == FluidPhase.GasDefault || phase == FluidPhase.SatGas);
-            return isGaseous;
-        }
-
-        public static bool FuelPhaseIsSaturated()
-        {
-            FluidPhase phase = Instance.GetFluidPhase();
-            return (phase == FluidPhase.SatLiquid || phase == FluidPhase.SatGas);
-        }
-
-        public static FuelType GetFuel()
-        {
-            return GetValue<FuelType>("FuelType");
-        }
-
-        public static void SetFuel(FuelType fuel)
-        {
-            SetValue("FuelType", fuel);
-            Instance.RefreshLeakFrequencyData();
-            Instance.RefreshComponentQuantities();
-            Instance.RefreshIgnitionProbabilities();
-
-            EventHandler handler = Instance.FuelTypeChangedEvent;
-            if (handler != null)
-            {
-                var e = EventArgs.Empty;
-                handler(Instance, e);
-            }
-        }
-
-        public static void SetReleasePhase(FluidPhase phase)
-        {
-            SetValue("ReleaseFluidPhase", phase);
-            Instance.RefreshLeakFrequencyData();
-            Instance.RefreshComponentQuantities();
-        }
 
         /// <summary>
         /// Checks whether fuel release pressure is within valid range
         /// </summary>
-        /// <returns></returns>
-        public static bool ReleasePressureIsValid(string varName)
+        /// <returns>true if pressure is valid for fuel and phase.</returns>
+        public bool ReleasePressureIsValid()
         {
             bool result = true;
-            if (FuelPhaseIsSaturated())
+            if (PhaseIsSaturated())
             {
-                FuelType fuel = GetFuel();
-                double releaseP = GetNdValue(varName, PressureUnit.MPa);
-                double ambientP = GetNdValue("ambientPressure", PressureUnit.MPa);
-                double criticalP = fuel.GetCriticalPressureMpa();
+                var fluidPressure = FluidPressure.GetValue(PressureUnit.MPa);
+                var ambientPressure = AmbientPressure.GetValue(PressureUnit.MPa);
+                var criticalP = GetActiveFuel().GetCriticalPressureMpa();
 
-                if (releaseP <= ambientP || releaseP > criticalP)
+                if (fluidPressure <= ambientPressure || fluidPressure > criticalP)
                 {
                     result = false;
                 }
@@ -1268,22 +939,29 @@ namespace SandiaNationalLaboratories.Hyram
 
             return result;
         }
-        public static bool ReleasePressureIsValid()
-        {
-            return ReleasePressureIsValid("fluidPressure");
-        }
 
-        public static bool FuelFlowUnchoked()
+        /// <summary>
+        /// 
+        /// Checks whether active fuel is unchoked.
+        /// </summary>
+        /// <returns>bool</returns>
+        public bool FuelFlowUnchoked()
         {
-            var ambPres= GetNdValue("ambientPressure", PressureUnit.Pa);
-            var fuelPres = GetNdValue("fluidPressure", PressureUnit.Pa);
-            var fuel = GetFuel();
-            return (fuelPres < (fuel.GetCriticalRatio() * ambPres));
-        }
+            double fluidPressure = FluidPressure.GetValue(PressureUnit.Pa);
+            double ambientPressure = AmbientPressure.GetValue(PressureUnit.Pa);
+            var fuel = GetActiveFuel();
 
-        public static UnconfinedOverpressureMethod GetOverpressureMethod()
-        {
-            return GetValue<UnconfinedOverpressureMethod>("unconfinedOverpressureMethod");
+            if ((Math.Abs(fuel.ChokedFlowRatio) > FuelPrecision) &&
+                fluidPressure < fuel.ChokedFlowRatio * ambientPressure)
+            {
+                return true;
+            }
+            else
+            {
+                FluidMassFlow = null;
+                return false;
+            }
         }
     }
+
 }

@@ -11,10 +11,10 @@ namespace SandiaNationalLaboratories.Hyram {
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.IOTabs = new System.Windows.Forms.TabControl();
             this.InputTab = new System.Windows.Forms.TabPage();
-            this.releaseSteady = new System.Windows.Forms.RadioButton();
-            this.releaseBlowdown = new System.Windows.Forms.RadioButton();
+            this.ReleaseSteadyBtn = new System.Windows.Forms.RadioButton();
+            this.ReleaseBlowdownBtn = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
-            this.notionalNozzleSelector = new System.Windows.Forms.ComboBox();
+            this.NozzleSelector = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
             this.PhaseSelection = new System.Windows.Forms.ComboBox();
             this.PhaseLabel = new System.Windows.Forms.Label();
@@ -27,7 +27,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.GeometryPicture = new System.Windows.Forms.PictureBox();
             this.OutputOptionsTab = new System.Windows.Forms.TabPage();
             this.label5 = new System.Windows.Forms.Label();
-            this.timeUnitSelector = new System.Windows.Forms.ComboBox();
+            this.TimeUnitSelector = new System.Windows.Forms.ComboBox();
             this.MaxTimeInput = new System.Windows.Forms.TextBox();
             this.MaxTimeLabel = new System.Windows.Forms.Label();
             this.PlottingOptionsGroupBox = new System.Windows.Forms.GroupBox();
@@ -42,33 +42,33 @@ namespace SandiaNationalLaboratories.Hyram {
             this.PressureLinesCheckbox = new System.Windows.Forms.CheckBox();
             this.PlotTimesInput = new System.Windows.Forms.TextBox();
             this.PlotTimesLabel = new System.Windows.Forms.Label();
-            this.ExecuteBtn = new System.Windows.Forms.Button();
+            this.SubmitBtn = new System.Windows.Forms.Button();
             this.outputTab = new System.Windows.Forms.TabPage();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tcOutput = new System.Windows.Forms.TabControl();
             this.tpPressure = new System.Windows.Forms.TabPage();
             this.label2 = new System.Windows.Forms.Label();
-            this.pbPressure = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.tpFlammableMass = new System.Windows.Forms.TabPage();
-            this.pbFlammableMass = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.tpLayer = new System.Windows.Forms.TabPage();
-            this.pbLayer = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.tpTrajectory = new System.Windows.Forms.TabPage();
-            this.pbTrajectory = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.tpMassFlow = new System.Windows.Forms.TabPage();
-            this.pbMassFlowPlot = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.tpData = new System.Windows.Forms.TabPage();
             this.tbTime = new System.Windows.Forms.TextBox();
             this.lblSeconds = new System.Windows.Forms.Label();
             this.tbMaxPressure = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.overpressureResultGrid = new System.Windows.Forms.DataGridView();
+            this.outputWarning = new System.Windows.Forms.Label();
             this.colTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colPressure = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colDepth2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colConcentration2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.massFlowRate = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.outputWarning = new System.Windows.Forms.Label();
+            this.pbPressure = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.pbFlammableMass = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.pbLayer = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.pbTrajectory = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
+            this.pbMassFlowPlot = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.IOTabs.SuspendLayout();
             this.InputTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.OverpressureSpinner)).BeginInit();
@@ -93,17 +93,17 @@ namespace SandiaNationalLaboratories.Hyram {
             this.splitContainer1.SuspendLayout();
             this.tcOutput.SuspendLayout();
             this.tpPressure.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbPressure)).BeginInit();
             this.tpFlammableMass.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbFlammableMass)).BeginInit();
             this.tpLayer.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbLayer)).BeginInit();
             this.tpTrajectory.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbTrajectory)).BeginInit();
             this.tpMassFlow.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbMassFlowPlot)).BeginInit();
             this.tpData.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.overpressureResultGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbPressure)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbFlammableMass)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbLayer)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbTrajectory)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbMassFlowPlot)).BeginInit();
             this.SuspendLayout();
             // 
             // IOTabs
@@ -114,75 +114,72 @@ namespace SandiaNationalLaboratories.Hyram {
             this.IOTabs.Location = new System.Drawing.Point(0, 0);
             this.IOTabs.Name = "IOTabs";
             this.IOTabs.SelectedIndex = 0;
-            this.IOTabs.Size = new System.Drawing.Size(938, 583);
+            this.IOTabs.Size = new System.Drawing.Size(992, 594);
             this.IOTabs.TabIndex = 0;
             // 
             // InputTab
             // 
-            this.InputTab.Controls.Add(this.releaseSteady);
-            this.InputTab.Controls.Add(this.releaseBlowdown);
+            this.InputTab.Controls.Add(this.ReleaseSteadyBtn);
+            this.InputTab.Controls.Add(this.ReleaseBlowdownBtn);
             this.InputTab.Controls.Add(this.label4);
-            this.InputTab.Controls.Add(this.notionalNozzleSelector);
+            this.InputTab.Controls.Add(this.NozzleSelector);
             this.InputTab.Controls.Add(this.label3);
             this.InputTab.Controls.Add(this.PhaseSelection);
             this.InputTab.Controls.Add(this.PhaseLabel);
             this.InputTab.Controls.Add(this.OverpressureSpinner);
             this.InputTab.Controls.Add(this.InputWarning);
             this.InputTab.Controls.Add(this.InputTabs);
-            this.InputTab.Controls.Add(this.ExecuteBtn);
+            this.InputTab.Controls.Add(this.SubmitBtn);
             this.InputTab.Location = new System.Drawing.Point(4, 22);
             this.InputTab.Name = "InputTab";
             this.InputTab.Padding = new System.Windows.Forms.Padding(3);
-            this.InputTab.Size = new System.Drawing.Size(930, 557);
+            this.InputTab.Size = new System.Drawing.Size(984, 568);
             this.InputTab.TabIndex = 0;
             this.InputTab.Text = "Input";
             this.InputTab.UseVisualStyleBackColor = true;
             // 
-            // releaseSteady
+            // ReleaseSteadyBtn
             // 
-            this.releaseSteady.AutoSize = true;
-            this.releaseSteady.Location = new System.Drawing.Point(557, 37);
-            this.releaseSteady.Name = "releaseSteady";
-            this.releaseSteady.Size = new System.Drawing.Size(58, 17);
-            this.releaseSteady.TabIndex = 63;
-            this.releaseSteady.TabStop = true;
-            this.releaseSteady.Text = "Steady";
-            this.releaseSteady.UseVisualStyleBackColor = true;
-            this.releaseSteady.Visible = false;
+            this.ReleaseSteadyBtn.AutoSize = true;
+            this.ReleaseSteadyBtn.Location = new System.Drawing.Point(609, 37);
+            this.ReleaseSteadyBtn.Name = "ReleaseSteadyBtn";
+            this.ReleaseSteadyBtn.Size = new System.Drawing.Size(58, 17);
+            this.ReleaseSteadyBtn.TabIndex = 63;
+            this.ReleaseSteadyBtn.TabStop = true;
+            this.ReleaseSteadyBtn.Text = "Steady";
+            this.ReleaseSteadyBtn.UseVisualStyleBackColor = true;
             // 
-            // releaseBlowdown
+            // ReleaseBlowdownBtn
             // 
-            this.releaseBlowdown.AutoSize = true;
-            this.releaseBlowdown.Checked = true;
-            this.releaseBlowdown.Location = new System.Drawing.Point(557, 19);
-            this.releaseBlowdown.Name = "releaseBlowdown";
-            this.releaseBlowdown.Size = new System.Drawing.Size(74, 17);
-            this.releaseBlowdown.TabIndex = 62;
-            this.releaseBlowdown.TabStop = true;
-            this.releaseBlowdown.Text = "Blowdown";
-            this.releaseBlowdown.UseVisualStyleBackColor = true;
-            this.releaseBlowdown.Visible = false;
+            this.ReleaseBlowdownBtn.AutoSize = true;
+            this.ReleaseBlowdownBtn.Checked = true;
+            this.ReleaseBlowdownBtn.Location = new System.Drawing.Point(609, 14);
+            this.ReleaseBlowdownBtn.Name = "ReleaseBlowdownBtn";
+            this.ReleaseBlowdownBtn.Size = new System.Drawing.Size(74, 17);
+            this.ReleaseBlowdownBtn.TabIndex = 62;
+            this.ReleaseBlowdownBtn.TabStop = true;
+            this.ReleaseBlowdownBtn.Text = "Blowdown";
+            this.ReleaseBlowdownBtn.UseVisualStyleBackColor = true;
             // 
             // label4
             // 
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(456, 19);
+            this.label4.Location = new System.Drawing.Point(503, 14);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(153, 15);
+            this.label4.Size = new System.Drawing.Size(100, 15);
             this.label4.TabIndex = 61;
             this.label4.Text = "Release type";
-            this.label4.Visible = false;
             // 
-            // notionalNozzleSelector
+            // NozzleSelector
             // 
-            this.notionalNozzleSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.notionalNozzleSelector.DropDownWidth = 170;
-            this.notionalNozzleSelector.FormattingEnabled = true;
-            this.notionalNozzleSelector.Location = new System.Drawing.Point(167, 13);
-            this.notionalNozzleSelector.Name = "notionalNozzleSelector";
-            this.notionalNozzleSelector.Size = new System.Drawing.Size(176, 21);
-            this.notionalNozzleSelector.TabIndex = 60;
-            this.notionalNozzleSelector.SelectionChangeCommitted += new System.EventHandler(this.notionalNozzleSelector_SelectionChangeCommitted);
+            this.NozzleSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.NozzleSelector.DropDownWidth = 170;
+            this.NozzleSelector.FormattingEnabled = true;
+            this.NozzleSelector.Location = new System.Drawing.Point(167, 13);
+            this.NozzleSelector.Name = "NozzleSelector";
+            this.NozzleSelector.Size = new System.Drawing.Size(286, 21);
+            this.NozzleSelector.TabIndex = 60;
+            this.NozzleSelector.SelectionChangeCommitted += new System.EventHandler(this.NozzleSelector_SelectionChangeCommitted);
             // 
             // label3
             // 
@@ -200,7 +197,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.PhaseSelection.FormattingEnabled = true;
             this.PhaseSelection.Location = new System.Drawing.Point(167, 40);
             this.PhaseSelection.Name = "PhaseSelection";
-            this.PhaseSelection.Size = new System.Drawing.Size(176, 21);
+            this.PhaseSelection.Size = new System.Drawing.Size(286, 21);
             this.PhaseSelection.TabIndex = 58;
             this.PhaseSelection.SelectionChangeCommitted += new System.EventHandler(this.PhaseSelection_SelectionChangeCommitted);
             // 
@@ -218,7 +215,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             this.OverpressureSpinner.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.OverpressureSpinner.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.AjaxSpinner;
-            this.OverpressureSpinner.Location = new System.Drawing.Point(810, 528);
+            this.OverpressureSpinner.Location = new System.Drawing.Point(339, 518);
             this.OverpressureSpinner.MinimumSize = new System.Drawing.Size(20, 20);
             this.OverpressureSpinner.Name = "OverpressureSpinner";
             this.OverpressureSpinner.Size = new System.Drawing.Size(32, 23);
@@ -233,12 +230,12 @@ namespace SandiaNationalLaboratories.Hyram {
             this.InputWarning.BackColor = System.Drawing.Color.MistyRose;
             this.InputWarning.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.InputWarning.ForeColor = System.Drawing.Color.Maroon;
-            this.InputWarning.Location = new System.Drawing.Point(7, 527);
+            this.InputWarning.Location = new System.Drawing.Point(3, 542);
             this.InputWarning.Name = "InputWarning";
             this.InputWarning.Padding = new System.Windows.Forms.Padding(4);
-            this.InputWarning.Size = new System.Drawing.Size(278, 23);
+            this.InputWarning.Size = new System.Drawing.Size(384, 23);
             this.InputWarning.TabIndex = 17;
-            this.InputWarning.Text = "No errors noted and this label is invisible";
+            this.InputWarning.Text = "Test warning notification area with long warning message";
             this.InputWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.InputWarning.Visible = false;
             // 
@@ -252,7 +249,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.InputTabs.Location = new System.Drawing.Point(3, 78);
             this.InputTabs.Name = "InputTabs";
             this.InputTabs.SelectedIndex = 0;
-            this.InputTabs.Size = new System.Drawing.Size(924, 444);
+            this.InputTabs.Size = new System.Drawing.Size(978, 434);
             this.InputTabs.TabIndex = 1;
             // 
             // IndoorReleaseTab
@@ -262,7 +259,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.IndoorReleaseTab.Location = new System.Drawing.Point(4, 22);
             this.IndoorReleaseTab.Name = "IndoorReleaseTab";
             this.IndoorReleaseTab.Padding = new System.Windows.Forms.Padding(3);
-            this.IndoorReleaseTab.Size = new System.Drawing.Size(916, 418);
+            this.IndoorReleaseTab.Size = new System.Drawing.Size(970, 408);
             this.IndoorReleaseTab.TabIndex = 0;
             this.IndoorReleaseTab.Text = "Accumulation Parameters";
             this.IndoorReleaseTab.UseVisualStyleBackColor = true;
@@ -281,20 +278,22 @@ namespace SandiaNationalLaboratories.Hyram {
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.Controls.Add(this.GeometryPicture);
-            this.splitContainer2.Size = new System.Drawing.Size(910, 412);
-            this.splitContainer2.SplitterDistance = 429;
+            this.splitContainer2.Size = new System.Drawing.Size(964, 402);
+            this.splitContainer2.SplitterDistance = 443;
             this.splitContainer2.TabIndex = 2;
             // 
             // InputGrid
             // 
             this.InputGrid.AllowUserToAddRows = false;
             this.InputGrid.AllowUserToDeleteRows = false;
+            this.InputGrid.AllowUserToResizeRows = false;
             this.InputGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.InputGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.InputGrid.Dock = System.Windows.Forms.DockStyle.Fill;
             this.InputGrid.Location = new System.Drawing.Point(0, 0);
             this.InputGrid.Name = "InputGrid";
-            this.InputGrid.Size = new System.Drawing.Size(429, 412);
+            this.InputGrid.RowHeadersVisible = false;
+            this.InputGrid.Size = new System.Drawing.Size(443, 402);
             this.InputGrid.TabIndex = 0;
             this.InputGrid.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.InputGrid_CellValueChanged);
             // 
@@ -306,14 +305,14 @@ namespace SandiaNationalLaboratories.Hyram {
             this.GeometryPicture.InitialImage = global::SandiaNationalLaboratories.Hyram.Properties.Resources.geometry_of_indoor_release;
             this.GeometryPicture.Location = new System.Drawing.Point(0, 0);
             this.GeometryPicture.Name = "GeometryPicture";
-            this.GeometryPicture.Size = new System.Drawing.Size(477, 412);
+            this.GeometryPicture.Size = new System.Drawing.Size(517, 402);
             this.GeometryPicture.TabIndex = 2;
             this.GeometryPicture.TabStop = false;
             // 
             // OutputOptionsTab
             // 
             this.OutputOptionsTab.Controls.Add(this.label5);
-            this.OutputOptionsTab.Controls.Add(this.timeUnitSelector);
+            this.OutputOptionsTab.Controls.Add(this.TimeUnitSelector);
             this.OutputOptionsTab.Controls.Add(this.MaxTimeInput);
             this.OutputOptionsTab.Controls.Add(this.MaxTimeLabel);
             this.OutputOptionsTab.Controls.Add(this.PlottingOptionsGroupBox);
@@ -322,7 +321,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.OutputOptionsTab.Location = new System.Drawing.Point(4, 22);
             this.OutputOptionsTab.Name = "OutputOptionsTab";
             this.OutputOptionsTab.Padding = new System.Windows.Forms.Padding(3);
-            this.OutputOptionsTab.Size = new System.Drawing.Size(916, 418);
+            this.OutputOptionsTab.Size = new System.Drawing.Size(970, 408);
             this.OutputOptionsTab.TabIndex = 1;
             this.OutputOptionsTab.Text = "Output Options";
             this.OutputOptionsTab.UseVisualStyleBackColor = true;
@@ -336,15 +335,15 @@ namespace SandiaNationalLaboratories.Hyram {
             this.label5.TabIndex = 23;
             this.label5.Text = "Units of time";
             // 
-            // timeUnitSelector
+            // TimeUnitSelector
             // 
-            this.timeUnitSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.timeUnitSelector.FormattingEnabled = true;
-            this.timeUnitSelector.Location = new System.Drawing.Point(175, 9);
-            this.timeUnitSelector.Name = "timeUnitSelector";
-            this.timeUnitSelector.Size = new System.Drawing.Size(100, 21);
-            this.timeUnitSelector.TabIndex = 22;
-            this.timeUnitSelector.SelectionChangeCommitted += new System.EventHandler(this.timeUnitSelector_SelectionChangeCommitted);
+            this.TimeUnitSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.TimeUnitSelector.FormattingEnabled = true;
+            this.TimeUnitSelector.Location = new System.Drawing.Point(175, 9);
+            this.TimeUnitSelector.Name = "TimeUnitSelector";
+            this.TimeUnitSelector.Size = new System.Drawing.Size(100, 21);
+            this.TimeUnitSelector.TabIndex = 22;
+            this.TimeUnitSelector.SelectionChangeCommitted += new System.EventHandler(this.TimeUnitSelector_SelectionChangeCommitted);
             // 
             // MaxTimeInput
             // 
@@ -374,7 +373,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.PlottingOptionsGroupBox.Controls.Add(this.PressureLinesCheckbox);
             this.PlottingOptionsGroupBox.Location = new System.Drawing.Point(6, 104);
             this.PlottingOptionsGroupBox.Name = "PlottingOptionsGroupBox";
-            this.PlottingOptionsGroupBox.Size = new System.Drawing.Size(904, 311);
+            this.PlottingOptionsGroupBox.Size = new System.Drawing.Size(958, 301);
             this.PlottingOptionsGroupBox.TabIndex = 4;
             this.PlottingOptionsGroupBox.TabStop = false;
             this.PlottingOptionsGroupBox.Text = "Plotting options";
@@ -400,7 +399,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.PressuresPerTimeGroupBox.Controls.Add(this.PressuresPerTimeGrid);
             this.PressuresPerTimeGroupBox.Location = new System.Drawing.Point(284, 40);
             this.PressuresPerTimeGroupBox.Name = "PressuresPerTimeGroupBox";
-            this.PressuresPerTimeGroupBox.Size = new System.Drawing.Size(316, 262);
+            this.PressuresPerTimeGroupBox.Size = new System.Drawing.Size(316, 252);
             this.PressuresPerTimeGroupBox.TabIndex = 9;
             this.PressuresPerTimeGroupBox.TabStop = false;
             this.PressuresPerTimeGroupBox.Text = "Place dots where pressure/time intersect";
@@ -414,7 +413,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.PressuresPerTimeGrid.Dock = System.Windows.Forms.DockStyle.Fill;
             this.PressuresPerTimeGrid.Location = new System.Drawing.Point(3, 16);
             this.PressuresPerTimeGrid.Name = "PressuresPerTimeGrid";
-            this.PressuresPerTimeGrid.Size = new System.Drawing.Size(310, 243);
+            this.PressuresPerTimeGrid.Size = new System.Drawing.Size(310, 233);
             this.PressuresPerTimeGrid.TabIndex = 4;
             this.PressuresPerTimeGrid.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.PressuresPerTimeGrid_CellValueChanged);
             this.PressuresPerTimeGrid.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.PressuresPerTimeGrid_RowsRemoved);
@@ -437,7 +436,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.PressureLinesGroupBox.Controls.Add(this.PressureLinesGrid);
             this.PressureLinesGroupBox.Location = new System.Drawing.Point(9, 37);
             this.PressureLinesGroupBox.Name = "PressureLinesGroupBox";
-            this.PressureLinesGroupBox.Size = new System.Drawing.Size(225, 268);
+            this.PressureLinesGroupBox.Size = new System.Drawing.Size(225, 258);
             this.PressureLinesGroupBox.TabIndex = 8;
             this.PressureLinesGroupBox.TabStop = false;
             this.PressureLinesGroupBox.Text = "Specify pressures in kPa";
@@ -450,7 +449,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.PressureLinesGrid.Dock = System.Windows.Forms.DockStyle.Fill;
             this.PressureLinesGrid.Location = new System.Drawing.Point(3, 16);
             this.PressureLinesGrid.Name = "PressureLinesGrid";
-            this.PressureLinesGrid.Size = new System.Drawing.Size(219, 249);
+            this.PressureLinesGrid.Size = new System.Drawing.Size(219, 239);
             this.PressureLinesGrid.TabIndex = 6;
             this.PressureLinesGrid.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.PressureLinesGrid_CellValueChanged);
             this.PressureLinesGrid.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.PressureLinesGrid_RowsRemoved);
@@ -481,7 +480,7 @@ namespace SandiaNationalLaboratories.Hyram {
             | System.Windows.Forms.AnchorStyles.Right)));
             this.PlotTimesInput.Location = new System.Drawing.Point(175, 36);
             this.PlotTimesInput.Name = "PlotTimesInput";
-            this.PlotTimesInput.Size = new System.Drawing.Size(668, 20);
+            this.PlotTimesInput.Size = new System.Drawing.Size(722, 20);
             this.PlotTimesInput.TabIndex = 1;
             this.PlotTimesInput.TextChanged += new System.EventHandler(this.PlotTimesInput_TextChanged);
             // 
@@ -494,16 +493,16 @@ namespace SandiaNationalLaboratories.Hyram {
             this.PlotTimesLabel.TabIndex = 0;
             this.PlotTimesLabel.Text = "Output pressures at these times:";
             // 
-            // ExecuteBtn
+            // SubmitBtn
             // 
-            this.ExecuteBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.ExecuteBtn.Location = new System.Drawing.Point(848, 528);
-            this.ExecuteBtn.Name = "ExecuteBtn";
-            this.ExecuteBtn.Size = new System.Drawing.Size(75, 23);
-            this.ExecuteBtn.TabIndex = 16;
-            this.ExecuteBtn.Text = "Calculate";
-            this.ExecuteBtn.UseVisualStyleBackColor = true;
-            this.ExecuteBtn.Click += new System.EventHandler(this.ExecuteBtn_Click);
+            this.SubmitBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.SubmitBtn.Location = new System.Drawing.Point(377, 518);
+            this.SubmitBtn.Name = "SubmitBtn";
+            this.SubmitBtn.Size = new System.Drawing.Size(75, 23);
+            this.SubmitBtn.TabIndex = 16;
+            this.SubmitBtn.Text = "Calculate";
+            this.SubmitBtn.UseVisualStyleBackColor = true;
+            this.SubmitBtn.Click += new System.EventHandler(this.SubmitBtn_Click);
             // 
             // outputTab
             // 
@@ -511,7 +510,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.outputTab.Location = new System.Drawing.Point(4, 22);
             this.outputTab.Name = "outputTab";
             this.outputTab.Padding = new System.Windows.Forms.Padding(3);
-            this.outputTab.Size = new System.Drawing.Size(930, 557);
+            this.outputTab.Size = new System.Drawing.Size(984, 568);
             this.outputTab.TabIndex = 1;
             this.outputTab.Text = "Output";
             this.outputTab.UseVisualStyleBackColor = true;
@@ -530,8 +529,8 @@ namespace SandiaNationalLaboratories.Hyram {
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.outputWarning);
-            this.splitContainer1.Size = new System.Drawing.Size(924, 551);
-            this.splitContainer1.SplitterDistance = 522;
+            this.splitContainer1.Size = new System.Drawing.Size(978, 562);
+            this.splitContainer1.SplitterDistance = 532;
             this.splitContainer1.TabIndex = 19;
             // 
             // tcOutput
@@ -546,7 +545,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tcOutput.Location = new System.Drawing.Point(0, 0);
             this.tcOutput.Name = "tcOutput";
             this.tcOutput.SelectedIndex = 0;
-            this.tcOutput.Size = new System.Drawing.Size(924, 522);
+            this.tcOutput.Size = new System.Drawing.Size(978, 532);
             this.tcOutput.TabIndex = 3;
             // 
             // tpPressure
@@ -556,7 +555,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tpPressure.Location = new System.Drawing.Point(4, 22);
             this.tpPressure.Name = "tpPressure";
             this.tpPressure.Padding = new System.Windows.Forms.Padding(3);
-            this.tpPressure.Size = new System.Drawing.Size(916, 496);
+            this.tpPressure.Size = new System.Drawing.Size(970, 506);
             this.tpPressure.TabIndex = 0;
             this.tpPressure.Text = "Pressure plot";
             this.tpPressure.UseVisualStyleBackColor = true;
@@ -567,38 +566,20 @@ namespace SandiaNationalLaboratories.Hyram {
             this.label2.Location = new System.Drawing.Point(3, 3);
             this.label2.Name = "label2";
             this.label2.Padding = new System.Windows.Forms.Padding(3);
-            this.label2.Size = new System.Drawing.Size(910, 24);
+            this.label2.Size = new System.Drawing.Size(964, 24);
             this.label2.TabIndex = 1;
             this.label2.Text = "Time-history of the overpressure that would develop if the accumulated fuel were " +
     "to be ignited after some delay after the leak started";
-            // 
-            // pbPressure
-            // 
-            this.pbPressure.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pbPressure.Location = new System.Drawing.Point(3, 30);
-            this.pbPressure.Name = "pbPressure";
-            this.pbPressure.Size = new System.Drawing.Size(910, 463);
-            this.pbPressure.TabIndex = 0;
-            this.pbPressure.TabStop = false;
             // 
             // tpFlammableMass
             // 
             this.tpFlammableMass.Controls.Add(this.pbFlammableMass);
             this.tpFlammableMass.Location = new System.Drawing.Point(4, 22);
             this.tpFlammableMass.Name = "tpFlammableMass";
-            this.tpFlammableMass.Size = new System.Drawing.Size(916, 496);
+            this.tpFlammableMass.Size = new System.Drawing.Size(970, 506);
             this.tpFlammableMass.TabIndex = 4;
             this.tpFlammableMass.Text = "Flammable mass plot";
             this.tpFlammableMass.UseVisualStyleBackColor = true;
-            // 
-            // pbFlammableMass
-            // 
-            this.pbFlammableMass.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbFlammableMass.Location = new System.Drawing.Point(0, 0);
-            this.pbFlammableMass.Name = "pbFlammableMass";
-            this.pbFlammableMass.Size = new System.Drawing.Size(916, 496);
-            this.pbFlammableMass.TabIndex = 1;
-            this.pbFlammableMass.TabStop = false;
             // 
             // tpLayer
             // 
@@ -606,57 +587,30 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tpLayer.Location = new System.Drawing.Point(4, 22);
             this.tpLayer.Name = "tpLayer";
             this.tpLayer.Padding = new System.Windows.Forms.Padding(3);
-            this.tpLayer.Size = new System.Drawing.Size(916, 496);
+            this.tpLayer.Size = new System.Drawing.Size(970, 506);
             this.tpLayer.TabIndex = 1;
             this.tpLayer.Text = "Layer plot";
             this.tpLayer.UseVisualStyleBackColor = true;
-            // 
-            // pbLayer
-            // 
-            this.pbLayer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbLayer.Location = new System.Drawing.Point(3, 3);
-            this.pbLayer.Name = "pbLayer";
-            this.pbLayer.Size = new System.Drawing.Size(910, 490);
-            this.pbLayer.TabIndex = 0;
-            this.pbLayer.TabStop = false;
             // 
             // tpTrajectory
             // 
             this.tpTrajectory.Controls.Add(this.pbTrajectory);
             this.tpTrajectory.Location = new System.Drawing.Point(4, 22);
             this.tpTrajectory.Name = "tpTrajectory";
-            this.tpTrajectory.Size = new System.Drawing.Size(916, 496);
+            this.tpTrajectory.Size = new System.Drawing.Size(970, 506);
             this.tpTrajectory.TabIndex = 3;
             this.tpTrajectory.Text = "Trajectory plot";
             this.tpTrajectory.UseVisualStyleBackColor = true;
-            // 
-            // pbTrajectory
-            // 
-            this.pbTrajectory.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbTrajectory.Location = new System.Drawing.Point(0, 0);
-            this.pbTrajectory.Name = "pbTrajectory";
-            this.pbTrajectory.Size = new System.Drawing.Size(916, 496);
-            this.pbTrajectory.TabIndex = 1;
-            this.pbTrajectory.TabStop = false;
             // 
             // tpMassFlow
             // 
             this.tpMassFlow.Controls.Add(this.pbMassFlowPlot);
             this.tpMassFlow.Location = new System.Drawing.Point(4, 22);
             this.tpMassFlow.Name = "tpMassFlow";
-            this.tpMassFlow.Size = new System.Drawing.Size(916, 496);
+            this.tpMassFlow.Size = new System.Drawing.Size(970, 506);
             this.tpMassFlow.TabIndex = 5;
             this.tpMassFlow.Text = "Mass flow plot";
             this.tpMassFlow.UseVisualStyleBackColor = true;
-            // 
-            // pbMassFlowPlot
-            // 
-            this.pbMassFlowPlot.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbMassFlowPlot.Location = new System.Drawing.Point(0, 0);
-            this.pbMassFlowPlot.Name = "pbMassFlowPlot";
-            this.pbMassFlowPlot.Size = new System.Drawing.Size(916, 496);
-            this.pbMassFlowPlot.TabIndex = 2;
-            this.pbMassFlowPlot.TabStop = false;
             // 
             // tpData
             // 
@@ -667,7 +621,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tpData.Controls.Add(this.overpressureResultGrid);
             this.tpData.Location = new System.Drawing.Point(4, 22);
             this.tpData.Name = "tpData";
-            this.tpData.Size = new System.Drawing.Size(916, 496);
+            this.tpData.Size = new System.Drawing.Size(970, 506);
             this.tpData.TabIndex = 2;
             this.tpData.Text = "Data";
             this.tpData.UseVisualStyleBackColor = true;
@@ -702,9 +656,9 @@ namespace SandiaNationalLaboratories.Hyram {
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(16, 17);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(142, 13);
+            this.label1.Size = new System.Drawing.Size(148, 13);
             this.label1.TabIndex = 3;
-            this.label1.Text = "Maximum Overpressure (Pa):";
+            this.label1.Text = "Maximum Overpressure (kPa):";
             // 
             // overpressureResultGrid
             // 
@@ -731,8 +685,22 @@ namespace SandiaNationalLaboratories.Hyram {
             this.overpressureResultGrid.Location = new System.Drawing.Point(19, 73);
             this.overpressureResultGrid.Name = "overpressureResultGrid";
             this.overpressureResultGrid.RowHeadersVisible = false;
-            this.overpressureResultGrid.Size = new System.Drawing.Size(678, 399);
+            this.overpressureResultGrid.Size = new System.Drawing.Size(678, 409);
             this.overpressureResultGrid.TabIndex = 2;
+            // 
+            // outputWarning
+            // 
+            this.outputWarning.BackColor = System.Drawing.Color.PaleGoldenrod;
+            this.outputWarning.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.outputWarning.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.outputWarning.ForeColor = System.Drawing.Color.DarkGoldenrod;
+            this.outputWarning.Location = new System.Drawing.Point(0, 0);
+            this.outputWarning.Name = "outputWarning";
+            this.outputWarning.Size = new System.Drawing.Size(978, 26);
+            this.outputWarning.TabIndex = 18;
+            this.outputWarning.Text = "blank";
+            this.outputWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.outputWarning.Visible = false;
             // 
             // colTime
             // 
@@ -742,7 +710,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // colPressure
             // 
-            this.colPressure.HeaderText = "Combined Pressure (Pa)";
+            this.colPressure.HeaderText = "Combined Pressure (kPa)";
             this.colPressure.Name = "colPressure";
             this.colPressure.ReadOnly = true;
             // 
@@ -764,25 +732,56 @@ namespace SandiaNationalLaboratories.Hyram {
             this.massFlowRate.Name = "massFlowRate";
             this.massFlowRate.ReadOnly = true;
             // 
-            // outputWarning
+            // pbPressure
             // 
-            this.outputWarning.BackColor = System.Drawing.Color.PaleGoldenrod;
-            this.outputWarning.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.outputWarning.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.outputWarning.ForeColor = System.Drawing.Color.DarkGoldenrod;
-            this.outputWarning.Location = new System.Drawing.Point(0, 0);
-            this.outputWarning.Name = "outputWarning";
-            this.outputWarning.Size = new System.Drawing.Size(924, 25);
-            this.outputWarning.TabIndex = 18;
-            this.outputWarning.Text = "blank";
-            this.outputWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.outputWarning.Visible = false;
+            this.pbPressure.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pbPressure.Location = new System.Drawing.Point(3, 40);
+            this.pbPressure.Name = "pbPressure";
+            this.pbPressure.Size = new System.Drawing.Size(964, 463);
+            this.pbPressure.TabIndex = 0;
+            this.pbPressure.TabStop = false;
+            // 
+            // pbFlammableMass
+            // 
+            this.pbFlammableMass.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbFlammableMass.Location = new System.Drawing.Point(0, 0);
+            this.pbFlammableMass.Name = "pbFlammableMass";
+            this.pbFlammableMass.Size = new System.Drawing.Size(970, 506);
+            this.pbFlammableMass.TabIndex = 1;
+            this.pbFlammableMass.TabStop = false;
+            // 
+            // pbLayer
+            // 
+            this.pbLayer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbLayer.Location = new System.Drawing.Point(3, 3);
+            this.pbLayer.Name = "pbLayer";
+            this.pbLayer.Size = new System.Drawing.Size(964, 500);
+            this.pbLayer.TabIndex = 0;
+            this.pbLayer.TabStop = false;
+            // 
+            // pbTrajectory
+            // 
+            this.pbTrajectory.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbTrajectory.Location = new System.Drawing.Point(0, 0);
+            this.pbTrajectory.Name = "pbTrajectory";
+            this.pbTrajectory.Size = new System.Drawing.Size(970, 506);
+            this.pbTrajectory.TabIndex = 1;
+            this.pbTrajectory.TabStop = false;
+            // 
+            // pbMassFlowPlot
+            // 
+            this.pbMassFlowPlot.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbMassFlowPlot.Location = new System.Drawing.Point(0, 0);
+            this.pbMassFlowPlot.Name = "pbMassFlowPlot";
+            this.pbMassFlowPlot.Size = new System.Drawing.Size(970, 506);
+            this.pbMassFlowPlot.TabIndex = 2;
+            this.pbMassFlowPlot.TabStop = false;
             // 
             // AccumulationForm
             // 
             this.Controls.Add(this.IOTabs);
             this.Name = "AccumulationForm";
-            this.Size = new System.Drawing.Size(938, 583);
+            this.Size = new System.Drawing.Size(992, 594);
             this.Load += new System.EventHandler(this.IndoorReleaseForm_Load);
             this.IOTabs.ResumeLayout(false);
             this.InputTab.ResumeLayout(false);
@@ -811,18 +810,18 @@ namespace SandiaNationalLaboratories.Hyram {
             this.splitContainer1.ResumeLayout(false);
             this.tcOutput.ResumeLayout(false);
             this.tpPressure.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pbPressure)).EndInit();
             this.tpFlammableMass.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pbFlammableMass)).EndInit();
             this.tpLayer.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pbLayer)).EndInit();
             this.tpTrajectory.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pbTrajectory)).EndInit();
             this.tpMassFlow.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pbMassFlowPlot)).EndInit();
             this.tpData.ResumeLayout(false);
             this.tpData.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.overpressureResultGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbPressure)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbFlammableMass)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbLayer)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbTrajectory)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbMassFlowPlot)).EndInit();
             this.ResumeLayout(false);
 
 		}
@@ -833,7 +832,7 @@ namespace SandiaNationalLaboratories.Hyram {
 		private TabPage InputTab;
 		private DataGridView InputGrid;
 		private TabPage outputTab;
-		private Button ExecuteBtn;
+		private Button SubmitBtn;
 		private TabControl InputTabs;
 		private TabPage IndoorReleaseTab;
 		private TabPage OutputOptionsTab;
@@ -871,23 +870,23 @@ namespace SandiaNationalLaboratories.Hyram {
         private ComboBox PhaseSelection;
         private Label PhaseLabel;
         private Label label2;
-        private ComboBox notionalNozzleSelector;
+        private ComboBox NozzleSelector;
         private Label label3;
         private TabPage tpMassFlow;
         private PictureBoxWithSave pbMassFlowPlot;
         private SplitContainer splitContainer2;
         private PictureBox GeometryPicture;
-        private RadioButton releaseSteady;
-        private RadioButton releaseBlowdown;
+        private RadioButton ReleaseSteadyBtn;
+        private RadioButton ReleaseBlowdownBtn;
         private Label label4;
+        private ComboBox TimeUnitSelector;
+        private Label label5;
+        private DataGridViewTextBoxColumn MarkTimeGridCol;
+        private DataGridViewTextBoxColumn MarkPressureGridCol;
         private DataGridViewTextBoxColumn colTime;
         private DataGridViewTextBoxColumn colPressure;
         private DataGridViewTextBoxColumn colDepth2;
         private DataGridViewTextBoxColumn colConcentration2;
         private DataGridViewTextBoxColumn massFlowRate;
-        private ComboBox timeUnitSelector;
-        private Label label5;
-        private DataGridViewTextBoxColumn MarkTimeGridCol;
-        private DataGridViewTextBoxColumn MarkPressureGridCol;
     }
 }

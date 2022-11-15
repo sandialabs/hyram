@@ -15,9 +15,8 @@ using Python.Runtime;
 namespace SandiaNationalLaboratories.Hyram
 {
     /// <summary>
-    ///     Results for single leak scenario of QRA analysis
+    /// Results for single leak scenario of QRA analysis
     /// </summary>
-    [Serializable]
     public class LeakResult
     {
         public string LeakSize;
@@ -88,9 +87,8 @@ namespace SandiaNationalLaboratories.Hyram
     }
 
     /// <summary>
-    ///     Container for QRA analysis results returned by Python call
+    /// Container for QRA analysis results returned by python module analysis.
     /// </summary>
-    [Serializable]
     public class QraResult
     {
         public double Air;
@@ -130,21 +128,60 @@ namespace SandiaNationalLaboratories.Hyram
             for (var i = 0; i < 5; i++)
             {
                 var res = leakResultData[i];
+                dynamic eventDicts = res["event_dicts"];
+                int numEvents = ((double[]) res["list_p_events"]).Length;
+
+                double probShutdown = 0;
+                double shutdownAvgEvents = 0;
+
+                double probJetfire = 0;
+                double jetfireAvgEvents = 0;
+                double jetfirePllContrib = 0;
+
+                double probNoIgnition = 0;
+                double noIgnAvgEvents = 0;
+
+                double probExplosion = 0;
+                double explosAvgEvents = 0;
+                double explosionPllContrib = 0;
+
+                // Fill parameters from possibly-unordered list of dicts via key comparison.
+                for (var j = 0; j < numEvents; j++)
+                {
+                    var eventDict = eventDicts[j];
+                    string key = (string) eventDict["key"];
+                    if (key == "shut")
+                    {
+                        probShutdown = (double) eventDict["prob"];
+                        shutdownAvgEvents = (double) eventDict["events"];
+                    }
+                    else if (key == "noig")
+                    {
+                        probNoIgnition = (double) eventDict["prob"];
+                        noIgnAvgEvents = (double) eventDict["events"];
+                    }
+                    else if (key == "jetf")
+                    {
+                        probJetfire = (double) eventDict["prob"];
+                        jetfireAvgEvents = (double) eventDict["events"];
+                        jetfirePllContrib = (double) eventDict["pll"];
+                    }
+                    else if (key == "expl")
+                    {
+                        probExplosion = (double) eventDict["prob"];
+                        explosAvgEvents = (double) eventDict["events"];
+                        explosionPllContrib = (double) eventDict["pll"];
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Event type not recognized");
+                    }
+
+                }
+
                 var leakSize = ((double) res["leak_size"]).ToString("000.00");
-                var probShutdown = (double) res["p_shutdown"];
-                var probJetfire = (double) res["p_jetfire"];
-                var probExplosion = (double) res["p_explos"];
-                var probNoIgnition = (double) res["p_no_ign"];
                 var massFlowRate = (double) res["mass_flow_rate"];
                 var leakDiam = (double) res["leak_diam"];
-
-                var jetfireAvgEvents = (double) res["jetfire_avg_events"];
-                var explosAvgEvents = (double) res["explos_avg_events"];
-                var shutdownAvgEvents = (double) res["shutdown_avg_events"];
-                var noIgnAvgEvents = (double) res["no_ign_avg_events"];
-
-                var explosionPllContrib = (double) res["explos_pll_contrib"];
-                var jetfirePllContrib = (double) res["jetfire_pll_contrib"];
                 var h2ReleaseOverride = (double) res["release_freq_override"];
 
                 var compressorLeakFreq = (double) res["component_leak_freqs"]["compressor"];

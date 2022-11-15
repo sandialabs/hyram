@@ -60,7 +60,10 @@ def compute_thermal_fatality_prob(model_ref, heat_flux, exposure_time, mean=5):
     probit_model = PROBIT_THERMAL_CHOICES[cleaned_id]
 
     thermal_dose = calculate_thermal_dose(heat_flux, exposure_time)
-    probit_value = probit_model(thermal_dose)
+    if thermal_dose == 0:
+        probit_value = -np.inf
+    else:
+        probit_value = probit_model(thermal_dose)
 
     return calculate_fatality_probability(probit_value, mean)
 
@@ -81,7 +84,7 @@ def calculate_thermal_dose(heat_flux, exposure_time):
     thermal_dose : float
         Thermal dose in (W/m^2)^4/3 s
     """
-    return exposure_time * heat_flux ** (4. / 3)
+    return exposure_time * heat_flux ** (4/3)
 
 
 def thermal_eisenberg(thermal_dose):
@@ -183,10 +186,13 @@ def compute_overpressure_fatality_prob(model_ref, overp, impulse=None, mean=5):
     cleaned_id = parse_overp_model(model_ref)
     probit_model = PROBIT_OVERP_CHOICES[cleaned_id]
 
-    if cleaned_id in ['leis', 'lhse']:
-        probit_value = probit_model(overp=overp)
+    if overp == 0 or impulse == 0:
+        probit_value = -np.inf
     else:
-        probit_value = probit_model(overp=overp, impulse=impulse)
+        if cleaned_id in ['leis', 'lhse']:
+            probit_value = probit_model(overp=overp)
+        else:
+            probit_value = probit_model(overp=overp, impulse=impulse)
 
     return calculate_fatality_probability(probit_value, mean)
 
@@ -204,11 +210,7 @@ def overp_eisenberg(overp):
     -------
     probit_value : float
     """
-    if overp == 0.:
-        val = -np.inf
-    else:
-        val = -77.1 + 6.91 * np.log(overp)
-    return val
+    return -77.1 + 6.91 * np.log(overp)
 
 
 def overp_hse(overp):
@@ -224,11 +226,7 @@ def overp_hse(overp):
     -------
     probit_value : float
     """
-    if overp == 0.:
-        val = -np.inf
-    else:
-        val = 5.13 + 1.37 * np.log(overp * 1e-5)
-    return val
+    return 5.13 + 1.37 * np.log(overp * 1e-5)
 
 
 def overp_tno_head(overp, impulse):
@@ -246,11 +244,7 @@ def overp_tno_head(overp, impulse):
     -------
     probit_value : float
     """
-    if impulse == 0. or overp == 0.:
-        val = -np.inf
-    else:
-        val = 5. - 8.49 * np.log((2430. / overp) + 4.e8 / (overp * impulse))
-    return val
+    return 5 - 8.49 * np.log((2430 / overp) + 4.e8 / (overp * impulse))
 
 
 def overp_tno_struct_collapse(overp, impulse):
@@ -267,11 +261,7 @@ def overp_tno_struct_collapse(overp, impulse):
     -------
     probit_value : float
     """
-    if impulse == 0. or overp == 0.:
-        val = -np.inf
-    else:
-        val = 5. - 0.22 * np.log((40000. / overp) ** 7.4 + (460. / impulse) ** 11.3)
-    return val
+    return 5 - 0.22 * np.log((40000 / overp) ** 7.4 + (460 / impulse) ** 11.3)
 
 
 

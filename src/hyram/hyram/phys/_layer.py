@@ -6,8 +6,6 @@ You should have received a copy of the GNU General Public License along with HyR
 If not, see https://www.gnu.org/licenses/.
 """
 
-from __future__ import print_function, absolute_import, division
-
 import warnings
 
 import numpy as np
@@ -28,7 +26,7 @@ class LayeringJet(Jet):
         Inputs:
         -------
         t : ndarray
-            arrray of time values to integrate over
+            array of time values to integrate over
         Vol_conc: ndarray
             gas volume (m^3) and concentration (mol/m^3) at the first time in the t array (t[0])
 
@@ -64,7 +62,7 @@ class LayeringJet(Jet):
     def _gov_eqns(self, t, Vol_conc, enclosure):
         '''
         Returns the derivitive of the volume and concentration with respect to time
-        for a buyoant gas from a released jet within a vented enclosure.  The
+        for a buoyant gas from a released jet within a vented enclosure.  The
         model is directly from Lowesmith et al. IJHE, Vol 34, 2009.
 
         Parameters

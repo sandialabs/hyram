@@ -12,7 +12,7 @@ import os
 import datetime
 import re
 
-from .exceptions import InputError
+from CoolProp import CoolProp
 
 
 def params_as_str(param_dict):
@@ -116,7 +116,7 @@ def convert_nozzle_model_to_params(nozzle_model, rel_fluid=None):
         t_param = 'solve_energy'
 
     else:  # includes hars
-        raise InputError("Nozzle model conversion", "Nozzle model not convertible")
+        raise ValueError("Nozzle model not convertible to parameters")
 
     return con_mom, t_param
 
@@ -137,7 +137,7 @@ def setup_file_log(output_dir, verbose=False, logfile='log_hyram.txt', logname='
 
     """
     if not os.path.isdir(output_dir):
-        os.mkdir(output_dir)
+        os.makedirs(output_dir)
 
     logfile = os.path.join(output_dir, logfile)
     level = logging.INFO if verbose else logging.ERROR
@@ -170,18 +170,7 @@ def setup_file_log(output_dir, verbose=False, logfile='log_hyram.txt', logname='
     log = logging.getLogger(logname)
     logging.getLogger('matplotlib.font_manager').disabled = True
 
-    # Can set level in separate step to keep descendant loggers at their original level
-    # log.setLevel(level)
-    # for handler in log.handlers:
-    #     handler.setLevel(level)
-
     log.info("Log setup complete")
-
-
-def is_fluid_specified(temp=None, pres=None, density=None, phase=None):
-    """ Verify that fluid is defined by exactly two parameters """
-    num_params = len([x for x in [temp, pres, density, phase] if x is not None])
-    return num_params == 2
 
 
 def parse_phase_key(key):
@@ -200,6 +189,154 @@ def parse_phase_key(key):
 
     """
     return key if key in ['gas', 'liquid'] else None
+
+
+def is_valid_fluid_string(fluid_str):
+    """ Validates fluid string based on CoolProp fluids. """
+    valid = False
+    for fluid in CoolProp.FluidsList():
+        if fluid_str.lower() == str(fluid).lower():
+            valid = True
+            break
+
+    return valid
+
+
+def parse_blend_dict_into_coolprop_dict(blend_dict):
+    """ Builds coolprop-ready dict with cleaned names from dict of fluids and concentrations.
+
+    Parameters
+    ----------
+    blend_dict : dict
+    fluids and concentrations, e.g. {'ch4': 0.96, 'h2': 0, 'n2': 0.04}
+
+    """
+    epsilon = 0.00001
+    if abs(sum(blend_dict.values()) - 1) > epsilon:
+        raise ValueError(f"Total blend mole fraction must equal 1.0. Provided fraction was {sum(blend_dict.values())}")
+    species_dict = {}
+    total_frac = 0
+    for key, val in blend_dict.items():
+        if val <= 0.:
+            continue
+
+        cleaned = parse_fluid_key(key)
+        if is_valid_fluid_string(cleaned):
+            val = round(val, 6)
+            total_frac += val
+            species_dict[cleaned] = val
+        else:
+            raise ValueError(f"'{cleaned}' is not a valid fluid name")
+
+    return species_dict
+
+
+def parse_coolprop_dict_into_string(cdict):
+    """
+    Converts dict of fluids and concentrations into concatenated string.
+
+    Parameters
+    ----------
+    cdict : dict
+
+    Returns
+    -------
+
+    """
+    if len(list(cdict.values())) == 1:
+        s = list(cdict.keys())[0]
+    else:
+        s = '&'.join(['%s[%f]' % (s, X) for s, X in zip(cdict.keys(), cdict.values())])
+    return s
+
+
+def is_parsed_blend_string(fluid_str):
+    """
+    True if string is combination of fuel names and concentrations.
+    Examples: True for HYDROGEN[1.000] and [HYDROGEN[0.5]&METHANE[0.5]
+    """
+    return '[' in fluid_str or '&' in fluid_str
+
+
+def parse_fluid_key(key: str) -> str:
+    """
+    Parses fluid name to match valid CoolProp fluid strings.
+    Note that 'n-' fluid names must have a capitalized root when passed to CoolProp.
+    i.e. n-propane will fail but n-Propane will work.
+
+    """
+    key = key.lower()
+    if key in ['hydrogen', 'hy', 'h2']:
+        result = 'Hydrogen'
+    elif key in ['methane', 'ch4']:
+        result = 'Methane'
+    elif key in ['propane', 'c3h8', 'n-propane']:
+        result = 'n-Propane'
+    elif key in ['nitrogen', 'n2']:
+        result = 'Nitrogen'
+    elif key in ['carbondioxide', 'co2', 'carbon dioxide']:
+        result = 'CarbonDioxide'
+    elif key in ['ethane', 'c2h6']:
+        result = 'Ethane'
+    elif key in ['n-butane', 'nbutane', 'n-c4h10']:
+        result = 'n-Butane'
+    elif key in ['n-pentane', 'npentane', 'n-c5h12']:
+        result = 'n-Pentane'
+    elif key in ['n-hexane', 'nhexane', 'n-c6h14']:
+        result = 'n-Hexane'
+
+    else:
+        matched_names = [fluid for fluid in CoolProp.FluidsList() if fluid.lower() == key]
+        if matched_names:
+            result = matched_names[0]
+        else:
+            raise ValueError(f'Name ({key}) not found in CoolProp')
+
+    return result
+
+
+def get_fluid_formula_from_name(name):
+    """ Returns shortened formula from name or name-like. For example, 'Hydrogen' returns 'h2'. """
+    name = name.lower()
+    result = name
+    if name in ['h2', 'hydrogen', 'hy']:
+        result = 'h2'
+    elif name in ['ch4', 'methane']:
+        result = 'ch4'
+    elif name in ['c3h8', 'n-propane', 'propane']:
+        result = 'c3h8'
+    elif name in ['nitrogen', 'n2']:
+        result = 'n2'
+    elif name in ['carbon dioxide', 'co2']:
+        result = 'co2'
+    elif name in ['ethane', 'c2h6']:
+        result = 'c2h6'
+    elif name in ['n-butane', 'nbutane', 'n-c4h10']:
+        result = 'n-butane'
+    elif name in ['isobutane', 'iso-butane']:
+        result = 'isobutane'
+    elif name in ['n-pentane', 'npentane', 'n-c5h12']:
+        result = 'n-pentane'
+    elif name in ['isopentane', 'iso-pentane']:
+        result = 'isopentane'
+    elif name in ['n-hexane', 'nhexane', 'n-c6h14']:
+        result = 'n-hexane'
+    return result
+
+
+def get_fluid_formula_from_blend_str(s):
+    """
+    Returns first formula from longer blend string. Examples:
+    Hydrogen[1.00] -> H2
+    Methane[0.5]&Propane[0.5] -> CH4
+
+    """
+    species_name = s
+    if '[' in s:
+        species_name = s.split('[')[0]
+    result = get_fluid_formula_from_name(species_name)
+
+    return result
 
 
 def get_temp_folder(temp_dir_name='temp'):

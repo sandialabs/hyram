@@ -12,6 +12,8 @@
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -43,6 +45,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -54,9 +57,14 @@
     <Compile Include="DummyClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>echo "Copying Python install"
+    <PostBuildEvent>echo "=== POST-BUILD EVENTS ==="
+
+echo "COPYING PYTHON INTERPRETER"
 if "$(ConfigurationName)" == "DebugOFF" (
     xcopy /E "$(ProjectDir)\python" "$(TargetDir)\python\*" /y
 ) else if "$(ConfigurationName)" == "ReleaseOFF" (
@@ -65,7 +73,7 @@ if "$(ConfigurationName)" == "DebugOFF" (
     echo "skipping python copy".
 )
 
-echo "Copying Python.Runtime DLL"
+echo "COPYING Python.Runtime DLL"
 if "$(ConfigurationName)" == "DebugOFF" (
     xcopy "$(ProjectDir)python\Lib\site-packages\Python.Runtime.dll" "$(TargetDir)" /y /D
 ) else if "$(ConfigurationName)" == "ReleaseOFF" (
@@ -74,14 +82,50 @@ if "$(ConfigurationName)" == "DebugOFF" (
     echo "skipping Python.Runtime DLL copy".
 )
 
-echo "Copying Python hyram directory"
+echo "COPYING HYRAM+ LIBS"
 if "$(ConfigurationName)" == "Debug" (
-    xcopy /E "$(ProjectDir)\..\..\hyram\hyram" "$(TargetDir)\pylibs\hyram\" /y
+    echo "COPYING INTO DEBUG"
+    xcopy /E "$(ProjectDir)\..\..\hyram" "$(TargetDir)\pylibs\hyram\" /y
+    xcopy /E "$(ProjectDir)\..\..\cs_api" "$(TargetDir)\pylibs\cs_api\" /y
 ) else if "$(ConfigurationName)" == "Release" (
-    xcopy /E "$(ProjectDir)\..\..\hyram\hyram" "$(TargetDir)\pylibs\hyram\" /y
+    echo "CLEARING &amp; COPYING INTO RELEASE"
+    del "$(TargetDir)\pylibs\hyram\*" /q /s
+    del "$(TargetDir)\pylibs\cs_api\*" /q /s
+    xcopy /E "$(ProjectDir)\..\..\hyram" "$(TargetDir)\pylibs\hyram\" /y
+    xcopy /E "$(ProjectDir)\..\..\cs_api" "$(TargetDir)\pylibs\cs_api\" /y
 ) else (
     echo "skipping python libs copy".
 )
-</PostBuildEvent>
+
+echo "CLEARING PYC FILES"
+del "$(TargetDir)\pylibs\*.pyc" /q /s
+del "$(TargetDir)\python\*.pyc" /q /s
+
+
+echo "CLEARING TEST DIRECTORIES"
+rd "$(TargetDir)\pylibs\hyram\tests" /q /s
+rd "$(TargetDir)\pylibs\hyram\.idea" /q /s
+
+rd "$(TargetDir)\pylibs\cs_api\tests" /q /s
+rd "$(TargetDir)\pylibs\cs_api\.idea" /q /s
+
+echo "=== POST-BUILD EVENTS COMPLETE ==="</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>echo "=== PRE-BUILD EVENTS ==="
+
+echo "CLEARING TEST IMAGES AND LOGS"
+del "$(ProjectDir)\..\..\hyram\tests\*.png" /q /s
+del "$(ProjectDir)\..\..\hyram\tests\temp\*.log" /q /s
+del "$(ProjectDir)\..\..\hyram\tests\temp\*.txt" /q /s
+del "$(ProjectDir)\..\..\cs_api\tests\temp\*.png" /q /s
+del "$(ProjectDir)\..\..\cs_api\tests\temp\*.log" /q /s
+del "$(ProjectDir)\..\..\cs_api\tests\temp\*.txt" /q /s
+
+echo "CLEARING .pyc FILES"
+del "$(ProjectDir)\..\..\hyram\*.pyc" /q /s
+del "$(ProjectDir)\..\..\cs_api\*.pyc" /q /s
+
+echo "=== PRE-BUILD COMPLETE ==="</PreBuildEvent>
   </PropertyGroup>
 </Project>

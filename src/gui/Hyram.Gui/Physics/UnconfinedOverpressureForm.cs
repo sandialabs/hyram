@@ -19,19 +19,17 @@ namespace SandiaNationalLaboratories.Hyram
 {
     public partial class UnconfinedOverpressureForm : UserControl
     {
+        private readonly StateContainer _state = State.Data;
         // Results
         private bool _analysisStatus;
         private string _warningMsg;
         private string _statusMsg;
         private bool _mIgnoreXyzChangeEvent = true;
 
-        private double[] _xLocs;
-        private double[] _yLocs;
-        private double[] _zLocs;
-
         private double[] _overpressures;
         private double[] _impulses;
-        private string _plotFilepath;
+        private string _overpPlotFilepath;
+        private string _impulsePlotFilepath;
         private float _massFlowRate;
 
         public UnconfinedOverpressureForm()
@@ -44,97 +42,98 @@ namespace SandiaNationalLaboratories.Hyram
             spinnerPictureBox.Hide();
             outputWarning.Hide();
 
-            methodSelector.DataSource = StateContainer.Instance.OverpressureMethods;
-            methodSelector.SelectedItem =
-                StateContainer.GetValue<UnconfinedOverpressureMethod>("unconfinedOverpressureMethod");
+            MethodSelector.DataSource = _state.OverpressureMethods;
+            FlameSpeedSelector.DataSource = _state.MachFlameSpeeds;
+            NozzleSelector.DataSource = _state.NozzleModels;
+            PhaseSelector.DataSource = _state.Phases;
 
-            flameSpeedSelector.DataSource = StateContainer.Instance.MachFlameSpeeds;
-            flameSpeedSelector.SelectedItem =
-                StateContainer.GetNdValue("overpressureFlameSpeed");
+            _state.FuelTypeChangedEvent += OnFuelChange;
 
-            notionalNozzleSelector.DataSource = StateContainer.Instance.NozzleModels;
-            notionalNozzleSelector.SelectedItem = StateContainer.GetValue<NozzleModel>("NozzleModel");
-
-            fuelPhaseSelector.DataSource = StateContainer.Instance.FluidPhases;
-            fuelPhaseSelector.SelectedItem = StateContainer.Instance.GetFluidPhase();
-
-            // Watch custom event for when fuel type selection changes, and updated displayed params to match
-            StateContainer.Instance.FuelTypeChangedEvent += delegate{RefreshParameterDisplay();};
-            RefreshParameterDisplay();
-
+            _mIgnoreXyzChangeEvent = true;
+            RefreshForm();
             // Initialize flex input
-            ParseUtility.PutDoubleArrayIntoTextBox(xLocsInput,
-                StateContainer.Instance.GetStateDefinedValueObject("overpressure.x")
-                    .GetValue(DistanceUnit.Meter));
-            ParseUtility.PutDoubleArrayIntoTextBox(yLocsInput,
-                StateContainer.Instance.GetStateDefinedValueObject("overpressure.y")
-                    .GetValue(DistanceUnit.Meter));
-            ParseUtility.PutDoubleArrayIntoTextBox(zLocsInput,
-                StateContainer.Instance.GetStateDefinedValueObject("overpressure.z")
-                    .GetValue(DistanceUnit.Meter));
-            ParseUtility.PutDoubleArrayIntoTextBox(tbContourLevels,
-                StateContainer.Instance.GetStateDefinedValueObject("overpressure.contours")
-                    .GetValue(UnitlessUnit.Unitless));  // stored as kPa
+            ParseUtility.PutDoubleArrayIntoTextBox(LocXInput, _state.OverpressureX);
+            ParseUtility.PutDoubleArrayIntoTextBox(LocYInput, _state.OverpressureY);
+            ParseUtility.PutDoubleArrayIntoTextBox(LocZInput, _state.OverpressureZ);
 
             _mIgnoreXyzChangeEvent = false;
+        }
+
+        ~UnconfinedOverpressureForm()
+        {
+            _state.FuelTypeChangedEvent -= OnFuelChange;
+        }
+
+        private void OnFuelChange(object o, EventArgs e)
+        {
+            RefreshForm();
         }
 
         /// <summary>
         /// Change which parameters are displayed based on fuel selection
         /// </summary>
-        private void RefreshParameterDisplay()
+        private void RefreshForm()
         {
-            var method = StateContainer.GetOverpressureMethod();
-            flameSpeedSelector.Visible = method == UnconfinedOverpressureMethod.BstMethod;
-            flameSpeedLabel.Visible = method == UnconfinedOverpressureMethod.BstMethod;
+            var method = _state.SelectedOverpressureMethod;
+            FlameSpeedSelector.Visible = method == _state.BstMethod;
+            flameSpeedLabel.Visible = method == _state.BstMethod;
 
-            dgInput.Rows.Clear();
+            MethodSelector.SelectedItem = _state.SelectedOverpressureMethod;
+            FlameSpeedSelector.SelectedItem = _state.OverpressureFlameSpeed;
+            NozzleSelector.DataSource = _state.NozzleModels;
+            NozzleSelector.SelectedItem = _state.Nozzle;
+            PhaseSelector.SelectedItem = _state.Phase;
+            AutoSetLimits.Checked = _state.OverpAutoLimits;
 
+            InputGrid.Rows.Clear();
+
+            bool ignoreVal = _mIgnoreXyzChangeEvent;
+            _mIgnoreXyzChangeEvent = true;
             // Create collection initially containing common params
-            ParameterWrapperCollection formParams = new ParameterWrapperCollection(new[]
+            var formParams = ParameterInput.GetParameterInputList(new[]
             {
-                new ParameterWrapper("ambientTemperature", "Ambient temperature", TempUnit.Kelvin,
-                    StockConverters.TemperatureConverter),
-                new ParameterWrapper("ambientPressure", "Ambient pressure", PressureUnit.Pa,
-                    StockConverters.PressureConverter),
-                new ParameterWrapper("orificeDiameter", "Leak diameter", DistanceUnit.Meter,
-                    StockConverters.DistanceConverter),
-                new ParameterWrapper("releaseAngle", "Release angle", AngleUnit.Radians,
-                    StockConverters.AngleConverter),
-                new ParameterWrapper("orificeDischargeCoefficient", 
-                    "Discharge coefficient", UnitlessUnit.Unitless,
-                    StockConverters.UnitlessConverter),
-                //new ParameterWrapper("relativeHumidity", "Relative humidity", UnitlessUnit.Unitless,
-                //    StockConverters.UnitlessConverter),
-                //new ParameterWrapper("releaseHeight", "Leak height from floor", DistanceUnit.Meter,
-                //    StockConverters.DistanceConverter)
+                _state.AmbientTemperature,
+                _state.AmbientPressure,
+                _state.OrificeDiameter,
+                _state.ReleaseAngle,
+                _state.OrificeDischargeCoefficient,
+                _state.FluidPressure,
             });
-
-            formParams.Add("fluidPressure",
-                new ParameterWrapper("fluidPressure", "Tank fluid pressure (absolute)",
-                    PressureUnit.Pa,
-                    StockConverters.PressureConverter));
-
-            if (FluidPhase.DisplayTemperature())
+            if (_state.DisplayTemperature())
             {
-                formParams.Add("fluidTemperature",
-                    new ParameterWrapper("fluidTemperature", "Tank fluid temperature", TempUnit.Kelvin,
-                        StockConverters.TemperatureConverter));
+                formParams.Add(new ParameterInput(_state.FluidTemperature));
+            }
+            if (method == _state.TntMethod)
+            {
+                formParams.Add(new ParameterInput(_state.TntEquivalenceFactor));
             }
 
-            if (method == UnconfinedOverpressureMethod.TntMethod)
+            if (!_state.OverpAutoLimits)
             {
-                formParams.Add("tntEquivalenceFactor",
-                    new ParameterWrapper("tntEquivalenceFactor", "TNT equivalence factor", UnitlessUnit.Unitless,
-                        StockConverters.UnitlessConverter));
+                formParams.AddRange(ParameterInput.GetParameterInputList(new[]
+                {
+                    _state.OverpXMin, _state.OverpXMax,
+                    _state.OverpYMin, _state.OverpYMax,
+                    _state.OverpZMin, _state.OverpZMax,
+
+                    _state.ImpulseXMin, _state.ImpulseXMax,
+                    _state.ImpulseYMin, _state.ImpulseYMax,
+                    _state.ImpulseZMin, _state.ImpulseZMax,
+                }));
             }
 
-            //formParams.Add("overpressure.xmin",
-            //    new ParameterWrapper("overpressure.xmin", "Plot x minimum (meters)", UnitlessUnit.Unitless,
-            //        StockConverters.UnitlessConverter));
 
-            StaticGridHelperRoutines.InitInteractiveGrid(dgInput, formParams, false);
-            dgInput.Columns[0].Width = 180;
+            GridHelpers.InitParameterGrid(InputGrid, formParams, false);
+
+            InputGrid.Columns[0].Width = 180;
+
+            OverpContourInput.Text = "";
+            ParseUtility.PutDoubleArrayIntoTextBox(OverpContourInput, _state.OverpressureContours);
+            ImpulseContourInput.Text = "";
+            ParseUtility.PutDoubleArrayIntoTextBox(ImpulseContourInput, _state.ImpulseContours);
+
+            _mIgnoreXyzChangeEvent = ignoreVal;
+
             CheckFormValid();
         }
 
@@ -143,26 +142,43 @@ namespace SandiaNationalLaboratories.Hyram
             int alertType = 0;
             string alertText = "";
 
-            if (StateContainer.GetFuel() != FuelType.Hydrogen ||
-                StateContainer.Instance.GetFluidPhase() != FluidPhase.GasDefault)
+            if (_state.GetActiveFuel() == _state.FuelBlend && _state.SelectedOverpressureMethod == _state.BauwensMethod)
+            {
+                alertText = "Cannot assess blend with Bauwens calculation method";
+                alertType = 2;
+            }
+            else if (_state.GetActiveFuel() != _state.FuelH2 || _state.Phase != _state.GasDefault)
             {
                 alertText = "Unconfined overpressure analysis currently tailored to gaseous H2";
                 alertType = 1;
             }
 
-            if (!StateContainer.ReleasePressureIsValid())
+            if (!_state.ReleasePressureIsValid())
             {
                 // if liquid, validate fuel pressure
-                alertText = MessageContainer.GetAlertMessageReleasePressureInvalid();
+                alertText = MessageContainer.ReleasePressureInvalid();
                 alertType = 2;
             }
 
-            // Verify x,y,z inputs
-            if (yLocsInput.Text.Trim().Length > 0)
+            if (_state.FuelFlowUnchoked())
             {
-                var numXElems = CountElements(xLocsInput.Text);
-                var numYElems = CountElements(yLocsInput.Text);
-                var numZElems = CountElements(zLocsInput.Text);
+                MassFlowInput.Visible = true;
+                massFlowLabel.Visible = true;
+                MassFlowInput.Text = _state.FluidMassFlow.ToString();
+            }
+            else
+            {
+                MassFlowInput.Visible = false;
+                massFlowLabel.Visible = false;
+                MassFlowInput.Text = "";
+            }
+
+            // Verify x,y,z inputs
+            if (LocYInput.Text.Trim().Length > 0)
+            {
+                var numXElems = CountElements(LocXInput.Text);
+                var numYElems = CountElements(LocYInput.Text);
+                var numZElems = CountElements(LocZInput.Text);
                 if (!(numZElems == numYElems && numZElems == numXElems))
                 {
                     alertText = "X, Y, Z location arrays must be the same size";
@@ -173,46 +189,19 @@ namespace SandiaNationalLaboratories.Hyram
                 lblZElementCount.Text = numZElems + " elements";
             }
 
-            //inputWarning.BackColor = alertType == 1 ? MainForm.WarningBackColor : MainForm.ErrorBackColor;
-            //inputWarning.ForeColor = alertType == 1 ? MainForm.WarningForeColor : MainForm.ErrorForeColor;
             inputWarning.Text = alertText;
+            inputWarning.BackColor = _state.AlertBackColors[alertType];
+            inputWarning.ForeColor = _state.AlertTextColors[alertType];
             inputWarning.Visible = (alertType != 0);
-            executeButton.Enabled = (alertType != 2);
+            SubmitBtn.Enabled = (alertType != 2);
         }
 
         private void Execute()
         {
-            Trace.TraceInformation("Gathering parameters for overpressure analysis...");
-            var ambTemp = StateContainer.GetNdValue("ambientTemperature", TempUnit.Kelvin);
-            var ambPressure = StateContainer.GetNdValue("ambientPressure", PressureUnit.Pa);
-            var relTemp = StateContainer.GetNdValue("fluidTemperature", TempUnit.Kelvin);
-            var relPres = StateContainer.GetNdValue("fluidPressure", PressureUnit.Pa);
-            var orificeDiam = StateContainer.GetNdValue("orificeDiameter", DistanceUnit.Meter);
-            var dischargeCoeff = StateContainer.GetNdValue("orificeDischargeCoefficient", UnitlessUnit.Unitless);
-            var flameSpeed = StateContainer.GetNdValue("overpressureFlameSpeed", UnitlessUnit.Unitless);
-            var tntFactor = StateContainer.GetNdValue("tntEquivalenceFactor", UnitlessUnit.Unitless);
-
-            _xLocs = StateContainer.GetNdValueList("overpressure.x", DistanceUnit.Meter);
-            _yLocs = StateContainer.GetNdValueList("overpressure.y", DistanceUnit.Meter);
-            _zLocs = StateContainer.GetNdValueList("overpressure.z", DistanceUnit.Meter);
-            var contours = StateContainer.GetNdValueList("overpressure.contours", UnitlessUnit.Unitless);
-            for (int i = 0; i < contours.Length; i++)
-            {
-                contours[i] *= 1000.0;  // convert to Pa from kPa
-            }
-
-            var notionalNozzleModel = StateContainer.GetValue<NozzleModel>("NozzleModel");
-            var method = StateContainer.GetOverpressureMethod();
-            var relAngle = StateContainer.GetNdValue("releaseAngle", AngleUnit.Radians);
-
             Trace.TraceInformation("Creating PhysicsInterface for python call");
             var physInt = new PhysicsInterface();
-
-            _analysisStatus = physInt.AnalyzeUnconfinedOverpressure(
-                ambTemp, ambPressure, relTemp, relPres, orificeDiam, relAngle, dischargeCoeff,
-                notionalNozzleModel, method, _xLocs, _yLocs, _zLocs, contours,
-                flameSpeed, tntFactor,
-                out _statusMsg, out _warningMsg, out _overpressures, out _impulses, out _plotFilepath, out _massFlowRate);
+            _analysisStatus = physInt.AnalyzeUnconfinedOverpressure(out _statusMsg, out _warningMsg, out _overpressures, out _impulses,
+                                                                    out _overpPlotFilepath, out _impulsePlotFilepath, out _massFlowRate);
             Trace.TraceInformation("PhysicsInterface call complete");
         }
 
@@ -222,29 +211,40 @@ namespace SandiaNationalLaboratories.Hyram
             {
                 MessageBox.Show(_statusMsg);
                 spinnerPictureBox.Hide();
-                executeButton.Enabled = true;
+                SubmitBtn.Enabled = true;
             }
             else if (_overpressures.Length == 0)
             {
                 MessageBox.Show("Analysis yielded no data.");
                 spinnerPictureBox.Hide();
-                executeButton.Enabled = true;
+                SubmitBtn.Enabled = true;
             }
             else
             {
-                plotBox.Load(_plotFilepath);
-                outputMassFlowRate.Text = _massFlowRate.ToString("E3");
+                if (!string.IsNullOrEmpty(_overpPlotFilepath))
+                {
+                    OverpPlotBox.Load(_overpPlotFilepath);
+                }
 
-                dgResult.Rows.Clear();
+                if (!string.IsNullOrEmpty(_impulsePlotFilepath))
+                {
+                    ImpulsePlotBox.Load(_impulsePlotFilepath);
+                }
+
+                OutputMassFlowRate.Text = _massFlowRate.ToString("E3");
+
+                ResultGrid.Rows.Clear();
                 for (var index = 0; index < _overpressures.Length; index++)
                 {
+                    double overp = _overpressures[index] / 1000;
+                    double imp = _impulses[index] / 1000;
                     var values = new object[5];
-                    values[0] = _xLocs[index].ToString("F4");
-                    values[1] = _yLocs[index].ToString("F4");
-                    values[2] = _zLocs[index].ToString("F4");
-                    values[3] = _overpressures[index].ToString("E4");
-                    values[4] = _impulses[index].ToString("E4");
-                    dgResult.Rows.Add(values);
+                    values[0] = _state.OverpressureX[index].ToString("F4");
+                    values[1] = _state.OverpressureY[index].ToString("F4");
+                    values[2] = _state.OverpressureZ[index].ToString("F4");
+                    values[3] = overp.ToString("E4");
+                    values[4] = imp.ToString("E4");
+                    ResultGrid.Rows.Add(values);
                 }
 
                 if (_warningMsg.Length != 0)
@@ -254,10 +254,26 @@ namespace SandiaNationalLaboratories.Hyram
                 }
 
                 spinnerPictureBox.Hide();
-                executeButton.Enabled = true;
-                tcIO.SelectTab(outputTab);
+                SubmitBtn.Enabled = true;
+                outputTabControl.SelectTab(dataTab);
+                mainTabControl.SelectTab(outputTab);
 
             }
+        }
+
+        public static double[] ExtractFloatArrayFromDelimitedString(string delimitedString, char delimiter)
+        {
+            char[] delimiters = { delimiter };
+            var values = delimitedString.Split(delimiters);
+            var result = new double[values.Length];
+            for (var index = 0; index < result.Length; index++)
+            {
+                result[index] = double.NaN;
+
+                if (double.TryParse(values[index], out double parsedValue)) result[index] = parsedValue;
+            }
+
+            return result;
         }
 
         private void ExtractAndSaveXyzValues()
@@ -265,19 +281,16 @@ namespace SandiaNationalLaboratories.Hyram
             if (!_mIgnoreXyzChangeEvent)
             {
                 var xValues =
-                    ExtractFloatArrayFromDelimitedString(xLocsInput.Text, ',');
+                    ExtractFloatArrayFromDelimitedString(LocXInput.Text, ',');
                 var yValues =
-                    ExtractFloatArrayFromDelimitedString(yLocsInput.Text, ',');
+                    ExtractFloatArrayFromDelimitedString(LocYInput.Text, ',');
                 var zValues =
-                    ExtractFloatArrayFromDelimitedString(zLocsInput.Text, ',');
+                    ExtractFloatArrayFromDelimitedString(LocZInput.Text, ',');
                 if (xValues.Length == yValues.Length && yValues.Length == zValues.Length && zValues.Length > 0)
                 {
-                    StateContainer.SetValue("overpressure.x",
-                        new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, xValues));
-                    StateContainer.SetValue("overpressure.y",
-                        new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, yValues));
-                    StateContainer.SetValue("overpressure.z",
-                        new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, zValues));
+                    _state.OverpressureX = xValues;
+                    _state.OverpressureY = yValues;
+                    _state.OverpressureZ = zValues;
                 }
             }
             CheckFormValid();
@@ -289,35 +302,35 @@ namespace SandiaNationalLaboratories.Hyram
             return values.Length;
         }
 
-        private async void executeButton_Click(object sender, EventArgs e)
+        private async void SubmitBtn_Click(object sender, EventArgs e)
         {
-            if (plotBox.Image != null)
+            if (OverpPlotBox.Image != null)
             {
-                plotBox.Image.Dispose();
-                plotBox.Image = null;
+                OverpPlotBox.Image.Dispose();
+                OverpPlotBox.Image = null;
             }
-            dgResult.Rows.Clear();
+            ResultGrid.Rows.Clear();
             outputWarning.Hide();
             spinnerPictureBox.Show();
-            executeButton.Enabled = false;
+            SubmitBtn.Enabled = false;
             await Task.Run(() => Execute());
             DisplayResults();
         }
 
-        private void dgInput_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        private void GridInput_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            StaticGridHelperRoutines.ProcessDataGridViewRowValueChangedEvent((DataGridView) sender, e, 1, 2, false);
+            GridHelpers.ChangeParameterValue((DataGridView) sender, e, 1, 2);
             CheckFormValid();
         }
 
-        private void btnCopyToClipboard_Click(object sender, EventArgs e)
+        private void CopyBtn_Click(object sender, EventArgs e)
         {
             try
             {
                 var sa = new EditableStringArray();
                 string thisLine = null;
 
-                foreach (DataGridViewColumn thisColumn in dgResult.Columns)
+                foreach (DataGridViewColumn thisColumn in ResultGrid.Columns)
                     if (thisLine == null)
                         thisLine = thisColumn.HeaderText;
                     else
@@ -325,7 +338,7 @@ namespace SandiaNationalLaboratories.Hyram
 
                 sa.Append(thisLine);
 
-                foreach (DataGridViewRow thisRow in dgResult.Rows)
+                foreach (DataGridViewRow thisRow in ResultGrid.Rows)
                 {
                     thisLine = null;
                     foreach (DataGridViewCell thisCell in thisRow.Cells)
@@ -353,61 +366,82 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
-        private void notionalNozzleSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        private void NozzleSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            string modelName = notionalNozzleSelector.SelectedItem.ToString();
-            StateContainer.SetValue("NozzleModel", NozzleModel.ParseNozzleModelName(modelName));
+            _state.Nozzle = (ModelPair)NozzleSelector.SelectedItem;
         }
 
-        private void fuelPhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        private void PhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            StateContainer.SetReleasePhase((FluidPhase)fuelPhaseSelector.SelectedItem);
-            RefreshParameterDisplay();
+            _state.Phase = (ModelPair)PhaseSelector.SelectedItem;
+            RefreshForm();
         }
 
-        private void methodSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        private void MethodSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            string methodName = methodSelector.SelectedItem.ToString();
-            UnconfinedOverpressureMethod method = UnconfinedOverpressureMethod.ParseName(methodName);
-            StateContainer.SetValue("UnconfinedOverpressureMethod", method);
-
-            RefreshParameterDisplay();
+            _state.SelectedOverpressureMethod = (ModelPair)MethodSelector.SelectedItem;
+            RefreshForm();
         }
 
-        private void xLocs_TextChanged(object sender, EventArgs e)
-        {
-            ExtractAndSaveXyzValues();
-        }
-        private void yLocs_TextChanged(object sender, EventArgs e)
-        {
-            ExtractAndSaveXyzValues();
-        }
-        private void zLocs_TextChanged(object sender, EventArgs e)
+        private void Locations_TextChanged(object sender, EventArgs e)
         {
             ExtractAndSaveXyzValues();
         }
 
-        private void flameSpeedSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        private void FlameSpeedSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            double speed = (double)flameSpeedSelector.SelectedItem;
-            StateContainer.SetNdValue("overpressureFlameSpeed", UnitlessUnit.Unitless, speed);
+            double speed = (double)FlameSpeedSelector.SelectedItem;
+            _state.OverpressureFlameSpeed = speed;
         }
 
-        private void tbContourLevels_TextChanged(object sender, EventArgs e)
+        private void OverpContourInput_TextChanged(object sender, EventArgs e)
         {
             if (!_mIgnoreXyzChangeEvent)
             {
-                var contours = new List<double>();
+                var overpContours = new List<double>();
 
-                string contourText = tbContourLevels.Text;
+                string contourText = OverpContourInput.Text;
                 Regex.Replace(contourText, @"\s+", "");  // trim whitespace
                 if (contourText != "")
                 {
-                    contours = new List<double>(ExtractFloatArrayFromDelimitedString(tbContourLevels.Text, ','));
+                    overpContours = new List<double>(ExtractFloatArrayFromDelimitedString(OverpContourInput.Text, ','));
                 }
-                StateContainer.Instance.Parameters["overpressure.contours"] =
-                    new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, contours.ToArray(),
-                        0.0);
+
+                _state.OverpressureContours = overpContours.ToArray();
+            }
+        }
+
+        private void ImpulseContourInput_TextChanged(object sender, EventArgs e)
+        {
+            if (!_mIgnoreXyzChangeEvent)
+            {
+                var impulseContours = new List<double>();
+                string contourText = ImpulseContourInput.Text;
+                Regex.Replace(contourText, @"\s+", "");  // trim whitespace
+                if (contourText != "")
+                {
+                    impulseContours = new List<double>(ExtractFloatArrayFromDelimitedString(ImpulseContourInput.Text, ','));
+                }
+
+                _state.ImpulseContours = impulseContours.ToArray();
+            }
+        }
+
+        private void AutoSetLimits_CheckedChanged(object sender, EventArgs e)
+        {
+            _state.OverpAutoLimits = AutoSetLimits.Checked;
+            RefreshForm();
+        }
+
+        private void MassFlowInput_TextChanged(object sender, EventArgs e)
+        {
+            if (double.TryParse(MassFlowInput.Text, out double result))
+            {
+                _state.FluidMassFlow = result;
+            }
+            else
+            {
+                MassFlowInput.Text = _state.FluidMassFlow.ToString();
             }
         }
     }

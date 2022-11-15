@@ -17,7 +17,6 @@ namespace SandiaNationalLaboratories.Hyram
     {
         public ProgressDisplay()
         {
-            ContentPanel.SetNarrative(this);
             InitializeComponent();
             Load += ProgressDisplay_Load;
         }

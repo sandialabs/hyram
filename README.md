@@ -5,7 +5,7 @@ Additional descriptions and documentation, as well as a Windows installer, can b
 
 &nbsp;
 ## Copyright and License
-The copyright language is availbile in the [COPYRIGHT.txt](./COPYRIGHT.txt) file.
+The copyright language is available in the [COPYRIGHT.txt](./COPYRIGHT.txt) file.
 The license, as well as terms and conditions, are available in the [COPYING.txt](./COPYING.txt) file. 
 
 &nbsp;
@@ -36,6 +36,7 @@ $
     │   ├───Hyram.State
     │   ├───Hyram.Units
     │   └───Hyram.Utilities
+    ├───cs_api
     └───hyram
         ├───tests
         └───hyram
@@ -46,6 +47,7 @@ $
 
 * `src` - Project source code, including C# GUI and python modules
 * `src/gui` - Front-end C# interface providing convenient access to HyRAM+ tools
+* `src/cs_api` - Python functions providing C# access to HyRAM+ python code via the python.NET library.
 * `src/hyram` - Python module of HyRAM+ tools including physics, quantitative risk assessment, and miscellaneous utilities
     * Additional information on the usage and development of the HyRAM+ Python module can be found in the [README](./src/hyram/README.md) of that directory
 * `src/hyram/hyram` - Python source code for physics and risk models

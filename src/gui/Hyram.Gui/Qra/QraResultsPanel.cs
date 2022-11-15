@@ -17,6 +17,8 @@ namespace SandiaNationalLaboratories.Hyram
 {
     public partial class QraResultsPanel : UserControl
     {
+        private bool _hasImpulseResults = true;
+
         public QraResultsPanel()
         {
             InitializeComponent();
@@ -116,8 +118,9 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void GenerateResults()
         {
-            ContentPanel.SetNarrative(this, Narratives.QraOutputDescrip);
-            var result = StateContainer.GetValue<QraResult>("Result");
+            var result = (QraResult) State.Data.QraResult;
+
+            _hasImpulseResults = result.ImpulsePlotFiles.Length > 0;
 
             // Set risk metrics
             dgRiskMetrics.Rows[0].Cells[1].Value = result.TotalPll;
@@ -166,7 +169,7 @@ namespace SandiaNationalLaboratories.Hyram
             for (var i = 0; i < numPositions; i++)
             {
                 double[] fluxes = result.PositionQrads[i];
-                double[] overpressures = result.PositionOverpressures[i];
+                double[] overps = result.PositionOverpressures[i];
                 double[] impulses = result.PositionImpulses[i];
 
                 thermalDataGrid.Rows.Add(i + 1,
@@ -175,11 +178,22 @@ namespace SandiaNationalLaboratories.Hyram
 
                 overpressureDataGrid.Rows.Add(i + 1,
                     posXs[i], posYs[i], posZs[i],
-                    overpressures[0], overpressures[1], overpressures[2], overpressures[3], overpressures[4]);
+                    overps[0],
+                    overps[1],
+                    overps[2],
+                    overps[3],
+                    overps[4]);
 
-                impulseDataGrid.Rows.Add(i + 1,
-                    posXs[i], posYs[i], posZs[i],
-                    impulses[0], impulses[1], impulses[2], impulses[3], impulses[4]);
+                if (_hasImpulseResults)
+                {
+                    impulseDataGrid.Rows.Add(i + 1,
+                        posXs[i], posYs[i], posZs[i],
+                        impulses[0] / 1000,
+                        impulses[1] / 1000,
+                        impulses[2] / 1000,
+                        impulses[3] / 1000,
+                        impulses[4] / 1000);
+                }
             }
 
             // Load overpressure data
@@ -191,7 +205,7 @@ namespace SandiaNationalLaboratories.Hyram
             overpressurePic5.Load(result.OverpressurePlotFiles[4]);
 
             // Load impulse data
-            if (result.ImpulsePlotFiles.Length == 5)
+            if (_hasImpulseResults)
             {
                 impulsePlotTabs.Visible = true;
                 impulseDataTab.Enabled = true;
@@ -266,7 +280,6 @@ namespace SandiaNationalLaboratories.Hyram
                 // Display failure/accident data only for 100% leak (assuming user didn't override H2 release value)
             {
                 dgv.Rows.Add();
-                //double ManualOverride = StateContainer.GetNDValue("Failure.ManualOverride");
                 if (leakRes.VehicleFailureOverride != -1)
                 {
                     dgv.Rows.Add(nextRow, "100% H2 Release from Accidents and Shutdown Failures",
@@ -291,6 +304,16 @@ namespace SandiaNationalLaboratories.Hyram
         private void dgRanking_SortCompare(object sender, DataGridViewSortCompareEventArgs e)
         {
             QuickFunctions.PerformNumericSortOnGrid(sender, e);
+        }
+
+        private void qraResultTabs_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (!_hasImpulseResults && qraResultTabs.SelectedTab == impulseTab)
+            {
+                MessageBox.Show("Overpressure method 'Bauwens' does not produce impulse values");
+                qraResultTabs.SelectedTab = riskMetricsTab;
+            }
+
         }
     }
 }

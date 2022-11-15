@@ -30,15 +30,16 @@
             // tbNarrative
             // 
             this.tbNarrative.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.tbNarrative.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.tbNarrative.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.tbNarrative.Dock = System.Windows.Forms.DockStyle.Top;
             this.tbNarrative.Location = new System.Drawing.Point(0, 0);
             this.tbNarrative.Margin = new System.Windows.Forms.Padding(6);
             this.tbNarrative.Name = "tbNarrative";
             this.tbNarrative.ReadOnly = true;
-            this.tbNarrative.Size = new System.Drawing.Size(808, 86);
+            this.tbNarrative.Size = new System.Drawing.Size(992, 86);
             this.tbNarrative.TabIndex = 4;
             this.tbNarrative.Text = "";
+            this.tbNarrative.Enter += new System.EventHandler(this.tbNarrative_Enter);
             // 
             // ChildPane
             // 
@@ -46,7 +47,7 @@
             this.ChildPane.Location = new System.Drawing.Point(0, 86);
             this.ChildPane.Margin = new System.Windows.Forms.Padding(3, 3, 0, 3);
             this.ChildPane.Name = "ChildPane";
-            this.ChildPane.Size = new System.Drawing.Size(808, 527);
+            this.ChildPane.Size = new System.Drawing.Size(992, 594);
             this.ChildPane.TabIndex = 6;
             // 
             // ContentPanel
@@ -56,7 +57,7 @@
             this.Controls.Add(this.ChildPane);
             this.Controls.Add(this.tbNarrative);
             this.Name = "ContentPanel";
-            this.Size = new System.Drawing.Size(808, 613);
+            this.Size = new System.Drawing.Size(992, 680);
             this.Load += new System.EventHandler(this._ContentPanel_Load);
             this.ResumeLayout(false);
 

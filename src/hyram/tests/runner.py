@@ -6,20 +6,22 @@ You should have received a copy of the GNU General Public License along with HyR
 If not, see https://www.gnu.org/licenses/.
 """
 
-"""
-Alternately, tests can be run using the Python `unittest` framework
-For test discovery, all tests will be located in this "tests" directory and will match the pattern: 
-    `test_*.py`.
-"""
 
 import unittest
-# Be careful about shadowing GUI tests pkg; added 'hyram.' for this
-from tests import (test_c_api_etk, test_c_api_phys, test_c_api_jet_plume,
-                   test_c_api_qra, test_c_api_overpressure,
-                   test_qra_analysis, test_qra_effects, test_qra_fatalities,
-                   test_qra_ignition_probs, test_qra_pipe_size,
-                   test_qra_positions, test_qra_probits, test_qra_risk,
-                   test_phys_api, test_phys_flame, test_phys_overpressure)
+
+from tests import test_phys_api
+from tests import test_phys_flame
+from tests import test_phys_fluid
+from tests import test_phys_overpressure
+from tests import test_phys_utils
+from tests import test_qra_analysis
+from tests import test_qra_effects
+from tests import test_qra_consequence
+from tests import test_qra_ignition_probs
+from tests import test_qra_pipe_size
+from tests import test_qra_positions
+from tests import test_qra_probits
+from tests import test_qra_risk
 
 
 def suite():
@@ -28,44 +30,24 @@ def suite():
 
     format for adding whole class of tests:
         suite.addTest(unittest.makeSuite(filename.TestClassName))
+
+    Alternately, tests can be run using the Python `unittest` framework
+    For test discovery, all tests will be located in this "tests" directory and will match the pattern:
+    `test_*.py`.
     """
     suite = unittest.TestSuite()
 
-    do_test_c_api_etk = True
-    do_test_c_api_phys = True
-    do_test_c_api_qra = True
     do_test_qra = True
     do_test_phys_api = True
     do_test_phys = True
 
-    # C-API TESTS
-    if do_test_c_api_etk:
-        suite.addTest(unittest.makeSuite(test_c_api_etk.ETKMassFlowTestCase))
-        suite.addTest(unittest.makeSuite(test_c_api_etk.ETKTankMassTestCase))
-        suite.addTest(unittest.makeSuite(test_c_api_etk.ETKTPDTestCase))
-        suite.addTest(unittest.makeSuite(test_c_api_etk.ETKTntMassTestCase))
-
-    if do_test_c_api_phys:
-        suite.addTest(unittest.makeSuite(test_c_api_jet_plume.H2JetPlumeTestCase))
-        suite.addTest(unittest.makeSuite(test_c_api_jet_plume.LH2JetPlumeTestCase))
-        suite.addTest(unittest.makeSuite(test_c_api_phys.IndoorReleaseTestCase))
-        suite.addTest(unittest.makeSuite(test_c_api_phys.TestFlameTempPlotGeneration))
-        suite.addTest(unittest.makeSuite(test_c_api_phys.TestRadHeatAnalysis))
-        suite.addTest(unittest.makeSuite(test_c_api_overpressure.OverpressureTestCase))
-
-    if do_test_c_api_qra:
-        suite.addTest(unittest.makeSuite(test_c_api_qra.TestHydrogen))
-        suite.addTest(unittest.makeSuite(test_c_api_qra.TestMethane))
-        suite.addTest(unittest.makeSuite(test_c_api_qra.TestPropane))
-
-    # QRA TESTS
     if do_test_qra:
         suite.addTest(unittest.makeSuite(test_qra_analysis.TestAnalysis))
         suite.addTest(unittest.makeSuite(test_qra_effects.TestThermalEffects))
         suite.addTest(unittest.makeSuite(test_qra_effects.TestOverpressureEffects))
         suite.addTest(unittest.makeSuite(test_qra_effects.TestEffectPlots))
-        suite.addTest(unittest.makeSuite(test_qra_fatalities.TestThermalFatalitiesCalc))
-        suite.addTest(unittest.makeSuite(test_qra_fatalities.TestOverpressureFatalitiesCalc))
+        suite.addTest(unittest.makeSuite(test_qra_consequence.TestThermalFatalitiesCalc))
+        suite.addTest(unittest.makeSuite(test_qra_consequence.TestOverpressureFatalitiesCalc))
         suite.addTest(unittest.makeSuite(test_qra_ignition_probs.TestIgnitionProbability))
         suite.addTest(unittest.makeSuite(test_qra_pipe_size.TestPipeSizeCalcs))
         suite.addTest(unittest.makeSuite(test_qra_positions.TestPositionGenerator))
@@ -77,12 +59,16 @@ def suite():
 
     # PHYSICS TESTS
     if do_test_phys_api:
-        suite.addTest(unittest.makeSuite(test_phys_api.TestETKTemperaturePressureDensity))
-        suite.addTest(unittest.makeSuite(test_phys_api.TestPlumeDispersion))
-        suite.addTest(unittest.makeSuite(test_phys_api.TestJetFlameAnalysis))
+        suite.addTest(unittest.makeSuite(test_phys_api.EtkTpdTestCase))
+        suite.addTest(unittest.makeSuite(test_phys_api.TestETKTNTEquivalentMass))
+        suite.addTest(unittest.makeSuite(test_phys_api.PlumeDispersionTestCase))
+        suite.addTest(unittest.makeSuite(test_phys_api.JetFlameAnalysisTestCase))
+        suite.addTest(unittest.makeSuite(test_phys_api.AccumulationTestCase))
         suite.addTest(unittest.makeSuite(test_phys_api.OverpressureTestCase))
 
     if do_test_phys:
+        suite.addTest(unittest.makeSuite(test_phys_fluid.PureFluidTestCase))
+        suite.addTest(unittest.makeSuite(test_phys_fluid.BlendFluidTestCase))
         suite.addTest(unittest.makeSuite(test_phys_flame.TestAtmosphericTransmissivity))
         suite.addTest(unittest.makeSuite(test_phys_flame.TestFlameObject))
         suite.addTest(unittest.makeSuite(test_phys_overpressure.GenericMethodTestCase))
@@ -90,8 +76,11 @@ def suite():
         suite.addTest(unittest.makeSuite(test_phys_overpressure.TntMethodTestCase))
         suite.addTest(unittest.makeSuite(test_phys_overpressure.BauwensMethodTestCase))
         suite.addTest(unittest.makeSuite(test_phys_overpressure.TestJallaisOverpressureH2))
+        suite.addTest(unittest.makeSuite(test_phys_overpressure.OverpressureBlendInputTestCase))
+        suite.addTest(unittest.makeSuite(test_phys_utils.TestGetDistanceToEffect))
 
     return suite
+
 
 
 if __name__ == '__main__':

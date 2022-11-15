@@ -6,9 +6,6 @@ You should have received a copy of the GNU General Public License along with HyR
 If not, see https://www.gnu.org/licenses/.
 """
 
-
-from __future__ import print_function, absolute_import, division
-
 import logging
 import warnings
 
@@ -19,7 +16,7 @@ import scipy.constants as const
 from matplotlib.collections import LineCollection
 from scipy import interpolate
 
-from ._fuel_props import Fuel_Properties
+from ._fuel_props import FuelProperties
 from ._comps import Fluid, Orifice
 from ._layer import LayeringJet
 from ._therm import Combustion
@@ -95,10 +92,10 @@ class IndoorRelease:
             number of time divisions to get to steady state
         '''
         if X_lean is None:
-            fuel_props = Fuel_Properties(source.fluid.species)
+            fuel_props = FuelProperties(source.fluid.species)
             X_lean = fuel_props.LFL
         if X_rich is None:
-            fuel_props = Fuel_Properties(source.fluid.species)
+            fuel_props = FuelProperties(source.fluid.species)
             X_rich = fuel_props.UFL
 
         params = locals()
@@ -120,10 +117,11 @@ class IndoorRelease:
             # Different jet/plume at each time step for blowdown
             mdots, gas_list, ts, _ = source.empty(orifice, ambient.P,
                                                   heat_flux, nmax, m_empty, p_empty_percent)
+            gas_list = gas_list.copy()
             if tmax is not None:
                 if tmax > ts[-1]:
                     ts = np.append(ts, tmax)
-                    gas_list.append(Fluid(T = ambient.T, P = ambient.P, species = source.fluid.species))
+                    gas_list.append(Fluid(species = source.fluid.species, T = ambient.T, P = ambient.P))
                     mdots = np.append(mdots, 1e-10)
                 else:
                     i = np.argmax(np.array(ts) > tmax)+1
@@ -131,7 +129,7 @@ class IndoorRelease:
                     gas_list = gas_list[:i]
                     mdots = mdots[:i]
         # Source fluid at ambient conditions
-        gas = Fluid(T = ambient.T, P = ambient.P, species = source.fluid.species)
+        gas = Fluid(species = source.fluid.species, T = ambient.T, P = ambient.P)
         self.comb = Combustion(gas)
         self.enclosure = enclosure
         
@@ -240,14 +238,14 @@ class IndoorRelease:
         ax.set_xlabel('Time [s]')
         ax.set_ylabel('Fuel Mass Flow Rate [kg/s]')
         return fig
-
+    
     def plot_layer(self):
         fig, ax = plt.subplots(2, 1, sharex = True)
         l1 = ax[0].plot(self.t_layer, np.array(self.x_layer)*100,
                      label = 'Mole Fraction Fuel')
         ax[0].set_ylabel('%Fuel in Layer\n(Molar or Volume)')
         i = np.argmin(np.abs(self.t_layer - (np.max(self.t_layer)
-                                        - np.min(self.t_layer)) / 2.0))
+                                        - np.min(self.t_layer)) / 2))
         l2 = ax[1].plot(self.t_layer, self.H_layer,
                       'g', label="Height of Layer")
         ax[1].set_ylabel('Layer Thickness  [m]\n(From Ceiling)')
@@ -262,14 +260,14 @@ class IndoorRelease:
                  label='Combined')
         ax.set_xlabel('Time [s]')
         ax.set_ylabel('Flammable Fuel Mass [kg]')
-        ax.legend(ncol=3, loc='lower center', bbox_to_anchor=(0.5, 1.0),
+        ax.legend(ncol=3, loc='lower center', bbox_to_anchor=(0.5, 1),
                   fancybox=True)
         return fig
 
     def plot_overpressure(self, data=None, limit=None):
         fig, ax = plt.subplots()
-        ax.plot(self.t_layer, np.array(self.dP_layer)/1000., label='Layer')
-        ax.plot(self.t_layer, np.array(self.dP_tot)/1000., label='Combined')
+        ax.plot(self.t_layer, np.array(self.dP_layer)/1000, label='Layer')
+        ax.plot(self.t_layer, np.array(self.dP_tot)/1000, label='Combined')
         if data is not None:
             i = 0
             cs = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
@@ -281,7 +279,7 @@ class IndoorRelease:
                 ax.axhline(l, color='k', dashes=(1, 1))
         ax.set_xlabel('Ignition Delay Time [s]')
         ax.set_ylabel('Overpressure [kPa]')
-        ax.legend(ncol=2, loc='lower center', bbox_to_anchor=(0.5, 1.0),
+        ax.legend(ncol=2, loc='lower center', bbox_to_anchor=(0.5, 1),
                   fancybox=True)
         return fig
 
@@ -334,7 +332,7 @@ class IndoorRelease:
            concentrations(s) at time t (%)
         '''
         lc = interpolate.interp1d(self.t_layer, self.x_layer, bounds_error = False)
-        return 100.0 * lc(t)
+        return 100 * lc(t)
 
     def max_p_t(self):
         '''

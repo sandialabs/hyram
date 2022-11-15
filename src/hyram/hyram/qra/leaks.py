@@ -24,11 +24,11 @@ class LeakSizeResult:
         self.descrip = "{:06.2f}% Release".format(leak_size)
 
         # User-provided frequency value for vehicle fueling failures. Used in 100% release only.
-        # All other releases should be set to 'None'. If no override, should be -1.
+        # All other releases should be set to 'None'. If no override, should be -1
         self.fueling_fail_freq_override = None
 
         # User-provided value for frequency of this release. -1 if not used
-        self.release_freq_override = -1.
+        self.release_freq_override = -1
 
         # Other failures. Currently used in 100% release only
         self.p_overp_rupture = None
@@ -46,25 +46,21 @@ class LeakSizeResult:
         self.p_mvalve_ftc = None
         self.f_mvalve_ftc = None
 
-        self.p_jetfire = None
-        self.p_explos = None
-        self.p_no_ign = None
-        self.p_shutdown = None
-
         self.mass_flow_rate = None
         self.leak_diam = None
 
-        self.shutdown_avg_events = None
-        self.jetfire_avg_events = None
-        self.explos_avg_events = None
-        self.no_ign_avg_events = None
+        self.list_event_names = []
+        self.list_event_keys = []
+        self.list_p_events = []
+        self.list_avg_events = []
+        self.list_pll_contrib = []
 
-        self.jetfire_pll_contrib = None
-        self.explos_pll_contrib = None
+        # Store list data in dict format for easier GUI consumption, e.g. {id, label, prob, events, pll}
+        self.event_dicts = []
 
         self.fueling_fail_freq = None
         self.component_leak_freqs = {}
-        self.total_release_freq = 0.
+        self.total_release_freq = 0
 
     def _set_rounded_attr(self, attr_name, val):
         """ Helper func to assign probability parameters """
@@ -78,7 +74,10 @@ class LeakSizeResult:
         failure_set : ComponentFailureSet
 
         """
-        if not failure_set.use_override:
+        if failure_set.use_override:
+            self.fueling_fail_freq_override = failure_set.f_fueling_fail
+        else:
+            self.fueling_fail_freq_override = None
             self.p_overp_rupture = failure_set.p_overp_rupture
             self.f_overp_rupture = failure_set.f_overp_rupture
             self.p_driveoff = failure_set.p_driveoff
@@ -97,25 +96,30 @@ class LeakSizeResult:
         return "\n".join(["{}: {:.3g}".format(key, val) for key, val in self.component_leak_freqs.items()])
 
     def sum_probabilities(self):
-        return self.p_shutdown + self.p_jetfire + self.p_explos + self.p_no_ign
+        return sum(self.list_p_events)
 
     def sum_events(self):
-        return self.shutdown_avg_events + self.jetfire_avg_events + self.explos_avg_events + self.no_ign_avg_events
+        return sum(self.list_avg_events)
 
     def sum_plls(self):
-        return self.explos_pll_contrib + self.jetfire_pll_contrib
+        return sum(self.list_pll_contrib)
 
     def get_result_dicts(self):
-        """ Get dict of event data (for pretty-printing in table) """
-        return [
-            {'label': 'Shutdown', 'prob': self.p_shutdown, 'events': self.shutdown_avg_events, 'pll': 0},
-            {'label': 'Jetfire', 'prob': self.p_jetfire, 'events': self.jetfire_avg_events,
-             'pll': self.jetfire_pll_contrib},
-            {'label': 'Explosion', 'prob': self.p_explos, 'events': self.explos_avg_events,
-             'pll': self.explos_pll_contrib},
-            {'label': 'No ignition', 'prob': self.p_no_ign, 'events': self.no_ign_avg_events, 'pll': 0},
-            {'label': 'TOTAL', 'prob': self.sum_probabilities(), 'events': self.sum_events(), 'pll': self.sum_plls()}
-        ]
+        """ Get dict of event data """
+        result_dicts = []
+        for i, name in enumerate(self.list_event_names):
+            rdict = {'label': name,
+                     'key': self.list_event_keys[i],
+                     'prob': self.list_p_events[i],
+                     'events': self.list_avg_events[i],
+                     'pll': self.list_pll_contrib[i]}
+            result_dicts.append(rdict)
+
+        total_dict = {'label': 'TOTAL', 'key': 'tot',
+                      'prob': self.sum_probabilities(),
+                      'events': self.sum_events(), 'pll': self.sum_plls()}
+        result_dicts.append(total_dict)
+        return result_dicts
 
     def get_vehicle_fail_probabilities(self):
         return [
@@ -194,7 +198,7 @@ class Leak:
     description : str
         Optional description of leak instance.
     size : float
-        Release size, as percentage of total orifice diameter. Current hard-coded options are 0.01, 0.1, 1, 10, 100
+        Release size, as percentage of total orifice diameter
     mu : float
         Mean of associated normal distribution
     sigma : float
@@ -220,7 +224,7 @@ class Leak:
     """
 
     def __init__(self, size, mu, sigma, description=''):
-        if size < 0. or size > 100.:
+        if size < 0 or size > 100:
             raise ValueError("Leak size {} is not valid. Size must be between 0 and 100%".format(size))
         if mu in [None, "", np.nan] or sigma in [None, "", np.nan]:
             msg = ("Leak probability parameters for size {}% invalid. Must include valid mu and sigma."

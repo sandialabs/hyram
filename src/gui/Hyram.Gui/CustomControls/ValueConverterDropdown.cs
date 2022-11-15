@@ -68,10 +68,8 @@ namespace SandiaNationalLaboratories.Hyram
 
         public double ConvertValue(Enum oldUnit, Enum newUnit, double value)
         {
-            var valArray = new double[1] {value};
-
-            var cv = new ConvertibleValue(_mConverter, oldUnit, valArray);
-            return cv.GetValue(newUnit)[0];
+            var cv = new Parameter(_mConverter, oldUnit, value);
+            return cv.GetValue(newUnit);
         }
     }
 }

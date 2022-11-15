@@ -6,33 +6,33 @@ You should have received a copy of the GNU General Public License along with HyR
 If not, see https://www.gnu.org/licenses/.
 """
 
-from __future__ import print_function, absolute_import, division
-
 import copy
 import warnings
 import logging
+import time
 
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy import integrate, optimize
 
 from ._therm import CoolPropWrapper
 from ..utilities.custom_warnings import PhysicsWarning
+from ..utilities import misc_utils
 
 
 log = logging.getLogger(__name__)
 
 
 class Fluid:
-    def __init__(self, T=None, P=None, rho=None, v=0.,
-                 species='H2', phase=None, therm=None):
-        '''
+    def __init__(self, species=None, T=None, P=None, rho=None, phase=None, v=0, therm=None):
+        """
         class used to describe a fluid (usually a gas)
         two of four (T, P, rho, phase) are needed to fully define the fluid
         
         Parameters
         ----------
-        therm : thermodynamic class
-            a thermodynamic class that is used to relate state variables
+        species: string or dictionary
+            species (either formula or name - see CoolProp documentation) or dictionary of {species:molefraction}
         T : float
             temperature (K)
         P: float
@@ -41,14 +41,33 @@ class Fluid:
             density (kg/m^3)
         v: float
             velocity (m/s)
-        species: string
-            species (either formula or name - see CoolProp documentation)
         phase: {None, 'gas', 'liquid'}
-            either 'gas' or 'liquid' if fluid is at the satrated state.
-        '''
-        if therm is None:
-            therm = CoolPropWrapper(species)
+            either 'gas' or 'liquid' if fluid is at the saturated state.
+        therm : thermodynamic class
+            a thermodynamic class that is used to relate state variables
 
+        """
+        if misc_utils.is_parsed_blend_string(species):
+            self.species = species
+
+        else:
+            if type(species) == str:
+                cleaned = misc_utils.parse_fluid_key(species)
+                if misc_utils.is_valid_fluid_string(cleaned):
+                    self.species = cleaned
+                else:
+                    raise ValueError(f"'{cleaned}' is not a valid fluid name")
+
+            elif type(species) == dict:
+                single_species = len(species) == 1
+                # Rebuild dict to parse and validate fluid names
+                species = misc_utils.parse_blend_dict_into_coolprop_dict(species)
+                self.species = misc_utils.parse_coolprop_dict_into_string(species)
+                if single_species:  # e.g. Hydrogen[1.00] -> Hydrogen
+                    self.species = self.species.split('[')[0]
+
+        if therm is None:
+            therm = CoolPropWrapper(self.species)
         if phase is not None:
             if T is not None and P is None and rho is None:
                 rho, P = therm.rho_P(T, phase)
@@ -57,7 +76,7 @@ class Fluid:
             elif rho is not None and T is None and P is None:
                 P, T = therm.P_T(rho, phase)
             else:
-                raise ValueError('Fluid not properly defined - too many or too few fluid initilization variables')
+                raise ValueError('Fluid not properly defined - too many or too few fluid initialization variables')
         elif T is not None and P is not None and rho is None:
             rho = therm.rho(T, P)
         elif rho is not None and P is not None and T is None:
@@ -65,11 +84,10 @@ class Fluid:
         elif T is not None and rho is not None and P is None:
             P = therm.P(T, rho)
         else:
-            raise ValueError('Fluid not properly defined - too many or too few fluid initilization variables')
+            raise ValueError('Fluid not properly defined - too many or too few fluid initialization variables')
         self.T, self.P, self.rho, self.phase = T, P, rho, therm.phase
         self.therm = therm
         self.v = v
-        self.species = species
 
     def update(self, T=None, P=None, rho=None, v=None):
         if v != None:
@@ -95,8 +113,9 @@ class Fluid:
         return 'Gas\n%s\n  P = %.3f bar\n  T = %0.1f K\n  rho = %.3f kg/m^3)\n  v = %.1f m/s' % (
             30 * '-', self.P * 1e-5, self.T, self.rho, self.v)
 
+
 class Orifice:
-    def __init__(self, d, Cd=1.):
+    def __init__(self, d, Cd=1):
         '''
         class used to describe a circular orifice
         
@@ -133,7 +152,7 @@ class Orifice:
         '''
         return fluid.rho * fluid.v * self.A * self.Cd
 
-    def flow(self, upstream_fluid, downstream_P = 101325., mdot = None, suppressWarnings = True):
+    def flow(self, upstream_fluid, downstream_P = 101325, mdot = None, suppressWarnings = True):
         '''
         Returns the fluid in a flow restriction, for given upstream conditions 
         and downstream pressure.  Isentropic expansion.
@@ -148,8 +167,9 @@ class Orifice:
         -------
         Fluid object containing T, P, rho, v at the throat (orifice)
         '''           
-        h0 = upstream_fluid.therm.PropsSI('H', T = upstream_fluid.T, D = upstream_fluid.rho)
-        h0 += upstream_fluid.v**2/2
+        h0 = upstream_fluid.therm._total_enthalpy(P=upstream_fluid.P,
+                                                  rho=upstream_fluid.rho,
+                                                  v=upstream_fluid.v)
         if upstream_fluid.v > 0:
             s0 = upstream_fluid.therm.PropsSI('S', H = h0, D = np.round(upstream_fluid.rho, 12))
         else: #LH2 simulations were giving weird results when calculating entropy from enthalpy
@@ -157,7 +177,7 @@ class Orifice:
         
         fluid = copy.copy(upstream_fluid)
         if fluid.P < downstream_P:
-            raise ValueError('Downstream pressure is lower than upstream pressure.  Unphysical.')
+            raise ValueError('Downstream pressure is lower than upstream pressure.  Nonphysical.')
         if fluid.P == downstream_P:
             if mdot is not None:
                 v = mdot/(self.Cd*fluid.rho*self.A)
@@ -168,10 +188,10 @@ class Orifice:
                 raise ValueError('Downstream pressure is the same as upstream pressure.  Need to specify mass flow rate (mdot).')
         def negflux(P):
             h, rho = fluid.therm.PropsSI(['H', 'D'], P = P, S = s0)
-            return -rho*np.sqrt(2 * (h0 + upstream_fluid.v ** 2 / 2. - h))
+            return -rho*np.sqrt(2 * (h0 - h))
         P = optimize.minimize_scalar(negflux, bounds = (downstream_P, upstream_fluid.P), method = 'bounded')['x']
         h, rho = fluid.therm.PropsSI(['H', 'D'], P = P, S = s0)
-        fluid.update(rho = rho, P = P, v = np.sqrt(2 * (h0 + upstream_fluid.v ** 2 / 2. - h)))
+        fluid.update(rho = rho, P = P, v = np.sqrt(2 * (h0 - h)))
         if P - downstream_P > .01: 
             if mdot is not None:
                 if not suppressWarnings:
@@ -181,11 +201,13 @@ class Orifice:
             fluid._choked = False
             if mdot is None:
                 if not suppressWarnings:
-                    warnings.warn('Fluid unchoked. It is recommended to verify/specify mass flow rate.', category=PhysicsWarning)
+                    warnings.warn('Fluid unchoked. Provide a mass flow rate.', category=PhysicsWarning)
             else:
                 v = mdot/(self.Cd*rho*self.A)
-                fluid.update(rho=rho, P=P, v=v)
+                fluid.update(rho=rho, P=(P*(P - downstream_P > .01) + 
+                                         downstream_P*(P - downstream_P <= .01)), v=v)
         return fluid
+
 
 class Source(object):
     """
@@ -239,19 +261,21 @@ class Source(object):
         return cls(V, fluid)
 
     @classmethod
-    def fromMass_Vol(cls, m, V, T=None, P=None, species='H2'):
+    def fromMass_Vol(cls, species, m, V, T=None, P=None):
         '''
         Initilization method based on the mass, volume, and either the temperature or pressure of the fluid 
         in the source (tank).
         
         Parameters
         ----------
+        species: string
+            species (either formula or name - see CoolProp documentation)
         m: float
             mass of source (tank) (kg)
         V: float
             volume of source (tank) (m^3)
         therm: object
-            thermodynamic class used to releate pressure, temperature and density
+            thermodynamic class used to relate pressure, temperature and density
         T: float (optional)
             temperature (K)
         P: float (optional)
@@ -260,14 +284,14 @@ class Source(object):
         Returns
         -------
         source: object
-            object containing .fluid (fluid obejct), .V (volume, m^3), and .m (mass (kg)).
-        returns none if eitehr underspecified (neither T or P given) or overspecified (both T and P given)
+            object containing .fluid (fluid object), .V (volume, m^3), and .m (mass (kg)).
+        returns none if either underspecified (neither T or P given) or overspecified (both T and P given)
         '''
         rho = m / V
         if T is not None and P is None:
-            fluid = Fluid(rho=rho, T=T, species=species)
+            fluid = Fluid(species=species, rho=rho, T=T)
         elif T is None and P is not None:
-            fluid = Fluid(rho=rho, P=P, species=species)
+            fluid = Fluid(species=species, rho=rho, P=P)
         else:
             return None
         return cls(V, fluid)
@@ -298,12 +322,14 @@ class Source(object):
         throat = orifice.flow(fluid, ambient_P)
         h = therm.PropsSI('H', T = fluid.T, D = fluid.rho)
         dm_dt = -orifice.mdot(throat)
-        du_dt = 1. / m * (heat_flux + (h - U) * dm_dt)
+        du_dt = 1 / m * (heat_flux + (h - U) * dm_dt)
         return np.array([dm_dt, du_dt])
    
-    def empty(self, orifice, ambient_P = 101325., 
+    def empty(self, orifice, ambient_P = 101325,
               heat_flux = 0, nmax = 1000, 
-              m_empty = 1e-6, p_empty_percent = .01):
+              m_empty = 1e-6, p_empty_percent = 0.01,
+              t_empty = None,
+              timeout = 10):
         '''
         integrates the governing equations for an energy balance on a tank 
         
@@ -315,6 +341,8 @@ class Source(object):
         nmax - maximum number of iterations
         m_empty - mass when considered empty (kg)
         p_empty_percent - percent of ambient pressure when considered empty
+        timeout - computer run time (minutes) until you give up on the integration
+        t_empty - if given, empties for a set amount of time (sec)
         
         Returns
         -------
@@ -322,6 +350,7 @@ class Source(object):
                  (list of mass flow rates (kg/s), list of fluid objects at each time step, 
                   array of times (s), 2D array of [mass, internal energy] at each time step)
         '''
+        start_time = time.time()
         therm = self.fluid.therm
         m0 = self.m
         volume = self.V
@@ -331,8 +360,11 @@ class Source(object):
         r = integrate.ode(self._blowdown_gov_eqns).set_integrator('dopri5')
         r.set_initial_value([m0, u0]).set_f_params(volume, orifice, heat_flux, ambient_P)
         throat = orifice.flow(self.fluid, ambient_P)
-        mdot0 = orifice.mdot(throat)
-        dt = m0 / mdot0
+        if t_empty is None:
+            mdot0 = orifice.mdot(throat)
+            dt = m0 / mdot0
+        else:
+            dt = t_empty
         times, fluid_list, mdot, sol = [], [], [], []
 
         def solout(t, y):
@@ -365,18 +397,50 @@ class Source(object):
                         mdot = mdot[:j + 1]
                         sol = sol[:j + 1]
                         dt /= 10
-                        r.integrate(r.t + dt)
-                        break
+                        try:
+                            r.integrate(r.t + dt)
+                            break
+                        except:
+                            pass
                     except:
-                        print(i, 'unable to advance past time %.1f s with remaining mass of %.3f g, P = %.1f Pa' %
+                        print(i, 'unable to advance past time %.5f s with remaining mass of %.3f g, P = %.1f Pa' %
                               (r.t, r.y[0] * 1000, fluid_list[-1].P))
                         return mdot, fluid_list, times, np.array(sol).T
-            if (not r.successful() or mdot[-1] < m_empty or
-                    fluid_list[-1].P < (1 + p_empty_percent / 100) * ambient_P or
-                    nsteps > nmax):
+            if time.time() - start_time > timeout*60:
+                print(f'timeout of {timeout} min reached')
                 break
+            if nsteps > nmax:
+                print('max steps reached')
+                break
+            if not r.successful():
+                break
+            if t_empty is not None:
+                if r.t >= t_empty:
+                    break
+            elif (r.y[0] < m_empty or fluid_list[-1].P < (1 + p_empty_percent / 100) * ambient_P):
+                break
+        self.mdot, self.fluid_list, self.ts, self.sol = mdot, fluid_list, times, np.array(sol).T 
         return mdot, fluid_list, times, np.array(sol).T
-
+    
+    def plot_time_to_empty(self):
+        try:
+            x = self.sol[0]
+        except:
+            return None
+        fig, axs = plt.subplots(4, 1, sharex=True, squeeze=True, figsize=(4, 7))
+        axs[0].plot(self.ts, self.sol[0])
+        axs[0].set_ylabel('Mass [kg]')
+        axs[1].plot(self.ts, np.array([f.P for f in self.fluid_list]) * 1e-5)
+        axs[1].set_ylabel('Pressure [bar]')
+        axs[2].plot(self.ts, self.mdot)
+        axs[2].set_ylabel('Flow Rate [kg/s]')
+        axs[3].plot(self.ts, [f.T for f in self.fluid_list])
+        axs[3].set_ylabel('Temperature [K]')
+        axs[3].set_xlabel('Time [s]')
+        [a.minorticks_on() for a in axs]
+        [a.grid(which='major', color='k', dashes=(2, 2), alpha=.5) for a in axs]
+        [a.grid(which='minor', color='k', alpha=.1) for a in axs]
+        return fig
 
 class Enclosure:
     '''

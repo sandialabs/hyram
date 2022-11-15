@@ -8,6 +8,7 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
+using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Windows.Forms;
 
@@ -88,26 +89,29 @@ namespace SandiaNationalLaboratories.Hyram
                 }
                 catch (Exception ex)
                 {
+                    Debug.Write(ex);
+                    Trace.TraceError(ex.StackTrace);
                     MessageBox.Show("The workspace could not be saved due to the following error: " + ex.Message);
                 }
             }
-            //else if (_mCurrentLoadedState == null)
             else
             {
                 try
                 {
                     CurrentLoadedState = StateContainer.Load(_filename);
-                    StateContainer.Instance = CurrentLoadedState;
                     Close();
                 }
-                catch (SerializationException)
+                catch (SerializationException ex)
                 {
+                    Debug.Write(ex);
                     MessageBox.Show(
                         "The workspace could not be loaded. The file selected is not a valid HyRAM workspace file.");
                     CurrentLoadedState = null;
                 }
                 catch (Exception ex)
                 {
+                    Debug.Write(ex);
+                    Trace.TraceError(ex.StackTrace);
                     MessageBox.Show("The workspace could not be loaded due to the following error: " + ex.Message);
                     CurrentLoadedState = null;
                 }
@@ -133,6 +137,7 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void tmrCheckFile_Tick(object sender, EventArgs e)
         {
+            // verify that selected file can be deserialized, i.e. contains valid StateContainer
             if (tbFile.Text.Length > 0)
             {
                 try

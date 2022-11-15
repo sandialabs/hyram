@@ -8,6 +8,8 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -16,6 +18,8 @@ namespace SandiaNationalLaboratories.Hyram
 {
     public partial class JetFlameTemperaturePlotForm : UserControl
     {
+        private StateContainer _state = State.Data;
+
         private string _statusMsg;
         private string _warningMsg;
         private bool _analysisStatus;
@@ -23,10 +27,17 @@ namespace SandiaNationalLaboratories.Hyram
         private float _massFlow;
         private float _srad;
         private float _flameLength;
+        private float _radiantFrac;
+        private bool _mIgnoreXyzChangeEvent = true;
 
         public JetFlameTemperaturePlotForm()
         {
             InitializeComponent();
+        }
+
+        ~JetFlameTemperaturePlotForm()
+        {
+            _state.FuelTypeChangedEvent -= OnFuelChange;
         }
 
         private void PhysJetTempPlotForm_Load(object sender, EventArgs e)
@@ -34,50 +45,63 @@ namespace SandiaNationalLaboratories.Hyram
             spinnerPictureBox.Hide();
             outputWarning.Hide();
 
-            notionalNozzleSelector.DataSource = StateContainer.Instance.NozzleModels;
-            notionalNozzleSelector.SelectedItem = StateContainer.GetValue<NozzleModel>("NozzleModel");
+            NozzleSelector.DataSource = _state.NozzleModels;
+            PhaseSelector.DataSource = _state.Phases;
 
-            // Watch custom event for when fuel type selection changes, and updated displayed params to match
-            StateContainer.Instance.FuelTypeChangedEvent += delegate{RefreshGridParameters();};
-            fuelPhaseSelector.DataSource = StateContainer.Instance.FluidPhases;
-            fuelPhaseSelector.SelectedItem = StateContainer.Instance.GetFluidPhase();
+            _state.FuelTypeChangedEvent += OnFuelChange;
 
-            RefreshGridParameters();
+            RefreshForm();
+            ParseUtility.PutDoubleArrayIntoTextBox(ContourInput, _state.TempContourLevels);
+
+            _mIgnoreXyzChangeEvent = false;
+        }
+
+        private void OnFuelChange(object o, EventArgs e)
+        {
+            RefreshForm();
         }
 
         /// <summary>
         /// Change which parameters are displayed based on fuel selection
         /// </summary>
-        private void RefreshGridParameters()
+        private void RefreshForm()
         {
-            dgInput.Rows.Clear();
+            NozzleSelector.DataSource = _state.NozzleModels;
+            NozzleSelector.SelectedItem = _state.Nozzle;
+            PhaseSelector.SelectedItem = _state.Phase;
+            AutoSetLimits.Checked = _state.FlameAutoLimits;
 
-            // Create collection initially containing common params
-            ParameterWrapperCollection formParams = new ParameterWrapperCollection(new[]
+            if (!string.IsNullOrEmpty(_state.FlamePlotTitle))
             {
-                new ParameterWrapper("ambientTemperature", "Ambient temperature", TempUnit.Kelvin,
-                    StockConverters.TemperatureConverter),
-                new ParameterWrapper("ambientPressure", "Ambient pressure", PressureUnit.Pa,
-                    StockConverters.PressureConverter),
-                new ParameterWrapper("orificeDiameter", "Leak diameter", DistanceUnit.Meter,
-                    StockConverters.DistanceConverter),
-                new ParameterWrapper("orificeDischargeCoefficient", "Discharge coefficient", UnitlessUnit.Unitless,
-                    StockConverters.UnitlessConverter),
-                new ParameterWrapper("releaseAngle", "Release angle", AngleUnit.Degrees,
-                    StockConverters.AngleConverter)
-            });
-            formParams.Add("fluidPressure",
-                new ParameterWrapper("fluidPressure", "Fluid pressure (absolute)", PressureUnit.Pa,
-                    StockConverters.PressureConverter));
-            if (FluidPhase.DisplayTemperature())
-            {
-                formParams.Add("fluidTemperature",
-                    new ParameterWrapper("fluidTemperature", "Fluid temperature", TempUnit.Kelvin,
-                        StockConverters.TemperatureConverter));
+                PlotTitleInput.Text = _state.FlamePlotTitle;
             }
 
-            StaticGridHelperRoutines.InitInteractiveGrid(dgInput, formParams, false);
-            dgInput.Columns[0].Width = 180;
+            InputGrid.Rows.Clear();
+            var formParams = ParameterInput.GetParameterInputList(new[] {
+                _state.AmbientTemperature,
+                _state.AmbientPressure,
+                _state.OrificeDiameter,
+                _state.OrificeDischargeCoefficient,
+                _state.ReleaseAngle,
+                _state.FluidPressure,
+            });
+            if (_state.DisplayTemperature())
+            {
+                formParams.Insert(6, new ParameterInput(_state.FluidTemperature));
+            }
+
+            if (!_state.FlameAutoLimits)
+            {
+                formParams.AddRange(ParameterInput.GetParameterInputList(new[]
+                    {
+                        _state.FlameXMin, _state.FlameXMax,
+                        _state.FlameYMin, _state.FlameYMax,
+                    }
+                ));
+            }
+
+            GridHelpers.InitParameterGrid(InputGrid, formParams, false);
+            InputGrid.Columns[0].Width = 200;
             CheckFormValid();
         }
 
@@ -86,57 +110,54 @@ namespace SandiaNationalLaboratories.Hyram
             bool showWarning = false;
             string warningText = "";
 
-            if (!StateContainer.ReleasePressureIsValid())
+            if (!_state.ReleasePressureIsValid())
             {
                 // if liquid, validate fuel pressure
-                warningText = MessageContainer.GetAlertMessageReleasePressureInvalid();
+                warningText = MessageContainer.ReleasePressureInvalid();
                 showWarning = true;
             }
 
+            if (_state.FuelFlowUnchoked())
+            {
+                MassFlowInput.Visible = true;
+                massFlowLabel.Visible = true;
+                MassFlowInput.Text = _state.FluidMassFlow.ToString();
+            }
+            else
+            {
+                MassFlowInput.Visible = false;
+                massFlowLabel.Visible = false;
+                MassFlowInput.Text = "";
+            }
+
+
             inputWarning.Text = warningText;
             inputWarning.Visible = showWarning;
-            executeButton.Enabled = !showWarning;
+            SubmitBtn.Enabled = !showWarning;
         }
 
         private void Execute()
         {
-            var ambTemp = StateContainer.Instance.GetStateDefinedValueObject("ambientTemperature")
-                .GetValue(TempUnit.Kelvin)[0];
-            var ambPres = StateContainer.Instance.GetStateDefinedValueObject("ambientPressure")
-                .GetValue(PressureUnit.Pa)[0];
-            var h2Temp = StateContainer.Instance.GetStateDefinedValueObject("fluidTemperature")
-                .GetValue(TempUnit.Kelvin)[0];
-            var h2Pres = StateContainer.Instance.GetStateDefinedValueObject("fluidPressure")
-                .GetValue(PressureUnit.Pa)[0];
-            var orificeDiam = StateContainer.Instance.GetStateDefinedValueObject("orificeDiameter")
-                .GetValue(DistanceUnit.Meter)[0];
-            var dischargeCoeff = StateContainer.GetNdValue("orificeDischargeCoefficient", UnitlessUnit.Unitless);
-            var releaseAngle = StateContainer.Instance.GetStateDefinedValueObject("releaseAngle")
-                .GetValue(AngleUnit.Radians)[0];
-            var nozzleModel = StateContainer.GetValue<NozzleModel>("NozzleModel");
-
             var physInt = new PhysicsInterface();
-            _analysisStatus = physInt.CreateFlameTemperaturePlot(ambTemp, ambPres, h2Temp, h2Pres,
-                orificeDiam, dischargeCoeff,
-                releaseAngle, nozzleModel.GetKey(),
-                out _statusMsg, out _warningMsg, out _resultImageFilepath,
-                out _massFlow, out _srad, out _flameLength);
+            _analysisStatus = physInt.CreateFlameTemperaturePlot(out _statusMsg, out _warningMsg, out _resultImageFilepath,
+                                                                 out _massFlow, out _srad, out _flameLength, out _radiantFrac);
         }
 
         private void DisplayResults()
         {
             spinnerPictureBox.Hide();
-            executeButton.Enabled = true;
+            SubmitBtn.Enabled = true;
             if (!_analysisStatus)
             {
                 MessageBox.Show(_statusMsg);
             }
             else
             {
-                outputPictureBox.Load(_resultImageFilepath);
+                OutputPictureBox.Load(_resultImageFilepath);
                 outputMassFlowRate.Text = _massFlow.ToString("E3");
                 outputSrad.Text = _srad.ToString("E3");
                 outputFlameLength.Text = _flameLength.ToString("F3");
+                outputRadiantFrac.Text = _radiantFrac.ToString("F3");
                 tcIO.SelectedTab = outputTab;
 
                 if (_warningMsg.Length != 0)
@@ -147,31 +168,71 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
-        private async void executeButton_Click(object sender, EventArgs e)
+        private async void SubmitBtn_Click(object sender, EventArgs e)
         {
             spinnerPictureBox.Show();
             outputWarning.Hide();
-            executeButton.Enabled = false;
+            SubmitBtn.Enabled = false;
             await Task.Run(() => Execute());
             DisplayResults();
         }
 
-        private void dgInput_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        private void InputGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            StaticGridHelperRoutines.ProcessDataGridViewRowValueChangedEvent((DataGridView) sender, e, 1, 2, false);
+            GridHelpers.ChangeParameterValue((DataGridView) sender, e, 1, 2);
             CheckFormValid();
         }
 
-        private void notionalNozzleSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        private void NozzleSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            var modelName = notionalNozzleSelector.SelectedItem.ToString();
-            StateContainer.SetValue("NozzleModel", NozzleModel.ParseNozzleModelName(modelName));
+            _state.Nozzle = (ModelPair)NozzleSelector.SelectedItem;
         }
 
-        private void fuelPhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        private void PhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            StateContainer.SetReleasePhase((FluidPhase)fuelPhaseSelector.SelectedItem);
-            RefreshGridParameters();
+            _state.Phase = (ModelPair)PhaseSelector.SelectedItem;
+            RefreshForm();
+        }
+
+        private void ContourInput_TextChanged(object sender, EventArgs e)
+        {
+            if (!_mIgnoreXyzChangeEvent)
+            {
+                var contours = new List<double>();
+
+                string contourText = ContourInput.Text;
+                Regex.Replace(contourText, @"\s+", "");  // trim whitespace
+                if (contourText != "")
+                {
+                    contours = new List<double>(ParseUtility.GetArrayFromString(ContourInput.Text, ','));
+                }
+
+                _state.TempContourLevels = contours.ToArray();
+            }
+
+        }
+
+        private void PlotTitleInput_TextChanged(object sender, EventArgs e)
+        {
+            _state.FlamePlotTitle = PlotTitleInput.Text ?? "";
+        }
+
+        private void AutoSetLimits_CheckedChanged(object sender, EventArgs e)
+        {
+            _state.FlameAutoLimits = AutoSetLimits.Checked;
+            RefreshForm();
+        }
+
+        private void MassFlowInput_TextChanged(object sender, EventArgs e)
+        {
+            if (double.TryParse(MassFlowInput.Text, out double result))
+            {
+                _state.FluidMassFlow = result;
+            }
+            else
+            {
+                MassFlowInput.Text = _state.FluidMassFlow.ToString();
+            }
         }
     }
 }

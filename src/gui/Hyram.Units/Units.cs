@@ -10,184 +10,62 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace SandiaNationalLaboratories.Hyram
 {
-    public enum SelectedUnitEnum
-    {
-        SpeedUnit,
-        AreaUnit,
-        DistanceUnit,
-        TempUnit,
-        PressureUnit,
-        UnitlessUnit,
-        EnergyUnit,
-        ManpowerTimeUnit,
-        JulianTimeConversionUnit,
-        ElapsingTimeConversionUnit,
-        AngleUnit,
-        VolumeUnit,
-        DensityUnit,
-        VolumetricFlowUnit,
-        NotSet
-    }
+    public enum UnitlessUnit { Unitless }
 
-    public enum SpeedUnit
-    {
-        MetersPerSecond
-    }
+    public enum SpeedUnit { MetersPerSecond }
 
-    public enum VolumetricFlowUnit
-    {
-        CubicMetersPerSecond
-    }
+    public enum VolumetricFlowUnit { CubicMetersPerSecond }
 
-    public enum AreaUnit
-    {
-        SqMeters,
-        SqCm,
-        SqMm,
-        SqInch,
-        SqFoot,
-        SqYard
-    }
+    public enum DistanceUnit { Meter, Centimeter, Millimeter, Inch, Foot, Yard, Mile, Au }
 
-    public enum DistanceUnit
-    {
-        Meter,
-        Centimeter,
-        Millimeter,
-        Inch,
-        Foot,
-        Yard,
-        Mile,
-        Au
-    }
+    public enum TempUnit { Celsius, Fahrenheit, Kelvin }
 
-    public enum TempUnit
-    {
-        Celsius,
-        Fahrenheit,
-        Kelvin
-    }
+    public enum PressureUnit { MPa, kPa, Pa, Psi, Atm, Bar, JoulePerCubicMeter }
 
-    public enum PressureUnit
-    {
-        MPa,
-        kPa,
-        Pa,
-        Psi,
-        Atm,
-        Bar,
-        JoulePerCubicMeter
-    }
+    public enum AreaUnit { SqMeters, SqCm, SqMm, SqInch, SqFoot, SqYard }
 
-    public enum DensityUnit
-    {
-        KilogramPerCubicMeter,
-        GramPerCubicMeter,
-        GramPerCubicCentimeter,
-        MilligramPerLiter,
-        GramPerLiter,
-        OuncePerCubicFoot,
-        OuncePerGallonUK,
-        OuncePerGallonUS
-    }
+    public enum DensityUnit { KilogramPerCubicMeter, GramPerCubicMeter, GramPerCubicCentimeter, MilligramPerLiter, OuncePerCubicFoot, OuncePerGallonUK, OuncePerGallonUS }
 
-    public enum UnitlessUnit
-    {
-        Unitless
-    }
+    public enum EnergyUnit { Joule, Kwh, Botu }
 
-    public enum EnergyUnit
-    {
-        Joule,
-        Kwh,
-        Botu
-    }
+    public enum AngleUnit { Radians, Degrees }
 
-    public enum SpecificEnergyUnit
-    {
-        JoulePerKilogram,
-        JoulePerGram,
-        KiloJoulePerKilogram
-    }
-
-    // Manpower Time Unit isn't a general conversion enumeration.
-    public enum ManpowerTimeUnit
-    {
-        Hour
-    }
-
-    public enum JulianTimeConversionUnit
-    {
-        Year,
-        Day
-    } // Year is 365.25
-
-    public enum ElapsingTimeConversionUnit
-    {
-        Hour,
-        Minute,
-        Second,
-        Millisecond
-    }
-
-    public enum AngleUnit
-    {
-        Radians,
-        Degrees
-    }
-
+    public enum MassUnit { Gram, Milligram, Centigram, Decigram, Dekagram, Hectogram, Kilogram, Megagram, Pound }
+    
     public enum VolumeUnit
     {
         Liter,
-        CubicCentimeter,
-        CubicDecimeter,
-        CubicDekameter,
-        CubicFoot,
-        CubicInch,
-        CubicKilometer,
-        CubicMeter,
-        CubicMile,
-        CubicMicrometer,
-        CubicMillimeter,
-        CubicYard,
-        Deciliter,
-        Dekaliter,
-        Kiloliter,
-        Megaliter,
-        Microliter,
-        Milliliter
+        CubicCentimeter, CubicDecimeter, CubicDekameter, CubicFoot, CubicInch, CubicKilometer,
+        CubicMeter, CubicMile, CubicMicrometer, CubicMillimeter, CubicYard, Deciliter,
+        Dekaliter, Kiloliter, Megaliter, Microliter, Milliliter
     }
 
-    public enum MassUnit
-    {
-        Gram,
-        Milligram,
-        Centigram,
-        Decigram,
-        Dekagram,
-        Hectogram,
-        Kilogram,
-        Megagram,
-        Pound
-    }
+    public enum SpecificEnergyUnit { JoulePerKilogram, JoulePerGram, KiloJoulePerKilogram }
+
+    // Manpower Time Unit isn't a general conversion enumeration.
+    public enum ManpowerTimeUnit { Hour }
+
+    public enum JulianTimeConversionUnit { Year, Day } // Year is 365.25
+
+    public enum TimeUnit { Hour, Minute, Second, Millisecond }
+
+    public enum FreqUnit { PerYear }
+
+    public enum MassFlowUnit { KgPerSecond }
 
 
     public static class UnitParser
     {
-        private static readonly Dictionary<string, SpecificEnergyUnit> _mSpecificEnergyUnits =
-            CreateSpecificEnergyUnitsParsingDictionary();
-
-        private static readonly Dictionary<string, DistanceUnit> _mDistanceUnits =
-            CreateDistanceUnitsParsingDictionary();
-
-        private static readonly Dictionary<string, MassUnit> _mMassUnits = CreateMassUnitsParsingDictionary();
-
-        private static readonly Dictionary<string, VolumeUnit> _mVolumeUnits = CreateVolumeUnitsParsingDictionary();
-
-        private static readonly Dictionary<string, DensityUnit> _mDensityUnits = CreateDensityUnitsParsingDictionary();
+        private static readonly Dictionary<string, SpecificEnergyUnit> MSpecificEnergyUnits = CreateUnitDictionary<SpecificEnergyUnit>();
+        private static readonly Dictionary<string, DistanceUnit> MDistanceUnits = CreateUnitDictionary<DistanceUnit>();
+        private static readonly Dictionary<string, MassUnit> MMassUnits = CreateUnitDictionary<MassUnit>();
+        private static readonly Dictionary<string, MassFlowUnit> MMassFlowUnits = CreateUnitDictionary<MassFlowUnit>();
+        private static readonly Dictionary<string, VolumeUnit> MVolumeUnits = CreateUnitDictionary<VolumeUnit>();
+        private static readonly Dictionary<string, DensityUnit> MDensityUnits = CreateUnitDictionary<DensityUnit>();
 
         public static PressureUnit ParsePressureUnit(string unitName)
         {
@@ -219,7 +97,7 @@ namespace SandiaNationalLaboratories.Hyram
                     result = PressureUnit.JoulePerCubicMeter;
                     break;
                 default:
-                    throw new Exception("Unit of " + unitName + " is not a recognized Pressure unit.");
+                    throw new ArgumentException("Unit of " + unitName + " is not a recognized Pressure unit.");
             }
 
             return result;
@@ -241,18 +119,76 @@ namespace SandiaNationalLaboratories.Hyram
                     result = TempUnit.Kelvin;
                     break;
                 default:
-                    throw new Exception("Unit of " + unitName + " is not a recognized Temperature unit.");
+                    throw new ArgumentException("Unit of " + unitName + " is not a recognized Temperature unit.");
             }
 
             return result;
         }
+
+        public static DensityUnit ParseDensityUnit(string unitName)
+        {
+            if (MDensityUnits.ContainsKey(unitName))
+            {
+                return MDensityUnits[unitName];
+            }
+            throw new ArgumentException("Unit of " + unitName + " is not a recognized density unit.");
+        }
+
+        public static VolumeUnit ParseVolumeUnit(string unitName)
+        {
+            if (MVolumeUnits.ContainsKey(unitName))
+            {
+                return MVolumeUnits[unitName];
+            }
+            throw new ArgumentException("Unit of " + unitName + " is not a recognized volume unit.");
+        }
+
+
+        public static MassUnit ParseMassUnit(string unitName)
+        {
+            if (MMassUnits.ContainsKey(unitName))
+            {
+                return MMassUnits[unitName];
+            }
+            throw new ArgumentException("Unit of " + unitName + " is not a recognized mass unit.");
+        }
+
+        public static MassFlowUnit ParseMassFlowUnit(string unitName)
+        {
+            if (MMassFlowUnits.ContainsKey(unitName))
+            {
+                return MMassFlowUnits[unitName];
+            }
+            throw new ArgumentException("Unit of " + unitName + " is not a recognized mass unit.");
+        }
+
+
+        public static DistanceUnit ParseDistanceUnit(string unitName)
+        {
+            if (MDistanceUnits.ContainsKey(unitName))
+            {
+                return MDistanceUnits[unitName];
+            }
+            throw new ArgumentException("Unit of " + unitName + " is not a recognized distance unit.");
+        }
+
+        public static SpecificEnergyUnit ParseSpecificEnergyUnit(string unitName)
+        {
+            if (MSpecificEnergyUnits.ContainsKey(unitName))
+            {
+                return MSpecificEnergyUnits[unitName];
+            }
+            throw new ArgumentException("Unit of " + unitName + " is not a recognized specific energy unit.");
+        }
+
+
 
         private static IEnumerable<T> GetEnumPossibleValues<T>()
         {
             return Enum.GetValues(typeof(T)).Cast<T>();
         }
 
-        private static Dictionary<string, SpecificEnergyUnit> CreateSpecificEnergyUnitsParsingDictionary()
+        private static Dictionary<string, SpecificEnergyUnit> CreateSpecificEnergyDictionary()
         {
             var result = new Dictionary<string, SpecificEnergyUnit>();
             var possibleValues =
@@ -262,7 +198,7 @@ namespace SandiaNationalLaboratories.Hyram
             return result;
         }
 
-        private static Dictionary<string, DistanceUnit> CreateDistanceUnitsParsingDictionary()
+        private static Dictionary<string, DistanceUnit> CreateDistanceUnitsDictionary()
         {
             var result = new Dictionary<string, DistanceUnit>();
             var possibleValues =
@@ -293,234 +229,19 @@ namespace SandiaNationalLaboratories.Hyram
         private static Dictionary<string, DensityUnit> CreateDensityUnitsParsingDictionary()
         {
             var result = new Dictionary<string, DensityUnit>();
-
             var possibleValues = (DensityUnit[]) GetEnumPossibleValues<DensityUnit>();
             foreach (var thisValue in possibleValues) result.Add(thisValue.ToString(), thisValue);
-
             return result;
         }
 
-        public static DensityUnit ParseDensityUnit(string unitName)
+        private static Dictionary<string, TUnit> CreateUnitDictionary<TUnit>()
         {
-            return _mDensityUnits[unitName];
-        }
-
-        public static VolumeUnit ParseVolumeUnit(string unitName)
-        {
-            return _mVolumeUnits[unitName];
-        }
-
-
-        public static MassUnit ParseMassUnit(string unitName)
-        {
-            return _mMassUnits[unitName];
-        }
-
-        public static DistanceUnit ParseDistanceUnit(string unitName)
-        {
-            return _mDistanceUnits[unitName];
-        }
-
-        public static SpecificEnergyUnit ParseSpecificEnergyUnit(string unitName)
-        {
-            return _mSpecificEnergyUnits[unitName];
-        }
-    }
-
-
-    public static class ConversionHelper
-    {
-        public static Enum GetConversionUnitByFullName(string conversionUnit, out SelectedUnitEnum selectedEnumType)
-        {
-            Enum result = SelectedUnitEnum.NotSet; // not a valid value or even in the set of valid values
-            selectedEnumType = SelectedUnitEnum.NotSet;
-
-            var parts = conversionUnit.Split('.');
-            if (parts.Length != 2)
-                throw new Exception("Cannot split ConversionUnit argument (\"" + conversionUnit +
-                                    "\") into two parts for conversion.");
-
-            var enumName = parts[0].ToUpper();
-            var enumValue = parts[1];
-
-            if (enumName == "SPEEDUNIT")
-            {
-                if (Enum.TryParse(enumValue, out SpeedUnit suResult))
-                {
-                    result = suResult;
-                    selectedEnumType = SelectedUnitEnum.SpeedUnit;
-                }
-                else
-                {
-                    ThrowUnitEnumFailure("SpeedUnit", enumValue);
-
-                    throw new Exception("Cannot parse SpeedUnit." + enumValue);
-                }
-            }
-            else if (enumName == "AREAUNIT")
-            {
-                if (Enum.TryParse(enumValue, out AreaUnit auResult))
-                {
-                    result = auResult;
-                    selectedEnumType = SelectedUnitEnum.AreaUnit;
-                }
-                else
-                {
-                    throw new Exception("Cannot parse AreaUnit." + enumValue);
-                }
-            }
-            else if (enumName == "DISTANCEUNIT")
-            {
-                if (Enum.TryParse(enumValue, out DistanceUnit duResult))
-                {
-                    result = duResult;
-                    selectedEnumType = SelectedUnitEnum.DistanceUnit;
-                }
-                else
-                {
-                    ThrowUnitEnumFailure("DistanceUnit", enumValue);
-                }
-            }
-            else if (enumName == "TEMPUNIT")
-            {
-                if (Enum.TryParse(enumValue, out TempUnit tuResult))
-                {
-                    result = tuResult;
-                    selectedEnumType = SelectedUnitEnum.TempUnit;
-                }
-                else
-                {
-                    ThrowUnitEnumFailure("TempUnit", enumValue);
-                }
-            }
-            else if (enumName == "PRESSUREUNIT")
-            {
-                if (Enum.TryParse(enumValue, out PressureUnit eResult))
-                {
-                    result = eResult;
-                    selectedEnumType = SelectedUnitEnum.PressureUnit;
-                }
-                else
-                {
-                    ThrowUnitEnumFailure("PressureUnit", enumValue);
-                }
-            }
-            else if (enumName == "UNITLESSUNIT")
-            {
-                if (Enum.TryParse(enumValue, out UnitlessUnit eResult))
-                {
-                    result = eResult;
-                    selectedEnumType = SelectedUnitEnum.UnitlessUnit;
-                }
-                else
-                {
-                    ThrowUnitEnumFailure("UnitlessUnit", enumValue);
-                }
-            }
-            else if (enumName == "ENERGYUNIT")
-            {
-                if (Enum.TryParse(enumValue, out EnergyUnit eResult))
-                {
-                    result = eResult;
-                    selectedEnumType = SelectedUnitEnum.EnergyUnit;
-                }
-                else
-                {
-                    ThrowUnitEnumFailure("EnergyUnit", enumValue);
-                }
-            }
-            else if (enumName == "ANGLEUNIT")
-            {
-                if (Enum.TryParse(enumValue, out AngleUnit eResult))
-                {
-                    result = eResult;
-                    selectedEnumType = SelectedUnitEnum.AngleUnit;
-                }
-                else
-                {
-                    ThrowUnitEnumFailure("AngleUnit", enumValue);
-                }
-            }
-            else if (enumName == "VOLUMEUNIT")
-            {
-                VolumeUnit eResult;
-                if (Enum.TryParse(enumValue, out eResult))
-                {
-                    result = eResult;
-                    selectedEnumType = SelectedUnitEnum.VolumeUnit;
-                }
-                else
-                {
-                    ThrowUnitEnumFailure("VolumeUnit", enumValue);
-                }
-            }
-            else if (enumName == "VOLUMETRICFLOWUNIT" || enumName == "VOLUMETRICFLOW")
-            {
-                VolumetricFlowUnit eResult;
-                if (Enum.TryParse(enumValue, out eResult))
-                {
-                    result = eResult;
-                    selectedEnumType = SelectedUnitEnum.VolumetricFlowUnit;
-                }
-            }
-            else if (enumName == "MANPOWERTIMEUNIT")
-            {
-                ManpowerTimeUnit eResult;
-                if (Enum.TryParse(enumValue, out eResult))
-                {
-                    result = eResult;
-                    selectedEnumType = SelectedUnitEnum.ManpowerTimeUnit;
-                }
-                else
-                {
-                    ThrowUnitEnumFailure("ManpowerTimeUnit", enumValue);
-                }
-            }
-            else if (enumName == "JULIANTIMECONVERSIONUNIT")
-            {
-                JulianTimeConversionUnit eResult;
-                if (Enum.TryParse(enumValue, out eResult))
-                {
-                    result = eResult;
-                    selectedEnumType = SelectedUnitEnum.JulianTimeConversionUnit;
-                }
-                else
-                {
-                    ThrowUnitEnumFailure("JulianTimeConversionUnit", enumValue);
-                }
-            }
-            else if (enumName == "ELAPSINGTIMECONVERSIONUNIT")
-            {
-                ElapsingTimeConversionUnit eResult;
-                if (Enum.TryParse(enumValue, out eResult))
-                {
-                    result = eResult;
-                    selectedEnumType = SelectedUnitEnum.ElapsingTimeConversionUnit;
-                }
-                else
-                {
-                    ThrowUnitEnumFailure("ElapsingTimeConversionUnit", enumValue);
-                }
-            }
-            else if (enumName == "DENSITYUNIT")
-            {
-                DensityUnit eResult;
-                if (Enum.TryParse(enumValue, out eResult))
-                {
-                    result = eResult;
-                    selectedEnumType = SelectedUnitEnum.DensityUnit;
-                }
-            }
-
-            if ((SelectedUnitEnum) result == SelectedUnitEnum.NotSet)
-                throw new Exception("ConversionUnit " + conversionUnit + " is unknown.");
-
+            var result = new Dictionary<string, TUnit>();
+            var possibleValues = (TUnit[]) GetEnumPossibleValues<TUnit>();
+            foreach (var thisValue in possibleValues) result.Add(thisValue.ToString(), thisValue);
             return result;
         }
 
-        private static void ThrowUnitEnumFailure(string enumType, string enumValue)
-        {
-            throw new Exception("Cannot parse " + enumType + "." + enumValue);
-        }
     }
+
 }

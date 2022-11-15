@@ -19,6 +19,7 @@ namespace SandiaNationalLaboratories.Hyram
 {
     public partial class JetFlameHeatAnalysisForm : UserControl
     {
+        private StateContainer _state = State.Data;
         // Results
         private bool _analysisStatus;
         private string _warningMsg;
@@ -28,11 +29,11 @@ namespace SandiaNationalLaboratories.Hyram
         private float _massFlow;
         private float _srad;
         private float _flameLength;
+        private float _radiantFrac;
         private bool _mIgnoreXyzChangeEvent = true;
 
         private double[] _radHeatFluxX;
         private double[] _radHeatFluxY;
-
         private double[] _radHeatFluxZ;
         private string _tempPlotFilepath;
 
@@ -41,80 +42,79 @@ namespace SandiaNationalLaboratories.Hyram
             InitializeComponent();
         }
 
+        ~JetFlameHeatAnalysisForm()
+        {
+            _state.FuelTypeChangedEvent -= OnFuelChange;
+        }
+
         private void JetFlameHeatAnalysisForm_Load(object sender, EventArgs e)
         {
             spinnerPictureBox.Hide();
             outputWarning.Hide();
 
-            notionalNozzleSelector.DataSource = StateContainer.Instance.NozzleModels;
-            notionalNozzleSelector.SelectedItem = StateContainer.GetValue<NozzleModel>("NozzleModel");
-
-            fuelPhaseSelector.DataSource = StateContainer.Instance.FluidPhases;
-            fuelPhaseSelector.SelectedItem = StateContainer.Instance.GetFluidPhase();
+            NozzleSelector.DataSource = _state.NozzleModels;
+            NozzleSelector.SelectedItem = _state.Nozzle;
+            PhaseSelector.DataSource = _state.Phases;
 
             // Watch custom event for when fuel type selection changes, and updated displayed params to match
-            StateContainer.Instance.FuelTypeChangedEvent += delegate{RefreshGridParameters();};
+            _state.FuelTypeChangedEvent += OnFuelChange;
 
-            // Set up databinds of parameters in rows
-            RefreshGridParameters();
+            RefreshForm();
 
-            // Initialize flex input
-            ParseUtility.PutDoubleArrayIntoTextBox(tbRadiativeHeatFluxPointsX,
-                StateContainer.Instance.GetStateDefinedValueObject("FlameWrapper.radiative_heat_flux_point:x")
-                    .GetValue(DistanceUnit.Meter));
-            ParseUtility.PutDoubleArrayIntoTextBox(tbRadiativeHeatFluxPointsY,
-                StateContainer.Instance.GetStateDefinedValueObject("FlameWrapper.radiative_heat_flux_point:y")
-                    .GetValue(DistanceUnit.Meter));
-            ParseUtility.PutDoubleArrayIntoTextBox(tbRadiativeHeatFluxPointsZ,
-                StateContainer.Instance.GetStateDefinedValueObject("FlameWrapper.radiative_heat_flux_point:z")
-                    .GetValue(DistanceUnit.Meter));
-            ParseUtility.PutDoubleArrayIntoTextBox(tbContourLevels,
-                StateContainer.Instance.GetStateDefinedValueObject("FlameWrapper.contour_levels")
-                    .GetValue(UnitlessUnit.Unitless));
+            ParseUtility.PutDoubleArrayIntoTextBox(LocXInput, _state.RadiativeFluxX);
+            ParseUtility.PutDoubleArrayIntoTextBox(LocYInput, _state.RadiativeFluxY);
+            ParseUtility.PutDoubleArrayIntoTextBox(LocZInput, _state.RadiativeFluxZ);
+            ParseUtility.PutDoubleArrayIntoTextBox(ContourInput, _state.FlameContourLevels);
 
             _mIgnoreXyzChangeEvent = false;
+        }
+
+        private void OnFuelChange(object o, EventArgs e)
+        {
+            RefreshForm();
         }
 
         /// <summary>
         /// Change which parameters are displayed based on fuel selection
         /// </summary>
-        private void RefreshGridParameters()
+        private void RefreshForm()
         {
-            dgInput.Rows.Clear();
+            NozzleSelector.DataSource = _state.NozzleModels;
+            NozzleSelector.SelectedItem = _state.Nozzle;
+            PhaseSelector.SelectedItem = _state.Phase;
+            AutoSetLimits.Checked = _state.FlameAutoLimits;
 
-            // Create collection initially containing common params
-            ParameterWrapperCollection formParams = new ParameterWrapperCollection(new[]
+            InputGrid.Rows.Clear();
+            var formParams = ParameterInput.GetParameterInputList(new[]
             {
-                new ParameterWrapper("ambientTemperature", "Ambient temperature", TempUnit.Kelvin,
-                    StockConverters.TemperatureConverter),
-                new ParameterWrapper("ambientPressure", "Ambient pressure", PressureUnit.Pa,
-                    StockConverters.PressureConverter),
-                new ParameterWrapper("orificeDiameter", "Leak diameter", DistanceUnit.Meter,
-                    StockConverters.DistanceConverter),
-                new ParameterWrapper("orificeDischargeCoefficient", "Discharge coefficient", UnitlessUnit.Unitless,
-                    StockConverters.UnitlessConverter),
-                new ParameterWrapper("relativeHumidity", "Relative humidity", UnitlessUnit.Unitless,
-                    StockConverters.UnitlessConverter),
-                new ParameterWrapper("releaseAngle", "Release angle", AngleUnit.Radians,
-                    StockConverters.AngleConverter),
-                //new ParameterWrapper("releaseHeight", "Leak height from floor", DistanceUnit.Meter,
-                //    StockConverters.DistanceConverter)
+                _state.AmbientTemperature,
+                _state.AmbientPressure,
+                _state.OrificeDiameter,
+                _state.OrificeDischargeCoefficient,
+                _state.RelativeHumidity,
+                _state.ReleaseAngle,
+                _state.FluidPressure,
             });
-
-            formParams.Add("fluidPressure",
-                new ParameterWrapper("fluidPressure", "Tank fluid pressure (absolute)",
-                    PressureUnit.Pa,
-                    StockConverters.PressureConverter));
-
-            if (FluidPhase.DisplayTemperature())
+            if (_state.DisplayTemperature())
             {
-                formParams.Add("fluidTemperature",
-                    new ParameterWrapper("fluidTemperature", "Tank fluid temperature", TempUnit.Kelvin,
-                        StockConverters.TemperatureConverter));
+                formParams.Insert(7, new ParameterInput(_state.FluidTemperature));
+            }
+            if (!_state.FlameAutoLimits)
+            {
+                formParams.AddRange(ParameterInput.GetParameterInputList(new[]
+                {
+                    _state.FluxXMin, _state.FluxXMax,
+                    _state.FluxYMin, _state.FluxYMax,
+                    _state.FluxZMin, _state.FluxZMax,
+
+                    _state.FlameXMin, _state.FlameXMax,
+                    _state.FlameYMin, _state.FlameYMax,
+                }));
             }
 
-            StaticGridHelperRoutines.InitInteractiveGrid(dgInput, formParams, false);
-            dgInput.Columns[0].Width = 180;
+            GridHelpers.InitParameterGrid(InputGrid, formParams, false);
+            InputGrid.Columns[0].Width = 180;
+
             CheckFormValid();
         }
 
@@ -123,19 +123,32 @@ namespace SandiaNationalLaboratories.Hyram
             bool showWarning = false;
             string warningText = "";
 
-            if (!StateContainer.ReleasePressureIsValid())
+            if (!_state.ReleasePressureIsValid())
             {
                 // if liquid, validate fuel pressure
-                warningText = MessageContainer.GetAlertMessageReleasePressureInvalid();
+                warningText = MessageContainer.ReleasePressureInvalid();
                 showWarning = true;
             }
 
-            // Verify x,y,z inputs
-            if (tbRadiativeHeatFluxPointsY.Text.Trim().Length > 0)
+            if (_state.FuelFlowUnchoked())
             {
-                var numXElems = CountElements(tbRadiativeHeatFluxPointsX.Text);
-                var numYElems = CountElements(tbRadiativeHeatFluxPointsY.Text);
-                var numZElems = CountElements(tbRadiativeHeatFluxPointsZ.Text);
+                MassFlowInput.Visible = true;
+                massFlowLabel.Visible = true;
+                MassFlowInput.Text = _state.FluidMassFlow.ToString();
+            }
+            else
+            {
+                MassFlowInput.Visible = false;
+                massFlowLabel.Visible = false;
+                MassFlowInput.Text = "";
+            }
+
+            // Verify x,y,z inputs
+            if (LocYInput.Text.Trim().Length > 0)
+            {
+                var numXElems = CountElements(LocXInput.Text);
+                var numYElems = CountElements(LocYInput.Text);
+                var numZElems = CountElements(LocZInput.Text);
                 if (!(numZElems == numYElems && numZElems == numXElems))
                 {
                     warningText = "X, Y, Z flux arrays must be the same size";
@@ -148,42 +161,19 @@ namespace SandiaNationalLaboratories.Hyram
 
             inputWarning.Text = warningText;
             inputWarning.Visible = showWarning;
-            executeButton.Enabled = !showWarning;
+            SubmitBtn.Enabled = !showWarning;
         }
 
         private void Execute()
         {
-            // Blanket try block to help catch deployed issue Brian encountered
-            Trace.TraceInformation("Gathering parameters for radiative flux analysis...");
-            var ambTemp = StateContainer.GetNdValue("ambientTemperature", TempUnit.Kelvin);
-            var ambPressure = StateContainer.GetNdValue("ambientPressure", PressureUnit.Pa);
-            var h2Temp = StateContainer.GetNdValue("fluidTemperature", TempUnit.Kelvin);
-            var h2Pressure = StateContainer.GetNdValue("fluidPressure", PressureUnit.Pa);
-            var orificeDiam = StateContainer.GetNdValue("orificeDiameter", DistanceUnit.Meter);
-            var dischargeCoeff = StateContainer.GetNdValue("orificeDischargeCoefficient", UnitlessUnit.Unitless);
-
-            _radHeatFluxX =
-                StateContainer.GetNdValueList("FlameWrapper.radiative_heat_flux_point:x", DistanceUnit.Meter);
-            _radHeatFluxY =
-                StateContainer.GetNdValueList("FlameWrapper.radiative_heat_flux_point:y", DistanceUnit.Meter);
-            _radHeatFluxZ =
-                StateContainer.GetNdValueList("FlameWrapper.radiative_heat_flux_point:z", DistanceUnit.Meter);
-            var contourLevels =
-                StateContainer.GetNdValueList("FlameWrapper.contour_levels", UnitlessUnit.Unitless);
-            var relativeHumidity = StateContainer.GetNdValue("relativeHumidity", UnitlessUnit.Unitless);
-            var notionalNozzleModel = StateContainer.GetValue<NozzleModel>("NozzleModel");
-            var releaseAngle = StateContainer.GetNdValue("releaseAngle", AngleUnit.Radians);
-
+            _radHeatFluxX = _state.RadiativeFluxX;
+            _radHeatFluxY = _state.RadiativeFluxY;
+            _radHeatFluxZ = _state.RadiativeFluxZ;
             Trace.TraceInformation("Creating PhysicsInterface for python call");
             var physInt = new PhysicsInterface();
 
-            _analysisStatus = physInt.AnalyzeRadiativeHeatFlux(
-                ambTemp, ambPressure, h2Temp, h2Pressure, orificeDiam, dischargeCoeff,
-                releaseAngle,
-                notionalNozzleModel, _radHeatFluxX, _radHeatFluxY, _radHeatFluxZ, relativeHumidity,
-                contourLevels,
-                out _statusMsg, out _warningMsg, out _fluxData, out _fluxPlotFilepath, out _tempPlotFilepath,
-                out _massFlow, out _srad, out _flameLength);
+            _analysisStatus = physInt.AnalyzeRadiativeHeatFlux(out _statusMsg, out _warningMsg, out _fluxData, out _fluxPlotFilepath,
+                                                               out _tempPlotFilepath, out _massFlow, out _srad, out _flameLength, out _radiantFrac);
             Trace.TraceInformation("PhysicsInterface call complete");
         }
 
@@ -193,13 +183,13 @@ namespace SandiaNationalLaboratories.Hyram
             {
                 MessageBox.Show(_statusMsg);
                 spinnerPictureBox.Hide();
-                executeButton.Enabled = true;
+                SubmitBtn.Enabled = true;
             }
             else if (_fluxData.Length == 0)
             {
                 MessageBox.Show("Analysis yielded no data.");
                 spinnerPictureBox.Hide();
-                executeButton.Enabled = true;
+                SubmitBtn.Enabled = true;
             }
             else
             {
@@ -226,32 +216,28 @@ namespace SandiaNationalLaboratories.Hyram
                 outputMassFlowRate.Text = _massFlow.ToString("E3");
                 outputSrad.Text = _srad.ToString("E3");
                 outputFlameLength.Text = _flameLength.ToString("F3");
+                outputRadiantFrac.Text = _radiantFrac.ToString("F3");
 
                 spinnerPictureBox.Hide();
-                executeButton.Enabled = true;
+                SubmitBtn.Enabled = true;
                 tcIO.SelectTab(outputTab);
 
             }
         }
 
+        // Saves x,y,z position data from textbox inputs
         private void ExtractAndSaveXyzValues()
         {
             if (!_mIgnoreXyzChangeEvent)
             {
-                var xValues =
-                    ExtractFloatArrayFromDelimitedString(tbRadiativeHeatFluxPointsX.Text, ',');
-                var yValues =
-                    ExtractFloatArrayFromDelimitedString(tbRadiativeHeatFluxPointsY.Text, ',');
-                var zValues =
-                    ExtractFloatArrayFromDelimitedString(tbRadiativeHeatFluxPointsZ.Text, ',');
+                var xValues = ParseUtility.GetArrayFromString(LocXInput.Text, ',');
+                var yValues = ParseUtility.GetArrayFromString(LocYInput.Text, ',');
+                var zValues = ParseUtility.GetArrayFromString(LocZInput.Text, ',');
                 if (xValues.Length == yValues.Length && yValues.Length == zValues.Length && zValues.Length > 0)
                 {
-                    StateContainer.SetValue("FlameWrapper.radiative_heat_flux_point:x",
-                        new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, xValues));
-                    StateContainer.SetValue("FlameWrapper.radiative_heat_flux_point:y",
-                        new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, yValues));
-                    StateContainer.SetValue("FlameWrapper.radiative_heat_flux_point:z",
-                        new ConvertibleValue(StockConverters.DistanceConverter, DistanceUnit.Meter, zValues));
+                    _state.RadiativeFluxX = xValues;
+                    _state.RadiativeFluxY = yValues;
+                    _state.RadiativeFluxZ = zValues;
                 }
             }
             CheckFormValid();
@@ -263,7 +249,7 @@ namespace SandiaNationalLaboratories.Hyram
             return values.Length;
         }
 
-        private async void executeButton_Click(object sender, EventArgs e)
+        private async void SubmitBtn_Click(object sender, EventArgs e)
         {
             if (pbPlotIsoOutput.Image != null)
             {
@@ -279,31 +265,31 @@ namespace SandiaNationalLaboratories.Hyram
             dgResult.Rows.Clear();
             outputWarning.Hide();
             spinnerPictureBox.Show();
-            executeButton.Enabled = false;
+            SubmitBtn.Enabled = false;
             await Task.Run(() => Execute());
             DisplayResults();
         }
 
-        private void dgInput_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        private void InputGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            StaticGridHelperRoutines.ProcessDataGridViewRowValueChangedEvent((DataGridView) sender, e, 1, 2, false);
+            GridHelpers.ChangeParameterValue((DataGridView) sender, e, 1, 2);
             CheckFormValid();
         }
 
-        private void tbRadiativeHeatFluxPointsX_TextChanged(object sender, EventArgs e)
+        private void LocXInput_TextChanged(object sender, EventArgs e)
         {
             ExtractAndSaveXyzValues();
         }
-        private void tbRadiativeHeatFluxPointsY_TextChanged(object sender, EventArgs e)
+        private void LocYInput_TextChanged(object sender, EventArgs e)
         {
             ExtractAndSaveXyzValues();
         }
-        private void tbRadiativeHeatFluxPointsZ_TextChanged(object sender, EventArgs e)
+        private void LocZInput_TextChanged(object sender, EventArgs e)
         {
             ExtractAndSaveXyzValues();
         }
 
-        private void btnCopyToClipboard_Click(object sender, EventArgs e)
+        private void CopyBtn_Click(object sender, EventArgs e)
         {
             try
             {
@@ -346,36 +332,50 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
-
-        private void tbContourLevels_TextChanged(object sender, EventArgs e)
+        private void ContourInput_TextChanged(object sender, EventArgs e)
         {
             if (!_mIgnoreXyzChangeEvent)
             {
                 var contours = new List<double>();
 
-                string contourText = tbContourLevels.Text;
+                string contourText = ContourInput.Text;
                 Regex.Replace(contourText, @"\s+", "");  // trim whitespace
                 if (contourText != "")
                 {
-                    contours = new List<double>(ExtractFloatArrayFromDelimitedString(tbContourLevels.Text, ','));
+                    contours = new List<double>(ParseUtility.GetArrayFromString(ContourInput.Text, ','));
                 }
-                StateContainer.Instance.Parameters["FlameWrapper.contour_levels"] =
-                    new ConvertibleValue(StockConverters.UnitlessConverter, UnitlessUnit.Unitless, contours.ToArray(),
-                        0.0);
+
+                _state.FlameContourLevels = contours.ToArray();
             }
         }
 
-        private void notionalNozzleSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        private void NozzleSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            string modelName = notionalNozzleSelector.SelectedItem.ToString();
-            StateContainer.SetValue("NozzleModel", NozzleModel.ParseNozzleModelName(modelName));
+            _state.Nozzle = (ModelPair)NozzleSelector.SelectedItem;
         }
 
-        private void fuelPhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        private void PhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            StateContainer.SetReleasePhase((FluidPhase)fuelPhaseSelector.SelectedItem);
-            RefreshGridParameters();
+            _state.Phase = (ModelPair)PhaseSelector.SelectedItem;
+            RefreshForm();
         }
 
+        private void AutoSetLimits_CheckedChanged(object sender, EventArgs e)
+        {
+            _state.FlameAutoLimits = AutoSetLimits.Checked;
+            RefreshForm();
+        }
+
+        private void MassFlowInput_TextChanged(object sender, EventArgs e)
+        {
+            if (double.TryParse(MassFlowInput.Text, out double result))
+            {
+                _state.FluidMassFlow = result;
+            }
+            else
+            {
+                MassFlowInput.Text = _state.FluidMassFlow.ToString();
+            }
+        }
     }
 }

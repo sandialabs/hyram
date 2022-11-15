@@ -99,7 +99,7 @@ def calc_thermal_effects(amb_fluid, rel_fluid, rel_angle,
             fluxes_kWm2 = fluxes / 1000
             fluxes_str = 'Radiative Heat Flux (kW/m$^2$)'
             now_str = misc_utils.get_now_str()
-            orif_diam_mm = orifice.d * 1000.
+            orif_diam_mm = orifice.d * 1000
             pos_fname = 'HeatFluxPositionPlot{}_{}.png'.format(i, now_str)
             if output_dir is None:
                 output_dir = misc_utils.get_temp_folder()
@@ -243,7 +243,7 @@ def calc_overp_effects(orifices, notional_nozzle_model,
             overpressures_kPa = overpressures / 1000
             overpressures_str = 'Peak Overpressure (kPa)'
             now_str = misc_utils.get_now_str()
-            orif_diam_mm = orifice.d * 1000.  # mm
+            orif_diam_mm = orifice.d * 1000  # mm
             pos_fname = 'OverpressurePositionPlot{}_{}.png'.format(i, now_str)
             if output_dir is None:
                 output_dir = misc_utils.get_temp_folder()
@@ -322,7 +322,7 @@ def plot_effect_positions(effects, effect_label, filename, title,
                                     width+.2, fill=None))
     
     # Arrow representing flame direction, does not represent length/width
-    ax.arrow(0, 0, length/4.0, 0, head_width=0.7, alpha=1.0,
+    ax.arrow(0, 0, length/4, 0, head_width=0.7, alpha=1,
              head_length=0.7, linewidth=0.3, fc='blue', ec='blue')
     
     # Plot occupant positions, colored by effect

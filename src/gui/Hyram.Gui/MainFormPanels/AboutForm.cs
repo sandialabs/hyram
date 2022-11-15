@@ -105,7 +105,7 @@ namespace SandiaNationalLaboratories.Hyram
             | System.Windows.Forms.AnchorStyles.Right)));
             this._versionText.Location = new System.Drawing.Point(15, 93);
             this._versionText.Name = "_versionText";
-            this._versionText.Size = new System.Drawing.Size(372, 26);
+            this._versionText.Size = new System.Drawing.Size(376, 26);
             this._versionText.TabIndex = 1;
             this._versionText.Text = "Version XX.XXX.XXX";
             this._versionText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -116,17 +116,16 @@ namespace SandiaNationalLaboratories.Hyram
             | System.Windows.Forms.AnchorStyles.Right)));
             this._buildByText.Location = new System.Drawing.Point(15, 129);
             this._buildByText.Name = "_buildByText";
-            this._buildByText.Size = new System.Drawing.Size(372, 41);
+            this._buildByText.Size = new System.Drawing.Size(376, 106);
             this._buildByText.TabIndex = 2;
-            this._buildByText.Text = "Developed for the United States Department of Energy by Sandia National Laborator" +
-    "ies (SNL). Please contact SNL for attribution details.";
+            this._buildByText.Text = resources.GetString("_buildByText.Text");
             this._buildByText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // _okBtn
             // 
             this._okBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._okBtn.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this._okBtn.Location = new System.Drawing.Point(329, 528);
+            this._okBtn.Location = new System.Drawing.Point(333, 371);
             this._okBtn.Name = "_okBtn";
             this._okBtn.Size = new System.Drawing.Size(67, 21);
             this._okBtn.TabIndex = 5;
@@ -139,7 +138,7 @@ namespace SandiaNationalLaboratories.Hyram
             | System.Windows.Forms.AnchorStyles.Right)));
             this._buildDayText.Location = new System.Drawing.Point(15, 113);
             this._buildDayText.Name = "_buildDayText";
-            this._buildDayText.Size = new System.Drawing.Size(372, 16);
+            this._buildDayText.Size = new System.Drawing.Size(376, 16);
             this._buildDayText.TabIndex = 7;
             this._buildDayText.Text = "Built on";
             this._buildDayText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -148,7 +147,7 @@ namespace SandiaNationalLaboratories.Hyram
             // 
             this._weblink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this._weblink.AutoSize = true;
-            this._weblink.Location = new System.Drawing.Point(12, 532);
+            this._weblink.Location = new System.Drawing.Point(12, 375);
             this._weblink.Name = "_weblink";
             this._weblink.Size = new System.Drawing.Size(92, 13);
             this._weblink.TabIndex = 8;
@@ -160,11 +159,11 @@ namespace SandiaNationalLaboratories.Hyram
             // 
             this._copyrightText.BackColor = System.Drawing.SystemColors.Control;
             this._copyrightText.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this._copyrightText.Location = new System.Drawing.Point(18, 173);
+            this._copyrightText.Location = new System.Drawing.Point(18, 238);
             this._copyrightText.Name = "_copyrightText";
             this._copyrightText.ReadOnly = true;
             this._copyrightText.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-            this._copyrightText.Size = new System.Drawing.Size(378, 289);
+            this._copyrightText.Size = new System.Drawing.Size(378, 117);
             this._copyrightText.TabIndex = 11;
             this._copyrightText.Text = "";
             // 
@@ -184,8 +183,7 @@ namespace SandiaNationalLaboratories.Hyram
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.CancelButton = this._okBtn;
-            this.ClientSize = new System.Drawing.Size(408, 556);
-            this.ControlBox = false;
+            this.ClientSize = new System.Drawing.Size(412, 399);
             this.Controls.Add(this._copyrightText);
             this.Controls.Add(this._bannerLogo);
             this.Controls.Add(this._weblink);

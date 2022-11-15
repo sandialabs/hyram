@@ -138,7 +138,7 @@ class ComponentFailureSet:
                  overp_dist='beta', overp_a=3.5, overp_b=310289.5,
                  pvalve_fto_dist='logn', pvalve_fto_a=-11.7359368859313, pvalve_fto_b=0.667849415603714,
                  driveoff_dist='beta', driveoff_a=31.5, driveoff_b=610384.5,
-                 coupling_ftc_dist='beta', coupling_ftc_a=0.5, coupling_ftc_b=5031., verbose=False):
+                 coupling_ftc_dist='beta', coupling_ftc_a=0.5, coupling_ftc_b=5031, verbose=False):
 
         if f_failure_override is not None:
             # User provided vehicle fueling failure frequency directly so ignore individual events
@@ -187,7 +187,10 @@ class ComponentFailureSet:
             self.f_fueling_fail = np.around(float(f_accidents + f_shutdown_fail), 20)
 
             if verbose:
-                log.info("\nCOMPONENT FAILURE DATA")
+                log.info("")
+                log.info("COMPONENT FAILURE DATA")
+                log.info(
+                    f'{num_fuelings} fuelings ({num_vehicles} vehicles, {daily_fuelings} fuel/d, {vehicle_days} days)')
                 log.info("Nozzle popoff {}, {}, {}".format(noz_po_dist, noz_po_a, noz_po_b))
                 log.info("Nozzle FTC {}, {}, {}".format(noz_ftc_dist, noz_ftc_a, noz_ftc_b))
                 log.info("MValve FTC {}, {}, {}".format(mvalve_ftc_dist, mvalve_ftc_a, mvalve_ftc_b))
@@ -205,7 +208,15 @@ class ComponentFailureSet:
                 log.info("Shutdown fail P {:.3g}, F {:.3g}".format(p_shutdown_fail, f_shutdown_fail))
 
         if verbose:
-            log.info("Total freq of other failures: {:.3g}".format(self.f_fueling_fail))
+            log.info("Frequency of other failures: {:.3g}".format(self.f_fueling_fail))
+
+    def __str__(self):
+        if self.use_override:
+            # User provided vehicle fueling failure frequency directly so ignore individual events
+            return f"Fuel failure OVERRIDE: {self.f_fueling_fail}"
+
+        else:
+            return f"Fuel failure: {self.f_fueling_fail}"
 
 
 class ComponentFailure:

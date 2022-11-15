@@ -18,8 +18,7 @@ namespace SandiaNationalLaboratories.Hyram
         {
             MainForm = mainForm;
             InitializeComponent();
-            StateContainer.SetValue("ResultsAreStale", true);
-            CheckFormValid();
+//            CheckFormValid();
         }
 
         public override void CheckFormValid()

@@ -10,6 +10,9 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 namespace SandiaNationalLaboratories.Hyram
 {
 
+    /// <summary>
+    /// Convenience class holding message texts.
+    /// </summary>
     public static class MessageContainer
     {
         //public const string LiquidReleasePressureInvalid =
@@ -17,9 +20,9 @@ namespace SandiaNationalLaboratories.Hyram
 
         //public const string FuelFlowChoked = "Fuel flow is choked; release pressure is less than critical ratio * ambient pressure";
 
-        public static string GetAlertMessageReleasePressureInvalid()
+        public static string ReleasePressureInvalid()
         {
-            FuelType fuel = StateContainer.GetValue<FuelType>("FuelType");
+            FuelType fuel = State.Data.GetActiveFuel();
             double criticalP = fuel.GetCriticalPressureMpa();
             string msg = $"Saturated release pressure must be between ambient pressure and critical pressure ({criticalP} MPa)";
             return msg;

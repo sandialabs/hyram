@@ -54,7 +54,7 @@ class BetaDistribution(DistributionWrapper):
     """ Beta distribution setup """
 
     def __init__(self, a, b, loc=0, scale=1):
-        if a <= 0. or b <= 0.:
+        if a <= 0 or b <= 0:
             raise ValueError('Invalid beta distribution - parameters must be greater than 0')
         super().__init__(a, b, loc=loc, scale=scale, distr_class=beta)
         self.name = "Beta"
@@ -77,7 +77,7 @@ class NormalDistribution(DistributionWrapper):
     """ Normal distribution setup """
 
     def __init__(self, a, b, loc=0, scale=1):
-        if b <= 0.:
+        if b <= 0:
             raise ValueError('Normal distribution parameter b must be > 0')
         super().__init__(a, b, loc=loc, scale=scale, distr_class=norm)
         self.name = "Normal"
@@ -150,7 +150,7 @@ class LogNormDistribution(object):
         self.distribution = None
         # NOTE: lognormal distribution will use geometric mean (median) rather than arithmetic mean
         self.mean = np.exp(self.mu)
-        self.var = self.variance = (np.exp(self.sigma ** 2) - 1) * np.exp(2 * self.mu + self.sigma ** 2.)
+        self.var = self.variance = (np.exp(self.sigma ** 2) - 1) * np.exp(2 * self.mu + self.sigma ** 2)
         self.rvs = None
 
     def __str__(self):

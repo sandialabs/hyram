@@ -11,9 +11,9 @@ import unittest
 
 import numpy as np
 
-import hyram.qra.effects as hyram_effects
+from hyram.qra import effects
 import hyram.phys.api as phys_api
-import hyram.phys._comps as phys_comps
+from hyram.phys import Orifice
 from hyram.utilities import misc_utils
 
 
@@ -33,7 +33,7 @@ class TestThermalEffects(unittest.TestCase):
         self.site_length = 20  # m
         self.site_width = 12  # m
         leak_diams = [0.001, 0.003]  # m
-        self.orifices = [phys_comps.Orifice(leak_diam) for leak_diam in leak_diams]
+        self.orifices = [Orifice(leak_diam) for leak_diam in leak_diams]
         self.rel_humid = 0.89
         self.not_nozzle_model = 'yuce'
         self.locations = [(5, 0, 1), (6, 1, 2), (7, 0, 2)]  # m
@@ -42,35 +42,35 @@ class TestThermalEffects(unittest.TestCase):
         self.verbose=False
 
     def test_calc_thermal_effects(self):
-        flux_dict = hyram_effects.calc_thermal_effects(self.amb_fluid,
-                                                       self.rel_fluid,
-                                                       self.rel_angle,
-                                                       self.site_length,
-                                                       self.site_width,
-                                                       self.orifices,
-                                                       self.rel_humid,
-                                                       self.not_nozzle_model,
-                                                       self.locations,
-                                                       self.create_plots,
-                                                       self.output_dir,
-                                                       self.verbose)
+        flux_dict = effects.calc_thermal_effects(self.amb_fluid,
+                                                 self.rel_fluid,
+                                                 self.rel_angle,
+                                                 self.site_length,
+                                                 self.site_width,
+                                                 self.orifices,
+                                                 self.rel_humid,
+                                                 self.not_nozzle_model,
+                                                 self.locations,
+                                                 self.create_plots,
+                                                 self.output_dir,
+                                                 self.verbose)
         self.assertGreater(max(flux_dict['fluxes']), 0)
         self.assertGreater(len(flux_dict['all_pos_files']), 0)
 
     def test_zero_occupants(self):
         locations = []
-        flux_dict = hyram_effects.calc_thermal_effects(self.amb_fluid,
-                                                       self.rel_fluid,
-                                                       self.rel_angle,
-                                                       self.site_length,
-                                                       self.site_width,
-                                                       self.orifices,
-                                                       self.rel_humid,
-                                                       self.not_nozzle_model,
-                                                       locations,
-                                                       self.create_plots,
-                                                       self.output_dir,
-                                                       self.verbose)
+        flux_dict = effects.calc_thermal_effects(self.amb_fluid,
+                                                 self.rel_fluid,
+                                                 self.rel_angle,
+                                                 self.site_length,
+                                                 self.site_width,
+                                                 self.orifices,
+                                                 self.rel_humid,
+                                                 self.not_nozzle_model,
+                                                 locations,
+                                                 self.create_plots,
+                                                 self.output_dir,
+                                                 self.verbose)
         self.assertEqual(len(flux_dict['fluxes']), 0)
 
 
@@ -80,7 +80,7 @@ class TestOverpressureEffects(unittest.TestCase):
     """
     def setUp(self):
         leak_diams = [0.001, 0.003]  # m
-        self.orifices = [phys_comps.Orifice(leak_diam) for leak_diam in leak_diams]
+        self.orifices = [Orifice(leak_diam) for leak_diam in leak_diams]
         self.notional_nozzle_model = 'yuce'
         self.release_fluid = phys_api.create_fluid('H2',
                                                    temp=288,  # K
@@ -101,60 +101,60 @@ class TestOverpressureEffects(unittest.TestCase):
         self.verbose = False
 
     def test_calc_overp_effects_TNT(self):
-        overp_dict = hyram_effects.calc_overp_effects(self.orifices,
-                                                      self.notional_nozzle_model,
-                                                      self.release_fluid,
-                                                      self.ambient_fluid,
-                                                      self.release_angle,
-                                                      self.locations,
-                                                      self.site_length,
-                                                      self.site_width,
-                                                      'tnt',
-                                                      self.BST_mach_flame_speed,
-                                                      self.TNT_equivalence_factor,
-                                                      self.create_plots,
-                                                      self.output_dir,
-                                                      self.verbose)
+        overp_dict = effects.calc_overp_effects(self.orifices,
+                                                self.notional_nozzle_model,
+                                                self.release_fluid,
+                                                self.ambient_fluid,
+                                                self.release_angle,
+                                                self.locations,
+                                                self.site_length,
+                                                self.site_width,
+                                                'tnt',
+                                                self.BST_mach_flame_speed,
+                                                self.TNT_equivalence_factor,
+                                                self.create_plots,
+                                                self.output_dir,
+                                                self.verbose)
         self.assertGreater(max(overp_dict['overpressures']), 0)
         self.assertGreater(max(overp_dict['impulses']), 0)
         self.assertGreater(len(overp_dict['all_pos_overp_files']), 0)
         self.assertGreater(len(overp_dict['all_pos_impulse_files']), 0)
 
     def test_calc_overp_effects_BST(self):
-        overp_dict = hyram_effects.calc_overp_effects(self.orifices,
-                                                      self.notional_nozzle_model,
-                                                      self.release_fluid,
-                                                      self.ambient_fluid,
-                                                      self.release_angle,
-                                                      self.locations,
-                                                      self.site_length,
-                                                      self.site_width,
-                                                      'bst',
-                                                      self.BST_mach_flame_speed,
-                                                      self.TNT_equivalence_factor,
-                                                      self.create_plots,
-                                                      self.output_dir,
-                                                      self.verbose)
+        overp_dict = effects.calc_overp_effects(self.orifices,
+                                                self.notional_nozzle_model,
+                                                self.release_fluid,
+                                                self.ambient_fluid,
+                                                self.release_angle,
+                                                self.locations,
+                                                self.site_length,
+                                                self.site_width,
+                                                'bst',
+                                                self.BST_mach_flame_speed,
+                                                self.TNT_equivalence_factor,
+                                                self.create_plots,
+                                                self.output_dir,
+                                                self.verbose)
         self.assertGreater(max(overp_dict['overpressures']), 0)
         self.assertGreater(max(overp_dict['impulses']), 0)
         self.assertGreater(len(overp_dict['all_pos_overp_files']), 0)
         self.assertGreater(len(overp_dict['all_pos_impulse_files']), 0)
 
     def test_calc_overp_effects_Bauwens(self):
-        overp_dict = hyram_effects.calc_overp_effects(self.orifices,
-                                                      self.notional_nozzle_model,
-                                                      self.release_fluid,
-                                                      self.ambient_fluid,
-                                                      self.release_angle,
-                                                      self.locations,
-                                                      self.site_length,
-                                                      self.site_width,
-                                                      'bauwens',
-                                                      self.BST_mach_flame_speed,
-                                                      self.TNT_equivalence_factor,
-                                                      self.create_plots,
-                                                      self.output_dir,
-                                                      self.verbose)
+        overp_dict = effects.calc_overp_effects(self.orifices,
+                                                self.notional_nozzle_model,
+                                                self.release_fluid,
+                                                self.ambient_fluid,
+                                                self.release_angle,
+                                                self.locations,
+                                                self.site_length,
+                                                self.site_width,
+                                                'bauwens',
+                                                self.BST_mach_flame_speed,
+                                                self.TNT_equivalence_factor,
+                                                self.create_plots,
+                                                self.output_dir,
+                                                self.verbose)
         self.assertGreater(max(overp_dict['overpressures']), 0)
         self.assertTrue(np.all(np.isnan(overp_dict['impulses'])))
         self.assertGreater(len(overp_dict['all_pos_overp_files']), 0)
@@ -162,23 +162,22 @@ class TestOverpressureEffects(unittest.TestCase):
 
     def test_zero_occupants(self):
         locations = []
-        overp_dict = hyram_effects.calc_overp_effects(self.orifices,
-                                                      self.notional_nozzle_model,
-                                                      self.release_fluid,
-                                                      self.ambient_fluid,
-                                                      self.release_angle,
-                                                      locations,
-                                                      self.site_length,
-                                                      self.site_width,
-                                                      self.overp_method,
-                                                      self.BST_mach_flame_speed,
-                                                      self.TNT_equivalence_factor,
-                                                      self.create_plots,
-                                                      self.output_dir,
-                                                      self.verbose)
+        overp_dict = effects.calc_overp_effects(self.orifices,
+                                                self.notional_nozzle_model,
+                                                self.release_fluid,
+                                                self.ambient_fluid,
+                                                self.release_angle,
+                                                locations,
+                                                self.site_length,
+                                                self.site_width,
+                                                self.overp_method,
+                                                self.BST_mach_flame_speed,
+                                                self.TNT_equivalence_factor,
+                                                self.create_plots,
+                                                self.output_dir,
+                                                self.verbose)
         self.assertEqual(len(overp_dict['overpressures']), 0)
         self.assertEqual(len(overp_dict['impulses']), 0)
-
 
 
 class TestEffectPlots(unittest.TestCase):
@@ -186,7 +185,7 @@ class TestEffectPlots(unittest.TestCase):
     Test plotting of thermal and overpressure effects
     """
     def test_plot_effect_positions(self):
-        effects = [0.06, 0.01]
+        test_effects = [0.06, 0.01]
         effect_label = 'Test Effect [units]'
         output_dir = misc_utils.get_temp_folder()
         filename = 'test_effect_positions.png'
@@ -196,16 +195,15 @@ class TestEffectPlots(unittest.TestCase):
         z_locations = [1, 2]
         length = 20
         width = 12
-        hyram_effects.plot_effect_positions(effects, 
-                                            effect_label,
-                                            filepathname,
-                                            title,
-                                            x_locations,
-                                            z_locations,
-                                            length,
-                                            width)
+        effects.plot_effect_positions(test_effects,
+                                      effect_label,
+                                      filepathname,
+                                      title,
+                                      x_locations,
+                                      z_locations,
+                                      length,
+                                      width)
         self.assertTrue(os.path.isfile(filepathname))
-
 
 
 if __name__ == "__main__":

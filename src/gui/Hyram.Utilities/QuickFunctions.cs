@@ -7,7 +7,6 @@ You should have received a copy of the GNU General Public License along with
 HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
-using System;
 using System.IO;
 using System.Windows.Forms;
 
@@ -18,12 +17,6 @@ namespace SandiaNationalLaboratories.Hyram
     /// </summary>
     public class QuickFunctions
     {
-        public static void PreventGridColumnSorting(DataGridView grid)
-        {
-            foreach (DataGridViewColumn thisColumn in grid.Columns)
-                thisColumn.SortMode = DataGridViewColumnSortMode.NotSortable;
-        }
-
         public static void PerformNumericSortOnGrid(object sender, DataGridViewSortCompareEventArgs e)
         {
             if (e.CellValue1 != null && e.CellValue2 != null)
@@ -45,98 +38,6 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
-        private static double GetNumericPartOfCellValueString(string cellValue)
-        {
-            var result = double.NaN;
-            // If successful full parse, return the value. Otherwise, try to find
-            // numeric first part of string
-            if (!ParseUtility.TryParseDouble(cellValue, out result))
-                if (cellValue.Length > 0)
-                {
-                    var numericPart = GetPrependedNumericPartOfString(cellValue);
-                    if (numericPart.Length > 0) ParseUtility.TryParseDouble(numericPart, out result);
-                }
-
-            return result;
-        }
-
-        private static string GetPrependedNumericPartOfString(string cellValue)
-        {
-            var result = "";
-            for (var index = 0; index < cellValue.Length; index++)
-            {
-                var thisCh = cellValue.Substring(index, 1);
-                if (ParseUtility.IsParseableNumber(result + thisCh))
-                    result += thisCh;
-                else
-                    break;
-            }
-
-            return result;
-        }
-
-        // Find the first parent of specified type, from control.  An example would be to find the Form that owns the current
-        // control. Another example might be a TabControl.
-        public static Control GetFirstParentOfSpecifiedType(Control childToChaseParentFrom, Type specifiedParentType)
-        {
-            Control result = null;
-            var parentVar = childToChaseParentFrom.Parent;
-            var done = false;
-
-            while (!done)
-            {
-                var parentControlType = parentVar.GetType();
-                if (parentControlType == specifiedParentType)
-                {
-                    result = parentVar;
-                    done = true;
-                }
-                else
-                {
-                    parentVar = parentVar.Parent;
-                }
-
-                if (parentVar == null) done = true;
-            }
-
-            return result;
-        }
-
-        public static Button GetTopButton(Control buttonParent, ChildNavOptions navOptions)
-        {
-            Button result = null;
-
-            foreach (Control thisControl in buttonParent.Controls)
-                if (thisControl is Button)
-                {
-                    if (result == null)
-                        result = (Button) thisControl;
-                    else if (result.Top > ((Button) thisControl).Top) result = (Button) thisControl;
-                }
-                else if (thisControl.HasChildren && navOptions == ChildNavOptions.NavigateChildren)
-                {
-                    result = GetTopButton(thisControl, ChildNavOptions.NavigateChildren);
-                    if (result != null) break;
-                }
-
-            return result;
-        }
-
-        private static string GetFileDirectory(string path)
-        {
-            var filename = Path.GetFileName(path);
-            string result = null;
-
-            if (filename.Length > 0)
-            {
-                result = path.Substring(0, path.Length - filename.Length);
-                result = StringFunctions.ConditionalChop(result, '\\');
-                result = StringFunctions.ConditionalChop(result, '/');
-            }
-
-            return result;
-        }
-
         public static string SelectSaveAsFilename(string title, ref string startingPath, string extension, string filter)
         {
             var fd = new SaveFileDialog
@@ -153,9 +54,114 @@ namespace SandiaNationalLaboratories.Hyram
 
             var result = fd.FileName;
             fd.Dispose();
-            fd = null;
             if (result.Length > 0 && cancelOrNot != DialogResult.Cancel)
+            {
                 startingPath = GetFileDirectory(result);
+            }
+
+            return result;
+        }
+
+        public static string SelectFilename(string title, ref string startingPath, string filter,
+                                            bool checkFileExists = true)
+        {
+            var result = "";
+//            var resultArray = SelectFilenames(title, ref startingPath, filter, false, checkFileExists);
+
+            // Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*" ;
+            if (filter.Length == 5 || filter.Length == 3)
+            {
+                filter = filter + " Files (" + filter + ")|" + filter;
+            }
+
+            var fd = new OpenFileDialog();
+
+            if (!string.IsNullOrEmpty(startingPath) && !Directory.Exists(startingPath))
+            {
+                startingPath = DropBottomDirName(startingPath);
+            }
+
+            fd.CheckFileExists = checkFileExists;
+            fd.Title = title;
+            fd.InitialDirectory = startingPath;
+            fd.Filter = filter;
+            fd.Multiselect = false;
+            var dlgResult = fd.ShowDialog();
+
+            string[] resultArray = null;
+            if (dlgResult == DialogResult.OK)
+            {
+                resultArray = fd.FileNames;
+                if (resultArray != null && resultArray.Length > 0 && resultArray[0].Length > 0)
+                {
+                    startingPath = Path.GetDirectoryName(resultArray[0]);
+                }
+            }
+
+            if (resultArray != null && resultArray.Length == 1)
+            {
+                result = resultArray[0];
+            }
+
+            return result;
+        }
+
+
+        private static double GetNumericPartOfCellValueString(string cellValue)
+        {
+            // If successful full parse, return the value. Otherwise, try to find
+            // numeric first part of string
+            if (!double.TryParse(cellValue, out var result))
+                if (cellValue.Length > 0)
+                {
+                    string numericPart = "";
+                    for (var index = 0; index < cellValue.Length; index++)
+                    {
+                        var thisCh = cellValue.Substring(index, 1);
+                        if (ParseUtility.IsParseableNumber(result + thisCh))
+                        {
+                            numericPart += thisCh;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    if (numericPart.Length > 0) double.TryParse(numericPart, out result);
+                }
+
+            return result;
+        }
+
+        private static string ConditionalChop(string source, char ifLastValueIs)
+        {
+            string result = null;
+
+            if (source.Length > 0)
+            {
+                var thisCh = source[source.Length - 1];
+                result = thisCh == ifLastValueIs ? source.Substring(0, source.Length - 1) : source;
+            }
+            if (result == null)
+            {
+                result = source;
+            }
+
+            return result;
+        }
+
+        private static string GetFileDirectory(string path)
+        {
+            var filename = Path.GetFileName(path);
+            string result = null;
+
+            if (filename.Length > 0)
+            {
+                result = path.Substring(0, path.Length - filename.Length);
+                result = ConditionalChop(result, '\\');
+                result = ConditionalChop(result, '/');
+            }
 
             return result;
         }
@@ -184,58 +190,39 @@ namespace SandiaNationalLaboratories.Hyram
             return result;
         }
 
-        public static string[] SelectFilenames(string title, ref string startingPath, string filter, bool multiselect,
-            bool checkFileExists = true)
-        {
-            // Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*" ;
-            if (filter.Length == 5 || filter.Length == 3) filter = filter + " Files (" + filter + ")|" + filter;
+//        private static string[] SelectFilenames(string title, ref string startingPath, string filter, bool multiselect,
+//                                                bool checkFileExists = true)
+//        {
+//            // Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*" ;
+//            if (filter.Length == 5 || filter.Length == 3) filter = filter + " Files (" + filter + ")|" + filter;
+//
+//            var fd = new OpenFileDialog();
+//
+//            if (!string.IsNullOrEmpty(startingPath) && !Directory.Exists(startingPath))
+//            {
+//                startingPath = DropBottomDirName(startingPath);
+//            }
+//
+//            fd.CheckFileExists = checkFileExists;
+//
+//            fd.Title = title;
+//            fd.InitialDirectory = startingPath;
+//            fd.Filter = filter;
+//            fd.Multiselect = multiselect;
+//            var dlgResult = fd.ShowDialog();
+//
+//            string[] result = null;
+//
+//            if (dlgResult == DialogResult.OK)
+//            {
+//                result = fd.FileNames;
+//                if (result != null && result.Length > 0 && result[0].Length > 0)
+//                {
+//                    startingPath = Path.GetDirectoryName(result[0]);
+//                }
+//            }
+//            return result;
+//        }
 
-            var fd = new OpenFileDialog();
-
-            if (startingPath != null)
-                if (startingPath.Length > 0)
-                    if (!Directory.Exists(startingPath))
-                        startingPath = DropBottomDirName(startingPath);
-
-            fd.CheckFileExists = checkFileExists;
-
-            fd.Title = title;
-            fd.InitialDirectory = startingPath;
-            fd.Filter = filter;
-            fd.Multiselect = multiselect;
-            var dlgResult = fd.ShowDialog();
-
-            string[] result = null;
-
-            if (dlgResult == DialogResult.OK)
-            {
-                result = fd.FileNames;
-                if (result != null)
-                    if (result.Length > 0)
-                        if (result[0].Length > 0)
-                            startingPath = Path.GetDirectoryName(result[0]);
-            }
-            return result;
-        }
-
-        public static string SelectFilename(string title, ref string startingPath, string filter,
-            bool checkFileExists = true)
-        {
-            string[] resultArray = null;
-            var result = "";
-
-            resultArray = SelectFilenames(title, ref startingPath, filter, false, checkFileExists);
-            if (resultArray != null)
-                if (resultArray.Length == 1)
-                    result = resultArray[0];
-
-            return result;
-        }
-    }
-
-    public enum ChildNavOptions
-    {
-        NavigateChildren,
-        TopLevelOnly
     }
 }

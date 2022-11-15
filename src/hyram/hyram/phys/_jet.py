@@ -6,18 +6,17 @@ You should have received a copy of the GNU General Public License along with HyR
 If not, see https://www.gnu.org/licenses/.
 """
 
-from __future__ import print_function, absolute_import, division
-
 import copy
 import warnings
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import numpy as np
 from scipy import integrate, optimize
 import scipy.constants as const
 
-from ._fuel_props import Fuel_Properties
-from ._nn import NotionalNozzle
+from ._fuel_props import FuelProperties
+from ._notional_nozzle import NotionalNozzle
 from ..utilities.custom_warnings import PhysicsWarning
 
 ########################################################################
@@ -27,11 +26,10 @@ from ..utilities.custom_warnings import PhysicsWarning
 
 class DevelopingFlow:
     def __init__(self, fluid, orifice, ambient, mdot=None,
-                 theta0=0, x0=0., y0=0.,
+                 theta0=0, x0=0, y0=0,
                  lam=1.16, betaA=0.28,
                  nn_conserve_momentum=True, nn_T='solve_energy', 
-                 T_establish_min=-1, a_calc = 'venetsanos', 
-                 useMLM = False, useMaxFlux = True, 
+                 T_establish_min=-1,  
                  suppressWarnings=False, verbose=False):
         '''
         Engineering correlations to calculate the Gaussian profile boundary conditions for
@@ -39,7 +37,7 @@ class DevelopingFlow:
         '''
         self.verbose = verbose
         S0 = 0 # S always starts at 0. x and y may start somewhere else.
-        Y0 = 1.0 # pure fluid
+        Y0 = 1 # pure fluid
         
         # Orifice flow
         self.orifice = orifice
@@ -95,20 +93,20 @@ class DevelopingFlow:
             fluid_out = copy.copy(fluid)
             fluid_out.update(T = T_establish_min, P = fluid_out.P)
             mdot_in = orifice.mdot(fluid)
-            h_in = fluid.therm.h(T = fluid.T, D = fluid.rho) + fluid.v**2/2. # assumes mdot_in is pure
+            h_in = fluid.therm.h(T = fluid.T, D = fluid.rho) + fluid.v**2/2 # assumes mdot_in is pure
             h_air_in = ambient.therm.h(T = ambient.T, P = ambient.P)
             h_air_out = air_out.therm.h(T = air_out.T, D = air_out.rho)
             h_fluid_out = fluid_out.therm.h(T = fluid_out.T, D = fluid_out.rho)
             def errH(Y):
                 h_out = (1-Y)*h_air_out + Y*h_fluid_out
-                rho_out = 1./((1.-Y)/air_out.rho + Y/fluid_out.rho)
-                mdot_out = mdot_in + (1.-Y)/Y*mdot_in # assumes mdot_in is pure
+                rho_out = 1/((1-Y)/air_out.rho + Y/fluid_out.rho)
+                mdot_out = mdot_in + (1-Y)/Y*mdot_in # assumes mdot_in is pure
                 v_out = fluid.v*mdot_in/mdot_out # need to think about whether this is right
-                h_out = h_out + v_out**2/2.
+                h_out = h_out + v_out**2/2
                 return mdot_in*h_in + (mdot_out - mdot_in)*h_air_in - mdot_out*h_out
-            Y = optimize.brentq(errH, 1.e-6, 1.)
-            rho_out = 1./((1.-Y)/air_out.rho + Y/fluid_out.rho)
-            mdot_out = mdot_in + (1.-Y)/Y*mdot_in
+            Y = optimize.brentq(errH, 1.e-6, 1)
+            rho_out = 1/((1-Y)/air_out.rho + Y/fluid_out.rho)
+            mdot_out = mdot_in + (1-Y)/Y*mdot_in
             v_out = fluid.v*mdot_in/mdot_out
             E = betaA*np.sqrt(orifice.mdot(fluid)*fluid.v/ambient.rho) 
             S_out = (1-Y)*(mdot_out - mdot_in)/E/ambient.rho
@@ -152,15 +150,15 @@ class PlugNode:
         h_amb, cp_ambient = ambient.therm.PropsSI(['H', 'C'], T = ambient.T, P = ambient.P)
 
         cp_gas = fluid.therm.PropsSI('C', T = (self.T + ambient.T)/2., P = ambient.P)
-        MW_clE = 1.0 / (Y_clE / fluid.therm.MW + (1.0 - Y_clE) / ambient.therm.MW)
+        MW_clE = 1 / (Y_clE / fluid.therm.MW + (1 - Y_clE) / ambient.therm.MW)
         h_amb = ambient.T*cp_ambient
-        cp_s3 = self.Y * cp_gas + (1.0 - self.Y) * cp_ambient # this is just cp_gas - using self.Y screws it up
+        cp_s3 = self.Y * cp_gas + (1 - self.Y) * cp_ambient # this is just cp_gas - using self.Y screws it up
         
         T_s3 = self.T
         # TODO: Use ThermoProps to calculate enthalpy
         h_s3 = cp_s3 * T_s3
-        h_clE = h_amb + (lam**2+1.)/(2.*lam**2)*(h_s3 - h_amb)
-        cp_clE = Y_clE * cp_gas + (1.0 - Y_clE) * cp_ambient
+        h_clE = h_amb + (lam**2+1)/(2*lam**2)*(h_s3 - h_amb)
+        cp_clE = Y_clE * cp_gas + (1 - Y_clE) * cp_ambient
         T_clE = h_clE / cp_clE
 
         rho_clE = ambient.P*MW_clE/(const.R*T_clE)
@@ -193,9 +191,9 @@ class GaussianNode:
         theta: float
             angle of jet (rad, 0 is horizontal)
         x: float
-            horizontal postion of node (m)
+            horizontal position of node (m)
         y: float
-            vertical postion of node (m)
+            vertical position of node (m)
         S : float (optional)
             length along jet(m)
         '''
@@ -218,17 +216,17 @@ class GaussianNode:
 
 class Jet:
     def __init__(self, fluid, orifice, ambient, mdot=None,
-                 theta0= 0, x0=0., y0=0.,
+                 theta0= 0, x0=0, y0=0,
                  lam=1.16, betaA=0.28,
                  nn_conserve_momentum=True, nn_T='solve_energy', 
                  T_establish_min=-1, 
                  Ymin=7e-4, dS=None, Smax=np.inf, 
                  max_steps=5000, tol=1e-8,
-                 alpha=0.082, Yamb=0., numB=5, numpts=500, 
+                 alpha=0.082, Yamb=0, numB=5, numpts=500, 
                  suppressWarnings=False, verbose=False):
         '''
         Class for solving for a 2D jet. 
-        If fluid pressure is <= 2 x ambient pressure, use subsonic initilization (specify mdot).
+        If fluid pressure is <= 2 x ambient pressure, use subsonic initialization (specify mdot).
                
         Parameters
         ----------
@@ -255,7 +253,7 @@ class Jet:
             together with nn_T determines which notional nozzle model to use (see below)
         nn_T: string, optional
             either 'solve_energy', 'Tthroat' or specified temperature (stagnation temperature) 
-            with nn_conserve_momentum leads to one of the following notinoal nozzle models:
+            with nn_conserve_momentum leads to one of the following notional nozzle models:
             YuceilOtugen - conserve_momentum = True, T = 'solve_energy'
             EwanMoodie - conserve_momentum = False, T = 'Tthroat'
             Birch - conserve_momentum = False, T = T0
@@ -263,7 +261,7 @@ class Jet:
             Molkov - conserve_momentum = False, T = 'solve_energy'
         T_establish_min: float, optional
             minimum temperature (K) at the zone of flow establishment, if specified, will implement the 
-            zone of initial entrainment and heating if tempearture after notional nozzle model is lower
+            zone of initial entrainment and heating if temperature after notional nozzle model is lower
         Ymin: float, optional
             minimum mass fraction to integrate to (default is about 1 mol%)
         dS: float, optional
@@ -319,7 +317,7 @@ class Jet:
         else:
             self._alpha_buoy = 0.97
         expanded_plug_node = self.developing_flow.expanded_plug_node
-        self._Emom = betaA*np.sqrt(const.pi/4.0*expanded_plug_node.d**2*
+        self._Emom = betaA*np.sqrt(const.pi/4*expanded_plug_node.d**2*
                                    expanded_plug_node.rho*expanded_plug_node.v**2/ambient.rho)
         # some other objects and parameters that I don't want to keep recalculating
         # note: method of calculating heat capacity and enthalpy makes a significant difference in terms
@@ -341,7 +339,7 @@ class Jet:
     
     def solve(self, Ymin = 7e-4, dS = None, Smax = np.inf, 
               max_steps = 5000, tol = 1e-8,
-              alpha = 0.082, Yamb = 0., numB = 5, numpts = 500):
+              alpha = 0.082, Yamb = 0, numB = 5, numpts = 500):
         '''
         solves (integrates) the model equations from the initial node out to limit
         '''
@@ -385,7 +383,7 @@ class Jet:
 
         return self
     
-    def _govEqns(self, S, ind_vars, alpha = 0.082, Yamb = 0., numB = 5, numpts = 500):
+    def _govEqns(self, S, ind_vars, alpha = 0.082, Yamb = 0, numB = 5, numpts = 500):
         '''
         Governing equations for a plume, written in terms of d/dS of (V_cl, B, rho_cl, Y_cl, 
         theta, x, and y).
@@ -407,7 +405,7 @@ class Jet:
         E = node_in.entrainment(self._Emom, rho_amb, self._alpha_buoy, alpha = alpha)
         
         # some stuff needed to integrate to infinity (numB*B):
-        r = np.append(np.array([0]), np.logspace(-5, np.log10(numB*B), numpts))
+        r = np.append(np.array([0]), np.logspace(-5, np.log10(numB*max(B, 1e-99)), numpts))
         zero = np.zeros_like(r)
         V       = V_cl*np.exp(-(r**2)/(B**2))
         dVdS = np.array([V/V_cl,                                                 #d/dS(V_cl)
@@ -456,22 +454,22 @@ class Jet:
         LHScont = np.array([(lam**2*rho_cl + rho_amb)*B**2,                        #d/dS(V_cl)
                             2*(lam**2*rho_cl + rho_amb)*B*V_cl,                    #d/dS(B)
                             lam**2*B**2*V_cl,                                      #d/dS(rho_cl)
-                            0.,                                                    #d/dS(Y_cl)
-                            0.])*const.pi/(lam**2 + 1)                             #d/dS(theta)
+                            0,                                                    #d/dS(Y_cl)
+                            0])*const.pi/(lam**2 + 1)                             #d/dS(theta)
         RHScont = rho_amb*E
         
         LHSxmom = np.array([(2*lam**2*rho_cl+rho_amb)*B**2*V_cl*np.cos(theta),     #d/dS(V_cl)
                             (2*lam**2*rho_cl+rho_amb)*B*V_cl**2*np.cos(theta),     #d/dS(B)
                             lam**2*B**2*V_cl**2*np.cos(theta),                     #d/dS(rho_cl)
-                            0.,                                                    #d/dS(Y_cl)
+                            0,                                                    #d/dS(Y_cl)
                             -(2*lam**2*rho_cl+rho_amb)*(B*V_cl)**2*np.sin(theta)/2 #d/dS(theta)
                             ])*const.pi/(2*lam**2+1)        
-        RHSxmom = 0.
+        RHSxmom = 0
         
         LHSymom = np.array([(2*lam**2*rho_cl+rho_amb)*B**2*V_cl*np.sin(theta),     #d/dS(V_cl)
                             (2*lam**2*rho_cl+rho_amb)*B*V_cl**2*np.sin(theta),     #d/dS(B)
                             lam**2*B**2*V_cl**2*np.sin(theta),                     #d/dS(rho_cl)
-                            0.,                                                    #d/dS(Y_cl)
+                            0,                                                    #d/dS(Y_cl)
                             (2*lam**2*rho_cl+rho_amb)*(B*V_cl)**2*np.cos(theta)/2  #d/dS(theta)
                             ])*const.pi/(2*lam**2+1)                                 
         RHSymom = -const.pi*lam**2*const.g*(rho_cl - rho_amb)*B**2
@@ -480,7 +478,7 @@ class Jet:
                             2*V_cl*Y_cl*rho_cl,                                    #d/dS(B)
                             B*V_cl*Y_cl,                                           #d/dS(rho_cl)
                             B*V_cl*rho_cl,                                         #d/dS(Y_cl)
-                            0.,                                                    #d/dS(theta)
+                            0,                                                    #d/dS(theta)
                             ])*const.pi*lam**2*B/(lam**2 + 1)                
         RHSspec = Yamb*RHScont
         
@@ -488,8 +486,8 @@ class Jet:
         LHSener += [const.pi/(6*lam**2 + 2)*(3*lam**2*rho_cl+rho_amb)*B**2*V_cl**2, #d/dS(V_cl)
                     const.pi/(9*lam**2 + 3)*(3*lam**2*rho_cl+rho_amb)*V_cl**3*B,    #d/dS(B)
                     const.pi/(6*lam**2 + 2)*lam**2*B**2*V_cl**3,                    #d/dS(rho_cl)
-                    0.,                                                             #d/dS(Y_cl)
-                    0.]                                                             #d/dS(theta)
+                    0,                                                             #d/dS(Y_cl)
+                    0]                                                             #d/dS(theta)
         
         RHSener = h_amb0*RHScont
         
@@ -559,13 +557,13 @@ class Jet:
         MW_fluid = self.fluid.therm.MW
         MW_air = self.ambient.therm.MW
         if X_lean is None:
-            fuel_props = Fuel_Properties(self.fluid.species)
+            fuel_props = FuelProperties(self.fluid.species)
             X_lean = fuel_props.LFL
         if X_rich is None:
-            fuel_props = Fuel_Properties(self.fluid.species)
+            fuel_props = FuelProperties(self.fluid.species)
             X_rich = fuel_props.UFL
-        Ylean = X_lean * MW_fluid / (X_lean * MW_fluid + (1. - X_lean) * MW_air)
-        Yrich = X_rich * MW_fluid / (X_rich * MW_fluid + (1. - X_rich) * MW_air)
+        Ylean = X_lean * MW_fluid / (X_lean * MW_fluid + (1 - X_lean) * MW_air)
+        Yrich = X_rich * MW_fluid / (X_rich * MW_fluid + (1 - X_rich) * MW_air)
 
         # Trim the plume down to below Hmax:
         S = np.copy(self.S)
@@ -591,14 +589,14 @@ class Jet:
         ivals = slice(np.argmax(Y_cl <= Yrich), np.argmax(Y_cl <= Ylean))
 
         Y_cl, B, rho_cl, S = [np.append(np.append(np.interp(Srich, S, var), var[ivals]), np.interp(Slean, S, var)) for var in [Y_cl, B, rho_cl, S]]
-        
         # radius of flammable concentration at each node:
-        r_lean = np.array([0 if Y_cl[i] <= Ylean else 
+        r_lean = np.array([0 if rhoY(0, i)[1] <= Ylean else 
                            optimize.brentq(lambda r: rhoY(r, i)[1] - Ylean, 0, 100*B[i])
                            for i in range(len(S))])
-        r_rich = np.array([0 if Y_cl[i] <= Yrich else 
+        r_rich = np.array([0 if rhoY(0, i)[1] <= Yrich else 
                            optimize.brentq(lambda r: rhoY(r, i)[1] - Yrich, 0, 100*B[i])
                            for i in range(len(S))])
+
         # integrate to find the mass/length at each node
         mass_per_len = np.array([integrate.quad(lambda r: np.prod(rhoY(r, i))*2*const.pi*r, 
                                  r_r, r_l)[0] for i, r_r, r_l in zip(range(len(S)), r_rich, r_lean)])
@@ -629,7 +627,7 @@ class Jet:
         # Calculates logspaced points around 0 out to np.log10(3*np.max(self.B))
         # poshalf[::-1] just notation for reversing a numpy array
         poshalf = np.logspace(-5, np.log10(3*np.max(self.B)))
-        r = np.concatenate((-1.0 * poshalf[::-1], [0], poshalf))
+        r = np.concatenate((-1 * poshalf[::-1], [0], poshalf))
         
         r, iS = np.meshgrid(r, iS)
         B = self.B[iS]
@@ -760,46 +758,51 @@ class Jet:
         else:
             ExtStr = 'neither'
         if contlvls:
-            contourstep = 0.01
-            contourlevels = np.arange(vmin, vmax + contourstep, contourstep)
+            contourlevels = np.linspace(vmin, vmax, 11)
             cp = ax.contourf(x, y, X, contourlevels, extend = ExtStr,alpha=0.5)
         else:
-            contourstep = 0.001
-            contourlevels = np.arange(vmin, vmax + contourstep, contourstep)
+            contourlevels = np.linspace(vmin, vmax, 101)
             cp = ax.contourf(x, y, X, contourlevels, extend = ExtStr)
-        
-        # Add specific contours if desired
-        if mark is not None:
-            ax.contour(x, y, X, levels = mark, colors = mcolors, linewidths = 1.5)
-            LabelStr = 'White contour{} at {}'.format({False:' is', True:'s \n are'}[len(mark)>1],mark[0])
-            for i in range(1, len(mark)-1):
-                LabelStr += ', {}'.format(mark[i])
-            if len(mark) > 1:
-                LabelStr += ' and {}'.format(mark[-1])
-            ax.text(0.5, 0.9, LabelStr, color = 'white',
-                    horizontalalignment = 'center', 
-                    verticalalignment = 'center', 
-                    transform = ax.transAxes)
-        
+
         # Change axis limits if specified
         if xlims is not None:
             ax.set_xlim(*xlims)
         if ylims is not None:
             ax.set_ylim(*ylims)
-        
+
+        # Set aspect ratio if specified
+        if aspect is not None:
+            ax.set_aspect(aspect)
+
+        # Add specific contours if desired
+        if mark is not None:
+            mark = [FuelProperties(self.fluid.species).LFL if value == 'LFL' else value for value in mark]
+            mark = [FuelProperties(self.fluid.species).UFL if value == 'UFL' else value for value in mark]
+            CS = ax.contour(x, y, X, levels = np.sort(mark), colors = mcolors, linewidths = 1.5)
+            fig.canvas.draw_idle()
+            if xlims is not None and ylims is not None:
+                manual = [self.streamline_distance_to_mole_fraction(m)*np.array([np.cos(self.theta[0]), np.sin(self.theta[0])])*.7
+                          for m in mark]
+            else:
+                manual = False
+            ax.clabel(CS, levels = CS.levels, inline = True, manual = manual, inline_spacing = 2)
+
         # Add colorbar if desired
         if addColorBar:
-            cb = plt.colorbar(cp)
-            cb.set_label('Mole Fraction', rotation = -90, va = 'bottom')
+            axsize = ax.get_window_extent()
+            if axsize.width <= axsize.height:
+                cb_kwargs = {}
+                cb_label_kwargs = {'rotation':-90, 'va':'bottom'}
+            else:
+                cb_kwargs = {'orientation':'horizontal'}
+                cb_label_kwargs = {}
+            cb = plt.colorbar(cp, ticks = MaxNLocator().tick_values(vmin, vmax), **cb_kwargs)
+            cb.set_label('Mole Fraction', **cb_label_kwargs)
         
         # Set axis labels
         ax.set_xlabel(xlab)
         ax.set_ylabel(ylab)
-        
-        # Set aspect ratio if specified
-        if aspect is not None:
-            ax.set_aspect(aspect)
-        
+
         # Set plot title if specified
         if plot_title is not None:
             ax.set_title(plot_title)

@@ -11,20 +11,28 @@ using System.Windows.Forms;
 
 namespace SandiaNationalLaboratories.Hyram
 {
+    /// <summary>
+    /// Generic persisted form for QRA. Form is kept alive after user navigates away.
+    /// Constructor should call RefreshForm.
+    /// </summary>
     public class AnalysisForm : UserControl
     {
         public string AlertMessage { get; set; } = "";
-        public int AlertType { get; set; } = 0;
-        public bool AlertDisplayed { get; set; } = false;
+        public AlertLevel Alert { get; set; } = AlertLevel.AlertNull;
 
+        protected bool _ignoreChangeEvents;
+
+        // Keeps reference to parent to notify of state change; could change this to event.
         protected MainForm MainForm;
+
+        // Updates state-based data, such as data sources. Should call CheckFormValid at end.
+        public virtual void RefreshForm()
+        {
+        }
 
         public virtual void CheckFormValid()
         {
         }
 
-        public virtual void OnFormDisplay()
-        {
-        }
     }
 }

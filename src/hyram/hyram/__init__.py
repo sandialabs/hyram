@@ -6,6 +6,5 @@ You should have received a copy of the GNU General Public License along with HyR
 If not, see https://www.gnu.org/licenses/.
 """
 
-from __future__ import absolute_import
-__version__ = '4.1.1'
+__version__ = '5.0.0'
 from . import phys, qra

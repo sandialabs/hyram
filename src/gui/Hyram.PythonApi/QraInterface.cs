@@ -14,122 +14,116 @@ using System.Diagnostics;
 
 namespace SandiaNationalLaboratories.Hyram
 {
+    /// <summary>
+    /// Contains functions for interfacing with HyRAM+ python module QRA functions.
+    /// Parameters are loaded from StateContainer.
+    /// See python module cs_api.qra and hyram.qra.analysis for detailed function and parameter descriptions.
+    /// </summary>
     public class QraInterface
     {
 #if DEBUG
-            bool isVerbose = true;
+            readonly bool isVerbose = true;
 #else
-            bool isVerbose = true;
+            readonly bool isVerbose = true;
 #endif
 
-        // Quantitative risk analysis of hydrogen release.
-        // See python module hyram.qra.analysis for descriptions of parameters and analysis.
+        /// <summary>
+        /// Initiates quantitative risk analysis of hydrogen release.
+        /// </summary>
         public void Execute()
         {
-            var inst = StateContainer.Instance;
+            var _state = State.Data;
 
-            var resultsAreStale = StateContainer.GetValue<bool>("ResultsAreStale");
-            // Just return stored result if no inputs have changed
-            //if (!resultsAreStale) return;
+            var pipeLength = _state.PipeLength.GetValue();
+            var numCompressors = (int) _state.NumCompressors.GetValue();
+            var numVessels = (int) _state.NumVessels.GetValue();
+            var numValves = (int) _state.NumValves.GetValue();
+            var numInstruments = (int) _state.NumInstruments.GetValue();
+            var numJoints = (int) _state.NumJoints.GetValue();
+            var numHoses = (int) _state.NumHoses.GetValue();
+            var numFilters = (int) _state.NumFilters.GetValue();
+            var numFlanges = (int) _state.NumFlanges.GetValue();
+            var numExchangers = (int) _state.NumExchangers.GetValue();
+            var numVaporizers = (int) _state.NumVaporizers.GetValue();
+            var numArms = (int) _state.NumArms.GetValue();
+            var numExtraComp1 = (int) _state.NumExtraComponents1.GetValue();
+            var numExtraComp2 = (int) _state.NumExtraComponents2.GetValue();
 
-            // Gather inputs
-            var pipeLength = StateContainer.GetNdValue("pipeLength", DistanceUnit.Meter);
-            var numCompressors = (int)StateContainer.GetNdValue("numCompressors");
-            var numVessels = (int)StateContainer.GetNdValue("numVessels");
-            var numValves = (int)StateContainer.GetNdValue("numValves");
-            var numInstruments = (int)StateContainer.GetNdValue("numInstruments");
-            var numJoints = (int)StateContainer.GetNdValue("numJoints");
-            var numHoses = (int)StateContainer.GetNdValue("numHoses");
-            var numFilters = (int)StateContainer.GetNdValue("numFilters");
-            var numFlanges = (int)StateContainer.GetNdValue("numFlanges");
-            var numExchangers = (int)StateContainer.GetNdValue("numExchangers");
-            var numVaporizers = (int)StateContainer.GetNdValue("numVaporizers");
-            var numArms = (int)StateContainer.GetNdValue("numArms");
-            var numExtraComp1 = (int)StateContainer.GetNdValue("numExtraComponent1");
-            var numExtraComp2 = (int)StateContainer.GetNdValue("numExtraComponent2");
+            var pipeDiameter = _state.PipeDiameter.GetValue();
+            var pipeThickness = _state.PipeThickness.GetValue();
 
-            var facilLength = StateContainer.GetNdValue("facilityLength", DistanceUnit.Meter);
-            var facilWidth = StateContainer.GetNdValue("facilityWidth", DistanceUnit.Meter);
+            double ambientP = _state.AmbientPressure.GetValue(PressureUnit.Pa);
+            double ambientT = _state.AmbientTemperature.GetValue(TempUnit.Kelvin);
+            double releaseP = _state.FluidPressure.GetValue(PressureUnit.Pa);
+            double? releaseT = _state.FluidTemperature.GetValue(TempUnit.Kelvin);
+            if (!_state.DisplayTemperature()) releaseT = null;  // clear temp if not gas
 
-            var pipeOuterD = StateContainer.GetNdValue("pipeDiameter", DistanceUnit.Meter);
-            var pipeThickness = StateContainer.GetNdValue("pipeThickness", DistanceUnit.Meter);
+            string phaseKey = _state.Phase.GetKey();
 
-            string relSpecies = StateContainer.GetValue<FuelType>("FuelType").GetKey();
-            double? relTemp = StateContainer.GetNdValue("fluidTemperature", TempUnit.Kelvin);
-            double relPres = StateContainer.GetNdValue("fluidPressure", PressureUnit.Pa);
-            double ambTemp = StateContainer.GetNdValue("ambientTemperature", TempUnit.Kelvin);
-            double ambPres = StateContainer.GetNdValue("ambientPressure", PressureUnit.Pa);
+            var dischargeCoeff = _state.OrificeDischargeCoefficient.GetValue();
+            var numVehicles = _state.VehicleCount.GetValue();
+            var numFuelingPerDay = _state.VehicleFuelings.GetValue();
+            var numVehicleOpDays = _state.VehicleDays.GetValue();
+            var facilityLength = _state.FacilityLength.GetValue();
+            var facilityWidth = _state.FacilityWidth.GetValue();
 
-            string phaseKey = StateContainer.Instance.GetFluidPhase().GetKey();
-            if (!FluidPhase.DisplayTemperature()) relTemp = null;  // clear temp if not gas
+            var immediateIgnitionProbs = _state.ImmediateIgnitionProbs;
+            var delayedIgnitionProbs = _state.DelayedIgnitionProbs;
+            var ignitionThresholds = _state.IgnitionThresholds;
 
-            var dischargeCoeff = StateContainer.GetNdValue("orificeDischargeCoefficient");
-            var numVehicles = StateContainer.GetNdValue("numVehicles");
-            var numFuelingPerDay = StateContainer.GetNdValue("dailyFuelings");
-            var numVehicleOpDays = StateContainer.GetNdValue("vehicleOperatingDays");
+            double h2Release000d01 = _state.Release000d01.GetValue();
+            double h2Release000d10 = _state.Release000d10.GetValue();
+            double h2Release001d00 = _state.Release001d00.GetValue();
+            double h2Release010d00 = _state.Release010d00.GetValue();
+            double h2Release100d00 = _state.Release100d00.GetValue();
 
-            var immediateIgnitionProbs = (double[])inst.Parameters["ImmedIgnitionProbs"];
-            var delayedIgnitionProbs = (double[])inst.Parameters["DelayIgnitionProbs"];
-            var ignitionThresholds = (double[])inst.Parameters["IgnitionThresholds"];
+            double failureManualOverride = _state.FailureOverride.GetValue();
+            double gasDetectCredit = _state.GasDetectionProb.GetValue();
 
-            var h2Release000d01 = StateContainer.GetNdValue("H2Release.000d01");
-            var h2Release000d10 = StateContainer.GetNdValue("H2Release.000d10");
-            var h2Release001d00 = StateContainer.GetNdValue("H2Release.001d00");
-            var h2Release010d00 = StateContainer.GetNdValue("H2Release.010d00");
-            var h2Release100d00 = StateContainer.GetNdValue("H2Release.100d00");
-            var failureManualOverride = StateContainer.GetNdValue("Failure.ManualOverride");
+            var overpMethod = _state.SelectedOverpressureMethod.GetKey();
+            var tntFactor = _state.TntEquivalenceFactor.GetValue();
+            double bstMachFlameSpeed = _state.OverpressureFlameSpeed;
 
-            var gasDetectCredit = StateContainer.GetNdValue("PdetectIsolate");
+            var thermalExposureTime = _state.FlameExposureTime.GetValue();
 
-            var overpMethod =
-                StateContainer.GetValue<UnconfinedOverpressureMethod>("unconfinedOverpressureMethod").GetKey();
-            var tntFactor = StateContainer.GetNdValue("tntEquivalenceFactor");
-            var bstMachFlameSpeed = StateContainer.GetNdValue("overpressureFlameSpeed");
+            var thermalProbitKey = _state.ThermalProbit.GetKey();
+            var overpressureProbitKey = _state.OverpressureProbit.GetKey();
 
-            var probitThermalId = StateContainer.GetValue<ThermalProbitModel>("ThermalProbit").GetKey();
-            var thermalExposureTime =
-                StateContainer.GetNdValue("flameExposureTime", ElapsingTimeConversionUnit.Second);
+            var nozzle = _state.Nozzle.GetKey();
+            var releaseAngle = _state.ReleaseAngle.GetValue(AngleUnit.Degrees);
 
-            var probitOverpId =
-                StateContainer.GetValue<OverpressureProbitModel>("OverpressureProbit").GetKey();
+            var exclusionRadius = _state.ExclusionRadius.GetValue();
+            var randomSeed = (int) _state.RandomSeed.GetValue();
+            var relativeHumid = _state.RelativeHumidity.GetValue();
 
-            var notionalNozzleModel = StateContainer.GetValue<NozzleModel>("NozzleModel").GetKey();
-            var releaseAngle = StateContainer.GetNdValue("ReleaseAngle", AngleUnit.Degrees);
-
-            var exclusionRadius = StateContainer.GetNdValue("exclusionRadius");
-            var randomSeed = (int)StateContainer.GetNdValue("randomSeed");
-            var relativeHumid = StateContainer.GetNdValue("relativeHumidity");
-
-            var occupantDistributions =
-                (OccupantDistributionInfoCollection)inst.Parameters["OccupantDistributions"];
-            //var occupantJson2 = JsonConvert.SerializeObject(occupantDistributions);
+            var occupantDistributions = _state.OccupantInfo;
             var occupantJson = occupantDistributions.GetSimpleString();
 
-            double[][] compressorProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Compressor");
-            double[][] vesselProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Vessel");
-            double[][] filterProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Filter");
-            double[][] flangeProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Flange");
-            double[][] hoseProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Hose");
-            double[][] jointProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Joint");
-            double[][] pipeProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Pipe");
-            double[][] valveProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Valve");
-            double[][] instrumentProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Instrument");
-            double[][] exchangerProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Exchanger");
-            double[][] vaporizerProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Vaporizer");
-            double[][] armProbs = StateContainer.Instance.GetComponentProbabilities("Prob.Arm");
-            double[][] extra1Probs = StateContainer.Instance.GetComponentProbabilities("Prob.Extra1");
-            double[][] extra2Probs = StateContainer.Instance.GetComponentProbabilities("Prob.Extra2");
+            var compressorProbs = _state.GetProbabilitiesAsArray(_state.ProbCompressor);
+            var vesselProbs = _state.GetProbabilitiesAsArray(_state.ProbVessel);
+            var filterProbs = _state.GetProbabilitiesAsArray(_state.ProbFilter);
+            var flangeProbs = _state.GetProbabilitiesAsArray(_state.ProbFlange);
+            var hoseProbs = _state.GetProbabilitiesAsArray(_state.ProbHose);
+            var jointProbs = _state.GetProbabilitiesAsArray(_state.ProbJoint);
+            var pipeProbs = _state.GetProbabilitiesAsArray(_state.ProbPipe);
+            var valveProbs = _state.GetProbabilitiesAsArray(_state.ProbValve);
+            var instrumentProbs = _state.GetProbabilitiesAsArray(_state.ProbInstrument);
+            var exchangerProbs = _state.GetProbabilitiesAsArray(_state.ProbExchanger);
+            var vaporizerProbs = _state.GetProbabilitiesAsArray(_state.ProbVaporizer);
+            var armProbs = _state.GetProbabilitiesAsArray(_state.ProbArm);
+            var extra1Probs = _state.GetProbabilitiesAsArray(_state.ProbExtra1);
+            var extra2Probs = _state.GetProbabilitiesAsArray(_state.ProbExtra2);
 
-            var nozPo = StateContainer.GetValue<FailureMode>("Failure.NozPO");
-            var nozFtc = StateContainer.GetValue<FailureMode>("Failure.NozFTC");
-            var mValveFtc = StateContainer.GetValue<FailureMode>("Failure.MValveFTC");
-            var sValveFtc = StateContainer.GetValue<FailureMode>("Failure.SValveFTC");
-            var sValveCcf = StateContainer.GetValue<FailureMode>("Failure.SValveCCF");
+            var nozPo = _state.FailureNozPo;
+            var nozFtc = _state.FailureNozFtc;
+            var mValveFtc = _state.FailureMValveFtc;
+            var sValveFtc = _state.FailureSValveFtc;
+            var sValveCcf = _state.FailureSValveCcf;
 
-            var overpFail = StateContainer.GetValue<FailureMode>("Failure.Overp");
-            var pValveFto = StateContainer.GetValue<FailureMode>("Failure.PValveFTO");
-            var driveoffFail = StateContainer.GetValue<FailureMode>("Failure.Driveoff");
-            var couplingFtc = StateContainer.GetValue<FailureMode>("Failure.CouplingFTC");
+            var overpFail = _state.FailureOverp;
+            var pValveFto = _state.FailurePValveFto;
+            var driveoffFail = _state.FailureDriveoff;
+            var couplingFtc = _state.FailureCouplingFtc;
 
             var nozPoDist = nozPo.Dist.ToString();
             var nozPoParamA = nozPo.ParamA;
@@ -174,36 +168,37 @@ namespace SandiaNationalLaboratories.Hyram
 
             using (Py.GIL())
             {
-                dynamic pyLib = Py.Import("hyram");
+                dynamic pyApi = Py.Import("cs_api");
+                PyObject relSpecies = _state.GetFuelsPyDict();
 
                 try
                 {
                     // Activate python logging
-                    pyLib.qra.c_api.setup(dataDirLoc, isVerbose);
+                    pyApi.qra.setup(dataDirLoc, isVerbose);
 
                     Trace.TraceInformation("Executing QRA analysis...");
                     dynamic resultPyObj;
 
                     // Execute python analysis. Will return PyObject which is parsed in QRAResult.
-                    resultPyObj = pyLib.qra.c_api.c_request_analysis(
+                    resultPyObj = pyApi.qra.c_request_analysis(
                         pipeLength,
                         numCompressors, numVessels, numValves,
                         numInstruments, numJoints, numHoses,
                         numFilters, numFlanges,
                         numExchangers, numVaporizers, numArms,
                         numExtraComp1, numExtraComp2,
-                        facilLength, facilWidth,
-                        pipeOuterD, pipeThickness,
-                        relSpecies, relTemp, relPres, phaseKey, ambTemp, ambPres, dischargeCoeff,
+                        facilityLength, facilityWidth,
+                        pipeDiameter, pipeThickness,
+                        relSpecies, releaseT, releaseP, phaseKey, ambientT, ambientP, dischargeCoeff,
                         numVehicles, numFuelingPerDay, numVehicleOpDays,
                         immediateIgnitionProbs, delayedIgnitionProbs, ignitionThresholds,
 
                         gasDetectCredit,
                         overpMethod, tntFactor, bstMachFlameSpeed,
-                        probitThermalId, thermalExposureTime,
-                        probitOverpId,
+                        thermalProbitKey, thermalExposureTime,
+                        overpressureProbitKey,
 
-                        notionalNozzleModel,
+                        nozzle,
                         releaseAngle,
                         exclusionRadius, randomSeed, relativeHumid,
                         occupantJson,
@@ -229,34 +224,30 @@ namespace SandiaNationalLaboratories.Hyram
                     if (status)
                     {
                         result = new QraResult(resultPyObj["data"]);
-                        StateContainer.SetValue("ResultsAreStale", false);
-                        StateContainer.SetValue("Result", result);
+                        _state.QraResult = result;
                     }
                     else
                     {
-                        StateContainer.SetValue("ResultsAreStale", true);
                         Trace.TraceError(statusMsg);
                         Console.Out.Flush();
                         Console.Error.Flush();
-                        pyLib.Dispose();
+                        pyApi.Dispose();
                         throw new InvalidOperationException(statusMsg);
                     }
                 }
                 catch (PythonException ex)
                 {
-                    StateContainer.SetValue("ResultsAreStale", true);
                     Trace.TraceError(ex.Message);
                     Debug.WriteLine(ex.Message);
                     Console.Out.Flush();
                     Console.Error.Flush();
-                    pyLib.Dispose();
+                    pyApi.Dispose();
                     throw new InvalidOperationException(
                         "Something went wrong during QRA execution. Check log for details.");
                 }
                 catch (Exception ex)
                 {
                     Trace.TraceError(ex.Message);
-                    StateContainer.SetValue("ResultsAreStale", true);
                     throw ex;
                 }
                 finally
@@ -266,8 +257,7 @@ namespace SandiaNationalLaboratories.Hyram
                     Console.Error.Flush();
 
                     // Unload imports
-                    pyLib.Dispose();
-                    //PythonEngine.ReleaseLock(lck);
+                    pyApi.Dispose();
                     GC.Collect();
                 }
             }

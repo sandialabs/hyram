@@ -14,15 +14,15 @@ def calc_pll(frequency, consequence):
     Parameters
     ----------
     frequency : float
-        Frequency of occurance (events per year)
+        Frequency of occurrence (events per year)
     
     consequence : float
-        Fatal consequences of occurance (fatalties)
+        Fatal consequences of occurrence (fatalities)
     
     Returns
     -------
     pll : float
-        Potential loss of life (fatalties per year)
+        Potential loss of life (fatalities per year)
     """
     pll = frequency * consequence
     return pll
@@ -35,7 +35,7 @@ def calc_far(pll, total_occupants):
     Parameters
     ----------
     pll : float
-        Potential loss of life (fatalties per year)
+        Potential loss of life (fatalities per year)
     
     total_occupants : float
         Number of exposed people (people)
@@ -43,7 +43,7 @@ def calc_far(pll, total_occupants):
     Returns
     -------
     far : float
-        Fatal accident rate (fatalties per 10^8 person*hours)
+        Fatal accident rate (fatalities per 10^8 person*hours)
     """
     hours_per_year = 8760  # based on 24 hours per day, 365 days per year
     if pll == 0:
@@ -60,7 +60,7 @@ def calc_air(far, exposed_hours_per_year):
     Parameters
     ----------
     far : float
-        Fatal accident rate (fatalties per 10^8 person*hours)
+        Fatal accident rate (fatalities per 10^8 person*hours)
     
     exposed_hours_per_year : float
         Number of hours the individual spends in the facility,
@@ -92,7 +92,7 @@ def calc_all_plls(frequencies, consequences):
     Returns
     -------
     plls : list
-        List of PLL values (units of fatalties per year)
+        List of PLL values (units of fatalities per year)
     """
     plls = []
     for frequency, consequence in zip(frequencies, consequences):
@@ -126,6 +126,6 @@ def calc_risk_contributions(risk_values):
         if total_risk > 0:
             risk_contribution = risk_value / total_risk
         else:
-            risk_contribution = 0.0
+            risk_contribution = 0
         risk_contributions.append(risk_contribution)
     return total_risk, risk_contributions

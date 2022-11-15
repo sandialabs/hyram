@@ -251,6 +251,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.qraResultTabs.SelectedIndex = 0;
             this.qraResultTabs.Size = new System.Drawing.Size(867, 619);
             this.qraResultTabs.TabIndex = 4;
+            this.qraResultTabs.SelectedIndexChanged += new System.EventHandler(this.qraResultTabs_SelectedIndexChanged);
             // 
             // riskMetricsTab
             // 
@@ -1225,7 +1226,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.overpressureDataTab.Location = new System.Drawing.Point(4, 24);
             this.overpressureDataTab.Name = "overpressureDataTab";
             this.overpressureDataTab.Padding = new System.Windows.Forms.Padding(3);
-            this.overpressureDataTab.Size = new System.Drawing.Size(184, 42);
+            this.overpressureDataTab.Size = new System.Drawing.Size(851, 561);
             this.overpressureDataTab.TabIndex = 5;
             this.overpressureDataTab.Text = "Position Data";
             this.overpressureDataTab.UseVisualStyleBackColor = true;
@@ -1242,7 +1243,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.overpressureTablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 5F));
             this.overpressureTablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 70F));
             this.overpressureTablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
-            this.overpressureTablePanel.Size = new System.Drawing.Size(178, 36);
+            this.overpressureTablePanel.Size = new System.Drawing.Size(845, 555);
             this.overpressureTablePanel.TabIndex = 0;
             // 
             // overpressureDataGrid
@@ -1262,10 +1263,10 @@ namespace SandiaNationalLaboratories.Hyram {
             this.overp4,
             this.overp5});
             this.overpressureDataGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.overpressureDataGrid.Location = new System.Drawing.Point(3, 4);
+            this.overpressureDataGrid.Location = new System.Drawing.Point(3, 30);
             this.overpressureDataGrid.Name = "overpressureDataGrid";
             this.overpressureDataGrid.ReadOnly = true;
-            this.overpressureDataGrid.Size = new System.Drawing.Size(172, 19);
+            this.overpressureDataGrid.Size = new System.Drawing.Size(839, 382);
             this.overpressureDataGrid.TabIndex = 0;
             // 
             // overpressurePosition
@@ -1420,7 +1421,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.impulsePlot4Tab.Controls.Add(this.impulsePic4);
             this.impulsePlot4Tab.Location = new System.Drawing.Point(4, 24);
             this.impulsePlot4Tab.Name = "impulsePlot4Tab";
-            this.impulsePlot4Tab.Size = new System.Drawing.Size(851, 561);
+            this.impulsePlot4Tab.Size = new System.Drawing.Size(184, 42);
             this.impulsePlot4Tab.TabIndex = 3;
             this.impulsePlot4Tab.Text = "Position Plot for 10% Leak";
             this.impulsePlot4Tab.UseVisualStyleBackColor = true;
@@ -1431,7 +1432,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.impulsePic4.Location = new System.Drawing.Point(0, 0);
             this.impulsePic4.Margin = new System.Windows.Forms.Padding(4);
             this.impulsePic4.Name = "impulsePic4";
-            this.impulsePic4.Size = new System.Drawing.Size(851, 561);
+            this.impulsePic4.Size = new System.Drawing.Size(184, 42);
             this.impulsePic4.TabIndex = 1;
             this.impulsePic4.TabStop = false;
             // 
@@ -1461,7 +1462,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.impulseDataTab.Location = new System.Drawing.Point(4, 24);
             this.impulseDataTab.Name = "impulseDataTab";
             this.impulseDataTab.Padding = new System.Windows.Forms.Padding(3);
-            this.impulseDataTab.Size = new System.Drawing.Size(184, 42);
+            this.impulseDataTab.Size = new System.Drawing.Size(851, 561);
             this.impulseDataTab.TabIndex = 5;
             this.impulseDataTab.Text = "Position Data";
             this.impulseDataTab.UseVisualStyleBackColor = true;
@@ -1478,7 +1479,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.impulseTablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 5F));
             this.impulseTablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 70F));
             this.impulseTablePanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
-            this.impulseTablePanel.Size = new System.Drawing.Size(178, 36);
+            this.impulseTablePanel.Size = new System.Drawing.Size(845, 555);
             this.impulseTablePanel.TabIndex = 0;
             // 
             // impulseDataGrid
@@ -1498,10 +1499,10 @@ namespace SandiaNationalLaboratories.Hyram {
             this.impulse4,
             this.impulse5});
             this.impulseDataGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.impulseDataGrid.Location = new System.Drawing.Point(3, 4);
+            this.impulseDataGrid.Location = new System.Drawing.Point(3, 30);
             this.impulseDataGrid.Name = "impulseDataGrid";
             this.impulseDataGrid.ReadOnly = true;
-            this.impulseDataGrid.Size = new System.Drawing.Size(172, 19);
+            this.impulseDataGrid.Size = new System.Drawing.Size(839, 382);
             this.impulseDataGrid.TabIndex = 0;
             // 
             // impulsePosition
@@ -1516,7 +1517,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.impulseX.HeaderText = "x (m)";
             this.impulseX.Name = "impulseX";
             this.impulseX.ReadOnly = true;
-            this.impulseX.Width = 56;
+            this.impulseX.Width = 60;
             // 
             // impulseY
             // 
@@ -1524,7 +1525,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.impulseY.HeaderText = "y (m)";
             this.impulseY.Name = "impulseY";
             this.impulseY.ReadOnly = true;
-            this.impulseY.Width = 55;
+            this.impulseY.Width = 59;
             // 
             // impulseZ
             // 
@@ -1532,35 +1533,35 @@ namespace SandiaNationalLaboratories.Hyram {
             this.impulseZ.HeaderText = "z (m)";
             this.impulseZ.Name = "impulseZ";
             this.impulseZ.ReadOnly = true;
-            this.impulseZ.Width = 56;
+            this.impulseZ.Width = 60;
             // 
             // impulse1
             // 
-            this.impulse1.HeaderText = "0.01% Leak Impulse (Pa*s)";
+            this.impulse1.HeaderText = "0.01% Leak Impulse (kPa*s)";
             this.impulse1.Name = "impulse1";
             this.impulse1.ReadOnly = true;
             // 
             // impulse2
             // 
-            this.impulse2.HeaderText = "0.1% Leak Impulse (Pa*s)";
+            this.impulse2.HeaderText = "0.1% Leak Impulse (kPa*s)";
             this.impulse2.Name = "impulse2";
             this.impulse2.ReadOnly = true;
             // 
             // impulse3
             // 
-            this.impulse3.HeaderText = "1% Leak Impulse (Pa*s)";
+            this.impulse3.HeaderText = "1% Leak Impulse (kPa*s)";
             this.impulse3.Name = "impulse3";
             this.impulse3.ReadOnly = true;
             // 
             // impulse4
             // 
-            this.impulse4.HeaderText = "10% Leak Impulse (Pa*s)";
+            this.impulse4.HeaderText = "10% Leak Impulse (kPa*s)";
             this.impulse4.Name = "impulse4";
             this.impulse4.ReadOnly = true;
             // 
             // impulse5
             // 
-            this.impulse5.HeaderText = "100% Leak Impulse (Pa*s)";
+            this.impulse5.HeaderText = "100% Leak Impulse (kPa*s)";
             this.impulse5.Name = "impulse5";
             this.impulse5.ReadOnly = true;
             // 
@@ -1759,15 +1760,6 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.TabPage impulseDataTab;
         private System.Windows.Forms.TableLayoutPanel impulseTablePanel;
         private System.Windows.Forms.DataGridView impulseDataGrid;
-        private System.Windows.Forms.DataGridViewTextBoxColumn impulsePosition;
-        private System.Windows.Forms.DataGridViewTextBoxColumn impulseX;
-        private System.Windows.Forms.DataGridViewTextBoxColumn impulseY;
-        private System.Windows.Forms.DataGridViewTextBoxColumn impulseZ;
-        private System.Windows.Forms.DataGridViewTextBoxColumn impulse1;
-        private System.Windows.Forms.DataGridViewTextBoxColumn impulse2;
-        private System.Windows.Forms.DataGridViewTextBoxColumn impulse3;
-        private System.Windows.Forms.DataGridViewTextBoxColumn impulse4;
-        private System.Windows.Forms.DataGridViewTextBoxColumn impulse5;
         private System.Windows.Forms.DataGridViewTextBoxColumn overpressurePosition;
         private System.Windows.Forms.DataGridViewTextBoxColumn overpressureX;
         private System.Windows.Forms.DataGridViewTextBoxColumn overpressureY;
@@ -1777,5 +1769,14 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.DataGridViewTextBoxColumn overp3;
         private System.Windows.Forms.DataGridViewTextBoxColumn overp4;
         private System.Windows.Forms.DataGridViewTextBoxColumn overp5;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulsePosition;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulseX;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulseY;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulseZ;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulse1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulse2;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulse3;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulse4;
+        private System.Windows.Forms.DataGridViewTextBoxColumn impulse5;
     }
 }

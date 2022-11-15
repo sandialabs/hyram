@@ -24,21 +24,21 @@ namespace SandiaNationalLaboratories.Hyram {
 		/// the contents of this method with the code editor.
 		/// </summary>
 		private void InitializeComponent() {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle23 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle24 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle25 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle26 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle27 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle28 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle29 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle30 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle21 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle22 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataProbabilitiesTabControl = new System.Windows.Forms.TabControl();
             this.componentLeaksTab = new System.Windows.Forms.TabPage();
             this.componentLeaksTabControl = new System.Windows.Forms.TabControl();
             this.compressorDistributionsTab = new System.Windows.Forms.TabPage();
-            this.compressorDistributionsGrid = new System.Windows.Forms.DataGridView();
+            this.compressorGrid = new System.Windows.Forms.DataGridView();
             this.ProbCompLeakSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ProbCompMu = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ProbCompSigma = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -47,49 +47,49 @@ namespace SandiaNationalLaboratories.Hyram {
             this.Median = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.NinetyFifth = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.vesselDistributionsTab = new System.Windows.Forms.TabPage();
-            this.cylinderDistributionsGrid = new System.Windows.Forms.DataGridView();
+            this.vesselGrid = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.filterDistributionsTab = new System.Windows.Forms.TabPage();
-            this.filterDistributionsGrid = new System.Windows.Forms.DataGridView();
+            this.filterGrid = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn16 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn17 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn18 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn19 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.flangeDistributionsTab = new System.Windows.Forms.TabPage();
-            this.flangeDistributionsGrid = new System.Windows.Forms.DataGridView();
+            this.flangeGrid = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn21 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn22 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn23 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn24 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.hoseDistributionsTab = new System.Windows.Forms.TabPage();
-            this.hoseDistributionsGrid = new System.Windows.Forms.DataGridView();
+            this.hoseGrid = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn26 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn27 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn28 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn29 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.jointsDistributionsTab = new System.Windows.Forms.TabPage();
-            this.jointDistributionsGrid = new System.Windows.Forms.DataGridView();
+            this.jointGrid = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn31 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn32 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn33 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn34 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.pipeDistributionsTab = new System.Windows.Forms.TabPage();
-            this.pipeDistributionsGrid = new System.Windows.Forms.DataGridView();
+            this.pipeGrid = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn36 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn37 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn38 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn39 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.valveDistributionsTab = new System.Windows.Forms.TabPage();
-            this.valveDistributionsGrid = new System.Windows.Forms.DataGridView();
+            this.valveGrid = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn41 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn42 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn43 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn44 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.instrumentDistributionsTab = new System.Windows.Forms.TabPage();
-            this.instrumentDistributionsGrid = new System.Windows.Forms.DataGridView();
+            this.instrumentGrid = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn46 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn47 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn48 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -113,13 +113,13 @@ namespace SandiaNationalLaboratories.Hyram {
             this.dataGridViewTextBoxColumn51 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn52 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.extraComponent1DistributionsTab = new System.Windows.Forms.TabPage();
-            this.extraComponent1DistributionsGrid = new System.Windows.Forms.DataGridView();
+            this.extraComponent1Grid = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn6 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn7 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn8 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn9 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.extraComponent2DistributionsTab = new System.Windows.Forms.TabPage();
-            this.extraComponent2DistributionsGrid = new System.Windows.Forms.DataGridView();
+            this.extraComponent2Grid = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn11 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn12 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn13 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -130,7 +130,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.panel1 = new System.Windows.Forms.Panel();
             this.scComponentFailuresTab = new System.Windows.Forms.SplitContainer();
             this.gbComponentFailures = new System.Windows.Forms.GroupBox();
-            this.componentFailuresGrid = new System.Windows.Forms.DataGridView();
+            this.failuresGrid = new System.Windows.Forms.DataGridView();
             this.clmCFComponent = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.clmCFFailureMode = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.clmCFDistributionType = new System.Windows.Forms.DataGridViewComboBoxColumn();
@@ -152,31 +152,31 @@ namespace SandiaNationalLaboratories.Hyram {
             this.btnIgnitionProbabilitiesAdd = new System.Windows.Forms.Button();
             this.ignitionRatesListBox = new System.Windows.Forms.ListBox();
             this.ignitionProbabilitiesGrid = new System.Windows.Forms.DataGridView();
-            this.formWarning = new System.Windows.Forms.Label();
             this.colHydrogenReleaseRate = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colImmediateIgnitionProbability = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colDelayedIgnitionProbability = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.formWarning = new System.Windows.Forms.Label();
             this.dataProbabilitiesTabControl.SuspendLayout();
             this.componentLeaksTab.SuspendLayout();
             this.componentLeaksTabControl.SuspendLayout();
             this.compressorDistributionsTab.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.compressorDistributionsGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.compressorGrid)).BeginInit();
             this.vesselDistributionsTab.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.cylinderDistributionsGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.vesselGrid)).BeginInit();
             this.filterDistributionsTab.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.filterDistributionsGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.filterGrid)).BeginInit();
             this.flangeDistributionsTab.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.flangeDistributionsGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.flangeGrid)).BeginInit();
             this.hoseDistributionsTab.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.hoseDistributionsGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.hoseGrid)).BeginInit();
             this.jointsDistributionsTab.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.jointDistributionsGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.jointGrid)).BeginInit();
             this.pipeDistributionsTab.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pipeDistributionsGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pipeGrid)).BeginInit();
             this.valveDistributionsTab.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.valveDistributionsGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.valveGrid)).BeginInit();
             this.instrumentDistributionsTab.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.instrumentDistributionsGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.instrumentGrid)).BeginInit();
             this.heatExchangersTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.exchangerGrid)).BeginInit();
             this.vaporizersTab.SuspendLayout();
@@ -184,9 +184,9 @@ namespace SandiaNationalLaboratories.Hyram {
             this.loadingArmTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.armGrid)).BeginInit();
             this.extraComponent1DistributionsTab.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.extraComponent1DistributionsGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.extraComponent1Grid)).BeginInit();
             this.extraComponent2DistributionsTab.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.extraComponent2DistributionsGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.extraComponent2Grid)).BeginInit();
             this.componentFailuresTab.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.scComponentFailuresTab)).BeginInit();
@@ -194,7 +194,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.scComponentFailuresTab.Panel2.SuspendLayout();
             this.scComponentFailuresTab.SuspendLayout();
             this.gbComponentFailures.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.componentFailuresGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.failuresGrid)).BeginInit();
             this.gbAccidentProbabilities.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.accidentProbabilitiesGrid)).BeginInit();
             this.ignitionProbabilitiesTab.SuspendLayout();
@@ -253,7 +253,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // compressorDistributionsTab
             // 
-            this.compressorDistributionsTab.Controls.Add(this.compressorDistributionsGrid);
+            this.compressorDistributionsTab.Controls.Add(this.compressorGrid);
             this.compressorDistributionsTab.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.compressorDistributionsTab.Location = new System.Drawing.Point(4, 24);
             this.compressorDistributionsTab.Name = "compressorDistributionsTab";
@@ -262,13 +262,13 @@ namespace SandiaNationalLaboratories.Hyram {
             this.compressorDistributionsTab.Text = "Compressors";
             this.compressorDistributionsTab.UseVisualStyleBackColor = true;
             // 
-            // compressorDistributionsGrid
+            // compressorGrid
             // 
-            this.compressorDistributionsGrid.AllowUserToAddRows = false;
-            this.compressorDistributionsGrid.AllowUserToDeleteRows = false;
-            this.compressorDistributionsGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.compressorDistributionsGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.compressorDistributionsGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.compressorGrid.AllowUserToAddRows = false;
+            this.compressorGrid.AllowUserToDeleteRows = false;
+            this.compressorGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.compressorGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.compressorGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ProbCompLeakSize,
             this.ProbCompMu,
             this.ProbCompSigma,
@@ -276,19 +276,19 @@ namespace SandiaNationalLaboratories.Hyram {
             this.Fifth,
             this.Median,
             this.NinetyFifth});
-            this.compressorDistributionsGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.compressorDistributionsGrid.Location = new System.Drawing.Point(0, 0);
-            this.compressorDistributionsGrid.Name = "compressorDistributionsGrid";
-            this.compressorDistributionsGrid.Size = new System.Drawing.Size(1032, 540);
-            this.compressorDistributionsGrid.TabIndex = 0;
-            this.compressorDistributionsGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
-            this.compressorDistributionsGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
+            this.compressorGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.compressorGrid.Location = new System.Drawing.Point(0, 0);
+            this.compressorGrid.Name = "compressorGrid";
+            this.compressorGrid.Size = new System.Drawing.Size(1032, 540);
+            this.compressorGrid.TabIndex = 0;
+            this.compressorGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
+            this.compressorGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
             // 
             // ProbCompLeakSize
             // 
             this.ProbCompLeakSize.DataPropertyName = "LeakSize";
-            dataGridViewCellStyle23.NullValue = null;
-            this.ProbCompLeakSize.DefaultCellStyle = dataGridViewCellStyle23;
+            dataGridViewCellStyle1.NullValue = null;
+            this.ProbCompLeakSize.DefaultCellStyle = dataGridViewCellStyle1;
             this.ProbCompLeakSize.HeaderText = "Leak Size";
             this.ProbCompLeakSize.Name = "ProbCompLeakSize";
             this.ProbCompLeakSize.ReadOnly = true;
@@ -296,9 +296,9 @@ namespace SandiaNationalLaboratories.Hyram {
             // ProbCompMu
             // 
             this.ProbCompMu.DataPropertyName = "Mu";
-            dataGridViewCellStyle24.Format = "N4";
-            dataGridViewCellStyle24.NullValue = "N/A";
-            this.ProbCompMu.DefaultCellStyle = dataGridViewCellStyle24;
+            dataGridViewCellStyle2.Format = "N4";
+            dataGridViewCellStyle2.NullValue = "N/A";
+            this.ProbCompMu.DefaultCellStyle = dataGridViewCellStyle2;
             this.ProbCompMu.HeaderText = "Mu";
             this.ProbCompMu.Name = "ProbCompMu";
             // 
@@ -337,7 +337,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // vesselDistributionsTab
             // 
-            this.vesselDistributionsTab.Controls.Add(this.cylinderDistributionsGrid);
+            this.vesselDistributionsTab.Controls.Add(this.vesselGrid);
             this.vesselDistributionsTab.Location = new System.Drawing.Point(4, 24);
             this.vesselDistributionsTab.Name = "vesselDistributionsTab";
             this.vesselDistributionsTab.Size = new System.Drawing.Size(1032, 540);
@@ -345,24 +345,24 @@ namespace SandiaNationalLaboratories.Hyram {
             this.vesselDistributionsTab.Text = "Vessels";
             this.vesselDistributionsTab.UseVisualStyleBackColor = true;
             // 
-            // cylinderDistributionsGrid
+            // vesselGrid
             // 
-            this.cylinderDistributionsGrid.AllowUserToAddRows = false;
-            this.cylinderDistributionsGrid.AllowUserToDeleteRows = false;
-            this.cylinderDistributionsGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.cylinderDistributionsGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.cylinderDistributionsGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.vesselGrid.AllowUserToAddRows = false;
+            this.vesselGrid.AllowUserToDeleteRows = false;
+            this.vesselGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.vesselGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.vesselGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn1,
             this.dataGridViewTextBoxColumn2,
             this.dataGridViewTextBoxColumn3,
             this.dataGridViewTextBoxColumn4});
-            this.cylinderDistributionsGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.cylinderDistributionsGrid.Location = new System.Drawing.Point(0, 0);
-            this.cylinderDistributionsGrid.Name = "cylinderDistributionsGrid";
-            this.cylinderDistributionsGrid.Size = new System.Drawing.Size(1032, 540);
-            this.cylinderDistributionsGrid.TabIndex = 1;
-            this.cylinderDistributionsGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
-            this.cylinderDistributionsGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
+            this.vesselGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.vesselGrid.Location = new System.Drawing.Point(0, 0);
+            this.vesselGrid.Name = "vesselGrid";
+            this.vesselGrid.Size = new System.Drawing.Size(1032, 540);
+            this.vesselGrid.TabIndex = 1;
+            this.vesselGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
+            this.vesselGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
             // 
             // dataGridViewTextBoxColumn1
             // 
@@ -391,7 +391,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // filterDistributionsTab
             // 
-            this.filterDistributionsTab.Controls.Add(this.filterDistributionsGrid);
+            this.filterDistributionsTab.Controls.Add(this.filterGrid);
             this.filterDistributionsTab.Location = new System.Drawing.Point(4, 24);
             this.filterDistributionsTab.Name = "filterDistributionsTab";
             this.filterDistributionsTab.Size = new System.Drawing.Size(1032, 540);
@@ -399,24 +399,24 @@ namespace SandiaNationalLaboratories.Hyram {
             this.filterDistributionsTab.Text = "Filters";
             this.filterDistributionsTab.UseVisualStyleBackColor = true;
             // 
-            // filterDistributionsGrid
+            // filterGrid
             // 
-            this.filterDistributionsGrid.AllowUserToAddRows = false;
-            this.filterDistributionsGrid.AllowUserToDeleteRows = false;
-            this.filterDistributionsGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.filterDistributionsGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.filterDistributionsGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.filterGrid.AllowUserToAddRows = false;
+            this.filterGrid.AllowUserToDeleteRows = false;
+            this.filterGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.filterGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.filterGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn16,
             this.dataGridViewTextBoxColumn17,
             this.dataGridViewTextBoxColumn18,
             this.dataGridViewTextBoxColumn19});
-            this.filterDistributionsGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.filterDistributionsGrid.Location = new System.Drawing.Point(0, 0);
-            this.filterDistributionsGrid.Name = "filterDistributionsGrid";
-            this.filterDistributionsGrid.Size = new System.Drawing.Size(1032, 540);
-            this.filterDistributionsGrid.TabIndex = 1;
-            this.filterDistributionsGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
-            this.filterDistributionsGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
+            this.filterGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.filterGrid.Location = new System.Drawing.Point(0, 0);
+            this.filterGrid.Name = "filterGrid";
+            this.filterGrid.Size = new System.Drawing.Size(1032, 540);
+            this.filterGrid.TabIndex = 1;
+            this.filterGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
+            this.filterGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
             // 
             // dataGridViewTextBoxColumn16
             // 
@@ -445,7 +445,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // flangeDistributionsTab
             // 
-            this.flangeDistributionsTab.Controls.Add(this.flangeDistributionsGrid);
+            this.flangeDistributionsTab.Controls.Add(this.flangeGrid);
             this.flangeDistributionsTab.Location = new System.Drawing.Point(4, 24);
             this.flangeDistributionsTab.Name = "flangeDistributionsTab";
             this.flangeDistributionsTab.Size = new System.Drawing.Size(1032, 540);
@@ -453,24 +453,24 @@ namespace SandiaNationalLaboratories.Hyram {
             this.flangeDistributionsTab.Text = "Flanges";
             this.flangeDistributionsTab.UseVisualStyleBackColor = true;
             // 
-            // flangeDistributionsGrid
+            // flangeGrid
             // 
-            this.flangeDistributionsGrid.AllowUserToAddRows = false;
-            this.flangeDistributionsGrid.AllowUserToDeleteRows = false;
-            this.flangeDistributionsGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.flangeDistributionsGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.flangeDistributionsGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.flangeGrid.AllowUserToAddRows = false;
+            this.flangeGrid.AllowUserToDeleteRows = false;
+            this.flangeGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.flangeGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.flangeGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn21,
             this.dataGridViewTextBoxColumn22,
             this.dataGridViewTextBoxColumn23,
             this.dataGridViewTextBoxColumn24});
-            this.flangeDistributionsGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flangeDistributionsGrid.Location = new System.Drawing.Point(0, 0);
-            this.flangeDistributionsGrid.Name = "flangeDistributionsGrid";
-            this.flangeDistributionsGrid.Size = new System.Drawing.Size(1032, 540);
-            this.flangeDistributionsGrid.TabIndex = 1;
-            this.flangeDistributionsGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
-            this.flangeDistributionsGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
+            this.flangeGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flangeGrid.Location = new System.Drawing.Point(0, 0);
+            this.flangeGrid.Name = "flangeGrid";
+            this.flangeGrid.Size = new System.Drawing.Size(1032, 540);
+            this.flangeGrid.TabIndex = 1;
+            this.flangeGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
+            this.flangeGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
             // 
             // dataGridViewTextBoxColumn21
             // 
@@ -499,7 +499,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // hoseDistributionsTab
             // 
-            this.hoseDistributionsTab.Controls.Add(this.hoseDistributionsGrid);
+            this.hoseDistributionsTab.Controls.Add(this.hoseGrid);
             this.hoseDistributionsTab.Location = new System.Drawing.Point(4, 24);
             this.hoseDistributionsTab.Name = "hoseDistributionsTab";
             this.hoseDistributionsTab.Size = new System.Drawing.Size(1032, 540);
@@ -507,24 +507,24 @@ namespace SandiaNationalLaboratories.Hyram {
             this.hoseDistributionsTab.Text = "Hoses";
             this.hoseDistributionsTab.UseVisualStyleBackColor = true;
             // 
-            // hoseDistributionsGrid
+            // hoseGrid
             // 
-            this.hoseDistributionsGrid.AllowUserToAddRows = false;
-            this.hoseDistributionsGrid.AllowUserToDeleteRows = false;
-            this.hoseDistributionsGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.hoseDistributionsGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.hoseDistributionsGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.hoseGrid.AllowUserToAddRows = false;
+            this.hoseGrid.AllowUserToDeleteRows = false;
+            this.hoseGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.hoseGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.hoseGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn26,
             this.dataGridViewTextBoxColumn27,
             this.dataGridViewTextBoxColumn28,
             this.dataGridViewTextBoxColumn29});
-            this.hoseDistributionsGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.hoseDistributionsGrid.Location = new System.Drawing.Point(0, 0);
-            this.hoseDistributionsGrid.Name = "hoseDistributionsGrid";
-            this.hoseDistributionsGrid.Size = new System.Drawing.Size(1032, 540);
-            this.hoseDistributionsGrid.TabIndex = 1;
-            this.hoseDistributionsGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
-            this.hoseDistributionsGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
+            this.hoseGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.hoseGrid.Location = new System.Drawing.Point(0, 0);
+            this.hoseGrid.Name = "hoseGrid";
+            this.hoseGrid.Size = new System.Drawing.Size(1032, 540);
+            this.hoseGrid.TabIndex = 1;
+            this.hoseGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
+            this.hoseGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
             // 
             // dataGridViewTextBoxColumn26
             // 
@@ -553,7 +553,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // jointsDistributionsTab
             // 
-            this.jointsDistributionsTab.Controls.Add(this.jointDistributionsGrid);
+            this.jointsDistributionsTab.Controls.Add(this.jointGrid);
             this.jointsDistributionsTab.Location = new System.Drawing.Point(4, 24);
             this.jointsDistributionsTab.Name = "jointsDistributionsTab";
             this.jointsDistributionsTab.Size = new System.Drawing.Size(1032, 540);
@@ -561,24 +561,24 @@ namespace SandiaNationalLaboratories.Hyram {
             this.jointsDistributionsTab.Text = "Joints";
             this.jointsDistributionsTab.UseVisualStyleBackColor = true;
             // 
-            // jointDistributionsGrid
+            // jointGrid
             // 
-            this.jointDistributionsGrid.AllowUserToAddRows = false;
-            this.jointDistributionsGrid.AllowUserToDeleteRows = false;
-            this.jointDistributionsGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.jointDistributionsGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.jointDistributionsGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.jointGrid.AllowUserToAddRows = false;
+            this.jointGrid.AllowUserToDeleteRows = false;
+            this.jointGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.jointGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.jointGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn31,
             this.dataGridViewTextBoxColumn32,
             this.dataGridViewTextBoxColumn33,
             this.dataGridViewTextBoxColumn34});
-            this.jointDistributionsGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.jointDistributionsGrid.Location = new System.Drawing.Point(0, 0);
-            this.jointDistributionsGrid.Name = "jointDistributionsGrid";
-            this.jointDistributionsGrid.Size = new System.Drawing.Size(1032, 540);
-            this.jointDistributionsGrid.TabIndex = 1;
-            this.jointDistributionsGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
-            this.jointDistributionsGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
+            this.jointGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.jointGrid.Location = new System.Drawing.Point(0, 0);
+            this.jointGrid.Name = "jointGrid";
+            this.jointGrid.Size = new System.Drawing.Size(1032, 540);
+            this.jointGrid.TabIndex = 1;
+            this.jointGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
+            this.jointGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
             // 
             // dataGridViewTextBoxColumn31
             // 
@@ -607,7 +607,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // pipeDistributionsTab
             // 
-            this.pipeDistributionsTab.Controls.Add(this.pipeDistributionsGrid);
+            this.pipeDistributionsTab.Controls.Add(this.pipeGrid);
             this.pipeDistributionsTab.Location = new System.Drawing.Point(4, 24);
             this.pipeDistributionsTab.Name = "pipeDistributionsTab";
             this.pipeDistributionsTab.Size = new System.Drawing.Size(1032, 540);
@@ -615,24 +615,24 @@ namespace SandiaNationalLaboratories.Hyram {
             this.pipeDistributionsTab.Text = "Pipes";
             this.pipeDistributionsTab.UseVisualStyleBackColor = true;
             // 
-            // pipeDistributionsGrid
+            // pipeGrid
             // 
-            this.pipeDistributionsGrid.AllowUserToAddRows = false;
-            this.pipeDistributionsGrid.AllowUserToDeleteRows = false;
-            this.pipeDistributionsGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.pipeDistributionsGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.pipeDistributionsGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.pipeGrid.AllowUserToAddRows = false;
+            this.pipeGrid.AllowUserToDeleteRows = false;
+            this.pipeGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.pipeGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.pipeGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn36,
             this.dataGridViewTextBoxColumn37,
             this.dataGridViewTextBoxColumn38,
             this.dataGridViewTextBoxColumn39});
-            this.pipeDistributionsGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pipeDistributionsGrid.Location = new System.Drawing.Point(0, 0);
-            this.pipeDistributionsGrid.Name = "pipeDistributionsGrid";
-            this.pipeDistributionsGrid.Size = new System.Drawing.Size(1032, 540);
-            this.pipeDistributionsGrid.TabIndex = 1;
-            this.pipeDistributionsGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
-            this.pipeDistributionsGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
+            this.pipeGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pipeGrid.Location = new System.Drawing.Point(0, 0);
+            this.pipeGrid.Name = "pipeGrid";
+            this.pipeGrid.Size = new System.Drawing.Size(1032, 540);
+            this.pipeGrid.TabIndex = 1;
+            this.pipeGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
+            this.pipeGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
             // 
             // dataGridViewTextBoxColumn36
             // 
@@ -661,7 +661,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // valveDistributionsTab
             // 
-            this.valveDistributionsTab.Controls.Add(this.valveDistributionsGrid);
+            this.valveDistributionsTab.Controls.Add(this.valveGrid);
             this.valveDistributionsTab.Location = new System.Drawing.Point(4, 24);
             this.valveDistributionsTab.Name = "valveDistributionsTab";
             this.valveDistributionsTab.Size = new System.Drawing.Size(1032, 540);
@@ -669,24 +669,24 @@ namespace SandiaNationalLaboratories.Hyram {
             this.valveDistributionsTab.Text = "Valves";
             this.valveDistributionsTab.UseVisualStyleBackColor = true;
             // 
-            // valveDistributionsGrid
+            // valveGrid
             // 
-            this.valveDistributionsGrid.AllowUserToAddRows = false;
-            this.valveDistributionsGrid.AllowUserToDeleteRows = false;
-            this.valveDistributionsGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.valveDistributionsGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.valveDistributionsGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.valveGrid.AllowUserToAddRows = false;
+            this.valveGrid.AllowUserToDeleteRows = false;
+            this.valveGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.valveGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.valveGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn41,
             this.dataGridViewTextBoxColumn42,
             this.dataGridViewTextBoxColumn43,
             this.dataGridViewTextBoxColumn44});
-            this.valveDistributionsGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.valveDistributionsGrid.Location = new System.Drawing.Point(0, 0);
-            this.valveDistributionsGrid.Name = "valveDistributionsGrid";
-            this.valveDistributionsGrid.Size = new System.Drawing.Size(1032, 540);
-            this.valveDistributionsGrid.TabIndex = 1;
-            this.valveDistributionsGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
-            this.valveDistributionsGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
+            this.valveGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.valveGrid.Location = new System.Drawing.Point(0, 0);
+            this.valveGrid.Name = "valveGrid";
+            this.valveGrid.Size = new System.Drawing.Size(1032, 540);
+            this.valveGrid.TabIndex = 1;
+            this.valveGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
+            this.valveGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
             // 
             // dataGridViewTextBoxColumn41
             // 
@@ -715,7 +715,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // instrumentDistributionsTab
             // 
-            this.instrumentDistributionsTab.Controls.Add(this.instrumentDistributionsGrid);
+            this.instrumentDistributionsTab.Controls.Add(this.instrumentGrid);
             this.instrumentDistributionsTab.Location = new System.Drawing.Point(4, 24);
             this.instrumentDistributionsTab.Name = "instrumentDistributionsTab";
             this.instrumentDistributionsTab.Size = new System.Drawing.Size(1032, 540);
@@ -723,24 +723,24 @@ namespace SandiaNationalLaboratories.Hyram {
             this.instrumentDistributionsTab.Text = "Instruments";
             this.instrumentDistributionsTab.UseVisualStyleBackColor = true;
             // 
-            // instrumentDistributionsGrid
+            // instrumentGrid
             // 
-            this.instrumentDistributionsGrid.AllowUserToAddRows = false;
-            this.instrumentDistributionsGrid.AllowUserToDeleteRows = false;
-            this.instrumentDistributionsGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.instrumentDistributionsGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.instrumentDistributionsGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.instrumentGrid.AllowUserToAddRows = false;
+            this.instrumentGrid.AllowUserToDeleteRows = false;
+            this.instrumentGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.instrumentGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.instrumentGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn46,
             this.dataGridViewTextBoxColumn47,
             this.dataGridViewTextBoxColumn48,
             this.dataGridViewTextBoxColumn49});
-            this.instrumentDistributionsGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.instrumentDistributionsGrid.Location = new System.Drawing.Point(0, 0);
-            this.instrumentDistributionsGrid.Name = "instrumentDistributionsGrid";
-            this.instrumentDistributionsGrid.Size = new System.Drawing.Size(1032, 540);
-            this.instrumentDistributionsGrid.TabIndex = 1;
-            this.instrumentDistributionsGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
-            this.instrumentDistributionsGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
+            this.instrumentGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.instrumentGrid.Location = new System.Drawing.Point(0, 0);
+            this.instrumentGrid.Name = "instrumentGrid";
+            this.instrumentGrid.Size = new System.Drawing.Size(1032, 540);
+            this.instrumentGrid.TabIndex = 1;
+            this.instrumentGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
+            this.instrumentGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
             // 
             // dataGridViewTextBoxColumn46
             // 
@@ -799,8 +799,8 @@ namespace SandiaNationalLaboratories.Hyram {
             // dataGridViewTextBoxColumn5
             // 
             this.dataGridViewTextBoxColumn5.DataPropertyName = "LeakSize";
-            dataGridViewCellStyle25.NullValue = null;
-            this.dataGridViewTextBoxColumn5.DefaultCellStyle = dataGridViewCellStyle25;
+            dataGridViewCellStyle3.NullValue = null;
+            this.dataGridViewTextBoxColumn5.DefaultCellStyle = dataGridViewCellStyle3;
             this.dataGridViewTextBoxColumn5.HeaderText = "Leak Size";
             this.dataGridViewTextBoxColumn5.Name = "dataGridViewTextBoxColumn5";
             this.dataGridViewTextBoxColumn5.ReadOnly = true;
@@ -808,9 +808,9 @@ namespace SandiaNationalLaboratories.Hyram {
             // dataGridViewTextBoxColumn10
             // 
             this.dataGridViewTextBoxColumn10.DataPropertyName = "Mu";
-            dataGridViewCellStyle26.Format = "N4";
-            dataGridViewCellStyle26.NullValue = "N/A";
-            this.dataGridViewTextBoxColumn10.DefaultCellStyle = dataGridViewCellStyle26;
+            dataGridViewCellStyle4.Format = "N4";
+            dataGridViewCellStyle4.NullValue = "N/A";
+            this.dataGridViewTextBoxColumn10.DefaultCellStyle = dataGridViewCellStyle4;
             this.dataGridViewTextBoxColumn10.HeaderText = "Mu";
             this.dataGridViewTextBoxColumn10.Name = "dataGridViewTextBoxColumn10";
             // 
@@ -859,8 +859,8 @@ namespace SandiaNationalLaboratories.Hyram {
             // dataGridViewTextBoxColumn25
             // 
             this.dataGridViewTextBoxColumn25.DataPropertyName = "LeakSize";
-            dataGridViewCellStyle27.NullValue = null;
-            this.dataGridViewTextBoxColumn25.DefaultCellStyle = dataGridViewCellStyle27;
+            dataGridViewCellStyle5.NullValue = null;
+            this.dataGridViewTextBoxColumn25.DefaultCellStyle = dataGridViewCellStyle5;
             this.dataGridViewTextBoxColumn25.HeaderText = "Leak Size";
             this.dataGridViewTextBoxColumn25.Name = "dataGridViewTextBoxColumn25";
             this.dataGridViewTextBoxColumn25.ReadOnly = true;
@@ -868,9 +868,9 @@ namespace SandiaNationalLaboratories.Hyram {
             // dataGridViewTextBoxColumn30
             // 
             this.dataGridViewTextBoxColumn30.DataPropertyName = "Mu";
-            dataGridViewCellStyle28.Format = "N4";
-            dataGridViewCellStyle28.NullValue = "N/A";
-            this.dataGridViewTextBoxColumn30.DefaultCellStyle = dataGridViewCellStyle28;
+            dataGridViewCellStyle6.Format = "N4";
+            dataGridViewCellStyle6.NullValue = "N/A";
+            this.dataGridViewTextBoxColumn30.DefaultCellStyle = dataGridViewCellStyle6;
             this.dataGridViewTextBoxColumn30.HeaderText = "Mu";
             this.dataGridViewTextBoxColumn30.Name = "dataGridViewTextBoxColumn30";
             // 
@@ -919,8 +919,8 @@ namespace SandiaNationalLaboratories.Hyram {
             // dataGridViewTextBoxColumn45
             // 
             this.dataGridViewTextBoxColumn45.DataPropertyName = "LeakSize";
-            dataGridViewCellStyle29.NullValue = null;
-            this.dataGridViewTextBoxColumn45.DefaultCellStyle = dataGridViewCellStyle29;
+            dataGridViewCellStyle7.NullValue = null;
+            this.dataGridViewTextBoxColumn45.DefaultCellStyle = dataGridViewCellStyle7;
             this.dataGridViewTextBoxColumn45.HeaderText = "Leak Size";
             this.dataGridViewTextBoxColumn45.Name = "dataGridViewTextBoxColumn45";
             this.dataGridViewTextBoxColumn45.ReadOnly = true;
@@ -928,9 +928,9 @@ namespace SandiaNationalLaboratories.Hyram {
             // dataGridViewTextBoxColumn50
             // 
             this.dataGridViewTextBoxColumn50.DataPropertyName = "Mu";
-            dataGridViewCellStyle30.Format = "N4";
-            dataGridViewCellStyle30.NullValue = "N/A";
-            this.dataGridViewTextBoxColumn50.DefaultCellStyle = dataGridViewCellStyle30;
+            dataGridViewCellStyle8.Format = "N4";
+            dataGridViewCellStyle8.NullValue = "N/A";
+            this.dataGridViewTextBoxColumn50.DefaultCellStyle = dataGridViewCellStyle8;
             this.dataGridViewTextBoxColumn50.HeaderText = "Mu";
             this.dataGridViewTextBoxColumn50.Name = "dataGridViewTextBoxColumn50";
             // 
@@ -949,7 +949,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // extraComponent1DistributionsTab
             // 
-            this.extraComponent1DistributionsTab.Controls.Add(this.extraComponent1DistributionsGrid);
+            this.extraComponent1DistributionsTab.Controls.Add(this.extraComponent1Grid);
             this.extraComponent1DistributionsTab.Location = new System.Drawing.Point(4, 24);
             this.extraComponent1DistributionsTab.Margin = new System.Windows.Forms.Padding(2);
             this.extraComponent1DistributionsTab.Name = "extraComponent1DistributionsTab";
@@ -959,24 +959,24 @@ namespace SandiaNationalLaboratories.Hyram {
             this.extraComponent1DistributionsTab.Text = "Extra component #1";
             this.extraComponent1DistributionsTab.UseVisualStyleBackColor = true;
             // 
-            // extraComponent1DistributionsGrid
+            // extraComponent1Grid
             // 
-            this.extraComponent1DistributionsGrid.AllowUserToAddRows = false;
-            this.extraComponent1DistributionsGrid.AllowUserToDeleteRows = false;
-            this.extraComponent1DistributionsGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.extraComponent1DistributionsGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.extraComponent1DistributionsGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.extraComponent1Grid.AllowUserToAddRows = false;
+            this.extraComponent1Grid.AllowUserToDeleteRows = false;
+            this.extraComponent1Grid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.extraComponent1Grid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.extraComponent1Grid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn6,
             this.dataGridViewTextBoxColumn7,
             this.dataGridViewTextBoxColumn8,
             this.dataGridViewTextBoxColumn9});
-            this.extraComponent1DistributionsGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.extraComponent1DistributionsGrid.Location = new System.Drawing.Point(2, 2);
-            this.extraComponent1DistributionsGrid.Name = "extraComponent1DistributionsGrid";
-            this.extraComponent1DistributionsGrid.Size = new System.Drawing.Size(1028, 536);
-            this.extraComponent1DistributionsGrid.TabIndex = 1;
-            this.extraComponent1DistributionsGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
-            this.extraComponent1DistributionsGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
+            this.extraComponent1Grid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.extraComponent1Grid.Location = new System.Drawing.Point(2, 2);
+            this.extraComponent1Grid.Name = "extraComponent1Grid";
+            this.extraComponent1Grid.Size = new System.Drawing.Size(1028, 536);
+            this.extraComponent1Grid.TabIndex = 1;
+            this.extraComponent1Grid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
+            this.extraComponent1Grid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
             // 
             // dataGridViewTextBoxColumn6
             // 
@@ -1005,7 +1005,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // extraComponent2DistributionsTab
             // 
-            this.extraComponent2DistributionsTab.Controls.Add(this.extraComponent2DistributionsGrid);
+            this.extraComponent2DistributionsTab.Controls.Add(this.extraComponent2Grid);
             this.extraComponent2DistributionsTab.Location = new System.Drawing.Point(4, 24);
             this.extraComponent2DistributionsTab.Margin = new System.Windows.Forms.Padding(2);
             this.extraComponent2DistributionsTab.Name = "extraComponent2DistributionsTab";
@@ -1015,24 +1015,24 @@ namespace SandiaNationalLaboratories.Hyram {
             this.extraComponent2DistributionsTab.Text = "Extra component #2";
             this.extraComponent2DistributionsTab.UseVisualStyleBackColor = true;
             // 
-            // extraComponent2DistributionsGrid
+            // extraComponent2Grid
             // 
-            this.extraComponent2DistributionsGrid.AllowUserToAddRows = false;
-            this.extraComponent2DistributionsGrid.AllowUserToDeleteRows = false;
-            this.extraComponent2DistributionsGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.extraComponent2DistributionsGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.extraComponent2DistributionsGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.extraComponent2Grid.AllowUserToAddRows = false;
+            this.extraComponent2Grid.AllowUserToDeleteRows = false;
+            this.extraComponent2Grid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.extraComponent2Grid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.extraComponent2Grid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn11,
             this.dataGridViewTextBoxColumn12,
             this.dataGridViewTextBoxColumn13,
             this.dataGridViewTextBoxColumn14});
-            this.extraComponent2DistributionsGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.extraComponent2DistributionsGrid.Location = new System.Drawing.Point(2, 2);
-            this.extraComponent2DistributionsGrid.Name = "extraComponent2DistributionsGrid";
-            this.extraComponent2DistributionsGrid.Size = new System.Drawing.Size(1028, 536);
-            this.extraComponent2DistributionsGrid.TabIndex = 1;
-            this.extraComponent2DistributionsGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
-            this.extraComponent2DistributionsGrid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
+            this.extraComponent2Grid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.extraComponent2Grid.Location = new System.Drawing.Point(2, 2);
+            this.extraComponent2Grid.Name = "extraComponent2Grid";
+            this.extraComponent2Grid.Size = new System.Drawing.Size(1028, 536);
+            this.extraComponent2Grid.TabIndex = 1;
+            this.extraComponent2Grid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.LeakDataGrid_CellEndEdit);
+            this.extraComponent2Grid.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.LeakFrequency_DataError);
             // 
             // dataGridViewTextBoxColumn11
             // 
@@ -1141,7 +1141,7 @@ namespace SandiaNationalLaboratories.Hyram {
             // gbComponentFailures
             // 
             this.gbComponentFailures.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.gbComponentFailures.Controls.Add(this.componentFailuresGrid);
+            this.gbComponentFailures.Controls.Add(this.failuresGrid);
             this.gbComponentFailures.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gbComponentFailures.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.gbComponentFailures.Location = new System.Drawing.Point(0, 0);
@@ -1151,25 +1151,25 @@ namespace SandiaNationalLaboratories.Hyram {
             this.gbComponentFailures.TabStop = false;
             this.gbComponentFailures.Text = "Component Failures";
             // 
-            // componentFailuresGrid
+            // failuresGrid
             // 
-            this.componentFailuresGrid.AllowUserToAddRows = false;
-            this.componentFailuresGrid.AllowUserToDeleteRows = false;
-            this.componentFailuresGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.componentFailuresGrid.BackgroundColor = System.Drawing.SystemColors.ControlLightLight;
-            this.componentFailuresGrid.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.componentFailuresGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.componentFailuresGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.failuresGrid.AllowUserToAddRows = false;
+            this.failuresGrid.AllowUserToDeleteRows = false;
+            this.failuresGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.failuresGrid.BackgroundColor = System.Drawing.SystemColors.ControlLightLight;
+            this.failuresGrid.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.failuresGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.failuresGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.clmCFComponent,
             this.clmCFFailureMode,
             this.clmCFDistributionType,
             this.clmCFParameterA,
             this.clmCFParameterB});
-            this.componentFailuresGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.componentFailuresGrid.Location = new System.Drawing.Point(3, 19);
-            this.componentFailuresGrid.Name = "componentFailuresGrid";
-            this.componentFailuresGrid.Size = new System.Drawing.Size(1028, 244);
-            this.componentFailuresGrid.TabIndex = 0;
+            this.failuresGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.failuresGrid.Location = new System.Drawing.Point(3, 19);
+            this.failuresGrid.Name = "failuresGrid";
+            this.failuresGrid.Size = new System.Drawing.Size(1028, 244);
+            this.failuresGrid.TabIndex = 0;
             // 
             // clmCFComponent
             // 
@@ -1377,6 +1377,28 @@ namespace SandiaNationalLaboratories.Hyram {
             this.ignitionProbabilitiesGrid.CellValidating += new System.Windows.Forms.DataGridViewCellValidatingEventHandler(this.ignitionProbabilitiesGrid_CellValidating);
             this.ignitionProbabilitiesGrid.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.ignitionProbabilitiesGrid_CellValueChanged);
             // 
+            // colHydrogenReleaseRate
+            // 
+            this.colHydrogenReleaseRate.HeaderText = "Release Rate (kg/s)";
+            this.colHydrogenReleaseRate.Name = "colHydrogenReleaseRate";
+            this.colHydrogenReleaseRate.ReadOnly = true;
+            // 
+            // colImmediateIgnitionProbability
+            // 
+            dataGridViewCellStyle9.Format = "N4";
+            dataGridViewCellStyle9.NullValue = "0";
+            this.colImmediateIgnitionProbability.DefaultCellStyle = dataGridViewCellStyle9;
+            this.colImmediateIgnitionProbability.HeaderText = "Immediate Ignition Probability";
+            this.colImmediateIgnitionProbability.Name = "colImmediateIgnitionProbability";
+            // 
+            // colDelayedIgnitionProbability
+            // 
+            dataGridViewCellStyle10.Format = "N4";
+            dataGridViewCellStyle10.NullValue = "0";
+            this.colDelayedIgnitionProbability.DefaultCellStyle = dataGridViewCellStyle10;
+            this.colDelayedIgnitionProbability.HeaderText = "Delayed Ignition Probability";
+            this.colDelayedIgnitionProbability.Name = "colDelayedIgnitionProbability";
+            // 
             // formWarning
             // 
             this.formWarning.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -1394,28 +1416,6 @@ namespace SandiaNationalLaboratories.Hyram {
             this.formWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.formWarning.Visible = false;
             // 
-            // colHydrogenReleaseRate
-            // 
-            this.colHydrogenReleaseRate.HeaderText = "Release Rate (kg/s)";
-            this.colHydrogenReleaseRate.Name = "colHydrogenReleaseRate";
-            this.colHydrogenReleaseRate.ReadOnly = true;
-            // 
-            // colImmediateIgnitionProbability
-            // 
-            dataGridViewCellStyle21.Format = "N4";
-            dataGridViewCellStyle21.NullValue = "0";
-            this.colImmediateIgnitionProbability.DefaultCellStyle = dataGridViewCellStyle21;
-            this.colImmediateIgnitionProbability.HeaderText = "Immediate Ignition Probability";
-            this.colImmediateIgnitionProbability.Name = "colImmediateIgnitionProbability";
-            // 
-            // colDelayedIgnitionProbability
-            // 
-            dataGridViewCellStyle22.Format = "N4";
-            dataGridViewCellStyle22.NullValue = "0";
-            this.colDelayedIgnitionProbability.DefaultCellStyle = dataGridViewCellStyle22;
-            this.colDelayedIgnitionProbability.HeaderText = "Delayed Ignition Probability";
-            this.colDelayedIgnitionProbability.Name = "colDelayedIgnitionProbability";
-            // 
             // ProbabilitiesForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1426,28 +1426,27 @@ namespace SandiaNationalLaboratories.Hyram {
             this.MinimumSize = new System.Drawing.Size(600, 350);
             this.Name = "ProbabilitiesForm";
             this.Size = new System.Drawing.Size(1054, 682);
-            this.Load += new System.EventHandler(this.cpDataProbabilities_Load);
             this.dataProbabilitiesTabControl.ResumeLayout(false);
             this.componentLeaksTab.ResumeLayout(false);
             this.componentLeaksTabControl.ResumeLayout(false);
             this.compressorDistributionsTab.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.compressorDistributionsGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.compressorGrid)).EndInit();
             this.vesselDistributionsTab.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.cylinderDistributionsGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.vesselGrid)).EndInit();
             this.filterDistributionsTab.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.filterDistributionsGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.filterGrid)).EndInit();
             this.flangeDistributionsTab.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.flangeDistributionsGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.flangeGrid)).EndInit();
             this.hoseDistributionsTab.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.hoseDistributionsGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.hoseGrid)).EndInit();
             this.jointsDistributionsTab.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.jointDistributionsGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.jointGrid)).EndInit();
             this.pipeDistributionsTab.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pipeDistributionsGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pipeGrid)).EndInit();
             this.valveDistributionsTab.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.valveDistributionsGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.valveGrid)).EndInit();
             this.instrumentDistributionsTab.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.instrumentDistributionsGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.instrumentGrid)).EndInit();
             this.heatExchangersTab.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.exchangerGrid)).EndInit();
             this.vaporizersTab.ResumeLayout(false);
@@ -1455,9 +1454,9 @@ namespace SandiaNationalLaboratories.Hyram {
             this.loadingArmTab.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.armGrid)).EndInit();
             this.extraComponent1DistributionsTab.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.extraComponent1DistributionsGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.extraComponent1Grid)).EndInit();
             this.extraComponent2DistributionsTab.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.extraComponent2DistributionsGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.extraComponent2Grid)).EndInit();
             this.componentFailuresTab.ResumeLayout(false);
             this.componentFailuresTab.PerformLayout();
             this.tableLayoutPanel1.ResumeLayout(false);
@@ -1467,7 +1466,7 @@ namespace SandiaNationalLaboratories.Hyram {
             ((System.ComponentModel.ISupportInitialize)(this.scComponentFailuresTab)).EndInit();
             this.scComponentFailuresTab.ResumeLayout(false);
             this.gbComponentFailures.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.componentFailuresGrid)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.failuresGrid)).EndInit();
             this.gbAccidentProbabilities.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.accidentProbabilitiesGrid)).EndInit();
             this.ignitionProbabilitiesTab.ResumeLayout(false);
@@ -1487,7 +1486,7 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.DataGridView ignitionProbabilitiesGrid;
         private System.Windows.Forms.TabControl componentLeaksTabControl;
         private System.Windows.Forms.TabPage compressorDistributionsTab;
-        private System.Windows.Forms.DataGridView compressorDistributionsGrid;
+        private System.Windows.Forms.DataGridView compressorGrid;
         private System.Windows.Forms.TabPage vesselDistributionsTab;
         private System.Windows.Forms.TabPage filterDistributionsTab;
         private System.Windows.Forms.TabPage flangeDistributionsTab;
@@ -1510,24 +1509,19 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.SplitContainer scComponentFailuresTab;
         private System.Windows.Forms.GroupBox gbComponentFailures;
-        private System.Windows.Forms.DataGridView componentFailuresGrid;
+        private System.Windows.Forms.DataGridView failuresGrid;
         private System.Windows.Forms.GroupBox gbAccidentProbabilities;
         private System.Windows.Forms.DataGridView accidentProbabilitiesGrid;
-        private System.Windows.Forms.DataGridView cylinderDistributionsGrid;
-        private System.Windows.Forms.DataGridView extraComponent1DistributionsGrid;
-        private System.Windows.Forms.DataGridView extraComponent2DistributionsGrid;
-        private System.Windows.Forms.DataGridView filterDistributionsGrid;
-        private System.Windows.Forms.DataGridView flangeDistributionsGrid;
-        private System.Windows.Forms.DataGridView hoseDistributionsGrid;
-        private System.Windows.Forms.DataGridView jointDistributionsGrid;
-        private System.Windows.Forms.DataGridView pipeDistributionsGrid;
-        private System.Windows.Forms.DataGridView valveDistributionsGrid;
-        private System.Windows.Forms.DataGridView instrumentDistributionsGrid;
-        private System.Windows.Forms.DataGridViewTextBoxColumn clmCFComponent;
-        private System.Windows.Forms.DataGridViewTextBoxColumn clmCFFailureMode;
-        private System.Windows.Forms.DataGridViewComboBoxColumn clmCFDistributionType;
-        private System.Windows.Forms.DataGridViewTextBoxColumn clmCFParameterA;
-        private System.Windows.Forms.DataGridViewTextBoxColumn clmCFParameterB;
+        private System.Windows.Forms.DataGridView vesselGrid;
+        private System.Windows.Forms.DataGridView extraComponent1Grid;
+        private System.Windows.Forms.DataGridView extraComponent2Grid;
+        private System.Windows.Forms.DataGridView filterGrid;
+        private System.Windows.Forms.DataGridView flangeGrid;
+        private System.Windows.Forms.DataGridView hoseGrid;
+        private System.Windows.Forms.DataGridView jointGrid;
+        private System.Windows.Forms.DataGridView pipeGrid;
+        private System.Windows.Forms.DataGridView valveGrid;
+        private System.Windows.Forms.DataGridView instrumentGrid;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
@@ -1602,5 +1596,10 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.DataGridViewTextBoxColumn colHydrogenReleaseRate;
         private System.Windows.Forms.DataGridViewTextBoxColumn colImmediateIgnitionProbability;
         private System.Windows.Forms.DataGridViewTextBoxColumn colDelayedIgnitionProbability;
+        private System.Windows.Forms.DataGridViewTextBoxColumn clmCFComponent;
+        private System.Windows.Forms.DataGridViewTextBoxColumn clmCFFailureMode;
+        private System.Windows.Forms.DataGridViewComboBoxColumn clmCFDistributionType;
+        private System.Windows.Forms.DataGridViewTextBoxColumn clmCFParameterA;
+        private System.Windows.Forms.DataGridViewTextBoxColumn clmCFParameterB;
     }
 }

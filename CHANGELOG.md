@@ -4,6 +4,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2022-11-11
+
+### Added
+- Added blends functionality to Physics analyses and GUI to support evaluation of fuel blends, including presets
+- Added event_tree.py to provide flexible capability for building event trees; fault tree construction is now based on the order in which events are specified and only allows for two outcomes per event (accessible through Python backend)
+- Added consequence.py to provide an abstraction for how event consequences were calculated and enable implementation of future consequences, which also absorbed material that was previously held in fatalities.py, making fatalities.py no longer needed (accessible through Python backend)
+- Added test_qra_consequences.py to replace test_qra_fatalities.py due to incorporation of the fatality.py capabilities into consequence.py
+- Added mass flow input for choked flows
+- Added various plot formatting inputs to Physics analyses
+- Added leak_frequency.py to place leak frequency calculation for the QRA analysis within its own module
+- Added tests for support of leak frequencies beyond default values
+- Added thermodynamic calculation subroutines so that blends are supported
+- Added additional thermodynamic property values so that natural gas components are included
+- Added support for keywords 'LFL' and 'UFL' within Jet.plot_moleFrac_Contour method
+- Added keyword support for time constrained blowdown within Source.empty method
+- Added ability to calculate steady-state releases for accumulation in GUI
+
+### Changed
+- Moved Engineering Toolkit analysis forms into Physics mode
+- Revised GUI save/load functionality to utilize JSON format instead of binary; save files can now be modified directly via text editor
+- Changed display units from Pa to kPa for peak overpressure contour plot in Physics Unconfined Overpressure analysis
+- Changed tabular display units from Pa to kPa for impulse data in QRA results
+- Changed Physics TNT Equivalency calculation to use Unconfined Overpressure TNT method calculation, rather than separate similar calculation
+- Changed jet flame and unconfined overpressure methods to calculate distance to effect (heat flux, overpressure, impulse) in any direction (x, y, or z) rather than only x
+- Changed construction of event tree within QRA Mode's analysis.py to now utilize event_tree.py instead of having the event tree hard coded; the default event tree implemented within analysis.py
+- Changed calculation of consequences within QRA Mode's analysis.py to now utilize consequence.py, instead of having that functionality hard coded
+- Changed risk calculations within QRA Mode's analysis.py to loop over the potential events and associated consequences in a generic fashion to enable use of alternative event trees in the future
+- Changed leak size implementation to support any leak size. Interpolates between default leak sizes that were used during calibration
+- Changed Physics Tank Mass calculation to calculate temperature, pressure, volume, or mass if given the other three inputs
+- Moved overpressure/impulse data to _overpressure_data.py
+- Simplified package data import in setup.cfg
+- Updated Jet.plot_moleFrac_Contour method aesthetics (changed labeling of contours and colorbar orientation is dependent on plot aspect ratio)
+- Updated Flame.plot_Ts method aesthetics (colorbar orientation is dependent on plot aspect ratio)
+- Fixed bug that was causing notional nozzle calculations to be made for unchoked flows
+- Changed thermodynamic Combustion calculations so that blends are supported
+- Moved plotting subroutine of blowdown into Source object
+- Fixed bugs in various modules to resolve errors with certain versions of Numpy and CoolProp
+- Revised random seed for occupant locations to now generate a new value each time GUI is launched; this value is still editable by user
+- Updated CNG component leak frequency estimates based on recent statistical effort using an updated data set
+- Changed default BST Mach Flame Speed to 0.35
+- Changed default Thermal Exposure Time in QRA to 30 seconds
+
+### Removed
+- Removed instances in which hydrogen was the default "species" argument for multiple functions/methods; the "species" is now a required input without a default
+- Removed fatalities.py from QRA Mode as these capabilities were integrated into the new consequence.py
+- Removed test_qra_fatalities.py due to being replaced by test_qra_consequences.py
+- Removed overpressure and impulse data csv files, phys/data folder deleted
+
+
 ## [4.1.1] - 2022-08-24
 
 ### Added
@@ -32,19 +81,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added impulse and overpressure data to QRA results
 - Added discharge coefficient input to flame and QRA analyses
 - Added phase input to Engineering Toolkit temperature, pressure, density calculations
-- ETK temperature-pressure-density tool now calculates second missing parameter when phase is saturated.
+- ETK temperature-pressure-density tool now calculates second missing parameter when phase is saturated
 
 ### Changed
 - Changed calculation of flow through an orifice to find maximum flux rather than relying on calculated speeds of sound
 - Moved positions and heat flux effects from hyram.phys to hyram.qra and removed flux-analysis call from physics api
 - Moved position generation to main QRA analysis instead of inside heat flux effects
-- Moved calculation of thermal fatalities loop to seperate fatalities module
-- Changed QRA main analysis to calulate overpressure harm using unconfined overpressure model rather than overpressure/impulse direct inputs
+- Moved calculation of thermal fatalities loop to separate fatalities module
+- Changed QRA main analysis to calculate overpressure harm using unconfined overpressure model rather than overpressure/impulse direct inputs
 - Changed QRA main analysis to utilize refactored code in new effects, fatalities, ignition probabilities, pipe size, and risk modules
-- Changed internal calculations to use W/m2 for heat flux and Pa for peak ovrepressure for consistancy; GUI and plots still report kW/m2 and kPa
+- Changed internal calculations to use W/m2 for heat flux and Pa for peak overpressure for consistency; GUI and plots still report kW/m2 and kPa
 - Figures are explicitly closed after saving to file to avoid taking up memory
 - Changed the origin of unconfined overpressure blast wave to be the point at which the jet concentration is midway between the upper and lower flammability limits, instead of half the distance to the lower flammability limit
-- Changed Bauwens/Dorofeev unconfined overpressure models to utilze fitted curves for detonation cell size rather than a saved spline-fit object in a pickle file
+- Changed Bauwens/Dorofeev unconfined overpressure models to utilize fitted curves for detonation cell size rather than a saved spline-fit object in a pickle file
 - Some Python optional arguments had default values that were specific to hydrogen (e.g., LFL and UFL), changed the default to select values specific to the fuel selected rather than hydrogen
 - Fixed overpressure origin calculation, y- and z-coordinates were flipped
 - Changed default overpressure probit model to TNO - Head Impact
@@ -174,7 +223,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Abel-Noble equation of state has been replaced with CoolProp for property calculations
 - Combustion code was modified to use CoolProp and expanded to prepare for future use of hydrocarbons
 - Orifice flow calculations changed to use CoolProp for properties
-- Orifice flow speed of sound calculations changed to use minor perterbation on pressure rather than CoolProp library (works along saturation curve)
+- Orifice flow speed of sound calculations changed to use minor perturbation on pressure rather than CoolProp library (works along saturation curve)
 - Notional Nozzle model inputs changed to specific temperature and momentum conservation options, rather than explicit model selection
 - Notional Nozzle model calculations changed to use CoolProp for calculation of entropy
 - Jet/plume flow establishment method now allows for <100% hydrogen due to initial entrainment and heating zone
@@ -186,7 +235,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tank blowdown model changed to use numerical solver rather than equal time steps
 - Physics models with numerical solvers (jet, flame, blowdown, layer) all use adaptive spatial- and time-steps
 - Cleanup/streamlining of indoor release model code
-- Flame model now uses same developing flow regions as jet/plume model, to allow for zone of initial entrianment and heating and remove duplication in both Flame and Jet models
+- Flame model now uses same developing flow regions as jet/plume model, to allow for zone of initial entrainment and heating and remove duplication in both Flame and Jet models
 - Modified Python tests for C-API and some validation tests
 - Moved physics "wrapper" scripts to API and C-API modules directly
 - Leak release height in QRA now occurs at (0,0,0) rather than (0,1,0), so that all (x,y,z) dimensions are relative to leak point
@@ -201,7 +250,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Added version number to `setup.py` file so that Python package installation runs without error
-- Modified QRA event sequence diagram and equations so that ignition probabilites are used correctly
+- Modified QRA event sequence diagram and equations so that ignition probabilities are used correctly
 
 
 ## [2.0.0] - 2019-06-28

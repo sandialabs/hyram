@@ -1,4 +1,4 @@
-# Contributing to the Hydrogen Risk Assessment Models
+# Contributing to HyRAM+
 This document describes the Hydrogen Risk Assessment Models ("HyRAM+") application development.
 The application comprises a frontend GUI written in C# and a backend module written in Python.
 Step-by-step instructions are included for setting up a C# development environment using MS Visual Studio 2017 ("MSVS").
@@ -45,8 +45,9 @@ $
     │   ├───Hyram.State
     │   ├───Hyram.Units
     │   ├───Hyram.Utilities
-    │   └───Hyram.Setup
+    │   ├───Hyram.Setup
     │   └───Hyram.SetupBootstrapper
+    ├───cs_api
     └───hyram
         ├───tests
         └───hyram
@@ -55,11 +56,12 @@ $
             └───utilities
 ```
 
-* `build` - should be located alongside the source directory to contain C# build files excluded from version control.
-* `src` - Project source code under version control, including C# GUI and python module(s).
+* `src` - Project source code under version control, including C# GUI and python package.
 * `src/gui` - Front-end C# user interface, including MSVS Solution and C# projects.
     * The python interpreter is installed in `gui/Hyram.PythonDirectory` and should *not* be added to version control.
 * `src/hyram` - Python module of HyRAM+ tools including physics, quantitative risk assessment, and miscellaneous utilities.
+* `src/cs_api` - python functions providing C# access to HyRAM+ python code via the python.NET library.
+* `build` - should be located alongside the source directory to contain C# build files excluded from version control.
 
 
 <a name="c-gui">&nbsp;</a>
@@ -205,10 +207,14 @@ Verify the following configuration settings and properties after loading the sol
 
 
 ### 2. Build Events
-Post-build events are used by the `Hyram.PythonDirectory` project (`properties -> Build Events`)
-to ensure the python interpreter, Python.Net runtime, and HyRAM+ module are available to the compiled application.
+Build events are located in the `Hyram.PythonDirectory` project (`properties -> Build Events`).
+Pre- and Post-build events provide the following functionality:
+   * ensure the python interpreter, Python.Net runtime, and HyRAM+ module are copied to the compiled application.
+   * delete any test image files and .pyc files
+   * delete development-specific directories (test, .idea) in the build dir 
 
-These events only need to be executed during the first build and when the python code is changed.
+The python interpreter build event only needs to be executed during the first build or when the python interpreter
+or required packages are changed.
 The events can be disabled by modifying the conditional statement to ensure it is false; for example:
 
     if "$(ConfigurationName)" == "AlwaysFalse"
@@ -303,16 +309,24 @@ The .msi file should not be distributed.
 ## B.5 Miscellaneous Notes
 
 #### Issue: form fails to display in MSVS designer
-Forms containing custom controls cannot be displayed by the MSVS GUI designer when the project is built in x64.
-(This is a known issue with the designer, which can only handle 32-bit controls.)
+**Winforms Forms containing custom controls cannot be displayed by the MSVS GUI designer when the project is built in x64.**
 
-If a form fails to load, rebuild the `Hyram.Gui` and `Hyram.Units` projects in `Any CPU` configuration mode.
+This is a known issue with the designer, which can only handle 32-bit controls. If a form fails to load due to a custom control, rebuild the `Hyram.Gui` and `Hyram.Units` projects in `Any CPU` configuration mode.
 MSVS may also need to be restarted.
 Be sure to reset the configurations to `x64` after editing with the designer.
 
 When adding custom controls to a form, ensure that the custom control is not set as a public property of the form.
 Automated tools, such as various ReSharper tools, may also erroneously apply this property.
 When this occurs, ensure that the control is set as a private property in the designer.cs file.
+
+**Winforms forms deriving from a custom form class fail to display in the GUI designer.**
+
+Similar to above, this is a known issue that apparently has not been fixed as of 2022.
+To display these forms in the designer, you must set the platform target of the solution and of *every* project to x86. Clean and rebuild. You may need to restart MSVS as well.
+
+This may cause compilation to fail due to a python.NET incompatibility.
+If this occurs, edit the form in the designer as needed and then restore the platform target settings.
+In some cases you can set the target to Any CPU after doing the above, and the designer will still load until the next clean. 
 
 
 <a name="py-dev">&nbsp;</a>
@@ -329,8 +343,8 @@ HyRAM+ primarily consists of two sub-modules: physics and qra.
     │   ├───qra
     │   └───utilities
 
-Each sub-module contains its own `c_api.py` access point, which is used by the C# GUI to interface with the toolset.
-The physics sub-module also includes a `api.py` file for interacting with the main function calls programmatically.
+C# access to these modules is provided by the sibling `cs_api` directory and code.
+The physics sub-module includes a `api.py` file for interacting with the main function calls programmatically.
 The quantitative risk analysis algorithm can be found in `qra/analysis.py`.
 
 
@@ -338,39 +352,38 @@ The quantitative risk analysis algorithm can be found in `qra/analysis.py`.
 <a name="py-usage">&nbsp;</a>
 # D. Python HyRAM+ Usage
 HyRAM+ can be utilized as a C# backend with Python.NET, or independently via Python as a standalone module.
-C# calls via python.NET should utilize the `c_api.py` files.
+C# calls via python.NET utilize the `phys` and `qra` wrapper code found in the `cs_api` directory.
 
 
 
 <a name="py-usage-c">&nbsp;</a>
 ## D.1 HyRAM+ as C# Backend
 The Python HyRAM+ package is integrated into the C# HyRAM+ application via a Python.NET interface.
-A separate API file, `c_api.py`, is called from C# when conducting analyses via the interface files in the `Hyram.PythonApi` project.
-The c_api.py files load custom Python.NET modules which are only available while the Python.runtime.dll is loaded.
-It is not currently compatible with a normal Python session.
+C# caller functions in the `Hyram.PythonApi` project use the `cs_api` wrapper code to conduct HyRAM+ analyses.
+The cs_api files load custom Python.NET modules which are only available while the Python.runtime.dll is loaded.
+These functions are not currently compatible with a normal Python session.
 
 **Adding a new API function call to the C# GUI**
 
 Add a new function to the PhysicsInterface or QraInterface files in the `Hyram.PythonApi` project.
-The function should gather the appropriate inputs in a non-nullable format and activate the Python.NET lock space before calling the corresponding function in the `c_api.py` file.
+The function should gather the appropriate inputs in a non-nullable format and activate the Python.NET lock space
+before calling the desired python function in the `qra.py` or `phys.py` wrapper files.
 Refer to existing functions for reference.
 
 **Adding a new API python function call to the python HyRAM+ module**
 
-A corresponding function call should be created in the suitable `c_api.py` file that the C# GUI will access.
+A corresponding python function must be created in the `cs_api/qra.py` or `cs_api/phys.py` files.
+This function can be called by C# functions as needed.
+
 The function should parse and convert incoming data; arrays can be handled with available utility functions.
 Note that functions called by C# should not have keyword or optional arguments.
-After parsing incoming data, the function should execute its API calls and then return a wrapped data set to C#.
+After parsing incoming data, the function can then execute HyRAM+ python code and then return a wrapped object to C#.
 Refer to existing functions for reference.
 
 
 <a name="py-usage-py">&nbsp;</a>
 ## D.2 Using HyRAM+ as a Python module
-QRA analysis can be executed via command-line through the `analysis.py` file.
+QRA analysis can be executed via command-line through the `qra/analysis.py` file.
+Physics analyses can be conducted via the `phys/api.py` file.
 See the analysis function docstring for details and guidance.
-
-The analysis function is written in a procedural fashion.
-It accepts all QRA parameters, declares few defaults, and returns a complete set of results for five leak sizes.
-A few python objects are defined to aid in organization; the majority of the algorithm utilizes basic python and numpy types.
-Logging is enabled by default and seeks to preserve each analysis step explicitly.
 

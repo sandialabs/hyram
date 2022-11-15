@@ -51,15 +51,6 @@ namespace SandiaNationalLaboratories.Hyram
         /// </summary>
         public string[] Data { get; set; } = new string[0];
 
-        /// Insert an array into the Data Array.
-        /// </summary>
-        /// <param name="linesToInsert">An array containing the data to insert.</param>
-        /// <param name="beforeIndex">Point at which to make insertion.</param>
-        public void Insert(string[] linesToInsert, int beforeIndex)
-        {
-            Data = StringFunctions.InsertDataIntoArray(Data, linesToInsert, beforeIndex);
-        }
-
         public string CombineToString(ArrayStringConversionOption conversionOption)
         {
             var result = "";
@@ -76,19 +67,6 @@ namespace SandiaNationalLaboratories.Hyram
                     result += thisLine;
 
             return result;
-        }
-
-
-        /// <summary>
-        ///     Inserts one line into Data Array.
-        /// </summary>
-        /// <param name="lineToInsert">Line of data to insert.</param>
-        /// <param name="beforeIndex">Index to insert lines before.</param>
-        public void Insert(string lineToInsert, int beforeIndex)
-        {
-            var insertLines = new string[1];
-            insertLines[0] = lineToInsert;
-            Insert(insertLines, beforeIndex);
         }
 
         /// <summary>

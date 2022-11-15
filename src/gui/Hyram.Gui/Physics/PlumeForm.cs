@@ -16,80 +16,84 @@ namespace SandiaNationalLaboratories.Hyram
 {
     public partial class PlumeForm : UserControl
     {
-        private string _plotFilename; // result
+        private StateContainer _state = State.Data;
+
+        private string _plotFilename;
         private bool _analysisStatus;
         private string _statusMsg;
         private string _warningMsg;
-        private float _mass_flow_rate;
+        private double _massFlow;
 
         public PlumeForm()
         {
             InitializeComponent();
         }
 
-        private void CpGasPlumeDispersion_Load(object sender, EventArgs e)
+        ~PlumeForm()
+        {
+            _state.FuelTypeChangedEvent -= OnFuelChange;
+        }
+
+        private void PlumeForm_Load(object sender, EventArgs e)
         {
             spinnerPictureBox.Hide();
             CheckFormValid();
 
             // Populate notional nozzle model combo box. Manual to exclude Harstad
-            nozzleSelector.DataSource = StateContainer.Instance.NozzleModels;
-            nozzleSelector.SelectedItem = StateContainer.GetValue<NozzleModel>("NozzleModel");
+            NozzleSelector.DataSource = _state.NozzleModels;
+            NozzleSelector.SelectedItem = _state.Nozzle;
 
-            fuelPhaseSelector.DataSource = StateContainer.Instance.FluidPhases;
-            fuelPhaseSelector.SelectedItem = StateContainer.Instance.GetFluidPhase();
+            PhaseSelector.DataSource = _state.Phases;
+            PhaseSelector.SelectedItem = _state.Phase;
 
-            StateContainer.Instance.FuelTypeChangedEvent += delegate { RefreshGridParameters(); };
+            _state.FuelTypeChangedEvent += OnFuelChange;
 
-            RefreshGridParameters();
+            RefreshForm();
         }
 
-        private void RefreshGridParameters()
+        private void OnFuelChange(object o, EventArgs e)
         {
-            plumeInputGrid.Rows.Clear();
+            RefreshForm();
+        }
 
-            // Create collection initially containing common params
-            ParameterWrapperCollection formParams = new ParameterWrapperCollection(new[]
+        private void RefreshForm()
+        {
+            NozzleSelector.DataSource = _state.NozzleModels;
+            NozzleSelector.SelectedItem = _state.Nozzle;
+            PhaseSelector.SelectedItem = _state.Phase;
+
+            if (!string.IsNullOrEmpty(_state.PlumePlotTitle))
             {
-                new ParameterWrapper("PlumeWrapper.XMin", "X lower limit", DistanceUnit.Meter,
-                    StockConverters.DistanceConverter),
-                new ParameterWrapper("PlumeWrapper.XMax", "X upper limit", DistanceUnit.Meter,
-                    StockConverters.DistanceConverter),
-                new ParameterWrapper("PlumeWrapper.YMin", "Y lower limit", DistanceUnit.Meter,
-                    StockConverters.DistanceConverter),
-                new ParameterWrapper("PlumeWrapper.YMax", "Y upper limit", DistanceUnit.Meter,
-                    StockConverters.DistanceConverter),
-                new ParameterWrapper("PlumeWrapper.Contours", "Contours (mole fraction)", UnitlessUnit.Unitless,
-                    StockConverters.UnitlessConverter),
-
-                new ParameterWrapper("ambientPressure", "Ambient pressure", PressureUnit.Pa,
-                    StockConverters.PressureConverter),
-                new ParameterWrapper("ambientTemperature", "Ambient temperature", TempUnit.Kelvin,
-                    StockConverters.TemperatureConverter),
-                new ParameterWrapper("orificeDiameter", "Orifice diameter", DistanceUnit.Meter,
-                    StockConverters.DistanceConverter),
-                new ParameterWrapper("orificeDischargeCoefficient", "Orifice discharge coefficient", UnitlessUnit.Unitless,
-                    StockConverters.UnitlessConverter),
-                new ParameterWrapper("PlumeWrapper.jet_angle", "Angle of jet", AngleUnit.Radians,
-                    StockConverters.AngleConverter)
-            });;
-
-            formParams.Add("fluidPressure",
-                new ParameterWrapper("fluidPressure", "Fluid pressure (absolute)", PressureUnit.Pa,
-                    StockConverters.PressureConverter));
-
-            if (FluidPhase.DisplayTemperature())
-            {
-                formParams.Add("fluidTemperature",
-                    new ParameterWrapper("fluidTemperature", "Fluid temperature", TempUnit.Kelvin,
-                        StockConverters.TemperatureConverter));
+                PlotTitleInput.Text = _state.PlumePlotTitle;
             }
 
-            StaticGridHelperRoutines.InitInteractiveGrid(plumeInputGrid, formParams, false);
+            // match fuel LFL if not blend or null before updating grid.
+            var fuel = _state.GetActiveFuel();
+            if (fuel.Lfl != null)
+            {
+                _state.PlumeContours.SetValue((double)fuel.Lfl);
+            }
 
-            plumeInputGrid.Columns[0].Width = 200;
-            plumeInputGrid.Columns[1].Width = 200;
-            plumeInputGrid.Columns[2].Width = 200;
+            InputGrid.Rows.Clear();
+            var formParams = ParameterInput.GetParameterInputList(new[]
+            {
+                _state.AmbientPressure, _state.AmbientTemperature,
+                _state.OrificeDiameter, _state.OrificeDischargeCoefficient,
+                _state.PlumeReleaseAngle, _state.FluidPressure,
+
+                _state.PlumeXMin, _state.PlumeXMax,
+                _state.PlumeYMin, _state.PlumeYMax,
+                _state.PlumeContours,
+                _state.PlumeVMin, _state.PlumeVMax,
+            });
+
+            if (_state.DisplayTemperature())
+            {
+                formParams.Insert(6, new ParameterInput(_state.FluidTemperature));
+            }
+
+            GridHelpers.InitParameterGrid(InputGrid, formParams, false);
+            InputGrid.Columns[0].Width = 200;
 
             CheckFormValid();
         }
@@ -100,51 +104,40 @@ namespace SandiaNationalLaboratories.Hyram
             string warningText = "";
 
             // if liquid, validate fuel pressure
-            if (!StateContainer.ReleasePressureIsValid())
+            if (!_state.ReleasePressureIsValid())
             {
-                warningText = MessageContainer.GetAlertMessageReleasePressureInvalid();
+                warningText = MessageContainer.ReleasePressureInvalid();
                 showWarning = true;
+            }
+
+            if (_state.FuelFlowUnchoked())
+            {
+                MassFlowInput.Visible = true;
+                massFlowLabel.Visible = true;
+                MassFlowInput.Text = _state.FluidMassFlow.ToString();
+            }
+            else
+            {
+                MassFlowInput.Visible = false;
+                massFlowLabel.Visible = false;
+                MassFlowInput.Text = "";
             }
 
             inputWarning.Text = warningText;
             inputWarning.Visible = showWarning;
-            executeButton.Enabled = !showWarning;
+            SubmitBtn.Enabled = !showWarning;
         }
 
         private void Execute()
         {
-            var ambPres= StateContainer.GetNdValue("ambientPressure", PressureUnit.Pa);
-            var ambTemp = StateContainer.GetNdValue("ambientTemperature", TempUnit.Kelvin);
-            var relPres = StateContainer.GetNdValue("fluidPressure", PressureUnit.Pa);
-            var relTemp = StateContainer.GetNdValue("fluidTemperature", TempUnit.Kelvin);
-            var relAngle = StateContainer.GetNdValue("PlumeWrapper.jet_angle", AngleUnit.Radians);
-
-            var orifDiam = StateContainer.GetNdValue("orificeDiameter", DistanceUnit.Meter);
-            var disCoeff = StateContainer.GetNdValue("orificeDischargeCoefficient", UnitlessUnit.Unitless);
-
-            var xMin = StateContainer.GetNdValue("PlumeWrapper.XMin", DistanceUnit.Meter);
-            var xMax = StateContainer.GetNdValue("PlumeWrapper.XMax", DistanceUnit.Meter);
-            var yMin = StateContainer.GetNdValue("PlumeWrapper.YMin", DistanceUnit.Meter);
-            var yMax = StateContainer.GetNdValue("PlumeWrapper.YMax", DistanceUnit.Meter);
-
-            var contours = StateContainer.GetNdValue("PlumeWrapper.Contours", UnitlessUnit.Unitless);
-            var nozzleModel = StateContainer.GetValue<NozzleModel>("NozzleModel");
-            var plotTitle = StateContainer.GetValue<string>("PlumeWrapper.PlotTitle");
-
             var physInt = new PhysicsInterface();
-            _analysisStatus = physInt.CreatePlumePlot(
-                ambPres, ambTemp,
-                relPres, relTemp, relAngle,
-                orifDiam, disCoeff,
-                xMin, xMax, yMin, yMax,
-                contours, nozzleModel.GetKey(), plotTitle,
-                out _statusMsg, out _warningMsg, out _plotFilename, out _mass_flow_rate);
+            _analysisStatus = physInt.CreatePlumePlot(out _statusMsg, out _warningMsg, out _plotFilename, out _massFlow);
         }
 
         private void DisplayResults()
         {
             spinnerPictureBox.Hide();
-            executeButton.Enabled = true;
+            SubmitBtn.Enabled = true;
 
             if (!_analysisStatus)
             {
@@ -152,9 +145,9 @@ namespace SandiaNationalLaboratories.Hyram
             }
             else
             {
-                outputPictureBox.Load(_plotFilename);
+                OutputPictureBox.Load(_plotFilename);
                 mainTabControl.SelectedTab = outputTab;
-                outputMassFlowRate.Text = _mass_flow_rate.ToString("E3");
+                outputMassFlowRate.Text = _massFlow.ToString("E3");
 
                 if (_warningMsg.Length != 0)
                 {
@@ -164,40 +157,47 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
-        private void plumeInputGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        private void InputGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            StaticGridHelperRoutines.ProcessDataGridViewRowValueChangedEvent((DataGridView) sender, e, 1, 2, false);
+            GridHelpers.ChangeParameterValue((DataGridView) sender, e, 1, 2);
             CheckFormValid();
         }
 
-        private async void calculateButton_Click(object sender, EventArgs e)
+        private async void SubmitBtn_Click(object sender, EventArgs e)
         {
             spinnerPictureBox.Show();
             outputWarning.Hide();
-            executeButton.Enabled = false;
+            SubmitBtn.Enabled = false;
             await Task.Run(() => Execute());
             DisplayResults();
         }
 
-        private void tbPlotTitle_TextChanged(object sender, EventArgs e)
+        private void PlotTitleInput_TextChanged(object sender, EventArgs e)
         {
-            if (tbPlotTitle.Text != null)
-                StateContainer.SetValue("PlumeWrapper.PlotTitle", tbPlotTitle.Text);
+            _state.PlumePlotTitle = PlotTitleInput.Text ?? "";
+        }
+
+        private void NozzleSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            _state.Nozzle = (ModelPair)NozzleSelector.SelectedItem;
+        }
+
+        private void PhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            _state.Phase = (ModelPair)PhaseSelector.SelectedItem;
+            RefreshForm();
+        }
+
+        private void MassFlowInput_TextChanged(object sender, EventArgs e)
+        {
+            if (double.TryParse(MassFlowInput.Text, out double result))
+            {
+                _state.FluidMassFlow = result;
+            }
             else
-                StateContainer.SetValue("PlumeWrapper.PlotTitle", "");
+            {
+                MassFlowInput.Text = _state.FluidMassFlow.ToString();
+            }
         }
-
-        private void nozzleSelector_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            var modelName = nozzleSelector.SelectedItem.ToString();
-            StateContainer.SetValue("NozzleModel", NozzleModel.ParseNozzleModelName(modelName));
-        }
-
-        private void fuelPhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            StateContainer.SetReleasePhase((FluidPhase)fuelPhaseSelector.SelectedItem);
-            RefreshGridParameters();
-        }
-
     }
 }
