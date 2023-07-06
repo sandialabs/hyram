@@ -17,6 +17,6 @@ pythonnet==2.5.2
 pytz==2021.1
 PyWavelets==1.1.1
 scikit-image==0.18.1
-scipy==1.6.1
+scipy==1.10.0
 six==1.15.0
 tifffile==2021.2.26
