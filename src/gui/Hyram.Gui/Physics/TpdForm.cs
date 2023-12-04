@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -37,9 +37,6 @@ namespace SandiaNationalLaboratories.Hyram
         {
             spinnerPictureBox.Hide();
             warningLabel.Hide();
-
-            PhaseSelector.DataSource = _state.Phases;
-            PhaseSelector.SelectedItem = _state.Phase;
 
             TempUnitSelector.Converter = Converters.GetConverterByName("Temperature");
             TempUnitSelector.SelectedItem = _tUnit;
@@ -301,7 +298,6 @@ namespace SandiaNationalLaboratories.Hyram
                         TempInput.Text = _t.ToString();
                         if (!ParseUtility.IsParseableNumber(PresInput.Text))
                         {
-                            // if (pressure == null)
                             _p = PresUnitSelector.ConvertValue(PressureUnit.Pa, _pUnit, (double)_param1);
                             PresInput.Text = _p.ToString();
                         }
@@ -336,12 +332,6 @@ namespace SandiaNationalLaboratories.Hyram
         private double GetTemp(TempUnit old = TempUnit.Kelvin)
         {
             return TempUnitSelector.ConvertValue(old, TempUnit.Kelvin, _t);
-        }
-
-        private void PhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            _state.Phase = (ModelPair)PhaseSelector.SelectedItem;
-            RefreshInputs();
         }
     }
 }

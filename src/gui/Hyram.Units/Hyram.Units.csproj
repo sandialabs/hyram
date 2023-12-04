@@ -33,7 +33,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -78,9 +78,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Distribution.cs" />
+    <Compile Include="ModelPair.cs" />
     <Compile Include="Parameter.cs" />
     <Compile Include="DualConversionProvider.cs" />
     <Compile Include="Converters.cs" />
+    <Compile Include="UncertainParameter.cs" />
     <Compile Include="UnitsOfMeasurement.cs" />
     <Compile Include="Units.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

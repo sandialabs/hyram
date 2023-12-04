@@ -1,11 +1,11 @@
 # Contributing to HyRAM+
-This document describes the Hydrogen Risk Assessment Models ("HyRAM+") application development.
+This document describes the Hydrogen Plus Other Alternative Fuesl Risk Assessment Models ("HyRAM+") application development.
 The application comprises a frontend GUI written in C# and a backend module written in Python.
 Step-by-step instructions are included for setting up a C# development environment using MS Visual Studio 2017 ("MSVS").
 Similar setup instructions are provided for backend python development.
 
 # Changelog
-For any significant changes made to the source code, it is expected that the change will be summarized in the [CHANGELOG](./CHANGELOG.md) document. Guidance and suggestions for how to best enter these changes in the changelog are [here](https://keepachangelog.com/en/1.0.0/). New changes should be added to the `[Unreleased]` section at the top of the file; these will be removed to a release section during the next public release. 
+For any significant changes made to the source code, it is expected that the change will be summarized in the [CHANGELOG](./CHANGELOG.md) document. Guidance and suggestions for how to best enter these changes in the changelog are [here](https://keepachangelog.com/en/1.0.0/). New changes should be added to the `[Unreleased]` section at the top of the file; these will be removed to a release section during the next public release.
 
 
 &nbsp;
@@ -18,15 +18,15 @@ For any significant changes made to the source code, it is expected that the cha
 &nbsp;&nbsp;[B.3 Setting Up Solution in MSVS](#c-setup-msvs)<br>
 &nbsp;&nbsp;[B.4 Configuring the Hyram.Setup Projects](#c-setup-installer)<br>
 &nbsp;&nbsp;[B.5 Misc. Notes](#c-notes)<br>
-            
+
 [C. Python HyRAM+ Module Development](#py-dev)<br>
 &nbsp;&nbsp;[C.1 Module Layout](#py-layout)<br>
-        
+
 [D. Python HyRAM+ Usage](#py-usage)<br>
 &nbsp;&nbsp;[D.1 As C# Backend](#py-usage-c)<br>
 &nbsp;&nbsp;[D.2 As standalone Python module](#py-usage-py)<br>
 
-    
+
 
 <a name="repo-layout">&nbsp;</a>
 # A. Repository Layout
@@ -122,7 +122,7 @@ Follow the installation instructions:
  * After installation completes, verify that the `python` directory exists.
 
 #### 2. Verify pip
-Open a command-line prompt and navigate to the `python` directory. 
+Open a command-line prompt and navigate to the `python` directory.
 Verify that the python pip tool is accessible by executing the following command:
 
     python -m pip --version
@@ -139,19 +139,19 @@ The python backend requires the following modules:
 
 ```
 scipy==1.6.1
-numpy==1.20.1
+numpy==1.24.1
 coolprop==6.4.1
 
-matplotlib==3.3.4
-Pillow==8.1.1
-python-dateutil==2.8.1
-cycler==0.10.0
+matplotlib==3.6.3
+Pillow==9.4.0
+python-dateutil==2.8.2
+cycler==0.11.0
 kiwisolver==1.3.1
-pyparsing==2.4.7
-six==1.15.0
+pyparsing==3.0.9
+six==1.16.0
 
 // for GUI
-pythonnet==2.5.2  
+pythonnet==2.5.2
 pycparser==2.20
 ```
 
@@ -182,9 +182,9 @@ Before loading the solution, install the [Wix Installer Toolset v3.11.2](https:/
 
 Open the HyRAM+ solution in MSVS by selecting the following file:
 
-    /src/gui/Hyram.sln 
-   
-This will load the solution and its various projects. 
+    /src/gui/Hyram.sln
+
+This will load the solution and its various projects.
 The GUI requires the MathNet.Numerics and NewtonSoft.Json packages, which should be installed via the NuGet manager (`Tools -> NuGet Package Manager`).
 
 
@@ -211,7 +211,7 @@ Build events are located in the `Hyram.PythonDirectory` project (`properties -> 
 Pre- and Post-build events provide the following functionality:
    * ensure the python interpreter, Python.Net runtime, and HyRAM+ module are copied to the compiled application.
    * delete any test image files and .pyc files
-   * delete development-specific directories (test, .idea) in the build dir 
+   * delete development-specific directories (test, .idea) in the build dir
 
 The python interpreter build event only needs to be executed during the first build or when the python interpreter
 or required packages are changed.
@@ -259,7 +259,7 @@ The WiX website has various guides for understanding this approach.
 The integrated python interpreter and python module are configured in the **`Hyram.Setup.wixproj`** file.
 Due to the large number of files in the python interpreter, the WiX Heat tool (included in the WiX MSVS toolset)
 is used to automatically gather and include these files during project build.
-The `wixproj` file should only be modified by first unloading the Hyram.Setup project, 
+The `wixproj` file should only be modified by first unloading the Hyram.Setup project,
 then opening the `Hyram.Setup.wixproj` file in a separate file editor,
 then reloading the project once editing is complete.
 
@@ -272,7 +272,7 @@ and should not be manually modified.
 - UpgradeCode - A6256A13-D1FE-4D2E-9BB8-DEE9FF314047
 - Version: *Set as needed*
 
-The UpgradeCode describes an application with multiple versions. 
+The UpgradeCode describes an application with multiple versions.
 The ProductCode describes a release of one of those versions.
 The HyRAM+ UpgradeCode should never change unless a different application is desired,
 such as another fuel analysis program that should be installed separately from HyRAM+.
@@ -326,13 +326,13 @@ To display these forms in the designer, you must set the platform target of the 
 
 This may cause compilation to fail due to a python.NET incompatibility.
 If this occurs, edit the form in the designer as needed and then restore the platform target settings.
-In some cases you can set the target to Any CPU after doing the above, and the designer will still load until the next clean. 
+In some cases you can set the target to Any CPU after doing the above, and the designer will still load until the next clean.
 
 
 <a name="py-dev">&nbsp;</a>
 # C. Python HyRAM+ Module Development
 
-This section describes the layout, usage, and front-end integration of the Python HyRAM+ module. For more information about the installation, use, and developement of the Python HyRAM+ module specifically, see the [README](./src/hyram/README.md) file in the `src/hyram` directory. 
+This section describes the layout, usage, and front-end integration of the Python HyRAM+ module. For more information about the installation, use, and developement of the Python HyRAM+ module specifically, see the [README](./src/hyram/README.md) file in the `src/hyram` directory.
 
 <a name="py-layout">&nbsp;</a>
 ## C.1 Module Layout
@@ -348,7 +348,7 @@ The physics sub-module includes a `api.py` file for interacting with the main fu
 The quantitative risk analysis algorithm can be found in `qra/analysis.py`.
 
 
-    
+
 <a name="py-usage">&nbsp;</a>
 # D. Python HyRAM+ Usage
 HyRAM+ can be utilized as a C# backend with Python.NET, or independently via Python as a standalone module.

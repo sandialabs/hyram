@@ -6,7 +6,9 @@ The Python modules within this package can be modified for a variety of reasons,
 
 # Installation for Development
 
-The HyRAM+ Python package source code can be cloned from: https://github.com/sandialabs/hyram
+The complete HyRAM+ package source code can be cloned from: https://github.com/sandialabs/hyram
+
+The standalone Python package source code can also be downloaded from [PyPI](https://pypi.org/project/hyram/#files) or from [Conda-Forge](https://anaconda.org/conda-forge/hyram/files).
 
 It is recommended to install the HyRAM+ source code to your Python environment as a symbolic link for modifications/development.
 This way, when local modifications are made, there is no need to reinstall the Python package.
@@ -20,17 +22,14 @@ pip install -e .
 
 # Testing
 
-This package includes a suite of automated tests using the Python `unittest` framework. These tests are located in: 
-
-~~~
-./src/hyram/tests
-~~~
+This package includes a suite of automated tests using the Python `unittest` framework, located here under the `tests` folder. These include standard unit tests for the physics and qra modules as well as validation tests.
 
 These tests may be executed either by running the `runner.py` file in that directory, or by utilizing the Python `unittest` framework to discover tests.
+
 All tests will be located in this "tests" directory and will match the pattern: `test_*.py`.
 
 Contributors are encouraged to create or modify tests based on the changes being made to the source code.
-Any new or modified tests should be discoverable by `unittest` as described above, and should be incorporated into the `runner.py` file.
+Any new or modified tests should be discoverable by `unittest` (see [unittest](https://docs.python.org/3/library/unittest.html)), and should be incorporated into the `runner.py` file.
 
 The expectation is that code committed to the repository should pass all tests in this directory.
 

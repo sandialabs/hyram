@@ -1,19 +1,15 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
 """
 
-import logging
-
 import numpy as np
 
 from . import distributions
 
-
-log = logging.getLogger('hyram.qra')
 
 
 class ComponentFailureSet:
@@ -117,7 +113,7 @@ class ComponentFailureSet:
 
     """
     use_override = False
-    f_fueling_fail = None
+    f_failure = None
     noz_po = None
     noz_ftc = None
     mvalve_ftc = None
@@ -127,6 +123,17 @@ class ComponentFailureSet:
     pvalve_fto = None
     driveoff = None
     coupling_ftc = None
+
+    p_overp_rupture = None
+    f_overp_rupture = None
+    p_driveoff = None
+    f_driveoff = None
+    p_nozzle_release = None
+    f_nozzle_release = None
+    p_sol_valves_ftc = None
+    f_sol_valves_ftc = None
+    p_mvalve_ftc = None
+    f_mvalve_ftc = None
 
     def __init__(self, f_failure_override=None,
                  num_vehicles=20, daily_fuelings=2, vehicle_days=250,
@@ -143,7 +150,7 @@ class ComponentFailureSet:
         if f_failure_override is not None:
             # User provided vehicle fueling failure frequency directly so ignore individual events
             self.use_override = True
-            self.f_fueling_fail = float(f_failure_override)
+            self.f_failure = float(f_failure_override)
 
         else:
             # calculate events; will be applied to 100% release for now
@@ -184,39 +191,37 @@ class ComponentFailureSet:
             # Combined
             p_shutdown_fail = self.p_sol_valves_ftc * self.mvalve_ftc.mean * self.p_nozzle_release
             f_shutdown_fail = num_fuelings * p_shutdown_fail
-            self.f_fueling_fail = np.around(float(f_accidents + f_shutdown_fail), 20)
+            self.f_failure = np.around(float(f_accidents + f_shutdown_fail), 20)
 
             if verbose:
-                log.info("")
-                log.info("COMPONENT FAILURE DATA")
-                log.info(
-                    f'{num_fuelings} fuelings ({num_vehicles} vehicles, {daily_fuelings} fuel/d, {vehicle_days} days)')
-                log.info("Nozzle popoff {}, {}, {}".format(noz_po_dist, noz_po_a, noz_po_b))
-                log.info("Nozzle FTC {}, {}, {}".format(noz_ftc_dist, noz_ftc_a, noz_ftc_b))
-                log.info("MValve FTC {}, {}, {}".format(mvalve_ftc_dist, mvalve_ftc_a, mvalve_ftc_b))
-                log.info("SValve FTC {}, {}, {}".format(svalve_ftc_dist, svalve_ftc_a, svalve_ftc_b))
-                log.info("SValve CCF {}, {}, {}".format(svalve_ccf_dist, svalve_ccf_a, svalve_ccf_b))
-                log.info("PR Valve FTO {}, {}, {}".format(pvalve_fto_dist, pvalve_fto_a, pvalve_fto_b))
-                log.info("BreakCoup FTC {}, {}, {}".format(coupling_ftc_dist, coupling_ftc_a, coupling_ftc_b))
-                log.info("Fueling overp {}, {}, {}".format(overp_dist, overp_a, overp_b))
-                log.info("Driveoff {}, {}, {}".format(driveoff_dist, driveoff_a, driveoff_b))
+                print("COMPONENT FAILURE DATA")
+                print(f'{num_fuelings} fuelings ({num_vehicles} vehicles, {daily_fuelings} fuel/d, {vehicle_days} days)')
+                print("Nozzle popoff {}, {}, {}".format(noz_po_dist, noz_po_a, noz_po_b))
+                print("Nozzle FTC {}, {}, {}".format(noz_ftc_dist, noz_ftc_a, noz_ftc_b))
+                print("MValve FTC {}, {}, {}".format(mvalve_ftc_dist, mvalve_ftc_a, mvalve_ftc_b))
+                print("SValve FTC {}, {}, {}".format(svalve_ftc_dist, svalve_ftc_a, svalve_ftc_b))
+                print("SValve CCF {}, {}, {}".format(svalve_ccf_dist, svalve_ccf_a, svalve_ccf_b))
+                print("PR Valve FTO {}, {}, {}".format(pvalve_fto_dist, pvalve_fto_a, pvalve_fto_b))
+                print("BreakCoup FTC {}, {}, {}".format(coupling_ftc_dist, coupling_ftc_a, coupling_ftc_b))
+                print("Fueling overp {}, {}, {}".format(overp_dist, overp_a, overp_b))
+                print("Driveoff {}, {}, {}".format(driveoff_dist, driveoff_a, driveoff_b))
 
-                log.info("Driveoff P {:.3g}, F {:.3g}".format(self.p_driveoff, self.f_driveoff))
-                log.info("Overpressure rupture P {:.3g}, F {:.3g}".format(self.p_overp_rupture, self.f_overp_rupture))
-                log.info("Nozzle release P {:.3g}, F {:.3g}".format(self.p_nozzle_release, self.f_nozzle_release))
-                log.info("Sol valve FTC P {:.3g}, F {:.3g}".format(self.p_sol_valves_ftc, self.f_sol_valves_ftc))
-                log.info("Shutdown fail P {:.3g}, F {:.3g}".format(p_shutdown_fail, f_shutdown_fail))
+                print("Driveoff P {:.3g}, F {:.3g}".format(self.p_driveoff, self.f_driveoff))
+                print("Overpressure rupture P {:.3g}, F {:.3g}".format(self.p_overp_rupture, self.f_overp_rupture))
+                print("Nozzle release P {:.3g}, F {:.3g}".format(self.p_nozzle_release, self.f_nozzle_release))
+                print("Sol valve FTC P {:.3g}, F {:.3g}".format(self.p_sol_valves_ftc, self.f_sol_valves_ftc))
+                print("Shutdown fail P {:.3g}, F {:.3g}".format(p_shutdown_fail, f_shutdown_fail))
 
         if verbose:
-            log.info("Frequency of other failures: {:.3g}".format(self.f_fueling_fail))
+            print("Frequency of other failures: {:.3g}".format(self.f_failure))
 
     def __str__(self):
         if self.use_override:
             # User provided vehicle fueling failure frequency directly so ignore individual events
-            return f"Fuel failure OVERRIDE: {self.f_fueling_fail}"
+            return f"Fuel failure OVERRIDE: {self.f_failure}"
 
         else:
-            return f"Fuel failure: {self.f_fueling_fail}"
+            return f"Fuel failure: {self.f_failure}"
 
 
 class ComponentFailure:

@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -10,7 +10,7 @@ import unittest
 
 import numpy as np
 
-from cs_api import phys
+from cs_api import phys, utils
 from hyram.utilities import misc_utils
 
 
@@ -25,7 +25,7 @@ class OverpressureTestCase(unittest.TestCase):
 
     def setUp(self):
         self.output_dir = misc_utils.get_temp_folder()
-        phys.setup(self.output_dir, verbose=VERBOSE)
+        utils.setup_file_log(self.output_dir, verbose=VERBOSE)
 
         self.default_params = {
             'amb_temp': 288,
@@ -73,8 +73,13 @@ class OverpressureTestCase(unittest.TestCase):
         message = wrapped["message"]
         warning = wrapped["warning"]
 
-        overpressure = result_dict['overpressure']
-        impulse = result_dict['impulse']
+        self.assertTrue('overpressures' in result_dict)
+        self.assertTrue('impulses' in result_dict)
+        ops = result_dict['overpressures']
+        imps = result_dict['impulses']
+
+        self.assertTrue(len(ops) > 0)
+        self.assertTrue(len(imps) > 0)
 
         self.assertTrue(status)
         self.assertTrue('overp_plot_filepath' in result_dict)

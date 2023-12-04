@@ -88,6 +88,7 @@
       <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
     </Reference>
@@ -114,17 +115,21 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnalysisForm.cs">
+    <Compile Include="MainFormPanels\SharedStateForm.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="FuelForm.cs">
-      <SubType>Form</SubType>
+    <Compile Include="MainFormPanels\SharedStateForm.Designer.cs">
+      <DependentUpon>SharedStateForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="FuelForm.Designer.cs">
-      <DependentUpon>FuelForm.cs</DependentUpon>
+    <Compile Include="Physics\PoolingForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Physics\PoolingForm.Designer.cs">
+      <DependentUpon>PoolingForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Physics\UnconfinedOverpressureForm.cs">
       <SubType>UserControl</SubType>
@@ -203,12 +208,6 @@
     <Compile Include="MainFormPanels\ContentPanel.Designer.cs">
       <DependentUpon>ContentPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="CustomControls\PictureBoxWithSave.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="CustomControls\PictureBoxWithSave.Designer.cs">
-      <DependentUpon>PictureBoxWithSave.cs</DependentUpon>
-    </Compile>
     <Compile Include="MainFormPanels\AboutForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -268,17 +267,30 @@
       <DependentUpon>ValueConverterDropdown.cs</DependentUpon>
     </Compile>
     <Compile Include="UiHelpers.cs" />
+    <Compile Include="UncertaintyInputForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UncertaintyInputForm.Designer.cs">
+      <DependentUpon>UncertaintyInputForm.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="UncertaintyInputForm.resx">
+      <DependentUpon>UncertaintyInputForm.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Resources\BannerInstaller.bmp" />
     <None Include="Resources\BannerInstaller.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Resources\FuelFormDescrip.rtf" />
     <None Include="Resources\geometry_of_indoor_release.png" />
     <None Include="Resources\BannerLogov2.jpg" />
     <None Include="Resources\BannerLogov2Thin2.jpg" />
     <Content Include="Resources\hyram_bigtitle.jpg" />
     <Content Include="Resources\CopyrightFormatted.rtf" />
-    <EmbeddedResource Include="FuelForm.resx">
-      <DependentUpon>FuelForm.cs</DependentUpon>
+    <EmbeddedResource Include="MainFormPanels\SharedStateForm.resx">
+      <DependentUpon>SharedStateForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Physics\PoolingForm.resx">
+      <DependentUpon>PoolingForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Physics\UnconfinedOverpressureForm.resx">
       <DependentUpon>UnconfinedOverpressureForm.cs</DependentUpon>
@@ -316,9 +328,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="MainFormPanels\ContentPanel.resx">
       <DependentUpon>ContentPanel.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CustomControls\PictureBoxWithSave.resx">
-      <DependentUpon>PictureBoxWithSave.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Physics\MassFlowForm.resx">
       <DependentUpon>MassFlowForm.cs</DependentUpon>
@@ -407,10 +416,10 @@
     <Content Include="Resources\QraOutputDescrip.rtf" />
     <Content Include="Resources\QraSystemDescriptionDescrip.rtf" />
     <None Include="Resources\PhysMassFlowDescrip.rtf" />
+    <None Include="Resources\PhysPoolingDescrip.rtf" />
     <None Include="Resources\PhysRadHeatDescrip.rtf" />
     <None Include="Resources\PhysTankMassDescrip.rtf" />
     <None Include="Resources\PhysTntDescrip.rtf" />
-    <None Include="Resources\PhysTpd.rtf" />
     <None Include="Resources\PhysTpdDescrip.rtf" />
     <None Include="Resources\PhysUnconfinedOverpressureDescrip.rtf" />
   </ItemGroup>

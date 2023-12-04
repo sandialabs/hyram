@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -17,17 +17,17 @@ namespace SandiaNationalLaboratories.Hyram
     public partial class MassFlowForm : UserControl
     {
         private readonly StateContainer _state = State.Data;
-        private DistanceUnit _diamUnit = DistanceUnit.Meter;
+        private DistanceUnit _diamUnit = DistanceUnit.Millimeter;
         private PressureUnit _pUnit = PressureUnit.Pa;
         private PressureUnit _pAmbUnit = PressureUnit.Pa;
         private TempUnit _tUnit = TempUnit.Kelvin;
         private VolumeUnit _vUnit = VolumeUnit.Liter;
-        private double _diam = double.NaN;
-        private double _p = double.NaN;
-        private double _pAmb = double.NaN;
-        private double _t = double.NaN;
-        private double _v = double.NaN;
-        private double _dc = double.NaN;
+        private double _diam = 0.01f;
+        private double _p = 110000f;
+        private double _pAmb = 101325f;
+        private double _t = 298;
+        private double _v = 1.0f;
+        private double _dc = 1.0f;
 
         private string _statusMsg;
         private bool _status;
@@ -44,12 +44,18 @@ namespace SandiaNationalLaboratories.Hyram
         {
             spinnerPictureBox.Hide();
             warningMsg.Hide();
-            PlotBox.Hide();
+
+            // right-click to save images
+            var picMenu = new ContextMenuStrip();
+            {
+                var item = new ToolStripMenuItem {Text = "Save As..."};
+                item.MouseUp += UiHelpers.SaveImageToolStripMenuItem_Click;
+                picMenu.Items.Add(item);
+            }
+            OutputPlot.ContextMenuStrip = picMenu;
+
             warningMsg.BackColor = _state.AlertBackColors[(int)AlertLevel.AlertError];
             warningMsg.ForeColor = _state.AlertTextColors[(int)AlertLevel.AlertError];
-
-            PhaseSelector.DataSource = _state.Phases;
-            PhaseSelector.SelectedItem = _state.Phase;
 
             TemperatureUnitSelector.Converter = Converters.GetConverterByName("Temperature");
             TemperatureUnitSelector.SelectedItem = _tUnit;
@@ -65,6 +71,13 @@ namespace SandiaNationalLaboratories.Hyram
 
             OrificeDiameterUnitSelector.Converter = Converters.GetConverterByName("Distance");
             OrificeDiameterUnitSelector.SelectedItem = _diamUnit;
+
+            OrificeDiameterInput.Text = OrificeDiameterUnitSelector.ConvertValue(DistanceUnit.Meter, _diamUnit, _diam).ToString("F1");
+            PressureInput.Text = _p.ToString();
+            AmbPresInput.Text = _pAmb.ToString();
+            TemperatureInput.Text = _t.ToString();
+            VolumeInput.Text = _v.ToString();
+            DcInput.Text = _dc.ToString();
 
             CheckFormValid();
         }
@@ -104,7 +117,7 @@ namespace SandiaNationalLaboratories.Hyram
                       ParseUtility.IsParseableNumber(OrificeDiameterInput.Text)))
                 {
                     formReady = false;
-                    msg = "Verify inputs are valid";
+                    msg = "Verify inputs are valid for fuel and phase";
                 }
             }
             else
@@ -115,7 +128,7 @@ namespace SandiaNationalLaboratories.Hyram
                       ParseUtility.IsParseableNumber(AmbPresInput.Text) &&
                       ParseUtility.IsParseableNumber(OrificeDiameterInput.Text)))
                 {
-                    msg = "Verify inputs are valid";
+                    msg = "Verify inputs are valid for fuel and phase";
                     formReady = false;
                 }
             }
@@ -148,6 +161,7 @@ namespace SandiaNationalLaboratories.Hyram
                 warningMsg.Text = msg;
                 warningMsg.Show();
             }
+
             submitBtn.Enabled = formReady;
         }
 
@@ -171,8 +185,7 @@ namespace SandiaNationalLaboratories.Hyram
             spinnerPictureBox.Show();
             warningMsg.Hide();
             submitBtn.Enabled = false;
-            PlotBox.Visible = false;
-            PlotBox.Hide();
+            OutputPlot.Image?.Dispose();
             MassFlowTextbox.Text = "";
 
             await Task.Run(() => Execute());
@@ -186,7 +199,6 @@ namespace SandiaNationalLaboratories.Hyram
             var ambientP = AmbPresUnitSelector.ConvertValue(_pAmbUnit, PressureUnit.Pa, _pAmb);
             var tankVolume = TankVolumeUnitSelector.ConvertValue(_vUnit, VolumeUnit.CubicMeter, _v);
             var orificeDiam = OrificeDiameterUnitSelector.ConvertValue(_diamUnit, DistanceUnit.Meter, _diam);
-//            double ambientP = _state.AmbientPressure.GetValue();
             var isSteady = SteadyBlowdown;
             var dischargeCoeff = (float)_dc;
 
@@ -215,10 +227,8 @@ namespace SandiaNationalLaboratories.Hyram
                 }
                 else
                 {
-                    PlotBox.Show();
                     outputLabel.Text = "Time to empty (s)";
-                    PlotBox.Load(_outFilepath);
-                    PlotBox.Visible = true;
+                    OutputPlot.Load(_outFilepath);
                     MassFlowTextbox.Text = _outTime != null ? ((double)_outTime).ToString("E3") : "Error";
                 }
             }
@@ -338,13 +348,5 @@ namespace SandiaNationalLaboratories.Hyram
             double.TryParse(DcInput.Text, out _dc);
             CheckFormValid();
         }
-
-        private void PhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            _state.Phase = (ModelPair) PhaseSelector.SelectedItem;
-            // Deactivate temp input for saturated phases
-            CheckFormValid();
-        }
-
     }
 }

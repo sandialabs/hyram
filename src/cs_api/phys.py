@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -7,7 +7,6 @@ If not, see https://www.gnu.org/licenses/.
 """
 
 import logging
-import math
 import warnings
 import gc
 
@@ -53,7 +52,7 @@ def setup(output_dir, verbose):
     verbose : bool
         Determine level of logging
     """
-    misc_utils.setup_file_log(output_dir, verbose=verbose, logname=__name__)
+    utils.setup_file_log(output_dir, verbose=verbose, logname=__name__)
 
 
 def etk_compute_mass_flow_rate(species, temp, pres, phase, orif_diam,
@@ -258,7 +257,7 @@ def etk_compute_equivalent_tnt_mass(vapor_mass, percent_yield, species):
 def analyze_jet_plume(amb_temp, amb_pres,
                       rel_species, rel_temp, rel_pres, rel_phase,
                       orif_diam, mass_flow, rel_angle, dis_coeff, nozzle_model,
-                      contour, xmin, xmax, ymin, ymax, vmin, vmax,
+                      contours, xmin, xmax, ymin, ymax, vmin, vmax,
                       plot_title, output_dir, verbose):
     """
     Create plume plot for leak.
@@ -286,6 +285,13 @@ def analyze_jet_plume(amb_temp, amb_pres,
 
     nozzle_model = misc_utils.parse_nozzle_model(nozzle_model)
 
+    if contours is not None:
+        if type(contours) == float:
+            contours = [contours]
+        contours = utils.convert_to_numpy_array(contours)
+        if len(contours) == 0:
+            contours = None
+
     try:
         with warnings.catch_warnings(record=True) as warning_list:
             amb_fluid = api.create_fluid('AIR', amb_temp, amb_pres)
@@ -293,11 +299,24 @@ def analyze_jet_plume(amb_temp, amb_pres,
 
             data_dict = api.analyze_jet_plume(amb_fluid, rel_fluid, orif_diam, mass_flow=mass_flow,
                                               rel_angle=rel_angle, dis_coeff=dis_coeff, nozzle_model=nozzle_model,
-                                              create_plot=True, contour=contour,
+                                              create_plot=True, contours=contours,
                                               xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
                                               vmin=vmin, vmax=vmax,
                                               plot_title=plot_title,
                                               output_dir=output_dir, verbose=verbose)
+
+            # Parse contour data into lists of floats
+            # ordered_contours is sorted list of contour values
+            # dists is x and y min-max values for each contour. Each sub-list is [x1, x2, y1, y2]
+            contour_dicts = data_dict['mole_frac_dists']
+            if contour_dicts:
+                ordered_contours = []
+                contour_dists = []
+                for key, xys in contour_dicts.items():
+                    ordered_contours.append(key)
+                    contour_dists.append([xys[0][0], xys[0][1], xys[1][0], xys[1][1]])
+                data_dict['ordered_contours'] = ordered_contours
+                data_dict['mole_frac_dists'] = contour_dists
 
             log.info("results: {}".format(data_dict))
             results["data"] = data_dict
@@ -311,6 +330,7 @@ def analyze_jet_plume(amb_temp, amb_pres,
         msg = "Plume plot generation failed due to InputError: {}".format(exc.message)
         results["message"] = msg
         log.error(msg)
+        log.exception(exc)
 
     except ValueError as exc:
         err_msg = str(exc)
@@ -324,6 +344,7 @@ def analyze_jet_plume(amb_temp, amb_pres,
         msg = "Plume plot generation failed: {}".format(str(exc))
         results["message"] = msg
         log.error(msg)
+        log.exception(exc)
 
     finally:
         gc.collect()
@@ -482,9 +503,10 @@ def jet_flame_analysis(amb_temp, amb_pres,
     temp_xlims = None if txmin is None and txmax is None else (txmin, txmax)
     temp_ylims = None if tymin is None and tymax is None else (tymin, tymax)
 
-    flux_xlims = None if fxmin is None and fxmax is None else (fxmin, fxmax)
-    flux_ylims = None if fymin is None and fymax is None else (fymin, fymax)
-    flux_zlims = None if fzmin is None and fzmax is None else (fzmin, fzmax)
+    # flux plot requires both to define limit
+    flux_xlims = None if fxmin is None or fxmax is None or fxmin >= fxmax else (fxmin, fxmax)
+    flux_ylims = None if fymin is None or fymax is None or fymin >= fymax else (fymin, fymax)
+    flux_zlims = None if fzmin is None or fzmax is None or fzmin >= fzmax else (fzmin, fzmax)
 
     log.info("Temperature contours: {}".format(temp_contours))
     log.info("Flux X: {}".format(xpos))
@@ -516,7 +538,7 @@ def jet_flame_analysis(amb_temp, amb_pres,
                                         temp_xlims=temp_xlims, temp_ylims=temp_ylims,
 
                                         analyze_flux=analyze_flux, flux_plot_filename=None,
-                                        flux_coordinates=flux_coordinates, flux_contours=None,
+                                        flux_coordinates=flux_coordinates, flux_contours=flux_contours,
                                         flux_xlims=flux_xlims, flux_ylims=flux_ylims, flux_zlims=flux_zlims,
 
                                         output_dir=output_dir, verbose=verbose)
@@ -605,13 +627,13 @@ def unconfined_overpressure_analysis(amb_temp, amb_pres,
     zlocs = utils.convert_to_numpy_array(zlocs)
     method = method.lower()
 
-    overp_xlims = None if oxmin is None and oxmax is None else (oxmin, oxmax)
-    overp_ylims = None if oymin is None and oymax is None else (oymin, oymax)
-    overp_zlims = None if ozmin is None and ozmax is None else (ozmin, ozmax)
+    overp_xlims = None if oxmin is None or oxmax is None or oxmin >= oxmax else (oxmin, oxmax)
+    overp_ylims = None if oymin is None or oymax is None or oymin >= oymax else (oymin, oymax)
+    overp_zlims = None if ozmin is None or ozmax is None or ozmin >= ozmax else (ozmin, ozmax)
 
-    impulse_xlims = None if ixmin is None and ixmax is None else (ixmin, ixmax)
-    impulse_ylims = None if iymin is None and iymax is None else (iymin, iymax)
-    impulse_zlims = None if izmin is None and izmax is None else (izmin, izmax)
+    impulse_xlims = None if ixmin is None or ixmax is None or ixmin >= ixmax else (ixmin, ixmax)
+    impulse_ylims = None if iymin is None or iymax is None or iymin >= iymax else (iymin, iymax)
+    impulse_zlims = None if izmin is None or izmax is None or izmin >= izmax else (izmin, izmax)
 
     if overp_contours is not None:
         overp_contours = utils.convert_to_numpy_array(overp_contours)
@@ -664,10 +686,3 @@ def unconfined_overpressure_analysis(amb_temp, amb_pres,
     finally:
         gc.collect()
         return results
-
-
-
-
-
-
-

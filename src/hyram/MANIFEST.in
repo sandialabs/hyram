@@ -1,0 +1,4 @@
+include CONTRIBUTING.md
+include COPYING.txt
+include README.md
+graft tests

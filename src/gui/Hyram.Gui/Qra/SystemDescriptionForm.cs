@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -8,6 +8,7 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
@@ -32,41 +33,37 @@ namespace SandiaNationalLaboratories.Hyram
         ExposureHours
     }
 
-    public partial class SystemDescriptionForm : AnalysisForm
+    public partial class SystemDescriptionForm : UserControl
     {
         private StateContainer _state = State.Data;
+        protected bool _ignoreChangeEvents;
+        public string AlertMessage { get; set; } = "";
+        public AlertLevel Alert { get; set; } = AlertLevel.AlertNull;
 
-        public SystemDescriptionForm(MainForm mainForm)
+        public SystemDescriptionForm()
         {
             _ignoreChangeEvents = true;
 
-            MainForm = mainForm;
             InitializeComponent();
-            RefreshForm();
+            LoadForm();
 
-            _state.FuelTypeChangedEvent += delegate{RefreshForm();};
-
-            VehiclesGridView.CellEndEdit += VehicleGridView_CellEndEdit;
-            ComponentsGridView.CellValueChanged += GridValueChanged;
-            PipingGridView.CellValueChanged += GridValueChanged;
-            OverridesGridView.CellValueChanged += GridValueChanged;
-            FacilityGridView.CellValueChanged += GridValueChanged;
+            VehiclesGrid.CellEndEdit += VehicleGridView_CellEndEdit;
+            ComponentGrid.CellValueChanged += GridValueChanged;
+            PipingGrid.CellValueChanged += GridValueChanged;
+            OverridesGrid.CellValueChanged += GridValueChanged;
 
             _ignoreChangeEvents = false;
         }
 
         // Refreshes state-related data
-        public sealed override void RefreshForm()
+        public void LoadForm()
         {
             var ignoreEvents = _ignoreChangeEvents;
             _ignoreChangeEvents = true;
 
             _state = State.Data;
 
-            fuelPhaseSelector.DataSource = _state.Phases;
-            fuelPhaseSelector.SelectedItem = _state.Phase;
-
-            ComponentsGridView.Rows.Clear();
+            ComponentGrid.Rows.Clear();
             var componentInputs = ParameterInput.GetParameterInputList(new [] {
                                                         _state.NumCompressors,
                                                         _state.NumVessels,
@@ -74,7 +71,6 @@ namespace SandiaNationalLaboratories.Hyram
                                                         _state.NumInstruments,
                                                         _state.NumJoints,
                                                         _state.NumHoses,
-                                                        _state.PipeLength,
                                                         _state.NumFilters,
                                                         _state.NumFlanges,
                                                         _state.NumExchangers,
@@ -82,37 +78,92 @@ namespace SandiaNationalLaboratories.Hyram
                                                         _state.NumArms,
                                                         _state.NumExtraComponents1,
                                                         _state.NumExtraComponents2 });
-            GridHelpers.InitParameterGrid(ComponentsGridView, componentInputs, false);
-            ComponentsGridView.Columns[0].Width = 220;
-            ComponentsGridView.Columns[1].Width = 100;
-            ComponentsGridView.Columns[2].Width = 100;
+            GridHelpers.InitParameterGrid(ComponentGrid, componentInputs, false);
+            ComponentGrid.DefaultCellStyle.Font = new Font("Sans Serif", 9.0F, FontStyle.Regular);
+            ComponentGrid.Columns[1].Width = 100;
+            ComponentGrid.Columns[2].Width = 100;
 
             // Vehicle grid
-            VehiclesGridView.Rows.Clear();
+            VehiclesGrid.Rows.Clear();
             var vehicleInputs = ParameterInput.GetParameterInputList(new[] {
                                         _state.VehicleCount,
                                         _state.VehicleFuelings,
                                         _state.VehicleDays,
                                         _state.VehicleAnnualDemand });
-            GridHelpers.InitParameterGrid(VehiclesGridView, vehicleInputs, false);
-            VehiclesGridView.Columns[0].Width = 400;
-            VehiclesGridView.Columns[1].Width = 200;
-            VehiclesGridView.Columns[2].Width = 200;
-            VehiclesGridView.Rows[3].Cells[1].ReadOnly = true;
-            VehiclesGridView.Rows[3].Cells[1].Style.BackColor = Color.LightGray;
+            GridHelpers.InitParameterGrid(VehiclesGrid, vehicleInputs, false);
+            VehiclesGrid.Columns[0].Width = 240;
+            VehiclesGrid.Columns[2].Width = 50;
+            VehiclesGrid.Rows[3].Cells[1].ReadOnly = true;
+            VehiclesGrid.Rows[3].Cells[1].Style.BackColor = Color.LightGray;
+            VehiclesGrid.DefaultCellStyle.Font = new Font("Sans Serif", 9.0F, FontStyle.Regular);
 
-            // Set up facility grid
-            FacilityGridView.Rows.Clear();
-            var facilityInputs = ParameterInput.GetParameterInputList(new[] { _state.FacilityLength, _state.FacilityWidth, });
-            GridHelpers.InitParameterGrid(FacilityGridView, facilityInputs, false);
+            LengthUnitSelector.DataSource = new List<DistanceUnit>
+            {
+                DistanceUnit.Meter, DistanceUnit.Foot,
+                DistanceUnit.Yard, DistanceUnit.Mile
+            };
+            LengthUnitSelector.SelectedItem = _state.FacilityLength.DisplayUnit;
+            LengthInput.Text = _state.FacilityLength.GetValue(_state.FacilityLength.DisplayUnit).ToString();
 
-            // Set up occupants grid
-            OccupantGridView.Rows.Clear();
+            WidthUnitSelector.DataSource = new List<DistanceUnit>
+            {
+                DistanceUnit.Meter, DistanceUnit.Foot,
+                DistanceUnit.Yard, DistanceUnit.Mile
+            };
+            WidthUnitSelector.SelectedItem = _state.FacilityWidth.DisplayUnit;
+            WidthInput.Text = _state.FacilityWidth.GetValue(_state.FacilityWidth.DisplayUnit).ToString();
+
+            PipingGrid.Rows.Clear();
+            var pipeInputs = ParameterInput.GetParameterInputList(new[] {
+                                    _state.PipeLength,
+                                    _state.PipeDiameter,
+                                    _state.PipeThickness,
+                                    _state.RelativeHumidity
+            });
+            GridHelpers.InitParameterGrid(PipingGrid, pipeInputs, false);
+            PipingGrid.DefaultCellStyle.Font = new Font("Sans Serif", 9.0F, FontStyle.Regular);
+            PipingGrid.Columns[0].Width = 240;
+
+            var leakSizeOptions = new Dictionary<string, int>
+            {
+                { "0.01% leak size", 1},
+                { "0.10% leak size", 10},
+                { "1% leak size", 100},
+                { "10% leak size", 1000},
+                { "100% leak size", 10000},
+            };
+            MassFlowLeakSizeSelector.DataSource = new BindingSource(leakSizeOptions, null);
+            MassFlowLeakSizeSelector.DisplayMember = "Key";
+            MassFlowLeakSizeSelector.ValueMember = "Value";
+
+            MassFlowUnitSelector.DataSource = new List<MassFlowUnit> {MassFlowUnit.KgPerMin, MassFlowUnit.KgPerSecond};
+            MassFlowInput.Text = _state.QraMassFlow.GetDisplayValueMaybeNull().ToString();
+            MassFlowUnitSelector.SelectedItem = _state.QraMassFlow.DisplayUnit;
+
+            ToggleMassFlowInputs(_state.FuelFlowUnchoked());
+
+            // show seed input if UQ/SA is disabled
+            if (!_state.AllowUncertainty)
+            {
+                SeedInput.Visible = true;
+                SeedLabel.Visible = true;
+                SeedDescrip.Visible = true;
+                SeedInput.Text = (Math.Truncate(_state.RandomSeed.GetValue())).ToString();
+            }
+            else
+            {
+                SeedInput.Visible = false;
+                SeedLabel.Visible = false;
+                SeedDescrip.Visible = false;
+            }
+
+            // OCCUPANTS TAB
+            OccupantGrid.Rows.Clear();
 
             foreach (var dist in _state.OccupantInfo)
             {
                 var newRow = new DataGridViewRow();
-                newRow.CreateCells(OccupantGridView, dist.NumTargets, dist.Desc,
+                newRow.CreateCells(OccupantGrid, dist.NumTargets, dist.Desc,
                                     dist.ParamUnitType,
                                     dist.XLocDistribution, dist.XLocParamA, dist.XLocParamB,
                                     dist.YLocDistribution, dist.YLocParamA, dist.YLocParamB,
@@ -137,24 +188,26 @@ namespace SandiaNationalLaboratories.Hyram
                     thisCell.Style.BackColor = Color.LightGray;
                     thisCell.Style.ForeColor = Color.DarkGray;
                 }
-                OccupantGridView.Rows.Add(newRow);
+                OccupantGrid.Rows.Add(newRow);
             }
-            OccupantGridView.Columns[(int) OccupantCols.Description].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-            var distXColumn = (DataGridViewComboBoxColumn) OccupantGridView.Columns[(int) OccupantCols.XDistType];
+            OccupantGrid.Columns[(int) OccupantCols.Description].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            var distXColumn = (DataGridViewComboBoxColumn) OccupantGrid.Columns[(int) OccupantCols.XDistType];
             distXColumn.DataSource = typeof(WorkerDist).GetEnumValues();
             distXColumn.ValueType = typeof(WorkerDist);
-            var distYColumn = (DataGridViewComboBoxColumn) OccupantGridView.Columns[(int) OccupantCols.YDistType];
+//            distXColumn.Width = 50;
+            var distYColumn = (DataGridViewComboBoxColumn) OccupantGrid.Columns[(int) OccupantCols.YDistType];
             distYColumn.DataSource = typeof(WorkerDist).GetEnumValues();
             distYColumn.ValueType = typeof(WorkerDist);
-            var distZColumn = (DataGridViewComboBoxColumn) OccupantGridView.Columns[(int) OccupantCols.ZDistType];
+            var distZColumn = (DataGridViewComboBoxColumn) OccupantGrid.Columns[(int) OccupantCols.ZDistType];
             distZColumn.DataSource = typeof(WorkerDist).GetEnumValues();
             distZColumn.ValueType = typeof(WorkerDist);
-            var unitClm = (DataGridViewComboBoxColumn) OccupantGridView.Columns[(int) OccupantCols.Unit];
+            var unitClm = (DataGridViewComboBoxColumn) OccupantGrid.Columns[(int) OccupantCols.Unit];
             unitClm.DataSource = typeof(DistanceUnit).GetEnumValues();
             unitClm.ValueType = typeof(DistanceUnit);
+            OccupantGrid.ColumnHeadersDefaultCellStyle.Font = new Font("Sans Serif", 8.0F, FontStyle.Bold);
 
             // Override grid
-            OverridesGridView.Rows.Clear();
+            OverridesGrid.Rows.Clear();
             var overrides = ParameterInput.GetParameterInputList(new[] {
                                 _state.Release000d01,
                                 _state.Release000d10,
@@ -163,56 +216,57 @@ namespace SandiaNationalLaboratories.Hyram
                                 _state.Release100d00,
                                 _state.FailureOverride,
                                 _state.GasDetectionProb});
-            GridHelpers.InitParameterGrid(OverridesGridView, overrides, false);
+            GridHelpers.InitParameterGrid(OverridesGrid, overrides, false);
 
             exclusionInput.Text = _state.ExclusionRadius.GetValue().ToString();
-            seedInput.Text = (Math.Truncate(_state.RandomSeed.GetValue())).ToString();
 
             UpdateParameterCellVisibility();
-
-            // refresh piping table
-            PipingGridView.Rows.Clear();
-            var pipeInputs = ParameterInput.GetParameterInputList(new[] {
-                                    _state.PipeDiameter, _state.PipeThickness, _state.FluidPressure,
-                                    _state.AmbientTemperature, _state.AmbientPressure,
-                                    _state.OrificeDischargeCoefficient
-            });
-            if (_state.DisplayTemperature())
-            {
-                pipeInputs.Insert(2, new ParameterInput(_state.FluidTemperature));
-            }
-            GridHelpers.InitParameterGrid(PipingGridView, pipeInputs, false);
-            PipingGridView.Columns[0].Width = 200;
 
             CheckFormValid();
             _ignoreChangeEvents = ignoreEvents;
         }
 
+        /// <summary>
+        /// Enables or disables leak-based mass flow inputs for unchoked flow.
+        /// </summary>
+        /// <param name="enabled"></param>
+        private void ToggleMassFlowInputs(bool enabled = true)
+        {
+            if (enabled)
+            {
+                MassFlowInput.Enabled = true;
+                MassFlowLeakSizeSelector.Enabled = true;
+                MassFlowUnitSelector.Enabled = true;
+//                valueCell.Style.BackColor = Color.White;
+//                valueCell.Value = ((ParameterInput)row.Tag).Parameter.GetDisplayValue();
+            }
+            else
+            {
+                MassFlowInput.Enabled = false;
+                MassFlowLeakSizeSelector.Enabled = false;
+                MassFlowUnitSelector.Enabled = false;
+//                valueCell.Style.BackColor = Color.LightGray;
+//                valueCell.Value = "-";
+            }
+        }
 
-        public override void CheckFormValid()
+
+        public void CheckFormValid()
         {
             Alert = AlertLevel.AlertNull;
             AlertMessage = "";
-
-            if (!_state.ReleasePressureIsValid())
-            {
-                Alert = AlertLevel.AlertError;
-                AlertMessage = MessageContainer.ReleasePressureInvalid();
-            }
-
+//
             formWarning.Visible = Alert != AlertLevel.AlertNull;
-            formWarning.Text = AlertMessage;
-            formWarning.BackColor = _state.AlertBackColors[(int)Alert];
-            formWarning.ForeColor = _state.AlertTextColors[(int)Alert];
-
-            MainForm.NotifyOfChildPublicStateChange();
+//            formWarning.Text = AlertMessage;
+//            formWarning.BackColor = _state.AlertBackColors[(int)Alert];
+//            formWarning.ForeColor = _state.AlertTextColors[(int)Alert];
         }
 
         private void GridValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             if (!_ignoreChangeEvents)
             {
-                GridHelpers.ChangeParameterValue((DataGridView) sender, e, 1, 2);
+                GridHelpers.ChangeParameterValue((DataGridView) sender, e);
             }
             CheckFormValid();
         }
@@ -232,7 +286,7 @@ namespace SandiaNationalLaboratories.Hyram
                 var demands = numVehicles * numDays * numFuelings;
 
                 _state.VehicleAnnualDemand.SetValue(demands);
-                VehiclesGridView.Rows[3].Cells[1].Value = demands;
+                VehiclesGrid.Rows[3].Cells[1].Value = demands;
             }
         }
 
@@ -366,9 +420,9 @@ namespace SandiaNationalLaboratories.Hyram
                 (int) OccupantCols.XDistType, (int) OccupantCols.YDistType,
                 (int) OccupantCols.ZDistType
             };
-            for (var rowIndex = 0; rowIndex < OccupantGridView.RowCount - 1; rowIndex++)
+            for (var rowIndex = 0; rowIndex < OccupantGrid.RowCount - 1; rowIndex++)
             {
-                var thisRow = OccupantGridView.Rows[rowIndex];
+                var thisRow = OccupantGrid.Rows[rowIndex];
                 // ensure values match units
 
 
@@ -401,7 +455,7 @@ namespace SandiaNationalLaboratories.Hyram
         {
             if (!_ignoreChangeEvents)
             {
-                var changedRow = OccupantGridView.Rows[e.RowIndex];
+                var changedRow = OccupantGrid.Rows[e.RowIndex];
                 UpdateOccupantSetandRowData(changedRow, e.ColumnIndex);
             }
         }
@@ -411,7 +465,7 @@ namespace SandiaNationalLaboratories.Hyram
             if (!_ignoreChangeEvents)
             {
                 _ignoreChangeEvents = true;
-                var row = OccupantGridView.Rows[e.RowIndex - 1];
+                var row = OccupantGrid.Rows[e.RowIndex - 1];
                 var occupantSet = (OccupantDistributionInfo) row.Tag;
                 if (occupantSet == null)
                 {
@@ -466,22 +520,10 @@ namespace SandiaNationalLaboratories.Hyram
                 MessageBox.Show(
                     "Error during tab initialization. This has caused an unknown " +
                     "condition and you are likely to see more errors. Please contact the HyRAM development team. Column: " +
-                    e.ColumnIndex + "(" + OccupantGridView.Columns[e.ColumnIndex].Name + "). Error details: " +
+                    e.ColumnIndex + "(" + OccupantGrid.Columns[e.ColumnIndex].Name + "). Error details: " +
                     ex);
                 MessageBox.Show("Program will be terminated.");
                 Environment.Exit(0);
-            }
-        }
-
-        private void tbRandomSeed_TextChanged(object sender, EventArgs e)
-        {
-            if (int.TryParse(seedInput.Text, out int val))
-            {
-                _state.RandomSeed.SetValue(val);
-            }
-            else
-            {
-                seedInput.Text = _state.RandomSeed.GetValue().ToString();
             }
         }
 
@@ -497,15 +539,99 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
-        private void fuelPhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        private void LengthInput_TextChanged(object sender, EventArgs e)
         {
-            _state.Phase = (ModelPair)fuelPhaseSelector.SelectedItem;
-            RefreshForm();
+            if (double.TryParse(LengthInput.Text, out double val))
+            {
+                _state.FacilityLength.SetValueFromDisplay(val);
+            }
+            else
+            {
+                LengthInput.Text = _state.FacilityLength.GetDisplayValue().ToString();
+            }
+
         }
 
-        private void tcSystemDescription_SelectedIndexChanged(object sender, EventArgs e)
+        private void WidthInput_TextChanged(object sender, EventArgs e)
         {
-            RefreshForm();
+            if (double.TryParse(WidthInput.Text, out double val))
+            {
+                _state.FacilityWidth.SetValueFromDisplay(val);
+            }
+            else
+            {
+                WidthInput.Text = _state.FacilityWidth.GetDisplayValue().ToString();
+            }
+        }
+
+        private void LengthUnitSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            _state.FacilityLength.DisplayUnit = (DistanceUnit)LengthUnitSelector.SelectedItem;
+            LengthInput.Text = _state.FacilityLength.GetDisplayValue().ToString("F3");
+        }
+
+        private void WidthUnitSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            _state.FacilityWidth.DisplayUnit = (DistanceUnit)WidthUnitSelector.SelectedItem;
+            WidthInput.Text = _state.FacilityWidth.GetDisplayValue().ToString("F3");
+        }
+
+        private void ComponentGrid_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+            GridHelpers.CellValidating_CheckDoubleOrNullable(ComponentGrid, sender, e);
+        }
+
+        private void PipingGrid_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+            GridHelpers.CellValidating_CheckDoubleOrNullable(PipingGrid, sender, e);
+
+        }
+
+        private void VehiclesGrid_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+            GridHelpers.CellValidating_CheckDoubleOrNullable(VehiclesGrid, sender, e);
+        }
+
+        private void OverridesGrid_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+            GridHelpers.CellValidating_CheckDoubleOrNullable(OverridesGrid, sender, e);
+        }
+
+        private void MassFlowLeakSizeSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            int leakSize = ((dynamic)MassFlowLeakSizeSelector.SelectedItem).Value;
+            _state.QraMassFlowLeakSize = leakSize;
+        }
+
+        private void MassFlowUnitSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            _state.QraMassFlow.DisplayUnit = (MassFlowUnit) MassFlowUnitSelector.SelectedItem;
+            MassFlowInput.Text = _state.QraMassFlow.GetDisplayValueMaybeNull().ToString();
+        }
+
+        private void MassFlowInput_TextChanged(object sender, EventArgs e)
+        {
+            if (double.TryParse(MassFlowInput.Text, out double val))
+            {
+                _state.QraMassFlow.SetValueFromDisplay(val);
+            }
+            else
+            {
+                MassFlowInput.Text = _state.QraMassFlow.GetDisplayValueMaybeNull().ToString();
+            }
+
+        }
+
+        private void SeedInput_TextChanged(object sender, EventArgs e)
+        {
+            if (int.TryParse(SeedInput.Text, out int val))
+            {
+                _state.RandomSeed.SetValue(val);
+            }
+            else
+            {
+                SeedInput.Text = _state.RandomSeed.GetValue().ToString();
+            }
         }
     }
 }

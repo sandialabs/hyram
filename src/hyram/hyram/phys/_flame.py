@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -9,7 +9,6 @@ If not, see https://www.gnu.org/licenses/.
 import os
 import warnings
 
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy import constants as const
 from scipy import integrate, interpolate, optimize
@@ -17,7 +16,7 @@ from scipy import integrate, interpolate, optimize
 from ._jet import DevelopingFlow
 from ._therm import Combustion
 from ._comps import Fluid
-from ._plots import plot_sliced_contour
+from ._plots import plot_sliced_contour, plot_contour
 from ._utils import get_distance_to_effect
 from ..utilities.custom_warnings import PhysicsWarning
 
@@ -27,11 +26,11 @@ class Flame:
                  theta0=0, x0=0, y0=0,
                  nn_conserve_momentum=True, nn_T='solve_energy',
                  chem=None,
-                 lamf=1.24, lamv=1.24, betaA=3.42e-2, alpha_buoy=5.75e-4, af=0.23,
+                 lamf=1.24, lamv=1.24, betaA=3.42e-2, alpha_buoy=5.75e-4,
                  T_establish_min=-1, verbose=False,
                  Smax=np.inf, dS=None, tol=1e-6, 
                  numB=5, n_pts_integral=100, 
-                 wind_speed = 0):
+                 wind_speed = 0, developing_flow=None):
         '''
         class for calculating the characteristics of a 2-D flame, without wind
         see Ekoto et al. International Journal of Hydrogen Energy, 39, 2014 (20570-20577)
@@ -73,8 +72,6 @@ class Flame:
             momentum entrainment coefficient
         alpha_buoy : float
             buoyancy entrainment coefficient    
-        af : float
-            Plank's mean absorption coefficient for an optically thin flame
         T_establish_min: float, optional
             minimum temperature for start of integral model
         verbose : bool, optional
@@ -91,14 +88,22 @@ class Flame:
             maximum number of halfwidths (B) considered to be infinity - for integration in equations
         n_pts_integral: int, optional
             maximum number of points in integration (from 0 to numB)
+        wind_speed: int, optional
+            ambient wind speed (m/s)
+        developing_flow: DevelopingFlow object, optional
+            speeds up calculation by only initialzing the object once
         '''
         self.x, self.y, self.S = [], [], []
-        self.developing_flow = DevelopingFlow(fluid, orifice, ambient, mdot,
-                                              theta0=theta0, x0=x0, y0=y0,
-                                              lam=lamf, betaA=betaA,
-                                              nn_conserve_momentum=nn_conserve_momentum, nn_T=nn_T,
-                                              T_establish_min=T_establish_min,
-                                              verbose=verbose)
+        if developing_flow is None:
+            self.developing_flow = DevelopingFlow(fluid, orifice, ambient, mdot,
+                                                  theta0=theta0, x0=x0, y0=y0,
+                                                  lam=lamf, betaA=betaA,
+                                                  nn_conserve_momentum=nn_conserve_momentum, nn_T=nn_T,
+                                                  T_establish_min=T_establish_min,
+                                                  verbose=verbose)
+        else:
+            self.developing_flow = developing_flow
+            
         self.initial_node = self.developing_flow.initial_node
         self.mass_flow_rate = self.developing_flow.mass_flow_rate
         expanded_plug_node = self.developing_flow.expanded_plug_node
@@ -108,10 +113,39 @@ class Flame:
                                     expanded_plug_node.rho * expanded_plug_node.v ** 2 / ambient.rho)
         self.lamf, self.lamv, self.alpha_buoy = lamf, lamv, alpha_buoy
         self.chem = chem
-        self.af = af
         self.verbose = verbose
         self.wind_speed = wind_speed
         self.solve(Smax, dS, tol, numB, n_pts_integral)
+        
+    @classmethod
+    def from_developed_flow(cls, developing_flow,
+                            chem=None, 
+                            lamf=1.24, lamv=1.24, betaA=3.42e-2, alpha_buoy=5.75e-4,
+                            verbose=False,
+                            Smax=np.inf, dS=None, tol=1e-6, 
+                            numB=5, n_pts_integral=100, 
+                            wind_speed = 0):
+        '''
+        Initialization of a Flame when the DevelopingFlow calculations have already been made.
+        These calculations can be slow for a blend, so if both a Jet and Flame are to be created for the same
+        release (e.g. during a QRA), doing the calculations a single time can significantly improve overall
+        computation time.
+        '''
+        if developing_flow.lam != lamf:
+            developing_flow.lam = lamf
+        if developing_flow.betaA != betaA:
+            developing_flow.betaA = betaA
+        return cls(developing_flow.fluid, developing_flow.orifice, developing_flow.ambient, 
+                   mdot=None, 
+                   theta0=0, x0=0, y0=0, 
+                   nn_conserve_momentum=True, nn_T='solve_energy', 
+                   chem=chem,
+                   lamf=lamf, lamv=lamv, betaA=betaA, alpha_buoy=alpha_buoy, 
+                   T_establish_min=-1, 
+                   verbose=verbose,
+                   Smax=Smax, dS=dS, tol=tol, 
+                   numB=numB, n_pts_integral=n_pts_integral, 
+                   wind_speed = wind_speed, developing_flow = developing_flow)
 
     def _govEqns(self, S, ind_vars, numB=5, n_pts_integral=100):
         '''
@@ -119,8 +153,8 @@ class Flame:
         
         A matrix soluition to the continuity, x-momentum, y-mometum and mixture fraction equations
         solves for d/dS of the dependent variables V_cl, B, theta, and f_cl.  Numerically integrated
-        to infinity = numB * B(S) using numpts discrete points.'''
-        
+        to infinity = numB * B(S) using numpts discrete points.
+        '''
         # break independent variables out of ind_vars
         [V_cl, B, theta, f_cl, x, y] = ind_vars
         
@@ -170,7 +204,6 @@ class Flame:
         LHS = integrate.trapz(LHS, r)
         
         dz = np.append(np.linalg.solve(LHS, RHS), np.array([np.cos(theta), np.sin(theta)]), axis=0)
-
         return dz
 
     def solve(self, Smax=np.inf, dS=None, tol=1e-6,
@@ -265,8 +298,7 @@ class Flame:
         # flame residence time [ms]
 
         self.tauf = (const.pi / 12) * (rhof * (self.Wf ** 2) * self.Lvis * fs) / (orifice1.mdot(gas1)) * 1000
-        # self.Xrad = (0.08916*np.log10(self.tauf*self.af*Tad**4) - 1.2172) # comes from Molina et al.
-        self.Xrad = 9.45e-9 * (self.tauf * self.af * Tad ** 4) ** 0.47  # see Panda, Hecht, IJHE 2016
+        self.Xrad = 9.45e-9 * (self.tauf * self.chem.absorption_coeff * Tad ** 4) ** 0.47  # see Panda, Hecht, IJHE 2016
         mdot = self.developing_flow.orifice_exp.mdot(self.developing_flow.fluid_exp)  # mass flow rate [kg/s]
         self.Srad = self.Xrad * mdot * self.chem.DHc
 
@@ -328,6 +360,7 @@ class Flame:
 
         return Qrad.T
 
+    @property
     def _contourdata(self):
         iS = np.arange(len(self.S))
         r = np.append(
@@ -344,83 +377,20 @@ class Flame:
         y = self.y[iS] - r * np.cos(self.theta[iS])
         return x, y, Tvals
 
-    def plot_Ts(self, mark=None, mcolors='w',
-                xlims=None, ylims=None,
-                xlab='x (m)', ylab='y (m)',
-                cp_params={}, levels=100,
-                addColorBar=True, aspect=1, plot_title=None,
-                fig_params={}, subplots_params={}, ax=None):
+    def plot_temps(self, mcolors='w', xlims=None, ylims=None, vlims=None,
+                   contour_levels=None, addColorBar=True, plot_color=None,
+                   plot_title=None, x_label=None, y_label=None,
+                   fig_params={}, plot_params={}, subplot_params={}, fig=None, ax=None):
         '''
-        makes temperature contour plot
+        Creates temperature contour plots.
+        Sends parameters to phys._plots plot_contour function and runs it.
+        '''
+        plot_contour(data_type='temperature', jet_or_flame=self,
+                     mcolors=mcolors, xlims=xlims, ylims=ylims, vlims=vlims,
+                     contour_levels=contour_levels, add_colorbar=addColorBar, plot_color=plot_color,
+                     plot_title=plot_title, x_label=x_label, y_label=y_label,
+                     fig_params=fig_params, plot_params=plot_params, subplot_params=subplot_params, fig=fig, ax=ax)
         
-        Parameters
-        ----------
-        mark: list, optional
-            levels to draw contour lines (Temperatures, or None if None desired)
-        mcolors: color or list of colors, optional
-            colors of marked contour leves
-        xlims: tuple, optional
-            tuple of (xmin, xmax) for contour plot
-        ylims: tuple, optional
-            tuple of (ymin, ymax) for contour plot
-        vmin: float, optional
-            minimum mole fraction for contour plot
-        vmax: float, optional
-            maximum mole fraction for contour plot
-        levels: int, optional
-            number of contours levels to draw
-        addColorBar: boolean, optional
-            whether to add a colorbar to the plot
-        aspect: float, optional
-            aspect ratio of plot
-        fig_parameters: optional
-            dictionary of figure parameters (e.g. figsize)
-        subplots_params: optional
-            dictionary of subplots_adjust parameters (e.g. top)
-        ax: optional
-            axes on which to make the plot
-        '''
-        if ax is None:
-            fig, ax = plt.subplots(**fig_params)
-            plt.subplots_adjust(**subplots_params)
-        else:
-            fig = ax.figure
-
-        x, y, T = self._contourdata()
-        clrmap = 'plasma'
-        ax.set_facecolor(plt.cm.get_cmap(clrmap)(0))
-        cp = ax.contourf(x, y, T, levels, cmap=clrmap, **cp_params)
-        if mark is not None:
-            cp2 = ax.contour(x, y, T, levels=mark, colors=mcolors, linewidths=1.5, **cp_params)
-
-        if xlims is not None:
-            ax.set_xlim(*xlims)
-        if ylims is not None:
-            ax.set_ylim(*ylims)
-
-        if addColorBar:
-            axsize = ax.get_window_extent()
-            if axsize.width <= axsize.height:
-                cb_kwargs = {}
-                cb_label_kwargs = {'rotation':-90, 'va':'bottom'}
-            else:
-                cb_kwargs = {'orientation':'horizontal'}
-                cb_label_kwargs = {}
-            cb = plt.colorbar(cp, **cb_kwargs)
-            cb.set_label('Temperature (K)', **cb_label_kwargs)
-        else:
-            cb = None
-
-        ax.set_xlabel(xlab)
-        ax.set_ylabel(ylab)
-        if aspect is not None:
-            ax.set_aspect(aspect)
-        if plot_title is not None:
-            ax.set_title(plot_title)
-        fig.tight_layout()
-
-        return fig, cb
-
     def plot_heat_flux_sliced(self, title=None,
                               filename='HeatFluxSliced.png',
                               directory=os.getcwd(),

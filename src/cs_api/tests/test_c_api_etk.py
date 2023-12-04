@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -8,7 +8,7 @@ If not, see https://www.gnu.org/licenses/.
 
 import unittest
 
-from cs_api import phys
+from cs_api import phys, utils
 from hyram.utilities import misc_utils
 
 """
@@ -25,7 +25,7 @@ class ETKMassFlowTestCase(unittest.TestCase):
     """
     def setUp(self):
         self.output_dir = misc_utils.get_temp_folder()
-        phys.setup(self.output_dir, verbose=VERBOSE)
+        utils.setup_file_log(self.output_dir, verbose=VERBOSE)
 
     def tearDown(self):
         pass
@@ -101,32 +101,32 @@ class ETKMassFlowTestCase(unittest.TestCase):
         self.assertTrue(t >= 0 for t in times)
         self.assertTrue(m >= 0 for m in rates)
 
-    @unittest.skip  # skipping due to duration of blend calc
-    def test_ch4_n2_blowdown(self):
-        species = {"ch4": 0.96, "n2": 0.04}
-        temp = 315
-        pres = 3e7
-        phase = 'default'
-        tank_vol = 1  # Note that GUI units default to liters; backend is m^3
-        orif_diam = 0.03
-        is_steady = False
-        dis_coeff = 1
-        amb_pres = 101325
-
-        wrapped_results = phys.etk_compute_mass_flow_rate(species, temp, pres, phase, orif_diam,
-                                                          is_steady, tank_vol, dis_coeff, amb_pres,
-                                                          self.output_dir)
-        data = wrapped_results["data"]
-
-        empty_time = data["time_to_empty"]
-        plot = data["plot"]
-        times = data["times"]
-        rates = data["rates"]
-
-        self.assertTrue(plot is not None)
-        self.assertGreaterEqual(empty_time, 0)
-        self.assertTrue(t >= 0 for t in times)
-        self.assertTrue(m >= 0 for m in rates)
+    # @unittest.skip  # skipping due to duration of blend calc
+    # def test_ch4_n2_blowdown(self):
+    #     species = {"ch4": 0.96, "n2": 0.04}
+    #     temp = 315
+    #     pres = 3e7
+    #     phase = 'default'
+    #     tank_vol = 1  # Note that GUI units default to liters; backend is m^3
+    #     orif_diam = 0.03
+    #     is_steady = False
+    #     dis_coeff = 1
+    #     amb_pres = 101325
+    #
+    #     wrapped_results = phys.etk_compute_mass_flow_rate(species, temp, pres, phase, orif_diam,
+    #                                                       is_steady, tank_vol, dis_coeff, amb_pres,
+    #                                                       self.output_dir)
+    #     data = wrapped_results["data"]
+    #
+    #     empty_time = data["time_to_empty"]
+    #     plot = data["plot"]
+    #     times = data["times"]
+    #     rates = data["rates"]
+    #
+    #     self.assertTrue(plot is not None)
+    #     self.assertGreaterEqual(empty_time, 0)
+    #     self.assertTrue(t >= 0 for t in times)
+    #     self.assertTrue(m >= 0 for m in rates)
 
 
 class ETKTankMassTestCase(unittest.TestCase):
@@ -137,7 +137,7 @@ class ETKTankMassTestCase(unittest.TestCase):
 
     def setUp(self):
         self.output_dir = misc_utils.get_temp_folder()
-        phys.setup(self.output_dir, verbose=VERBOSE)
+        utils.setup_file_log(self.output_dir, verbose=VERBOSE)
 
     def tearDown(self):
         pass
@@ -197,7 +197,7 @@ class ETKTPDTestCase(unittest.TestCase):
 
     def setUp(self):
         self.output_dir = misc_utils.get_temp_folder()
-        phys.setup(self.output_dir, verbose=VERBOSE)
+        utils.setup_file_log(self.output_dir, verbose=VERBOSE)
 
     def tearDown(self):
         pass
@@ -315,7 +315,7 @@ class ETKTntMassTestCase(unittest.TestCase):
 
     def setUp(self):
         self.output_dir = misc_utils.get_temp_folder()
-        phys.setup(self.output_dir, verbose=VERBOSE)
+        utils.setup_file_log(self.output_dir, verbose=VERBOSE)
 
     def tearDown(self):
         pass

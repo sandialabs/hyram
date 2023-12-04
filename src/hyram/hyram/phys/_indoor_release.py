@@ -1,12 +1,11 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
 """
 
-import logging
 import warnings
 
 import matplotlib as mpl
@@ -23,7 +22,6 @@ from ._therm import Combustion
 from ..utilities import misc_utils
 from ..utilities.custom_warnings import PhysicsWarning
 
-log = logging.getLogger(__name__)
 
 
 ########################################################################
@@ -98,11 +96,11 @@ class IndoorRelease:
             fuel_props = FuelProperties(source.fluid.species)
             X_rich = fuel_props.UFL
 
-        params = locals()
-        log.info(misc_utils.params_as_str(params))
-
         if verbose:
-            print('Performing indoor release calculations...')
+            params = locals()
+            print("=== BEGINNING INDOOR RELEASE ===")
+            print("PARAMETERS")
+            print(misc_utils.params_as_str(params))
         
         # Calculate time steps and mass flow history
         if steady:
@@ -189,10 +187,10 @@ class IndoorRelease:
             jet_mass_last = jet_mass
 
             # Calculate total overpressure
-            dP_total = self.dP_expansion(jet_mass_array + layer_mass, gas)
+            dP_total = self.comb.dP_expansion(enclosure, jet_mass_array + layer_mass)
 
             # Calculate overpressure in layer
-            dP_lay = self.dP_expansion(layer_mass, gas)
+            dP_lay = self.comb.dP_expansion(enclosure, layer_mass)
 
             # Assign outputs for this plume-timestep
             x_layer = np.append(x_layer, c[1:])
@@ -345,29 +343,3 @@ class IndoorRelease:
         '''
         imax = np.argmax(self.dP_tot)
         return self.dP_tot[imax], self.t_layer[imax]
-        
-    def dP_expansion(self, mass, fluid):
-        '''
-        Pressure due to the expansion of gas from combustion in an enclosure
-        
-        Parameters
-        ----------
-        mass : float
-           mass of combustible gas in enclosure
-        fluid : object
-           gas being combusted (at the temperature and pressure of the gas in the enclosure)
-           
-        Returns
-        -------
-        P : float
-           pressure upon expansion
-        '''
-        Vol_total = self.enclosure.V
-        Vol_gas   = mass/fluid.rho
-        
-        X_u, sigma, gamma = self.comb.X_reac_stoich, self.comb.sigma, self.comb.gamma_reac
-        
-        VolStoich = Vol_gas/X_u
-
-        deltaP  = fluid.P*((((Vol_total+Vol_gas)/Vol_total)*((Vol_total+VolStoich*(sigma-1))/Vol_total))**gamma-1)
-        return deltaP

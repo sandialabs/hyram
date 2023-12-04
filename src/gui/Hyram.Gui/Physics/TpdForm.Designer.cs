@@ -19,8 +19,6 @@
             this.pressureInputLabel = new System.Windows.Forms.Label();
             this.temperatureInputLabel = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.PhaseSelector = new System.Windows.Forms.ComboBox();
-            this.phaseLabel = new System.Windows.Forms.Label();
             this.DenUnitSelector = new SandiaNationalLaboratories.Hyram.ValueConverterDropdown();
             this.PresUnitSelector = new SandiaNationalLaboratories.Hyram.ValueConverterDropdown();
             this.TempUnitSelector = new SandiaNationalLaboratories.Hyram.ValueConverterDropdown();
@@ -35,10 +33,10 @@
             // 
             this.TempSelector.AutoSize = true;
             this.TempSelector.Checked = true;
-            this.TempSelector.Location = new System.Drawing.Point(273, 16);
+            this.TempSelector.Location = new System.Drawing.Point(268, 15);
             this.TempSelector.Name = "TempSelector";
             this.TempSelector.Size = new System.Drawing.Size(85, 17);
-            this.TempSelector.TabIndex = 10;
+            this.TempSelector.TabIndex = 1;
             this.TempSelector.TabStop = true;
             this.TempSelector.Text = "Temperature";
             this.TempSelector.UseVisualStyleBackColor = true;
@@ -47,10 +45,10 @@
             // DenSelector
             // 
             this.DenSelector.AutoSize = true;
-            this.DenSelector.Location = new System.Drawing.Point(273, 52);
+            this.DenSelector.Location = new System.Drawing.Point(268, 51);
             this.DenSelector.Name = "DenSelector";
             this.DenSelector.Size = new System.Drawing.Size(60, 17);
-            this.DenSelector.TabIndex = 12;
+            this.DenSelector.TabIndex = 3;
             this.DenSelector.Text = "Density";
             this.DenSelector.UseVisualStyleBackColor = true;
             this.DenSelector.CheckedChanged += new System.EventHandler(this.OutputCheckedChanged);
@@ -58,10 +56,10 @@
             // PresSelector
             // 
             this.PresSelector.AutoSize = true;
-            this.PresSelector.Location = new System.Drawing.Point(273, 34);
+            this.PresSelector.Location = new System.Drawing.Point(268, 33);
             this.PresSelector.Name = "PresSelector";
             this.PresSelector.Size = new System.Drawing.Size(66, 17);
-            this.PresSelector.TabIndex = 11;
+            this.PresSelector.TabIndex = 2;
             this.PresSelector.Text = "Pressure";
             this.PresSelector.UseVisualStyleBackColor = true;
             this.PresSelector.CheckedChanged += new System.EventHandler(this.OutputCheckedChanged);
@@ -69,10 +67,10 @@
             // SubmitBtn
             // 
             this.SubmitBtn.Enabled = false;
-            this.SubmitBtn.Location = new System.Drawing.Point(268, 190);
+            this.SubmitBtn.Location = new System.Drawing.Point(268, 170);
             this.SubmitBtn.Name = "SubmitBtn";
             this.SubmitBtn.Size = new System.Drawing.Size(107, 23);
-            this.SubmitBtn.TabIndex = 25;
+            this.SubmitBtn.TabIndex = 11;
             this.SubmitBtn.Text = "Calculate";
             this.SubmitBtn.UseVisualStyleBackColor = true;
             this.SubmitBtn.Click += new System.EventHandler(this.SubmitBtn_Click);
@@ -80,34 +78,34 @@
             // DenInput
             // 
             this.DenInput.Enabled = false;
-            this.DenInput.Location = new System.Drawing.Point(268, 161);
+            this.DenInput.Location = new System.Drawing.Point(268, 141);
             this.DenInput.Name = "DenInput";
             this.DenInput.Size = new System.Drawing.Size(107, 20);
-            this.DenInput.TabIndex = 23;
+            this.DenInput.TabIndex = 10;
             this.DenInput.TextChanged += new System.EventHandler(this.DenInput_TextChanged);
             // 
             // PresInput
             // 
             this.PresInput.Enabled = false;
-            this.PresInput.Location = new System.Drawing.Point(268, 132);
+            this.PresInput.Location = new System.Drawing.Point(268, 112);
             this.PresInput.Name = "PresInput";
             this.PresInput.Size = new System.Drawing.Size(107, 20);
-            this.PresInput.TabIndex = 22;
+            this.PresInput.TabIndex = 8;
             this.PresInput.TextChanged += new System.EventHandler(this.PresInput_TextChanged);
             // 
             // TempInput
             // 
             this.TempInput.Enabled = false;
-            this.TempInput.Location = new System.Drawing.Point(268, 104);
+            this.TempInput.Location = new System.Drawing.Point(268, 84);
             this.TempInput.Name = "TempInput";
             this.TempInput.Size = new System.Drawing.Size(107, 20);
-            this.TempInput.TabIndex = 21;
+            this.TempInput.TabIndex = 6;
             this.TempInput.TextChanged += new System.EventHandler(this.TempInput_TextChanged);
             // 
             // densityInputLabel
             // 
             this.densityInputLabel.AutoSize = true;
-            this.densityInputLabel.Location = new System.Drawing.Point(8, 164);
+            this.densityInputLabel.Location = new System.Drawing.Point(8, 144);
             this.densityInputLabel.Name = "densityInputLabel";
             this.densityInputLabel.Size = new System.Drawing.Size(42, 13);
             this.densityInputLabel.TabIndex = 17;
@@ -116,7 +114,7 @@
             // pressureInputLabel
             // 
             this.pressureInputLabel.AutoSize = true;
-            this.pressureInputLabel.Location = new System.Drawing.Point(8, 135);
+            this.pressureInputLabel.Location = new System.Drawing.Point(8, 115);
             this.pressureInputLabel.Name = "pressureInputLabel";
             this.pressureInputLabel.Size = new System.Drawing.Size(97, 13);
             this.pressureInputLabel.TabIndex = 16;
@@ -125,7 +123,7 @@
             // temperatureInputLabel
             // 
             this.temperatureInputLabel.AutoSize = true;
-            this.temperatureInputLabel.Location = new System.Drawing.Point(8, 107);
+            this.temperatureInputLabel.Location = new System.Drawing.Point(8, 87);
             this.temperatureInputLabel.Name = "temperatureInputLabel";
             this.temperatureInputLabel.Size = new System.Drawing.Size(67, 13);
             this.temperatureInputLabel.TabIndex = 15;
@@ -140,56 +138,37 @@
             this.label1.TabIndex = 26;
             this.label1.Text = "Select output:";
             // 
-            // PhaseSelector
-            // 
-            this.PhaseSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.PhaseSelector.FormattingEnabled = true;
-            this.PhaseSelector.Location = new System.Drawing.Point(268, 77);
-            this.PhaseSelector.Name = "PhaseSelector";
-            this.PhaseSelector.Size = new System.Drawing.Size(107, 21);
-            this.PhaseSelector.TabIndex = 56;
-            this.PhaseSelector.SelectionChangeCommitted += new System.EventHandler(this.PhaseSelector_SelectionChangeCommitted);
-            // 
-            // phaseLabel
-            // 
-            this.phaseLabel.AutoSize = true;
-            this.phaseLabel.Location = new System.Drawing.Point(8, 80);
-            this.phaseLabel.Name = "phaseLabel";
-            this.phaseLabel.Size = new System.Drawing.Size(61, 13);
-            this.phaseLabel.TabIndex = 55;
-            this.phaseLabel.Text = "Fluid phase";
-            // 
             // DenUnitSelector
             // 
             this.DenUnitSelector.Converter = null;
-            this.DenUnitSelector.Location = new System.Drawing.Point(110, 160);
+            this.DenUnitSelector.Location = new System.Drawing.Point(110, 140);
             this.DenUnitSelector.Name = "DenUnitSelector";
             this.DenUnitSelector.SelectedItem = null;
             this.DenUnitSelector.Size = new System.Drawing.Size(152, 22);
             this.DenUnitSelector.StoredValue = new double[0];
-            this.DenUnitSelector.TabIndex = 20;
+            this.DenUnitSelector.TabIndex = 9;
             this.DenUnitSelector.OnSelectedIndexChanged += new System.EventHandler(this.DenUnitSelector_OnSelectedIndexChange);
             // 
             // PresUnitSelector
             // 
             this.PresUnitSelector.Converter = null;
-            this.PresUnitSelector.Location = new System.Drawing.Point(110, 132);
+            this.PresUnitSelector.Location = new System.Drawing.Point(110, 112);
             this.PresUnitSelector.Name = "PresUnitSelector";
             this.PresUnitSelector.SelectedItem = null;
             this.PresUnitSelector.Size = new System.Drawing.Size(152, 22);
             this.PresUnitSelector.StoredValue = new double[0];
-            this.PresUnitSelector.TabIndex = 19;
+            this.PresUnitSelector.TabIndex = 7;
             this.PresUnitSelector.OnSelectedIndexChanged += new System.EventHandler(this.PresUnitSelector_OnSelectedIndexChange);
             // 
             // TempUnitSelector
             // 
             this.TempUnitSelector.Converter = null;
-            this.TempUnitSelector.Location = new System.Drawing.Point(110, 104);
+            this.TempUnitSelector.Location = new System.Drawing.Point(110, 84);
             this.TempUnitSelector.Name = "TempUnitSelector";
             this.TempUnitSelector.SelectedItem = null;
             this.TempUnitSelector.Size = new System.Drawing.Size(152, 22);
             this.TempUnitSelector.StoredValue = new double[0];
-            this.TempUnitSelector.TabIndex = 18;
+            this.TempUnitSelector.TabIndex = 5;
             this.TempUnitSelector.OnSelectedIndexChanged += new System.EventHandler(this.TempUnitSelector_OnSelectedIndexChange);
             // 
             // panel1
@@ -201,9 +180,7 @@
             this.panel1.Controls.Add(this.warningLabel);
             this.panel1.Controls.Add(this.spinnerPictureBox);
             this.panel1.Controls.Add(this.label1);
-            this.panel1.Controls.Add(this.PhaseSelector);
             this.panel1.Controls.Add(this.temperatureInputLabel);
-            this.panel1.Controls.Add(this.phaseLabel);
             this.panel1.Controls.Add(this.pressureInputLabel);
             this.panel1.Controls.Add(this.densityInputLabel);
             this.panel1.Controls.Add(this.DenSelector);
@@ -229,7 +206,7 @@
             this.warningLabel.BackColor = System.Drawing.Color.MistyRose;
             this.warningLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.warningLabel.ForeColor = System.Drawing.Color.Maroon;
-            this.warningLabel.Location = new System.Drawing.Point(8, 226);
+            this.warningLabel.Location = new System.Drawing.Point(8, 206);
             this.warningLabel.Name = "warningLabel";
             this.warningLabel.Padding = new System.Windows.Forms.Padding(4);
             this.warningLabel.Size = new System.Drawing.Size(198, 23);
@@ -241,7 +218,7 @@
             // spinnerPictureBox
             // 
             this.spinnerPictureBox.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.AjaxSpinner;
-            this.spinnerPictureBox.Location = new System.Drawing.Point(238, 190);
+            this.spinnerPictureBox.Location = new System.Drawing.Point(238, 170);
             this.spinnerPictureBox.Margin = new System.Windows.Forms.Padding(2);
             this.spinnerPictureBox.MinimumSize = new System.Drawing.Size(15, 16);
             this.spinnerPictureBox.Name = "spinnerPictureBox";
@@ -280,8 +257,6 @@
 		private System.Windows.Forms.Label pressureInputLabel;
 		private System.Windows.Forms.Label temperatureInputLabel;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ComboBox PhaseSelector;
-        private System.Windows.Forms.Label phaseLabel;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label warningLabel;
         private System.Windows.Forms.PictureBox spinnerPictureBox;

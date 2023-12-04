@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -7,17 +7,15 @@ If not, see https://www.gnu.org/licenses/.
 """
 
 import copy
-import warnings
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
 import numpy as np
 from scipy import integrate, optimize
 import scipy.constants as const
 
 from ._fuel_props import FuelProperties
 from ._notional_nozzle import NotionalNozzle
-from ..utilities.custom_warnings import PhysicsWarning
+from ._plots import plot_contour
 
 ########################################################################
 # TODO: untested for alternate fuels
@@ -29,18 +27,26 @@ class DevelopingFlow:
                  theta0=0, x0=0, y0=0,
                  lam=1.16, betaA=0.28,
                  nn_conserve_momentum=True, nn_T='solve_energy', 
-                 T_establish_min=-1,  
+                 T_establish_min=-1,
                  suppressWarnings=False, verbose=False):
         '''
         Engineering correlations to calculate the Gaussian profile boundary conditions for
-        the flow through an orifice
+        the Jet and Flame models
         '''
+        self.fluid = fluid
+        self.ambient = ambient
+        self._lam = lam
+        self._betaA = betaA
         self.verbose = verbose
+        self._theta0, self.x0, self.y0 = theta0, x0, y0
+        self.T_establish_min = T_establish_min
+        self._nn_T = nn_T
+        self._nn_conserve_momentum = nn_conserve_momentum
         S0 = 0 # S always starts at 0. x and y may start somewhere else.
         Y0 = 1 # pure fluid
         
         # Orifice flow
-        self.orifice = orifice
+        self._orifice = orifice
         if self.verbose:
             print('solving for orifice flow... ', end='')
         self.fluid_orifice = self.orifice.flow(fluid, ambient.P, mdot, suppressWarnings) # plug node at orifice exit
@@ -59,9 +65,75 @@ class DevelopingFlow:
                                                  T_establish_min, betaA)
 
         # Develop into established Gaussian profile from plug flow
-
         self.initial_node = self.expanded_plug_node.establish(ambient, self.fluid_exp, lam)
     
+    @property
+    def lam(self):
+        return self._lam
+
+    @lam.setter
+    def lam(self, val):
+        self._lam = val
+        self.initial_node = self.expanded_plug_node.establish(self.ambient, self.fluid_exp, val)
+
+    @property
+    def betaA(self):
+        return self._betaA
+
+    @betaA.setter
+    def betaA(self, val):
+        self.expanded_plug_node = self._dev_plug(self.fluid_exp, self.orifice_exp, self.ambient,
+                                                 1, self.theta0, self.x0, self.y0, 0,
+                                                 self.T_establish_min, val)
+        self.initial_node = self.expanded_plug_node.establish(self.ambient, self.fluid_exp, self.lam)
+        self._betaA = val
+
+    @property
+    def theta0(self):
+        return self._theta0
+
+    @theta0.setter
+    def theta0(self, val):
+        self.orifice_node.theta = val
+        S_out = self.expanded_plug_node.S
+        x0, y0 = self.orifice_node.x, self.orifice_node.y
+        self.expanded_plug_node.x = x0 + S_out*np.cos(val)
+        self.expanded_plug_node.y = y0 + S_out*np.sin(val)
+        self.expanded_plug_node.theta = val
+        SE = 6.2*self.expanded_plug_node.d
+        self.initial_node.x = self.expanded_plug_node.x + SE*np.cos(val)
+        self.initial_node.y = self.expanded_plug_node.y + SE*np.sin(val)
+        self.initial_node.S = self.expanded_plug_node.S + SE
+        self.initial_node.theta = val
+        self._theta0 = val
+
+    @property
+    def orifice(self):
+        return self._orifice
+
+    #todo: could probably improve orifice.setter - can likely redo _expand with less overhead - notional nozzle models may need to be modified
+    @orifice.setter
+    def orifice(self, new_orifice):
+        if self.fluid_orifice._choked: #choked - P, rho, T, v remain constant at orifice (fluid_orifice is constant)
+            self.mass_flow_rate = new_orifice.mdot(self.fluid_orifice)
+        else: #unchoked - mass flow rate through orifice remains constant
+            self.fluid_orifice.v = self.mass_flow_rate/(self.fluid_orifice.rho*new_orifice.Cd*new_orifice.A)
+        self._orifice = new_orifice
+        self.d0 = new_orifice.d
+        self.orifice_node = PlugNode(self.d0*np.sqrt(new_orifice.Cd), self.fluid_orifice.v, self.fluid_orifice.rho,# diameter scaled to account for Cd
+                                     1, self.fluid_orifice.T, self.theta0, self.x0, self.y0, self.S0)
+        # Underexpanded jet (if needed: gets fluid to atmospheric pressure)
+        self.fluid_exp, self.orifice_exp = self._expand(new_orifice, self.ambient, self._nn_T, self._nn_conserve_momentum)
+
+        # Initial entrainment and heating (if needed: warms fluid to good T for thermodynamics)
+        self.expanded_plug_node = self._dev_plug(self.fluid_exp, self.orifice_exp, self.ambient,
+                                                 1, self.theta0, self.x0, self.y0, 0,
+                                                 self.T_establish_min, self.betaA)
+
+        # Develop into established Gaussian profile from plug flow
+        self.initial_node = self.expanded_plug_node.establish(self.ambient, self.fluid_exp, self.lam)
+
+
     def _expand(self, orifice, ambient, nn_T, nn_conserve_momentum):
         '''
         expands an underexpanded jet, if needed
@@ -147,9 +219,9 @@ class PlugNode:
         V_clE = self.v
         BE = self.d/np.sqrt(2*(2*lam**2+1)/(lam**2*self.rho/ambient.rho + lam**2 + 1))
         Y_clE = self.Y*(lam**2+1.)/(2.*lam**2)
-        h_amb, cp_ambient = ambient.therm.PropsSI(['H', 'C'], T = ambient.T, P = ambient.P)
+        h_amb, cp_ambient = ambient.therm.get_property(['H', 'C'], T = ambient.T, P = ambient.P)
 
-        cp_gas = fluid.therm.PropsSI('C', T = (self.T + ambient.T)/2., P = ambient.P)
+        cp_gas = fluid.therm.get_property('C', T = (self.T + ambient.T)/2., P = ambient.P)
         MW_clE = 1 / (Y_clE / fluid.therm.MW + (1 - Y_clE) / ambient.therm.MW)
         h_amb = ambient.T*cp_ambient
         cp_s3 = self.Y * cp_gas + (1 - self.Y) * cp_ambient # this is just cp_gas - using self.Y screws it up
@@ -216,13 +288,14 @@ class GaussianNode:
 
 class Jet:
     def __init__(self, fluid, orifice, ambient, mdot=None,
-                 theta0= 0, x0=0, y0=0,
+                 theta0=0, x0=0, y0=0,
                  lam=1.16, betaA=0.28,
-                 nn_conserve_momentum=True, nn_T='solve_energy', 
-                 T_establish_min=-1, 
-                 Ymin=7e-4, dS=None, Smax=np.inf, 
+                 nn_conserve_momentum=True, nn_T='solve_energy',
+                 T_establish_min=-1,
+                 Ymin=7e-4, dS=None, Smax=np.inf,
                  max_steps=5000, tol=1e-8,
-                 alpha=0.082, Yamb=0, numB=5, numpts=500, 
+                 alpha=0.082, Yamb=0, numB=5, numpts=500,
+                 developing_flow = None,
                  suppressWarnings=False, verbose=False):
         '''
         Class for solving for a 2D jet. 
@@ -280,6 +353,8 @@ class Jet:
             maximum number of halfwidths (B) considered to be infinity - for integration in energy equations
         numpts: int, optional
             maximum number of points in energy integration (from 0 to numB)
+        developing_flow: DevelopingFlow, optional
+            specified DevelopingFlow object
         suppressWarnings: boolean, optional
             whether to display warnings about fluid being under-/over-specified in DevelopingFlow object
         verbose: boolean, optional
@@ -298,14 +373,17 @@ class Jet:
             distance (m) along jet?
         '''
         self.verbose = verbose
-               
-        self.developing_flow = DevelopingFlow(fluid, orifice, ambient, mdot,
-                                              theta0=theta0, x0=x0, y0=y0,
-                                              lam=lam, betaA=betaA,
-                                              nn_conserve_momentum=nn_conserve_momentum,nn_T=nn_T, 
-                                              T_establish_min=T_establish_min,  
-                                              suppressWarnings=suppressWarnings,
-                                              verbose=verbose)
+
+        if developing_flow is None:
+            self.developing_flow = DevelopingFlow(fluid, orifice, ambient, mdot,
+                                                  theta0=theta0, x0=x0, y0=y0,
+                                                  lam=lam, betaA=betaA,
+                                                  nn_conserve_momentum=nn_conserve_momentum, nn_T=nn_T,
+                                                  T_establish_min=T_establish_min,
+                                                  suppressWarnings=suppressWarnings,
+                                                  verbose=verbose)
+        else:
+            self.developing_flow = developing_flow
         self.initial_node = self.developing_flow.initial_node
         self.mass_flow_rate = self.developing_flow.mass_flow_rate
         
@@ -330,13 +408,40 @@ class Jet:
         MW_cl0 = MW_air*MW_fluid/(self.initial_node.Y_cl*(MW_air - MW_fluid) + MW_fluid)
         T_cl0 = ambient.P*MW_cl0/(const.R*self.initial_node.rho_cl)
         # TODO: determine if _Cp_fluid should be at ambient T, or T_cl0
-        self._Cp_fluid = self.fluid.therm.PropsSI('C', T = ambient.T, P = ambient.P)
-        self._Cp_air, self._h_amb0 = ambient.therm.PropsSI(['C', 'H'], T = ambient.T, P = ambient.P)
+        self._Cp_fluid = self.fluid.therm.get_property('C', T = ambient.T, P = ambient.P)
+        self._Cp_air, self._h_amb0 = ambient.therm.get_property(['C', 'H'], T = ambient.T, P = ambient.P)
 
-        
         # Integrate in the zone of established flow
         self.solve(Ymin, dS, Smax, max_steps, tol, alpha, Yamb, numB, numpts)
-    
+
+    @classmethod
+    def from_developed_flow(cls, developing_flow,
+                            lam=1.16, betaA=0.28,
+                            Ymin=7e-4, dS=None, Smax=np.inf,
+                            max_steps=5000, tol=1e-8,
+                            alpha=0.082, Yamb=0, numB=5, numpts=500,
+                            suppressWarnings=False, verbose=False):
+        '''
+        Initialization of a Jet when the DevelopingFlow calculations have already been made.
+        These calculations can be slow for a blend, so if both a Jet and Flame are to be created for the same
+        release (e.g. during a QRA), doing the calculations a single time can significantly improve overall
+        computation time.'''
+        if developing_flow.lam != lam:
+            developing_flow.lam = lam
+        if developing_flow.betaA != betaA:
+            developing_flow.betaA = betaA
+        return cls(developing_flow.fluid, developing_flow.orifice, developing_flow.ambient,
+                   mdot=None,
+                   theta0= 0, x0=0, y0=0,
+                   lam=developing_flow.lam, betaA=developing_flow.betaA,
+                   nn_conserve_momentum=True, nn_T='solve_energy',
+                   T_establish_min=-1,
+                   Ymin=Ymin, dS=dS, Smax=Smax,
+                   max_steps=max_steps, tol=tol,
+                   alpha=alpha, Yamb=Yamb, numB=numB, numpts=numpts,
+                   developing_flow = developing_flow,
+                   suppressWarnings=suppressWarnings, verbose=verbose)
+
     def solve(self, Ymin = 7e-4, dS = None, Smax = np.inf, 
               max_steps = 5000, tol = 1e-8,
               alpha = 0.082, Yamb = 0, numB = 5, numpts = 500):
@@ -624,8 +729,6 @@ class Jet:
         """
         iS = np.arange(len(self.S))
         
-        # Calculates logspaced points around 0 out to np.log10(3*np.max(self.B))
-        # poshalf[::-1] just notation for reversing a numpy array
         poshalf = np.logspace(-5, np.log10(3*np.max(self.B)))
         r = np.concatenate((-1 * poshalf[::-1], [0], poshalf))
         
@@ -652,7 +755,8 @@ class Jet:
     
     def _radial_profile(self, distance, ind_var = 'Y', nB = 3):
         '''
-        returns radial profile at a certain distance along the jet
+        Returns radial profile at a certain distance along the jet
+
         Parameters
         ----------
         distance: float
@@ -696,258 +800,104 @@ class Jet:
     def get_contour_data(self):
         return self._contourdata
 
-    def plot_moleFrac_Contour(self, mark=None, mcolors = 'w', xlims = None,
-                              ylims = None, xlab = 'x (m)', ylab = 'y (m)', 
-                              plot_title = None, vmin = 0, vmax = 0.1, 
-                              addColorBar = True, aspect = 1, fig_params=None,
-                              subplots_params=None, ax = None, fig = None, contlvls = False):
+    def plot_moleFrac_contour(self, mcolors='w', xlims=None, ylims=None, vlims=(0,0.1),
+                              contour_levels=['LFL'], add_colorbar=True, plot_color=None,
+                              plot_title=None, x_label=None, y_label=None,
+                              fig_params={}, plot_params={}, subplot_params={}, fig=None, ax=None):
         '''
-        makes mole fraction contour plot
-        
+        Creates mole fraction contour plot
+
+        Sends parameters to phys._plots plot_contour function and runs it.
+        '''
+        return plot_contour(data_type='mole', jet_or_flame=self,
+                            mcolors=mcolors, xlims=xlims, ylims=ylims, vlims=vlims,
+                            contour_levels=contour_levels, add_colorbar=add_colorbar, plot_color=plot_color,
+                            plot_title=plot_title, x_label=x_label, y_label=y_label,
+                            fig_params=fig_params, plot_params=plot_params,
+                            subplot_params=subplot_params, ax=ax, fig=fig)
+
+    def plot_massFrac_contour(self, mcolors='w', xlims=None, ylims=None, vlims=(0,1),
+                              contour_levels=None, addColorBar=True, plot_color=None,
+                              plot_title=None, x_label=None, y_label=None,
+                              fig_params={}, plot_params={}, subplot_params={}, fig=None, ax=None):
+        '''
+        Creates mass fraction contour plot
+
+        Sends parameters to phys._plots plot_contour function and runs it.
+        '''
+        return plot_contour(data_type='mass', jet_or_flame=self,
+                            mcolors=mcolors, xlims=xlims, ylims=ylims, vlims=vlims,
+                            contour_levels=contour_levels, add_colorbar=addColorBar, plot_color=plot_color,
+                            plot_title=plot_title, x_label=x_label, y_label=y_label,
+                            fig_params=fig_params, plot_params=plot_params,
+                            subplot_params=subplot_params, ax=ax, fig=fig)
+
+    def plot_velocity_contour(self, mcolors='w', xlims=None, ylims=None, vlims=(0,0.1),
+                              contour_levels=None, addColorBar=True, plot_color=None,
+                              plot_title=None, x_label=None, y_label=None,
+                              fig_params={}, plot_params={}, subplot_params={}, fig=None, ax=None):
+        '''
+        Creates velocity contour plot
+
+        Sends parameters to phys._plots plot_contour function and runs it.
+        '''
+        return plot_contour(data_type='velocity', jet_or_flame=self,
+                            mcolors=mcolors, xlims=xlims, ylims=ylims, vlims=vlims,
+                            contour_levels=contour_levels, add_colorbar=addColorBar, plot_color=plot_color,
+                            plot_title=plot_title, x_label=x_label, y_label=y_label,
+                            fig_params=fig_params, plot_params=plot_params,
+                            subplot_params=subplot_params, ax=ax, fig=fig)
+
+    def get_streamline_distances_to_mole_fractions(self, fracs):
+        """
+        Returns the streamline distance to a given mole fraction
+
         Parameters
         ----------
-        mark: list or None, optional
-            levels to draw contour lines (mole fractions, or None if None desired)
-        mcolors: color or list of colors, optional
-            colors of marked contour leves
-        xlims: tuple, optional
-            tuple of (xmin, xmax) for contour plot
-        ylims: tuple, optional
-            tuple of (ymin, ymax) for contour plot
-        vmin: float, optional
-            minimum mole fraction for contour plot
-        vmax: float, optional
-            maximum mole fraction for contour plot
-        addColorBar: boolean, optional
-            whether to add a colorbar to the plot
-        aspect: float, optional
-            aspect ratio of plot
-        fig_params: dict or None, optional
-            dictionary of figure parameters (e.g. figsize)
-        subplots_params: dict or None, optional
-            dictionary of subplots_adjust parameters (e.g. top)
-        ax: optional
-            axes on which to make the plot
-        '''
-        # Initialize missing params
-        if subplots_params is None:
-            subplots_params = {}
-        if fig_params is None:
-            fig_params = {}
-        # Make figure and axis if not specified
-        if ax is None and fig is None:
-            fig, ax = plt.subplots(**fig_params)
-            plt.subplots_adjust(**subplots_params)
-        elif ax is None and fig is not None:
-            ax = fig.subplots(**fig_params)
-            plt.subplots_adjust(**subplots_params)
-        
-        # Get background color for contour
-        ax.set_facecolor(plt.cm.get_cmap()(0)) #old matplotlib: ax.set_axis_bgcolor
-        
-        # Get contour data to plot
-        x, y, X, __, __, __ = self._contourdata
-        
-        # Plot contour data
-        if np.amax(X) > vmax and np.amin(X) < vmin:
-            ExtStr = 'both'
-        elif np.amax(X) > vmax and np.amin(X) >= vmin:
-            ExtStr = 'max'
-        elif np.amax(X) <= vmax and np.amin(X) < vmin:
-            ExtStr = 'min'
-        else:
-            ExtStr = 'neither'
-        if contlvls:
-            contourlevels = np.linspace(vmin, vmax, 11)
-            cp = ax.contourf(x, y, X, contourlevels, extend = ExtStr,alpha=0.5)
-        else:
-            contourlevels = np.linspace(vmin, vmax, 101)
-            cp = ax.contourf(x, y, X, contourlevels, extend = ExtStr)
-
-        # Change axis limits if specified
-        if xlims is not None:
-            ax.set_xlim(*xlims)
-        if ylims is not None:
-            ax.set_ylim(*ylims)
-
-        # Set aspect ratio if specified
-        if aspect is not None:
-            ax.set_aspect(aspect)
-
-        # Add specific contours if desired
-        if mark is not None:
-            mark = [FuelProperties(self.fluid.species).LFL if value == 'LFL' else value for value in mark]
-            mark = [FuelProperties(self.fluid.species).UFL if value == 'UFL' else value for value in mark]
-            CS = ax.contour(x, y, X, levels = np.sort(mark), colors = mcolors, linewidths = 1.5)
-            fig.canvas.draw_idle()
-            if xlims is not None and ylims is not None:
-                manual = [self.streamline_distance_to_mole_fraction(m)*np.array([np.cos(self.theta[0]), np.sin(self.theta[0])])*.7
-                          for m in mark]
-            else:
-                manual = False
-            ax.clabel(CS, levels = CS.levels, inline = True, manual = manual, inline_spacing = 2)
-
-        # Add colorbar if desired
-        if addColorBar:
-            axsize = ax.get_window_extent()
-            if axsize.width <= axsize.height:
-                cb_kwargs = {}
-                cb_label_kwargs = {'rotation':-90, 'va':'bottom'}
-            else:
-                cb_kwargs = {'orientation':'horizontal'}
-                cb_label_kwargs = {}
-            cb = plt.colorbar(cp, ticks = MaxNLocator().tick_values(vmin, vmax), **cb_kwargs)
-            cb.set_label('Mole Fraction', **cb_label_kwargs)
-        
-        # Set axis labels
-        ax.set_xlabel(xlab)
-        ax.set_ylabel(ylab)
-
-        # Set plot title if specified
-        if plot_title is not None:
-            ax.set_title(plot_title)
-        
-        return fig
-    
-    def plot_massFrac_Contour(self, mark = None, mcolors = 'w', 
-                              xlims = None, ylims = None,
-                              xlab = 'x (m)', ylab = 'y (m)',
-                              vmin = 0, vmax = 1, levels = 100,
-                              addColorBar = True, aspect = 1, 
-                              fig_params=None, subplots_params=None, ax = None):
-        '''
-        makes mole fraction contour plot
-        
-        Parameters
-        ----------
-        mark: list, optional
-            levels to draw contour lines (mass fractions, or None if None desired)
-        mcolors: color or list of colors, optional
-            colors of marked contour leves
-        xlims: tuple, optional
-            tuple of (xmin, xmax) for contour plot
-        ylims: tuple, optional
-            tuple of (ymin, ymax) for contour plot
-        vmin: float, optional
-            minimum mole fraction for contour plot
-        vmax: float, optional
-            maximum mole fraction for contour plot
-        levels: int, optional
-            number of contours levels to draw
-        addColorBar: boolean, optional
-            whether to add a colorbar to the plot
-        aspect: float, optional
-            aspect ratio of plot
-        fig_params: dict or None, optional
-            dictionary of figure parameters (e.g. figsize)
-        subplots_params: dict or None, optional
-            dictionary of subplots_adjust parameters (e.g. top)
-        ax: optional
-            axes on which to make the plot
-        '''
-        if subplots_params is None:
-            subplots_params = {}
-        if fig_params is None:
-            fig_params = {}
-        if ax is None:
-            fig, ax = plt.subplots(**fig_params)
-            plt.subplots_adjust(**subplots_params)
-
-        ax.set_facecolor(plt.cm.get_cmap()(0))
-        x, y, __, Y, __, __ = self._contourdata
-        cp = ax.contourf(x, y, Y, levels, vmin = vmin, vmax = vmax)
-        if mark is not None:
-            ax.contour(x, y, Y, levels = mark, colors = mcolors, linewidths = 1.5)
-        
-        if xlims is not None:
-            ax.set_xlim(*xlims)
-        if ylims is not None:
-            ax.set_ylim(*ylims)
-        
-        if addColorBar:
-            cb = plt.colorbar(cp)
-            cb.set_label('Mass Fraction', rotation = -90, va = 'bottom')
-        ax.set_xlabel(xlab)
-        ax.set_ylabel(ylab)
-        if aspect is not None:
-            ax.set_aspect(aspect)
-        return fig
-    
-    def plot_velocity_Contour(self, mark = None, mcolors = 'w', 
-                              xlims = None, ylims = None,
-                              xlab = 'x (m)', ylab = 'y (m)',
-                              levels = 100,
-                              addColorBar = True, aspect = 1, 
-                              fig_params=None, subplots_params=None, ax=None, **kwargs):
-        '''
-        makes mole fraction contour plot
-        
-        Parameters
-        ----------
-        mark: list, optional
-            levels to draw contour lines (mass fractions, or None if None desired)
-        mcolors: color or list of colors, optional
-            colors of marked contour leves
-        xlims: tuple, optional
-            tuple of (xmin, xmax) for contour plot
-        ylims: tuple, optional
-            tuple of (ymin, ymax) for contour plot
-        vmin: float, optional
-            minimum mole fraction for contour plot
-        vmax: float, optional
-            maximum mole fraction for contour plot
-        levels: int, optional
-            number of contours levels to draw
-        addColorBar: boolean, optional
-            whether to add a colorbar to the plot
-        aspect: float, optional
-            aspect ratio of plot
-        fig_params: dict or None, optional
-            dictionary of figure parameters (e.g. figsize)
-        subplots_params: dict or None, optional
-            dictionary of subplots_adjust parameters (e.g. top)
-        ax: optional
-            axes on which to make the plot
-        '''
-        if subplots_params is None:
-            subplots_params = {}
-        if fig_params is None:
-            fig_params = {}
-        if ax is None:
-            fig, ax = plt.subplots(**fig_params)
-            plt.subplots_adjust(**subplots_params)
-        ax.set_facecolor(plt.cm.get_cmap()(0))
-        x, y, __, __, v, __ = self._contourdata
-        cp = ax.contourf(x, y, v, levels, **kwargs)
-        if mark is not None:
-            cp2 = ax.contour(x, y, v, levels = mark, colors = mcolors, lw = 1.5, **kwargs)
-        
-        if xlims is not None:
-            ax.set_xlim(*xlims)
-        if ylims is not None:
-            ax.set_ylim(*ylims)
-        
-        if addColorBar:
-            cb = plt.colorbar(cp)
-            cb.set_label('Velocity', rotation = -90, va = 'bottom')
-        ax.set_xlabel(xlab)
-        ax.set_ylabel(ylab)
-        if aspect is not None:
-            ax.set_aspect(aspect)
-        return plt.gcf()
-    
-    def streamline_distance_to_mole_fraction(self, X = 0.08):
-        '''
-        returns the streamline distance to a given mole fraction
-        
-        Parameters
-        ----------
-        X: float
-          mole fraction
+        fracs: int, float, list-like
+            Mole fraction(s) of interest
 
         Returns
         -------
-        streamline distance to X_cl = X
-        '''
-        return np.interp(X, self.X_cl[::-1], self.S[::-1])
-    
+        streamline distances to centerline mole fraction of interest
+        """
+        return np.interp(fracs, self.X_cl[::-1], self.S[::-1])
+
+    def get_xy_distances_to_mole_fractions(self, fracs):
+        """
+        Calculates the minimum and maximum distances
+        along the x- and y-axes to mole fraction value(s) of interest
+
+        Parameters
+        ----------
+        fracs: int, float, list-like
+            Mole fraction(s) of interest
+
+        Returns
+        -------
+        distances: dictionary
+            Minimum and maximum distances of the form:
+            {
+                contour1: {[(min_x, max_x), (min_y, max_y)]},
+                contour2: {...}
+            }
+        """
+        fracs = [fracs] if type(fracs) in [int, float] else fracs
+        contours = np.sort(fracs)
+        x_values, y_values, molefrac_values, __, __, __ = self._contourdata
+        cs = plt.contour(x_values, y_values, molefrac_values, levels=contours)
+        distances = {}
+        for contour, clc in zip(contours, cs.collections):
+            for path in clc.get_paths():
+                xs, ys = path.vertices.transpose()
+
+                xmin, xmax = min(xs), max(xs)
+                xmin = 0 if xmin > 0 and xmax > 0 else xmin
+                xmax = 0 if xmin < 0 and xmax < 0 else xmax
+
+                ymin, ymax = min(ys), max(ys)
+                ymin = 0 if ymin > 0 and ymax > 0 else ymin
+                ymax = 0 if ymin < 0 and ymax < 0 else ymax
+
+                distances[contour] = [(xmin, xmax), (ymin, ymax)]
+        return distances

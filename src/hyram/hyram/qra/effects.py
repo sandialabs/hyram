@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -20,7 +20,7 @@ def calc_thermal_effects(amb_fluid, rel_fluid, rel_angle,
                          site_length, site_width,
                          orifices, rel_humid,
                          not_nozzle_model,
-                         locations,
+                         locations, developing_flows = None, chem = None,
                          create_plots=True, output_dir=None, verbose=False):
     """
     Calculates thermal effects for all positions in QRA
@@ -56,6 +56,12 @@ def calc_thermal_effects(amb_fluid, rel_fluid, rel_angle,
         List of locations at which to determine thermal effects,
         each location is a tuple of 3 coordinates (m):
         [(x1, y1, z1), (x2, y2, z2), ...]
+        
+    developing_flows : DevelopingFlow objects
+        Specified DevelopingFlows - same length as orifices
+        
+    chem : Combustion object
+        Specified Combustion chemistry
 
     create_plots : bool
         Whether plot files should be created
@@ -84,11 +90,18 @@ def calc_thermal_effects(amb_fluid, rel_fluid, rel_angle,
 
     all_qrads = np.zeros((num_sizes, num_positions))
     all_pos_filepaths = []
-    for i, orifice in enumerate(orifices):
-        flame = _flame.Flame(rel_fluid, orifice, amb_fluid,
-                             theta0=rel_angle,
-                             nn_conserve_momentum=cons_momentum, nn_T=notional_noz_t,
-                             verbose=verbose)
+    if developing_flows is None:
+        developing_flows = len(orifices)*[None]
+    for i, (orifice, developing_flow) in enumerate(zip(orifices, developing_flows)):
+        if developing_flow is None:
+            flame = _flame.Flame(rel_fluid, orifice, amb_fluid,
+                                 theta0=rel_angle,
+                                 nn_conserve_momentum=cons_momentum, nn_T=notional_noz_t,
+                                 developing_flow=developing_flow, chem = chem,
+                                 verbose=verbose)
+        else:
+            flame = _flame.Flame.from_developed_flow(developing_flow=developing_flow, chem = chem,
+                                                     verbose=verbose)
 
         fluxes = flame.generate_positional_flux(locations, rel_humid)
 
@@ -127,7 +140,8 @@ def calc_overp_effects(orifices, notional_nozzle_model,
                        release_fluid, ambient_fluid, release_angle,
                        locations, site_length, site_width,
                        overp_method,
-                       BST_mach_flame_speed=None, TNT_equivalence_factor=None,
+                       BST_mach_flame_speed=None, TNT_equivalence_factor=None, 
+                       developing_flows = None,
                        create_plots=True, output_dir=None,
                        verbose=False):
     """
@@ -164,6 +178,9 @@ def calc_overp_effects(orifices, notional_nozzle_model,
     
     overp_method : {'bst', 'tnt', 'bauwens'}
         Overpressure harm model identifier
+
+    developing_flows : DevelopingFlow objects
+        Specified DevelopingFlow - same length as orifices
 
     BST_mach_flame_speed : float
         If overp_method is 'bst', this must be specified
@@ -216,11 +233,17 @@ def calc_overp_effects(orifices, notional_nozzle_model,
     all_impulses = np.zeros((num_sizes, num_positions))
     all_pos_overp_filepaths = []
     all_pos_impulse_filepaths = []
-    for i, orifice in enumerate(orifices):
+    if developing_flows is None:
+        developing_flows = len(orifices)*[None]
+    for i, (orifice, developing_flow) in enumerate(zip(orifices, developing_flows)):
         nozzle_cons_momentum, notional_noz_t = misc_utils.convert_nozzle_model_to_params(notional_nozzle_model, release_fluid)
-        jet = _jet.Jet(release_fluid, orifice, ambient_fluid,
-                       theta0=release_angle,
-                       nn_conserve_momentum=nozzle_cons_momentum, nn_T=notional_noz_t, verbose=verbose)
+        if developing_flow is None:
+            jet = _jet.Jet(release_fluid, orifice, ambient_fluid,
+                        theta0=release_angle,
+                        nn_conserve_momentum=nozzle_cons_momentum, nn_T=notional_noz_t, developing_flow=developing_flow, 
+                        verbose=verbose)
+        else:
+            jet = _jet.Jet.from_developed_flow(developing_flow=developing_flow, verbose=verbose)
 
         method = overp_method.lower()
         if method == 'bst':
@@ -318,18 +341,14 @@ def plot_effect_positions(effects, effect_label, filename, title,
     ax.plot(0, 0, 'bs', markersize=8, label='Leak Source')
     
     # Plot facility border
-    ax.add_patch(mplpatch.Rectangle((-.2, -.2), length+.2,
-                                    width+.2, fill=None))
+    ax.add_patch(mplpatch.Rectangle((-.2, -.2), length+.2, width+.2, fill=None))
     
     # Arrow representing flame direction, does not represent length/width
-    ax.arrow(0, 0, length/4, 0, head_width=0.7, alpha=1,
-             head_length=0.7, linewidth=0.3, fc='blue', ec='blue')
+    ax.arrow(0, 0, length/4, 0, head_width=0.7, alpha=1, head_length=0.7, linewidth=0.3, fc='blue', ec='blue')
     
     # Plot occupant positions, colored by effect
-    effect_ln = ax.scatter(x_locations, z_locations, s=36, c=effects,
-                           linewidths=0.5, edgecolors='black',
-                           cmap=plt.cm.get_cmap('plasma'))
-    
+    effect_ln = ax.scatter(x_locations, z_locations, s=36, c=effects, linewidths=0.5, edgecolors='black', cmap = plt.get_cmap('plasma'))
+
     # Plot formatting, colorbar, and saving
     ax.set_aspect('equal') 
     for spine in ['top', 'bottom', 'left', 'right']:

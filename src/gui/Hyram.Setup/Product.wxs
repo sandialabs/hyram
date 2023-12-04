@@ -11,10 +11,10 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 -->
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="C43A602E-82BA-4D0A-8AD7-1A69381EAB5C"
+  <Product Id="E6942435-825F-43F1-A908-229700C4300A"
            Name="HyRAM+"
            Language="1033"
-           Version="5.0"
+           Version="5.1"
            Manufacturer="Sandia National Laboratories"
            UpgradeCode="A6256A13-D1FE-4D2E-9BB8-DEE9FF314047"
            >

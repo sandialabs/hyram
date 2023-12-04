@@ -42,6 +42,9 @@
             <Component Id="cmp32A3CF2371A9A6912FA21E4B82AAE4B7" Directory="dir0D483AFE08CE557B8028AEB9CD311670" Guid="*">
                 <File Id="filA19240E3232909277C73ED1381408A77" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\_plots.py" />
             </Component>
+            <Component Id="cmp531059FEE0BE86F9470185BB13D71AD7" Directory="dir0D483AFE08CE557B8028AEB9CD311670" Guid="*">
+                <File Id="fil675EFF95FE098678B811C00332BDB2B3" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\_pool.py" />
+            </Component>
             <Component Id="cmpA81A46BB276E5166D621602D0D5F4743" Directory="dir0D483AFE08CE557B8028AEB9CD311670" Guid="*">
                 <File Id="filCFDA90A0CC2626BA32F9E2AEC6336B24" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\_therm.py" />
             </Component>
@@ -81,8 +84,8 @@
             <Component Id="cmp0AB1133F3E9B98552AD2DA009111BA1E" Directory="dir16BC304A3C66D86CD856D11DC8C19ACD" Guid="*">
                 <File Id="filBB5803C76C597EB473174548A1C37CCD" KeyPath="yes" Source="$(var.PythonLibsDir)\qra\leaks.py" />
             </Component>
-            <Component Id="cmpEF968276CD213928BD942DB2D1B510A0" Directory="dir16BC304A3C66D86CD856D11DC8C19ACD" Guid="*">
-                <File Id="fil15549AFF9A1C0A3D13630B086F0FF8A3" KeyPath="yes" Source="$(var.PythonLibsDir)\qra\leak_frequency.py" />
+            <Component Id="cmpE32C7E8E08BC80143C67F779106C2B7A" Directory="dir16BC304A3C66D86CD856D11DC8C19ACD" Guid="*">
+                <File Id="filA643091D682BEBF129B9C1F5670C6501" KeyPath="yes" Source="$(var.PythonLibsDir)\qra\leak_size_results.py" />
             </Component>
             <Component Id="cmp49E7837798D03AA4D261E74C2762856F" Directory="dir16BC304A3C66D86CD856D11DC8C19ACD" Guid="*">
                 <File Id="filB8859AD53110B7DA4C3BCA6E0599EB65" KeyPath="yes" Source="$(var.PythonLibsDir)\qra\pipe_size.py" />
@@ -95,6 +98,9 @@
             </Component>
             <Component Id="cmpB71F248E1A87202ABEEE2F6B7430CA0D" Directory="dir16BC304A3C66D86CD856D11DC8C19ACD" Guid="*">
                 <File Id="filC0DC36E7412B609356CE5747A2E0CBC3" KeyPath="yes" Source="$(var.PythonLibsDir)\qra\risk.py" />
+            </Component>
+            <Component Id="cmp142D03E84AAECB1C6E4FFAAF01729E60" Directory="dir16BC304A3C66D86CD856D11DC8C19ACD" Guid="*">
+                <File Id="filA104E02AE9120557C2C0CD3D5EEDD5ED" KeyPath="yes" Source="$(var.PythonLibsDir)\qra\_utils.py" />
             </Component>
             <Component Id="cmpAECF8FD2568859D740E86059D5EAF2A8" Directory="dir16BC304A3C66D86CD856D11DC8C19ACD" Guid="*">
                 <File Id="filBFE0A3679BB9EA56DB36AE7172D81D92" KeyPath="yes" Source="$(var.PythonLibsDir)\qra\__init__.py" />

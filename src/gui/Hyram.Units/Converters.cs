@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -364,46 +364,36 @@ namespace SandiaNationalLaboratories.Hyram
             switch (name)
             {
                 case "Distance":
-//                case "DistanceUnit":
                     result = Distance;
                     break;
                 case "Pressure":
-//                case "PressureUnit":
                     result = Pressure;
                     break;
                 case "Temperature":
-//                case "TempUnit":
                     result = Temperature;
                     break;
                 case "Unitless":
-//                case "UnitlessUnit":
                     result = Unitless;
                     break;
                 case "Time":
-//                case "TimeUnit":
                     result = ManpowerTime;
                     break;
                 case "JulianTime":
-//                case "JulianTimeUnit":
                     result = JulianTime;
                     break;
                 case "ElapsingTime":
-//                case "ElapsingTimeUnit":
                     result = ElapsingTime;
                     break;
                 case "Frequency":
                     result = Frequency;
                     break;
                 case "Energy":
-//                case "EnergyUnit":
                     result = Energy;
                     break;
                 case "Volume":
-//                case "VolumeUnit":
                     result = Volume;
                     break;
                 case "Density":
-//                case "DensityUnit":
                     result = Density;
                     break;
                 case "Angle":
@@ -447,6 +437,7 @@ namespace SandiaNationalLaboratories.Hyram
             if (converter == Mass && Enum.TryParse(name, out MassUnit uma)) return uma;
             if (converter == SpecificEnergy && Enum.TryParse(name, out SpecificEnergyUnit use)) return use;
             if (converter == Area && Enum.TryParse(name, out AreaUnit uar)) return uar;
+            if (converter == MassFlow && Enum.TryParse(name, out MassFlowUnit mfu)) return mfu;
             if (converter == VolumetricFlow && Enum.TryParse(name, out VolumetricFlowUnit uvf)) return uvf;
             if (converter == Unitless) return UnitlessUnit.Unitless;
 
@@ -534,11 +525,11 @@ namespace SandiaNationalLaboratories.Hyram
             _mUnits.Populate(ConverterName.MassFlow.ToString(),
                 new[]
                 {
-                    MassFlowUnit.KgPerSecond.ToString(),
+                    MassFlowUnit.KgPerSecond.ToString(), MassFlowUnit.KgPerMin.ToString()
                 },
                 new[]
                 {
-                    1D
+                    1D, 1/ 60D
                 });
         }
 

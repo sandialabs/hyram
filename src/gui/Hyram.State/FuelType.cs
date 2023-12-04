@@ -22,7 +22,8 @@ namespace SandiaNationalLaboratories.Hyram
         private double _amount;
         private bool _active = false;
 
-        public static event EventHandler FuelChangedEvent;
+        // Note: for clarity, this is fine-grained and should only be caught by state handler, not views.
+        public static event EventHandler FuelConcentrationChangedEvent;
 
         public FuelType(int id, string name, string key, double chokedFlowRatio, double criticalP, double amount,
                         double? lfl = null, bool active = false)
@@ -89,7 +90,7 @@ namespace SandiaNationalLaboratories.Hyram
                         _ignoreInternalChange = false;
                     }
 
-                    FuelChangedEvent?.Invoke(this, EventArgs.Empty);
+                    FuelConcentrationChangedEvent?.Invoke(this, EventArgs.Empty);
                 }
             }
 

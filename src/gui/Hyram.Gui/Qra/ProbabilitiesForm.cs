@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -17,22 +17,26 @@ using System.Windows.Forms;
 
 namespace SandiaNationalLaboratories.Hyram
 {
-    public partial class ProbabilitiesForm : AnalysisForm
+    public partial class ProbabilitiesForm : UserControl
     {
         private StateContainer _state = State.Data;
-        private const int ImmedIgnitionColumn = 1;
-        private const int DelayIgnitionColumn = 2;
+        private const int _immedIgnitionCol = 1;
+        private const int _delayIgnitionCol = 2;
+        private readonly MainForm _mainForm;
+        private bool _ignoreChangeEvents;
 
+        public string AlertMessage { get; set; } = "";
+        public AlertLevel Alert { get; set; } = AlertLevel.AlertNull;
 
         public ProbabilitiesForm(MainForm mainForm)
         {
             _ignoreChangeEvents = true;
 
-            MainForm = mainForm;
+            _mainForm = mainForm;
             InitializeComponent();
             RefreshForm();
 
-            _state.FuelTypeChangedEvent += delegate{RefreshForm();};
+            Load += delegate { RefreshForm(); };
 
             clmCFComponent.DefaultCellStyle.BackColor = Color.LightGray;
             clmCFFailureMode.DefaultCellStyle.BackColor = Color.LightGray;
@@ -86,21 +90,31 @@ namespace SandiaNationalLaboratories.Hyram
                 probTab.Columns[(int) Column.NinetyFifth].ReadOnly = true;
             }
 
-            ignitionProbabilitiesGrid.Columns[ImmedIgnitionColumn].DefaultCellStyle.Format = "N4";
-            ignitionProbabilitiesGrid.Columns[ImmedIgnitionColumn].DefaultCellStyle.NullValue = 0;
+            ignitionProbabilitiesGrid.Columns[_immedIgnitionCol].DefaultCellStyle.Format = "N4";
+            ignitionProbabilitiesGrid.Columns[_immedIgnitionCol].DefaultCellStyle.NullValue = 0;
 
-            ignitionProbabilitiesGrid.Columns[DelayIgnitionColumn].DefaultCellStyle.NullValue = 0;
+            ignitionProbabilitiesGrid.Columns[_delayIgnitionCol].DefaultCellStyle.NullValue = 0;
 
             _ignoreChangeEvents = false;
         }
 
 
-        public sealed override void RefreshForm()
+        public void RefreshForm()
         {
             var ignoreEvents = _ignoreChangeEvents;
             _ignoreChangeEvents = true;
 
             _state = State.Data;
+            if (!_state.AllowUncertainty)
+            {
+                uncertaintyTab.Visible = false;
+                uncertaintyTab.Hide();
+                dataProbabilitiesTabControl.TabPages.Remove(uncertaintyTab);
+            }
+
+            SampleOccupantsCheck.Checked = _state.SampleOccupants;
+            SampleLeaksCheck.Checked = _state.SampleLeaks;
+            SampleFailureCheck.Checked = _state.SampleFailures;
 
             clmCFDistributionType.DataSource = Enum.GetValues(typeof(DistributionChoice));
             clmAPDistributionType.DataSource = Enum.GetValues(typeof(DistributionChoice));
@@ -154,13 +168,16 @@ namespace SandiaNationalLaboratories.Hyram
             failuresGrid.DataSource = new BindingSource(new BindingList<FailureMode>(compFailures), null);
             accidentProbabilitiesGrid.DataSource = new BindingSource(new BindingList<FailureMode>(accidentFailures), null);
 
+            SeedInput.Text = (Math.Truncate(_state.RandomSeed.GetValue())).ToString();
+            NumSamplesInput.Text = (Math.Truncate(_state.NumSamples.GetValue())).ToString();
+
             PopulateFormIgnitionData();
 
             CheckFormValid();
             _ignoreChangeEvents = ignoreEvents;
         }
 
-        public override void CheckFormValid()
+        public void CheckFormValid()
         {
             Alert = AlertLevel.AlertNull;
             AlertMessage = "";
@@ -170,8 +187,7 @@ namespace SandiaNationalLaboratories.Hyram
             if (fuel != _state.FuelH2)
             {
                 Alert = AlertLevel.AlertWarning;
-                AlertMessage = "Default data for failures were generated for " +
-                               "high pressure gaseous hydrogen systems and may not be appropriate for the selected fuel";
+                AlertMessage = Notifications.DispenserNonDefaultFluidWarning;
             }
 
             formWarning.Visible = Alert != AlertLevel.AlertNull;
@@ -179,7 +195,7 @@ namespace SandiaNationalLaboratories.Hyram
             formWarning.BackColor = _state.AlertBackColors[(int)Alert];
             formWarning.ForeColor = _state.AlertTextColors[(int)Alert];
 
-            MainForm.NotifyOfChildPublicStateChange();
+            _mainForm.NotifyOfChildPublicStateChange();
         }
 
         /// <summary>
@@ -303,13 +319,13 @@ namespace SandiaNationalLaboratories.Hyram
             {
                 var valueIndex = rowIndex;
                 var thisRow = ignitionProbabilitiesGrid.Rows[rowIndex];
-                thisRow.Cells[ImmedIgnitionColumn].Value = immedIgnitionProbs[valueIndex];
+                thisRow.Cells[_immedIgnitionCol].Value = immedIgnitionProbs[valueIndex];
             }
             for (var rowIndex = 0; rowIndex < delayIgnitionProbs.Length; rowIndex++)
             {
                 var valueIndex = rowIndex;
                 var thisRow = ignitionProbabilitiesGrid.Rows[rowIndex];
-                thisRow.Cells[DelayIgnitionColumn].Value = delayIgnitionProbs[valueIndex].ToString("F4");
+                thisRow.Cells[_delayIgnitionCol].Value = delayIgnitionProbs[valueIndex].ToString("F4");
             }
         }
 
@@ -317,8 +333,8 @@ namespace SandiaNationalLaboratories.Hyram
         {
             if (!_ignoreChangeEvents)
             {
-                var immedIgnitionProbs = GetColumnData(ignitionProbabilitiesGrid, ImmedIgnitionColumn);
-                var delayIgnitionProbs = GetColumnData(ignitionProbabilitiesGrid, DelayIgnitionColumn);
+                var immedIgnitionProbs = GetColumnData(ignitionProbabilitiesGrid, _immedIgnitionCol);
+                var delayIgnitionProbs = GetColumnData(ignitionProbabilitiesGrid, _delayIgnitionCol);
                 var ignitionThresholds = new double[ignitionRatesListBox.Items.Count];
                 var lbItems = new object[ignitionRatesListBox.Items.Count];
                 ignitionRatesListBox.Items.CopyTo(lbItems, 0);
@@ -507,7 +523,7 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void ignitionProbabilitiesGrid_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            if ((e.ColumnIndex == DelayIgnitionColumn || e.ColumnIndex == ImmedIgnitionColumn) &&
+            if ((e.ColumnIndex == _delayIgnitionCol || e.ColumnIndex == _immedIgnitionCol) &&
                 e.Value != null)
             {
                 if (double.TryParse(e.Value.ToString(), out double val))
@@ -519,7 +535,7 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void ignitionProbabilitiesGrid_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
-            if (e.ColumnIndex == DelayIgnitionColumn || e.ColumnIndex == ImmedIgnitionColumn)
+            if (e.ColumnIndex == _delayIgnitionCol || e.ColumnIndex == _immedIgnitionCol)
             {
                 if (!double.TryParse(e.FormattedValue.ToString(), out var newVal) || newVal < 0)
                 {
@@ -536,6 +552,49 @@ namespace SandiaNationalLaboratories.Hyram
         private void ignitionProbabilitiesGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             StoreIgnitionProbabilities();
+        }
+
+        private void SeedInput_TextChanged(object sender, EventArgs e)
+        {
+            if (int.TryParse(SeedInput.Text, out int val))
+            {
+                _state.RandomSeed.SetValue(val);
+            }
+            else
+            {
+                SeedInput.Text = _state.RandomSeed.GetValue().ToString();
+            }
+
+        }
+
+        private void SampleOccupantsCheck_CheckedChanged(object sender, EventArgs e)
+        {
+            _state.SampleOccupants = SampleOccupantsCheck.Checked;
+
+        }
+
+        private void SampleLeaksCheck_CheckedChanged(object sender, EventArgs e)
+        {
+            _state.SampleLeaks = SampleLeaksCheck.Checked;
+
+        }
+
+        private void SampleFailureCheck_CheckedChanged(object sender, EventArgs e)
+        {
+            _state.SampleFailures = SampleFailureCheck.Checked;
+        }
+
+        private void NumSamplesInput_TextChanged(object sender, EventArgs e)
+        {
+            if (int.TryParse(NumSamplesInput.Text, out int val))
+            {
+                _state.NumSamples.SetValue(val);
+            }
+            else
+            {
+                NumSamplesInput.Text = _state.NumSamples.GetValue().ToString();
+            }
+
         }
     }
 }

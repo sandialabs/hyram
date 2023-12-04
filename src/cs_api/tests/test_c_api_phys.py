@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -13,7 +13,7 @@ from unittest import skip
 import numpy as np
 from scipy import constants as const
 
-from cs_api import phys
+from cs_api import phys, utils
 from hyram.utilities import misc_utils
 
 
@@ -30,7 +30,7 @@ class IndoorReleaseTestCase(unittest.TestCase):
     """
     def setUp(self):
         self.output_dir = misc_utils.get_temp_folder()
-        phys.setup(self.output_dir, verbose=VERBOSE)
+        utils.setup_file_log(self.output_dir, verbose=VERBOSE)
 
     def tearDown(self):
         pass
@@ -288,7 +288,7 @@ class TestFlameTempPlotGeneration(unittest.TestCase):
     """
     def setUp(self):
         self.output_dir = misc_utils.get_temp_folder()
-        phys.setup(self.output_dir, verbose=VERBOSE)
+        utils.setup_file_log(self.output_dir, verbose=VERBOSE)
         self.params = {'rel_species': {'h2': 1},
                        'amb_temp': 288.15,
                        'amb_pres': 101325.,
@@ -350,7 +350,7 @@ class TestRadHeatAnalysis(unittest.TestCase):
     """
     def setUp(self):
         self.output_dir = misc_utils.get_temp_folder()
-        phys.setup(self.output_dir, VERBOSE)
+        utils.setup_file_log(self.output_dir, verbose=VERBOSE)
         self.params = {
             'rel_species': {'h2': 1},
             'amb_temp': 288.15,

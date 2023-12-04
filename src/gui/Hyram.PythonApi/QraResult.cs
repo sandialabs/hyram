@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -20,28 +20,40 @@ namespace SandiaNationalLaboratories.Hyram
     public class LeakResult
     {
         public string LeakSize;
+
+        // these are 50% values for UQ analysis
         public double CompressorLeakFreq;
         public double VesselLeakFreq;
-        public double ExplosAvgEvents;
-        public double ExplosionPllContrib;
-        public double ExtraComp1LeakFreq;
-        public double ExtraComp2LeakFreq;
-        public double FilterLeakFreq;
-        public double FlangeLeakFreq;
-        public double HoseLeakFreq;
+        public double ValveLeakFreq;
         public double InstrumentLeakFreq;
         public double JointLeakFreq;
+        public double HoseLeakFreq;
         public double PipeLeakFreq;
-        public double ValveLeakFreq;
+        public double FilterLeakFreq;
+        public double FlangeLeakFreq;
         public double ExchangerLeakFreq;
         public double VaporizerLeakFreq;
         public double ArmLeakFreq;
+        public double ExtraComp1LeakFreq;
+        public double ExtraComp2LeakFreq;
+
+        public double CompressorLeakFreq95;
+        public double VesselLeakFreq95;
+        public double ValveLeakFreq95;
+        public double InstrumentLeakFreq95;
+        public double JointLeakFreq95;
+        public double HoseLeakFreq95;
+        public double PipeLeakFreq95;
+        public double FilterLeakFreq95;
+        public double FlangeLeakFreq95;
+        public double ExchangerLeakFreq95;
+        public double VaporizerLeakFreq95;
+        public double ArmLeakFreq95;
+        public double ExtraComp1LeakFreq95;
+        public double ExtraComp2LeakFreq95;
 
         public double MassFlowRate;
         public double LeakDiam;
-
-        // -1 if not used
-        public double H2ReleaseOverride;
 
         // Accident and shutdown failures for 100% leak size
         public double ProbOverpressureRupture;
@@ -56,18 +68,32 @@ namespace SandiaNationalLaboratories.Hyram
         public double FreqSolValvesFtc;
         public double TotalFreqOtherFailures;
 
-        public double ProbExplosion;
-        public double ProbJetfire;
-        public double ProbNoIgnition;
         public double ProbShutdown;
-
-        public double JetfireAvgEvents;
-        public double JetfirePllContrib;
-        public double NoIgnAvgEvents;
         public double ShutdownAvgEvents;
+        public double ShutdownAvgEventsMax;
 
-        // Flag to check if override given. If ManualOverride is true, then only TotalProb will be shown.
-        public double VehicleFailureOverride;
+        public double ProbJetfire;
+        public double JetfireAvgEvents;
+        public double JetfireAvgEventsMax;
+        public double JetfirePllContrib;
+
+        public double ProbNoIgnition;
+        public double NoIgnAvgEvents;
+        public double NoIgnAvgEventsMax;
+
+        public double ProbExplosion;
+        public double ExplosAvgEvents;
+        public double ExplosAvgEventsMax;
+        public double ExplosionPllContrib;
+
+        // UQ 95% data
+        public double TotalFreqOtherFailures95;
+        public double FreqOverpressureRupture95;
+        public double FreqDriveoffs95;
+        public double FreqNozzleRelease95;
+        public double FreqMValveFtc95;
+        public double FreqSolValvesFtc95;
+
 
         public string GetLeakSizeString()
         {
@@ -91,6 +117,7 @@ namespace SandiaNationalLaboratories.Hyram
     /// </summary>
     public class QraResult
     {
+        private readonly StateContainer _state = State.Data;
         public double Air;
         public double Far;
         public List<LeakResult> LeakResults;
@@ -120,7 +147,6 @@ namespace SandiaNationalLaboratories.Hyram
             PositionImpulses = (double[][])(dynamic)pyResult["position_impulses"];
             ImpulsePlotFiles = (string[])(dynamic)pyResult["impulse_plot_files"];
 
-
             // Parse scenario data for each leak size into objects
             dynamic leakResultData = pyResult["leak_results"];
             LeakResults = new List<LeakResult>();
@@ -133,18 +159,23 @@ namespace SandiaNationalLaboratories.Hyram
 
                 double probShutdown = 0;
                 double shutdownAvgEvents = 0;
+                double shutdownAvgEventsMax = 0;
 
                 double probJetfire = 0;
                 double jetfireAvgEvents = 0;
+                double jetfireAvgEventsMax = 0;
                 double jetfirePllContrib = 0;
 
                 double probNoIgnition = 0;
                 double noIgnAvgEvents = 0;
+                double noIgnAvgEventsMax = 0;
 
                 double probExplosion = 0;
                 double explosAvgEvents = 0;
+                double explosAvgEventsMax = 0;
                 double explosionPllContrib = 0;
 
+                // TODO: extract min, max values when uncertain
                 // Fill parameters from possibly-unordered list of dicts via key comparison.
                 for (var j = 0; j < numEvents; j++)
                 {
@@ -172,6 +203,10 @@ namespace SandiaNationalLaboratories.Hyram
                         explosAvgEvents = (double) eventDict["events"];
                         explosionPllContrib = (double) eventDict["pll"];
                     }
+                    else if (key == "tot")
+                    {
+                        ;
+                    }
                     else
                     {
                         throw new InvalidOperationException("Event type not recognized");
@@ -182,37 +217,43 @@ namespace SandiaNationalLaboratories.Hyram
                 var leakSize = ((double) res["leak_size"]).ToString("000.00");
                 var massFlowRate = (double) res["mass_flow_rate"];
                 var leakDiam = (double) res["leak_diam"];
-                var h2ReleaseOverride = (double) res["release_freq_override"];
 
-                var compressorLeakFreq = (double) res["component_leak_freqs"]["compressor"];
-                var vesselLeakFreq = (double) res["component_leak_freqs"]["vessel"];
-                var valveLeakFreq = (double) res["component_leak_freqs"]["valve"];
-                var instrumentLeakFreq = (double) res["component_leak_freqs"]["instrument"];
-                var jointLeakFreq = (double) res["component_leak_freqs"]["joint"];
-                var hoseLeakFreq = (double) res["component_leak_freqs"]["hose"];
-                var pipeLeakFreq = (double) res["component_leak_freqs"]["pipe"];
-                var filterLeakFreq = (double) res["component_leak_freqs"]["filter"];
-                var flangeLeakFreq = (double) res["component_leak_freqs"]["flange"];
-                var exchangerLeakFreq = (double) res["component_leak_freqs"]["exchanger"];
-                var vaporizerLeakFreq = (double) res["component_leak_freqs"]["vaporizer"];
-                var armLeakFreq = (double) res["component_leak_freqs"]["arm"];
-                var extraComp1LeakFreq = (double) res["component_leak_freqs"]["extra1"];
-                var extraComp2LeakFreq = (double) res["component_leak_freqs"]["extra2"];
+                var compressorLeakFreq = (double) res["f_component_leaks"]["compressor"];
+                var vesselLeakFreq = (double) res["f_component_leaks"]["vessel"];
+                var valveLeakFreq = (double) res["f_component_leaks"]["valve"];
+                var instrumentLeakFreq = (double) res["f_component_leaks"]["instrument"];
+                var jointLeakFreq = (double) res["f_component_leaks"]["joint"];
+                var hoseLeakFreq = (double) res["f_component_leaks"]["hose"];
+                var pipeLeakFreq = (double) res["f_component_leaks"]["pipe"];
+                var filterLeakFreq = (double) res["f_component_leaks"]["filter"];
+                var flangeLeakFreq = (double) res["f_component_leaks"]["flange"];
+                var exchangerLeakFreq = (double) res["f_component_leaks"]["exchanger"];
+                var vaporizerLeakFreq = (double) res["f_component_leaks"]["vaporizer"];
+                var armLeakFreq = (double) res["f_component_leaks"]["arm"];
+                var extraComp1LeakFreq = (double) res["f_component_leaks"]["extra1"];
+                var extraComp2LeakFreq = (double) res["f_component_leaks"]["extra2"];
 
-                var nextLeakRes = new LeakResult
+                var result = new LeakResult
                 {
                     LeakSize = leakSize,
                     ProbJetfire = probJetfire,
                     JetfireAvgEvents = jetfireAvgEvents,
+                    JetfireAvgEventsMax = jetfireAvgEventsMax,
                     JetfirePllContrib = jetfirePllContrib,
+
                     ProbExplosion = probExplosion,
                     ExplosAvgEvents = explosAvgEvents,
-                    ShutdownAvgEvents = shutdownAvgEvents,
-                    NoIgnAvgEvents = noIgnAvgEvents,
+                    ExplosAvgEventsMax = explosAvgEventsMax,
                     ExplosionPllContrib = explosionPllContrib,
-                    ProbNoIgnition = probNoIgnition,
+
                     ProbShutdown = probShutdown,
-                    H2ReleaseOverride = h2ReleaseOverride,
+                    ShutdownAvgEvents = shutdownAvgEvents,
+                    ShutdownAvgEventsMax = shutdownAvgEventsMax,
+
+                    ProbNoIgnition = probNoIgnition,
+                    NoIgnAvgEvents = noIgnAvgEvents,
+                    NoIgnAvgEventsMax = noIgnAvgEventsMax,
+
                     MassFlowRate = massFlowRate,
                     LeakDiam = leakDiam,
 
@@ -232,37 +273,63 @@ namespace SandiaNationalLaboratories.Hyram
                     ExtraComp2LeakFreq = extraComp2LeakFreq
                 };
 
+                if (_state.IsUncertain())
+                {
+                    // TODO: enable once available
+                    //result.CompressorLeakFreq95 = (double)res["f_component_leaks"]["compressor95"];
+                    //result.VesselLeakFreq95 = (double)res["f_component_leaks"]["vessel95"];
+                    //result.ValveLeakFreq95 = (double)res["f_component_leaks"]["valve95"];
+                    //result.InstrumentLeakFreq95 = (double)res["f_component_leaks"]["instrument95"];
+                    //result.JointLeakFreq95 = (double)res["f_component_leaks"]["joint95"];
+                    //result.HoseLeakFreq95 = (double)res["f_component_leaks"]["hose95"];
+                    //result.PipeLeakFreq95 = (double)res["f_component_leaks"]["pipe95"];
+                    //result.FilterLeakFreq95 = (double)res["f_component_leaks"]["filter95"];
+                    //result.FlangeLeakFreq95 = (double)res["f_component_leaks"]["flange95"];
+                    //result.ExchangerLeakFreq95 = (double)res["f_component_leaks"]["exchanger95"];
+                    //result.VaporizerLeakFreq95 = (double)res["f_component_leaks"]["vaporizer95"];
+                    //result.ArmLeakFreq95 = (double)res["f_component_leaks"]["arm95"];
+                    //result.ExtraComp1LeakFreq95 = (double)res["f_component_leaks"]["extra195"];
+                    //result.ExtraComp2LeakFreq95 = (double)res["f_component_leaks"]["extra295"];
+                }
+
                 if (i == 4)
                 {
-                    // Grab shutdown/accident failure data for 100% leak size
-                    nextLeakRes.VehicleFailureOverride = (double) res["fueling_fail_freq_override"];
-                    if (nextLeakRes.VehicleFailureOverride == -1.0)
+                    // Load shutdown/accident failure data for 100% leak size
+                    if (_state.FailureOverride.IsNull)
                     {
-                        nextLeakRes.ProbOverpressureRupture = (double) res["p_overp_rupture"];
-                        nextLeakRes.FreqOverpressureRupture = (double) res["f_overp_rupture"];
+                        result.ProbOverpressureRupture = (double) res["p_overp_rupture"];
+                        result.FreqOverpressureRupture = (double) res["f_overp_rupture"];
 
-                        nextLeakRes.ProbDriveoffs = (double) res["p_driveoff"];
-                        nextLeakRes.FreqDriveoffs = (double) res["f_driveoff"];
+                        result.ProbDriveoffs = (double) res["p_driveoff"];
+                        result.FreqDriveoffs = (double) res["f_driveoff"];
 
-                        nextLeakRes.ProbSolValvesFtc = (double) res["p_sol_valves_ftc"];
-                        nextLeakRes.FreqSolValvesFtc = (double) res["f_sol_valves_ftc"];
+                        result.ProbSolValvesFtc = (double) res["p_sol_valves_ftc"];
+                        result.FreqSolValvesFtc = (double) res["f_sol_valves_ftc"];
 
-                        nextLeakRes.ProbMValveFtc = (double) res["p_mvalve_ftc"];
-                        nextLeakRes.FreqMValveFtc = (double) res["f_mvalve_ftc"];
+                        result.ProbMValveFtc = (double) res["p_mvalve_ftc"];
+                        result.FreqMValveFtc = (double) res["f_mvalve_ftc"];
 
-                        nextLeakRes.ProbNozzleRelease = (double) res["p_nozzle_release"];
-                        nextLeakRes.FreqNozzleRelease = (double) res["f_nozzle_release"];
+                        result.ProbNozzleRelease = (double) res["p_nozzle_release"];
+                        result.FreqNozzleRelease = (double) res["f_nozzle_release"];
 
-                        nextLeakRes.TotalFreqOtherFailures = (double) res["fueling_fail_freq"];
+                        result.TotalFreqOtherFailures = (double) res["f_failure"];
+
+                        if (_state.IsUncertain())
+                        {
+                            //result.TotalFreqOtherFailures95 = (double) res["f_failure95"];
+                            //result.FreqOverpressureRupture = (double) res["f_overp_rupture95"];
+                            //result.FreqDriveoffs95 = (double) res["f_driveoff95"];
+                            //result.FreqSolValvesFtc95 = (double) res["f_sol_valves_ftc95"];
+                            //result.FreqMValveFtc95 = (double) res["f_mvalve_ftc95"];
+                            //result.FreqNozzleRelease95 = (double) res["f_nozzle_release95"];
+                        }
                     }
                     else
                     {
-                        nextLeakRes.TotalFreqOtherFailures = nextLeakRes.VehicleFailureOverride;
+                        result.TotalFreqOtherFailures = _state.FailureOverride.GetValue();
                     }
                 }
-
-                Trace.TraceInformation(nextLeakRes.ToString());
-                LeakResults.Add(nextLeakRes);
+                LeakResults.Add(result);
             }
         }
     }

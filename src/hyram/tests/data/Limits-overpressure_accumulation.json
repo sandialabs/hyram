@@ -1,0 +1,173 @@
+{
+    "Test_Ekoto_2012": {
+        "Ekoto et al. 2012 - Figure 9 Concentration vs. Time, S04 No Vent": {
+            "Max Absolute Error": 0.75,
+            "Avg Absolute Error": 0.03,
+            "Max Percent Error": 34114,
+            "Avg Percent Error": 645,
+            "R2": 0.319
+        },
+        "Ekoto et al. 2012 - Figure 9 Concentration vs. Time, S08 No Vent": {
+            "Max Absolute Error": 0.06,
+            "Avg Absolute Error": 0.03,
+            "Max Percent Error": 34108,
+            "Avg Percent Error": 3233,
+            "R2": 0.123
+        },
+        "Ekoto et al. 2012 - Figure 9 Concentration vs. Time, S11 No Vent": {
+            "Max Absolute Error": 0.06,
+            "Avg Absolute Error": 0.03,
+            "Max Percent Error": 34076,
+            "Avg Percent Error": 1434,
+            "R2": -0.0005
+        },
+        "Ekoto et al. 2012 - Figure 9 Concentration vs. Time, S04 No Vent 2": {
+            "Max Absolute Error": 0.09,
+            "Avg Absolute Error": 0.04,
+            "Max Percent Error": 34111,
+            "Avg Percent Error": 470,
+            "R2": 0.349
+        },
+        "Ekoto et al. 2012 - Figure 9 Concentration vs. Time, S08 No Vent 2": {
+            "Max Absolute Error": 0.06,
+            "Avg Absolute Error": 0.03,
+            "Max Percent Error": 34114,
+            "Avg Percent Error": 1811,
+            "R2": 0.066
+        },
+        "Ekoto et al. 2012 - Figure 9 Concentration vs. Time, S11 No Vent 2": {
+            "Max Absolute Error": 0.06,
+            "Avg Absolute Error": 0.03,
+            "Max Percent Error": 33514,
+            "Avg Percent Error": 1568,
+            "R2": 0.097
+        },
+		"Ekoto et al. 2012 - Figure 9 Concentration vs. Time, S04 Vent": {
+            "Max Absolute Error": 0.08,
+            "Avg Absolute Error": 0.03,
+            "Max Percent Error": 34208,
+            "Avg Percent Error": 622,
+            "R2": 0.398
+        },
+        "Ekoto et al. 2012 - Figure 9 Concentration vs. Time, S08 Vent": {
+            "Max Absolute Error": 0.06,
+            "Avg Absolute Error": 0.03,
+            "Max Percent Error": 34173,
+            "Avg Percent Error": 1301,
+            "R2": 0.052
+        },
+        "Ekoto et al. 2012 - Figure 9 Concentration vs. Time, S11 Vent": {
+            "Max Absolute Error": 0.06,
+            "Avg Absolute Error": 0.03,
+            "Max Percent Error": 34208,
+            "Avg Percent Error": 2138,
+            "R2": 0.052
+        },
+		"Ekoto et al. 2012 - Figure 14, Peak Pressure Test 12, Small vent w/ passive ventilation": {
+			"Max Absolute Error": 4.24,
+            "Avg Absolute Error": "--",
+            "Max Percent Error": 17.3,
+            "Avg Percent Error": "--",
+            "R2": "N/A"
+		},
+		"Ekoto et al. 2012 - Figure 14, Peak Pressure Test 11, Big vent w/ passive ventilation": {
+			"Max Absolute Error": 24.36,
+            "Avg Absolute Error": "--",
+            "Max Percent Error": 590,
+            "Avg Percent Error": "--",
+            "R2": "N/A"
+		},
+		"Ekoto et al. 2012 - Figure 14, Peak Pressure Test 10, Big vent w/ active ventilation": {
+			"Max Absolute Error": 25,
+            "Avg Absolute Error": "--",
+            "Max Percent Error": 830,
+            "Avg Percent Error": "--",
+            "R2": "N/A"
+		}
+    },
+	"Test_Giannissi_2015": {
+		"Giannissi et al. 2015 - Figure 7, Concentration v. Time, Sensor 18": {
+			"Max Absolute Error": 4.8,
+            "Avg Absolute Error": 2.7,
+            "Max Percent Error": 96,
+            "Avg Percent Error": 66,
+            "R2": 0.8
+		},
+		"Giannissi et al. 2015 - Figure 7, Concentration v. Time, Sensor 21": {
+			"Max Absolute Error": 4.9,
+            "Avg Absolute Error": 2.7,
+            "Max Percent Error": 96,
+            "Avg Percent Error": 64,
+            "R2": 0.8
+		},
+		"Giannissi et al. 2015 - Figure 7, Concentration v. Time, Sensor 27": {
+			"Max Absolute Error": 5,
+            "Avg Absolute Error": 2.9,
+            "Max Percent Error": 97,
+            "Avg Percent Error": 68,
+            "R2": 0.8
+		}
+	},
+	"Test_Merilo": {
+		"Merilo et al. 2011 - Figure 2, Concentration v. Time, Test 1": {
+			"Max Absolute Error": 7.1,
+            "Avg Absolute Error": 3.5,
+            "Max Percent Error": 38,
+            "Avg Percent Error": 20,
+            "R2": 0.93
+		},
+		"Merilo et al. 2011 - Figure 2, Concentration v. Time, Test 2": {
+			"Max Absolute Error": 4.7,
+            "Avg Absolute Error": 2.3,
+            "Max Percent Error": 24,
+            "Avg Percent Error": 12,
+            "R2": 0.93
+		},
+		"Merilo et al. 2011 - Figure 2, Concentration v. Time, Test 3": {
+			"Max Absolute Error": 1,
+            "Avg Absolute Error": 0.6,
+            "Max Percent Error": 19,
+            "Avg Percent Error": 11,
+            "R2": 0.93
+		},
+		"Merilo et al. 2011 - Figure 2, Concentration v. Time, Test 7": {
+			"Max Absolute Error": 3.8,
+            "Avg Absolute Error": 3,
+            "Max Percent Error": 26,
+            "Avg Percent Error": 21,
+            "R2": 0.89
+		}
+	},
+	"Test_BMHA_Fig7": {
+		"Bernard et al. 2017 - Figure 7, Concentration v. Flow Rate, d = 4mm": {
+			"Max Absolute Error": 1.2,
+            "Avg Absolute Error": 1,
+            "Max Percent Error": 120,
+            "Avg Percent Error": 62,
+            "R2": 0.99
+		},
+		"Bernard et al. 2017 - Figure 7, Concentration v. Flow Rate, d = 27mm": {
+			"Max Absolute Error": 2.3,
+            "Avg Absolute Error": 1.5,
+            "Max Percent Error": 125,
+            "Avg Percent Error": 79,
+            "R2": 0.99
+		}
+	},
+	"Test_BMHA_Fig9": {
+		"Bernard et al. 2017 - Figure 9, Concentration v. Flow Rate, d = 4mm": {
+			"Max Absolute Error": 3.3,
+            "Avg Absolute Error": 1.2,
+            "Max Percent Error": 49,
+            "Avg Percent Error": 27,
+            "R2": 0.98
+		},
+		"Bernard et al. 2017 - Figure 9, Concentration v. Flow Rate, d = 27mm": {
+			"Max Absolute Error": 4.2,
+            "Avg Absolute Error": 1.7,
+            "Max Percent Error": 59,
+            "Avg Percent Error": 39,
+            "R2": 0.96
+		}
+	}
+}

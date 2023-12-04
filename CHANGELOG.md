@@ -4,6 +4,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.0] - 2023-12-4
+
+### Added
+- Added ability to output streamline and x-/y-distances to mole fractions to unignited plume
+- Added carbon monoxide as a potential fuel in the Python backend
+
+### Changed
+- Moved python package metadata handling from setup.py/setup.cfg to pyproject.toml
+- Updated fault tree images in GUI to specify "Extra Component 1" rather than "Component 1"
+- Updated contour plotting functionality and moved code to phys/_plots.py
+- Added validation test suite for hydrogen physics based on the SAND2021-5811 report
+- Fixed a bug that was not allowing heat flux contours to be changed using the GUI
+- Added error handling to CoolPropWrapper's PropsSI that estimates solutions for edge cases where CoolProp cannot find one directly
+- Bauwens/Dorofeev unconfined overpressure model now calculates constant overpressure calculations very close to overpressure-origin to avoid division-by-zero
+- Updated Jet and Flame to utilize premade DevelopingFlow objects to speed up calculation
+- Updated QRA Analysis to use new Jet and Flame parameters
+- Added test in test_qra_effects for premade DevelopingFlow usage
+- Clarified back-end event tree calculations to simplify calculations, added corresponding tests
+- Allow blank (null) entries for QRA leak frequency overrides
+- Increase GUI size to 1366x768px
+- Simplify GUI form layouts
+- Add Shared State form encompassing shared parameters and fuel specifications
+- Improve form parameter grid cell validation
+- Add plot axis limit inputs for most Physics functionality
+- Added flammability limits as optional input to the Physics API overpressure calculation
+- Added flammable mass (detonable mass for Bauwens model) as an output to the Physics API overpressure calculation
+- Removed logging from physics and QRA modules and updated output to command line
+- Refine CoolPropWrapper PropsSI calls to general get_property function in phys/_therm.py
+- Calculation of Planck mean absorption coefficient (used in radiant fraction calculation) is now automatic based on the fuel 
+- Changed default propane leak frequency distribution values based on results from SAND2023-05818 report
+- Changed default component counts for all fuels, previously had zero (0) for all component types for all non-hydrogen fuels
+
+### Removed
+- Removed default random seed value for QRA in Python, so that a new value will be used for each run
+- Removed optional Python input to override event tree specification in QRA, was previously limited in what could actually be specified
+
+
 ## [5.0.0] - 2022-11-11
 
 ### Added

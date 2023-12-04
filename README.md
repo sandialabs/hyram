@@ -6,18 +6,18 @@ Additional descriptions and documentation, as well as a Windows installer, can b
 &nbsp;
 ## Copyright and License
 The copyright language is available in the [COPYRIGHT.txt](./COPYRIGHT.txt) file.
-The license, as well as terms and conditions, are available in the [COPYING.txt](./COPYING.txt) file. 
+The license, as well as terms and conditions, are available in the [COPYING.txt](./COPYING.txt) file.
 
 &nbsp;
 ## Contributing
 The application comprises a frontend GUI written in C# and a backend module written in Python.
-Anyone who wants to contribute to the development of the open-source HyRAM+ project should refer to the details in the [CONTRIBUTING](./CONTRIBUTING.md) document. 
+Anyone who wants to contribute to the development of the open-source HyRAM+ project should refer to the details in the [CONTRIBUTING](./CONTRIBUTING.md) document.
 
 &nbsp;
 ## Documentation
 The [HyRAM+ Technical Reference Manual](https://hyram.sandia.gov/) contains descriptions of the models and calculations used within HyRAM+. It also contains references to the original works that these models and calculations are based on.
 
-The [HyRAM 2.0 User Guide](https://energy.sandia.gov/download/44669/) contains details and examples on how to use the HyRAM+ software through the graphical user interface (GUI), with example calculations updated with changes to the interface and improved calculation options. This document more references how to use the software interface, rather than specifics on the models and calculations themselves. While there have been many changes to the current HyRAM+ version of the code, many of the examples are still applicable even though the User Guide is based on the previous version; a new version of the User Guide will be published in the future. 
+The [HyRAM 2.0 User Guide](https://energy.sandia.gov/download/44669/) contains details and examples on how to use the HyRAM+ software through the graphical user interface (GUI), with example calculations updated with changes to the interface and improved calculation options. This document more references how to use the software interface, rather than specifics on the models and calculations themselves. While there have been many changes to the current HyRAM+ version of the code, many of the examples are still applicable even though the User Guide is based on the previous version; a new version of the User Guide will be published in the future.
 
 &nbsp;
 ## Repository Layout

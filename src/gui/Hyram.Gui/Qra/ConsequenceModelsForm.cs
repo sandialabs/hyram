@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -8,25 +8,30 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
+using System.Windows.Forms;
 
 
 namespace SandiaNationalLaboratories.Hyram
 {
-    public partial class ConsequenceModelsForm : AnalysisForm
+    public partial class ConsequenceModelsForm : UserControl
     {
         private StateContainer _state = State.Data;
+        public string AlertMessage { get; set; } = "";
+        public AlertLevel Alert { get; set; } = AlertLevel.AlertNull;
+        // Keeps reference to parent to notify of state change; could change this to event.
+        private readonly MainForm _mainForm;
 
         public ConsequenceModelsForm(MainForm mainForm)
         {
             InitializeComponent();
-            MainForm = mainForm;
+            _mainForm = mainForm;
             RefreshForm();
         }
 
-        public sealed override void RefreshForm()
+        public void RefreshForm()
         {
             _state = State.Data;
-            var method = _state.SelectedOverpressureMethod;
+            var method = _state.OverpressureMethod;
 
             flameSpeedSelector.Enabled = method == _state.BstMethod;
             flameSpeedLabel.Enabled = method == _state.BstMethod;
@@ -39,7 +44,7 @@ namespace SandiaNationalLaboratories.Hyram
             notionalNozzleSelector.SelectedItem = _state.Nozzle;
 
             overpMethodSelector.DataSource = _state.OverpressureMethods;
-            overpMethodSelector.SelectedItem = _state.SelectedOverpressureMethod;
+            overpMethodSelector.SelectedItem = _state.OverpressureMethod;
 
             flameSpeedSelector.DataSource = _state.MachFlameSpeeds;
             flameSpeedSelector.SelectedItem = _state.OverpressureFlameSpeed;
@@ -70,13 +75,13 @@ namespace SandiaNationalLaboratories.Hyram
             CheckFormValid();
         }
 
-        public override void CheckFormValid()
+        public void CheckFormValid()
         {
             Alert = AlertLevel.AlertNull;
             AlertMessage = "";
 
             // Disallow Bauwens overpressure model with TNO overpressure probits
-            if (_state.SelectedOverpressureMethod == _state.BauwensMethod)
+            if (_state.OverpressureMethod == _state.BauwensMethod)
             {
                 if (_state.OverpressureProbit == _state.ProbitCollapse || _state.OverpressureProbit == _state.ProbitHead)
                 {
@@ -85,7 +90,6 @@ namespace SandiaNationalLaboratories.Hyram
                         "Overpressure method 'Bauwens' does not produce impulse values and cannot be used with " +
                         "overpressure probit models 'TNO - Head Impact' or 'TNO - Structural Collapse'";
                 }
-
             }
 
             formWarning.Visible = Alert != AlertLevel.AlertNull;
@@ -93,7 +97,7 @@ namespace SandiaNationalLaboratories.Hyram
             formWarning.BackColor = _state.AlertBackColors[(int)Alert];
             formWarning.ForeColor = _state.AlertTextColors[(int)Alert];
 
-            MainForm.NotifyOfChildPublicStateChange();
+            _mainForm.NotifyOfChildPublicStateChange();
         }
 
         private void exposureTimeInput_TextChanged(object sender, EventArgs e)
@@ -146,7 +150,7 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void overpMethodSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            _state.SelectedOverpressureMethod = (ModelPair) overpMethodSelector.SelectedItem;
+            _state.OverpressureMethod = (ModelPair) overpMethodSelector.SelectedItem;
             CheckFormValid();
             RefreshForm();
         }

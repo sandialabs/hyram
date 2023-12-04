@@ -1,9 +1,10 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
+
 """
 import unittest
 
@@ -14,6 +15,7 @@ import hyram.phys._unconfined_overpressure as hyram_overp
 from hyram.utilities import misc_utils
 
 VERBOSE = False
+
 
 class OverpressureBlendInputTestCase(unittest.TestCase):
     """ Test unconfined overpressure with blend-like fuel inputs. """
@@ -201,7 +203,7 @@ class BstMethodTestCase(unittest.TestCase):
         # Hand calculation and figure estimation by hand
         # VERY rough approximate value
         self.assertAlmostEqual(overpressure/202650, 202650/202650, places=0)
-    
+
     def test_calc_overpressure_array(self):
         locations = [np.array([5, 0, 0]), np.array([0, 5, 0])]  # m
         overpressure = self.BST_calc.calc_overpressure(locations=locations)  # Pa
@@ -333,6 +335,21 @@ class BauwensMethodTestCase(unittest.TestCase):
     def test_calc_energy(self):
         # test to check that result is non-zero
         self.assertGreater(self.Bauwens_calc.energy, 0)
+
+    def test_calc_scaled_overpressure(self):
+        scaled_distance = 3  # not 0, not 1
+        scaled_overpressure = Bauwens_method.calc_scaled_overpressure_from_dist(scaled_distance)
+        hand_calc_value = 0.0855
+        self.assertAlmostEqual(scaled_overpressure, hand_calc_value, places=3)
+
+    def test_calc_scaled_overpressure_zero_distance_error(self):
+        self.assertRaises(ZeroDivisionError, Bauwens_method.calc_scaled_overpressure_from_dist, 0)
+
+    def test_get_scaled_overpressure(self):
+        scaled_distances = np.array([0, 1, 2])  # including zero and non-zero distances
+        scaled_overpressures = self.Bauwens_calc.get_scaled_overpressure(scaled_distances)
+        for scaled_overpressure in scaled_overpressures:
+            self.assertGreater(scaled_overpressure, 0)
 
 
 class TntMethodTestCase(unittest.TestCase):

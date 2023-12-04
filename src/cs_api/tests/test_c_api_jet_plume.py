@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -11,7 +11,7 @@ import unittest
 
 from scipy import constants as const
 
-from cs_api import phys
+from cs_api import phys, utils
 from hyram.utilities import misc_utils
 
 
@@ -28,7 +28,7 @@ class H2JetPlumeTestCase(unittest.TestCase):
     """
     def setUp(self):
         self.output_dir = misc_utils.get_temp_folder()
-        phys.setup(self.output_dir, VERBOSE)
+        utils.setup_file_log(self.output_dir, verbose=VERBOSE)
         self.params = {'rel_species': {'h2': 1, 'ch4': 0},
                        'amb_temp': 288.15,
                        'amb_pres': 101325.,
@@ -40,7 +40,7 @@ class H2JetPlumeTestCase(unittest.TestCase):
                        'rel_angle': 1.5708,
                        'dis_coeff': 1.0,
                        'nozzle_model': 'yuce',
-                       'contour': 0.04,
+                       'contours': 0.04,
                        'xmin': -2.5,
                        'xmax': 2.5,
                        'ymin': 0,
@@ -89,13 +89,13 @@ class H2JetPlumeTestCase(unittest.TestCase):
         self.assertTrue(warning)
 
     def test_contour_invalid_0(self):
-        self.params['contour'] = 0.0
+        self.params['contours'] = 0.0
         wrapped = phys.analyze_jet_plume(**self.params)
         self.assertFalse(wrapped['status'])
         self.assertTrue(len(wrapped['message']))
 
     def test_contour_invalid_1(self):
-        self.params['contour'] = 1.0
+        self.params['contours'] = 1.0
         wrapped = phys.analyze_jet_plume(**self.params)
         self.assertFalse(wrapped['status'])
         self.assertTrue(len(wrapped['message']))
@@ -107,7 +107,7 @@ class LH2JetPlumeTestCase(unittest.TestCase):
     """
     def setUp(self):
         self.output_dir = misc_utils.get_temp_folder()
-        phys.setup(self.output_dir, VERBOSE)
+        utils.setup_file_log(self.output_dir, verbose=VERBOSE)
 
         self.params = {'rel_species': {'h2': 1},
                        'amb_temp': 288.15,
@@ -120,7 +120,7 @@ class LH2JetPlumeTestCase(unittest.TestCase):
                        'rel_angle': 1.5708,
                        'dis_coeff': 1.0,
                        'nozzle_model': 'yuce',
-                       'contour': 0.04,
+                       'contours': 0.04,
                        'xmin': -2.5,
                        'xmax': 2.5,
                        'ymin': 0,
@@ -170,7 +170,7 @@ class BlendPlumeTestCase(unittest.TestCase):
     """
     def setUp(self):
         self.output_dir = misc_utils.get_temp_folder()
-        phys.setup(self.output_dir, VERBOSE)
+        utils.setup_file_log(self.output_dir, verbose=VERBOSE)
         self.params = dict(rel_species={'h2': 1, 'ch4': 0},
                            amb_temp=288.15,
                            amb_pres=101325.,
@@ -182,7 +182,7 @@ class BlendPlumeTestCase(unittest.TestCase):
                            rel_angle=1.5708,
                            dis_coeff=1.0,
                            nozzle_model='yuce',
-                           contour=0.04,
+                           contours=0.04,
                            xmin=-2.5,
                            xmax=2.5,
                            ymin=0,

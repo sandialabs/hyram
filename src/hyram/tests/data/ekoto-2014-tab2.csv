@@ -1,0 +1,14 @@
+# Data from Table 2 of Ekoto et al. 2014 https://doi.org/10.1016/j.ijhydene.2014.03.235,,,
+Notional nozzle model,Lf [m],qrad (Straight flame) [kW/m2],qrad (Curved flame) [kW/m2]
+Flame 1 Measurement,17.4,-,4.7
+Birch et al. (1984) w/Abel-Noble,19.6,6.2,5.9
+Yuceil & Otugen (2002) w/Abel-Noble,17.5,4.4,4.3
+Harstad & Bellan (2006) w/Abel-Noble ,22.7,11.2,6.5
+Schefer et al. (2007),17.5,4.4,4.4
+Molkov et al. (2009) ,20.1,6.8,6.2
+Flame 2 Measurement,45.9,-,23.9
+Birch et al. (1984) w/Abel-Noble,49.3,97.3,29.9
+Yuceil & Otugen (2002) w/Abel-Noble,44.6,34.8,23.8
+Harstad & Bellan (2006) w/Abel-Noble ,44.6,34.8,28.1
+Schefer et al. (2007),52.7,189.8,13.2
+Molkov et al. (2009) ,49.9,113.2,25.6

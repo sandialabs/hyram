@@ -156,6 +156,17 @@ namespace SandiaNationalLaboratories.Hyram {
             this.colImmediateIgnitionProbability = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colDelayedIgnitionProbability = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.formWarning = new System.Windows.Forms.Label();
+            this.uncertaintyTab = new System.Windows.Forms.TabPage();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.SampleOccupantsCheck = new System.Windows.Forms.CheckBox();
+            this.SampleLeaksCheck = new System.Windows.Forms.CheckBox();
+            this.SampleFailureCheck = new System.Windows.Forms.CheckBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.lblRandomSeed = new System.Windows.Forms.Label();
+            this.SeedInput = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.NumSamplesInput = new System.Windows.Forms.TextBox();
             this.dataProbabilitiesTabControl.SuspendLayout();
             this.componentLeaksTab.SuspendLayout();
             this.componentLeaksTabControl.SuspendLayout();
@@ -199,6 +210,7 @@ namespace SandiaNationalLaboratories.Hyram {
             ((System.ComponentModel.ISupportInitialize)(this.accidentProbabilitiesGrid)).BeginInit();
             this.ignitionProbabilitiesTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ignitionProbabilitiesGrid)).BeginInit();
+            this.uncertaintyTab.SuspendLayout();
             this.SuspendLayout();
             // 
             // dataProbabilitiesTabControl
@@ -206,6 +218,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.dataProbabilitiesTabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.dataProbabilitiesTabControl.Controls.Add(this.uncertaintyTab);
             this.dataProbabilitiesTabControl.Controls.Add(this.componentLeaksTab);
             this.dataProbabilitiesTabControl.Controls.Add(this.componentFailuresTab);
             this.dataProbabilitiesTabControl.Controls.Add(this.ignitionProbabilitiesTab);
@@ -259,7 +272,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.compressorDistributionsTab.Name = "compressorDistributionsTab";
             this.compressorDistributionsTab.Size = new System.Drawing.Size(1032, 540);
             this.compressorDistributionsTab.TabIndex = 0;
-            this.compressorDistributionsTab.Text = "Compressors";
+            this.compressorDistributionsTab.Text = "Compressors / Pumps";
             this.compressorDistributionsTab.UseVisualStyleBackColor = true;
             // 
             // compressorGrid
@@ -1097,10 +1110,12 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             this.tabCompFailLabel.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.tabCompFailLabel.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.tabCompFailLabel.Cursor = System.Windows.Forms.Cursors.Default;
             this.tabCompFailLabel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabCompFailLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tabCompFailLabel.Location = new System.Drawing.Point(3, 3);
             this.tabCompFailLabel.Name = "tabCompFailLabel";
+            this.tabCompFailLabel.ReadOnly = true;
             this.tabCompFailLabel.Size = new System.Drawing.Size(1034, 17);
             this.tabCompFailLabel.TabIndex = 18;
             this.tabCompFailLabel.Text = "Accident and shutdown failure parameters used with fueling demands in 100% leak r" +
@@ -1169,7 +1184,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.failuresGrid.Location = new System.Drawing.Point(3, 19);
             this.failuresGrid.Name = "failuresGrid";
             this.failuresGrid.Size = new System.Drawing.Size(1028, 244);
-            this.failuresGrid.TabIndex = 0;
+            this.failuresGrid.TabIndex = 1;
             // 
             // clmCFComponent
             // 
@@ -1237,7 +1252,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.accidentProbabilitiesGrid.Location = new System.Drawing.Point(3, 19);
             this.accidentProbabilitiesGrid.Name = "accidentProbabilitiesGrid";
             this.accidentProbabilitiesGrid.Size = new System.Drawing.Size(1028, 179);
-            this.accidentProbabilitiesGrid.TabIndex = 0;
+            this.accidentProbabilitiesGrid.TabIndex = 2;
             // 
             // clmAPCompName
             // 
@@ -1325,14 +1340,14 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tbIgnitionProbabilitiesAdd.Location = new System.Drawing.Point(129, 67);
             this.tbIgnitionProbabilitiesAdd.Name = "tbIgnitionProbabilitiesAdd";
             this.tbIgnitionProbabilitiesAdd.Size = new System.Drawing.Size(76, 21);
-            this.tbIgnitionProbabilitiesAdd.TabIndex = 6;
+            this.tbIgnitionProbabilitiesAdd.TabIndex = 2;
             // 
             // btnIgnitionProbabilitiesDelete
             // 
             this.btnIgnitionProbabilitiesDelete.Location = new System.Drawing.Point(129, 210);
             this.btnIgnitionProbabilitiesDelete.Name = "btnIgnitionProbabilitiesDelete";
             this.btnIgnitionProbabilitiesDelete.Size = new System.Drawing.Size(75, 23);
-            this.btnIgnitionProbabilitiesDelete.TabIndex = 5;
+            this.btnIgnitionProbabilitiesDelete.TabIndex = 4;
             this.btnIgnitionProbabilitiesDelete.Text = "Delete Selected";
             this.btnIgnitionProbabilitiesDelete.UseVisualStyleBackColor = true;
             this.btnIgnitionProbabilitiesDelete.Click += new System.EventHandler(this.btnIgnitionProbabilitiesDelete_Click);
@@ -1342,7 +1357,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.btnIgnitionProbabilitiesAdd.Location = new System.Drawing.Point(129, 95);
             this.btnIgnitionProbabilitiesAdd.Name = "btnIgnitionProbabilitiesAdd";
             this.btnIgnitionProbabilitiesAdd.Size = new System.Drawing.Size(75, 23);
-            this.btnIgnitionProbabilitiesAdd.TabIndex = 4;
+            this.btnIgnitionProbabilitiesAdd.TabIndex = 3;
             this.btnIgnitionProbabilitiesAdd.Text = "Add";
             this.btnIgnitionProbabilitiesAdd.UseVisualStyleBackColor = true;
             this.btnIgnitionProbabilitiesAdd.Click += new System.EventHandler(this.btnIgnitionProbabilitiesAdd_Click);
@@ -1356,7 +1371,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.ignitionRatesListBox.Location = new System.Drawing.Point(3, 67);
             this.ignitionRatesListBox.Name = "ignitionRatesListBox";
             this.ignitionRatesListBox.Size = new System.Drawing.Size(120, 166);
-            this.ignitionRatesListBox.TabIndex = 3;
+            this.ignitionRatesListBox.TabIndex = 1;
             // 
             // ignitionProbabilitiesGrid
             // 
@@ -1372,7 +1387,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.ignitionProbabilitiesGrid.Location = new System.Drawing.Point(256, 67);
             this.ignitionProbabilitiesGrid.Name = "ignitionProbabilitiesGrid";
             this.ignitionProbabilitiesGrid.Size = new System.Drawing.Size(467, 166);
-            this.ignitionProbabilitiesGrid.TabIndex = 0;
+            this.ignitionProbabilitiesGrid.TabIndex = 5;
             this.ignitionProbabilitiesGrid.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.ignitionProbabilitiesGrid_CellFormatting);
             this.ignitionProbabilitiesGrid.CellValidating += new System.Windows.Forms.DataGridViewCellValidatingEventHandler(this.ignitionProbabilitiesGrid_CellValidating);
             this.ignitionProbabilitiesGrid.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.ignitionProbabilitiesGrid_CellValueChanged);
@@ -1415,6 +1430,129 @@ namespace SandiaNationalLaboratories.Hyram {
             this.formWarning.Text = "Errors and warnings here";
             this.formWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.formWarning.Visible = false;
+            // 
+            // uncertaintyTab
+            // 
+            this.uncertaintyTab.Controls.Add(this.label4);
+            this.uncertaintyTab.Controls.Add(this.NumSamplesInput);
+            this.uncertaintyTab.Controls.Add(this.label3);
+            this.uncertaintyTab.Controls.Add(this.lblRandomSeed);
+            this.uncertaintyTab.Controls.Add(this.SeedInput);
+            this.uncertaintyTab.Controls.Add(this.SampleFailureCheck);
+            this.uncertaintyTab.Controls.Add(this.SampleLeaksCheck);
+            this.uncertaintyTab.Controls.Add(this.SampleOccupantsCheck);
+            this.uncertaintyTab.Controls.Add(this.label1);
+            this.uncertaintyTab.Controls.Add(this.label2);
+            this.uncertaintyTab.Location = new System.Drawing.Point(4, 26);
+            this.uncertaintyTab.Name = "uncertaintyTab";
+            this.uncertaintyTab.Size = new System.Drawing.Size(1046, 574);
+            this.uncertaintyTab.TabIndex = 3;
+            this.uncertaintyTab.Text = "Uncertainty Quantification";
+            this.uncertaintyTab.UseVisualStyleBackColor = true;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(14, 11);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(197, 17);
+            this.label1.TabIndex = 10;
+            this.label1.Text = "Uncertainty Quantification";
+            // 
+            // label2
+            // 
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Location = new System.Drawing.Point(14, 31);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(720, 26);
+            this.label2.TabIndex = 9;
+            this.label2.Text = "Propagate probabilistic uncertainties through QRA analysis using sampling approac" +
+    "h.";
+            // 
+            // SampleOccupantsCheck
+            // 
+            this.SampleOccupantsCheck.AutoSize = true;
+            this.SampleOccupantsCheck.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SampleOccupantsCheck.Location = new System.Drawing.Point(19, 60);
+            this.SampleOccupantsCheck.Name = "SampleOccupantsCheck";
+            this.SampleOccupantsCheck.Size = new System.Drawing.Size(206, 20);
+            this.SampleOccupantsCheck.TabIndex = 11;
+            this.SampleOccupantsCheck.Text = "Sample occupant distributions";
+            this.SampleOccupantsCheck.UseVisualStyleBackColor = true;
+            this.SampleOccupantsCheck.CheckedChanged += new System.EventHandler(this.SampleOccupantsCheck_CheckedChanged);
+            // 
+            // SampleLeaksCheck
+            // 
+            this.SampleLeaksCheck.AutoSize = true;
+            this.SampleLeaksCheck.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SampleLeaksCheck.Location = new System.Drawing.Point(19, 85);
+            this.SampleLeaksCheck.Name = "SampleLeaksCheck";
+            this.SampleLeaksCheck.Size = new System.Drawing.Size(239, 20);
+            this.SampleLeaksCheck.TabIndex = 12;
+            this.SampleLeaksCheck.Text = "Sample leak frequency distributions";
+            this.SampleLeaksCheck.UseVisualStyleBackColor = true;
+            this.SampleLeaksCheck.CheckedChanged += new System.EventHandler(this.SampleLeaksCheck_CheckedChanged);
+            // 
+            // SampleFailureCheck
+            // 
+            this.SampleFailureCheck.AutoSize = true;
+            this.SampleFailureCheck.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SampleFailureCheck.Location = new System.Drawing.Point(19, 110);
+            this.SampleFailureCheck.Name = "SampleFailureCheck";
+            this.SampleFailureCheck.Size = new System.Drawing.Size(250, 20);
+            this.SampleFailureCheck.TabIndex = 13;
+            this.SampleFailureCheck.Text = "Sample dispenser failure distributions";
+            this.SampleFailureCheck.UseVisualStyleBackColor = true;
+            this.SampleFailureCheck.CheckedChanged += new System.EventHandler(this.SampleFailureCheck_CheckedChanged);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F);
+            this.label3.ForeColor = System.Drawing.SystemColors.GrayText;
+            this.label3.Location = new System.Drawing.Point(16, 241);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(338, 26);
+            this.label3.TabIndex = 16;
+            this.label3.Text = "Determines pseudo-random occupant positions in selected distribution.\r\nChange thi" +
+    "s between runs to generate new positions.";
+            // 
+            // lblRandomSeed
+            // 
+            this.lblRandomSeed.AutoSize = true;
+            this.lblRandomSeed.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblRandomSeed.Location = new System.Drawing.Point(16, 199);
+            this.lblRandomSeed.Name = "lblRandomSeed";
+            this.lblRandomSeed.Size = new System.Drawing.Size(94, 16);
+            this.lblRandomSeed.TabIndex = 15;
+            this.lblRandomSeed.Text = "Random seed";
+            // 
+            // SeedInput
+            // 
+            this.SeedInput.Location = new System.Drawing.Point(19, 217);
+            this.SeedInput.Name = "SeedInput";
+            this.SeedInput.Size = new System.Drawing.Size(186, 21);
+            this.SeedInput.TabIndex = 14;
+            this.SeedInput.TextChanged += new System.EventHandler(this.SeedInput_TextChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.Location = new System.Drawing.Point(14, 147);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(125, 16);
+            this.label4.TabIndex = 18;
+            this.label4.Text = "Number of samples";
+            // 
+            // NumSamplesInput
+            // 
+            this.NumSamplesInput.Location = new System.Drawing.Point(17, 165);
+            this.NumSamplesInput.Name = "NumSamplesInput";
+            this.NumSamplesInput.Size = new System.Drawing.Size(186, 21);
+            this.NumSamplesInput.TabIndex = 17;
+            this.NumSamplesInput.TextChanged += new System.EventHandler(this.NumSamplesInput_TextChanged);
             // 
             // ProbabilitiesForm
             // 
@@ -1472,6 +1610,8 @@ namespace SandiaNationalLaboratories.Hyram {
             this.ignitionProbabilitiesTab.ResumeLayout(false);
             this.ignitionProbabilitiesTab.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ignitionProbabilitiesGrid)).EndInit();
+            this.uncertaintyTab.ResumeLayout(false);
+            this.uncertaintyTab.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1601,5 +1741,16 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.DataGridViewComboBoxColumn clmCFDistributionType;
         private System.Windows.Forms.DataGridViewTextBoxColumn clmCFParameterA;
         private System.Windows.Forms.DataGridViewTextBoxColumn clmCFParameterB;
+        private System.Windows.Forms.TabPage uncertaintyTab;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.CheckBox SampleFailureCheck;
+        private System.Windows.Forms.CheckBox SampleLeaksCheck;
+        private System.Windows.Forms.CheckBox SampleOccupantsCheck;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label lblRandomSeed;
+        private System.Windows.Forms.TextBox SeedInput;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox NumSamplesInput;
     }
 }

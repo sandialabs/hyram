@@ -466,3 +466,6 @@ ASALocalRun/
 
 # Visual Studio Code
 .vscode/
+
+# Notepad++ backup files
+*.*.bak

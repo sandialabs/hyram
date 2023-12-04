@@ -29,16 +29,13 @@ namespace SandiaNationalLaboratories.Hyram {
 		/// the contents of this method with the code editor.
 		/// </summary>
 		private void InitializeComponent() {
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.tcIO = new System.Windows.Forms.TabControl();
             this.inputTab = new System.Windows.Forms.TabPage();
             this.massFlowLabel = new System.Windows.Forms.Label();
             this.MassFlowInput = new System.Windows.Forms.TextBox();
             this.AutoSetLimits = new System.Windows.Forms.CheckBox();
             this.inputWarning = new System.Windows.Forms.Label();
-            this.PhaseSelector = new System.Windows.Forms.ComboBox();
-            this.phaseLabel = new System.Windows.Forms.Label();
-            this.NozzleSelector = new System.Windows.Forms.ComboBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.spinnerPictureBox = new System.Windows.Forms.PictureBox();
             this.lblContourLevels = new System.Windows.Forms.Label();
             this.ContourInput = new System.Windows.Forms.TextBox();
@@ -57,7 +54,11 @@ namespace SandiaNationalLaboratories.Hyram {
             this.outputTab = new System.Windows.Forms.TabPage();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tcOutputs = new System.Windows.Forms.TabControl();
-            this.outputTabData = new System.Windows.Forms.TabPage();
+            this.fluxPlotTab = new System.Windows.Forms.TabPage();
+            this.FluxPlot = new System.Windows.Forms.PictureBox();
+            this.tempPlotTab = new System.Windows.Forms.TabPage();
+            this.TempPlot = new System.Windows.Forms.PictureBox();
+            this.dataTab = new System.Windows.Forms.TabPage();
             this.outputRadiantFrac = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.outputFlameLength = new System.Windows.Forms.TextBox();
@@ -73,10 +74,6 @@ namespace SandiaNationalLaboratories.Hyram {
             this.colFlux = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.resultLabel = new System.Windows.Forms.Label();
             this.CopyBtn = new System.Windows.Forms.Button();
-            this.tpPlotIsoPlot = new System.Windows.Forms.TabPage();
-            this.pbPlotIsoOutput = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
-            this.tpt_fname = new System.Windows.Forms.TabPage();
-            this.pbTPlot = new SandiaNationalLaboratories.Hyram.PictureBoxWithSave();
             this.outputWarning = new System.Windows.Forms.Label();
             this.tcIO.SuspendLayout();
             this.inputTab.SuspendLayout();
@@ -89,12 +86,12 @@ namespace SandiaNationalLaboratories.Hyram {
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.tcOutputs.SuspendLayout();
-            this.outputTabData.SuspendLayout();
+            this.fluxPlotTab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.FluxPlot)).BeginInit();
+            this.tempPlotTab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.TempPlot)).BeginInit();
+            this.dataTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgResult)).BeginInit();
-            this.tpPlotIsoPlot.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbPlotIsoOutput)).BeginInit();
-            this.tpt_fname.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbTPlot)).BeginInit();
             this.SuspendLayout();
             // 
             // tcIO
@@ -105,7 +102,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.tcIO.Location = new System.Drawing.Point(0, 0);
             this.tcIO.Name = "tcIO";
             this.tcIO.SelectedIndex = 0;
-            this.tcIO.Size = new System.Drawing.Size(992, 594);
+            this.tcIO.Size = new System.Drawing.Size(1150, 594);
             this.tcIO.TabIndex = 0;
             // 
             // inputTab
@@ -114,10 +111,6 @@ namespace SandiaNationalLaboratories.Hyram {
             this.inputTab.Controls.Add(this.MassFlowInput);
             this.inputTab.Controls.Add(this.AutoSetLimits);
             this.inputTab.Controls.Add(this.inputWarning);
-            this.inputTab.Controls.Add(this.PhaseSelector);
-            this.inputTab.Controls.Add(this.phaseLabel);
-            this.inputTab.Controls.Add(this.NozzleSelector);
-            this.inputTab.Controls.Add(this.label1);
             this.inputTab.Controls.Add(this.spinnerPictureBox);
             this.inputTab.Controls.Add(this.lblContourLevels);
             this.inputTab.Controls.Add(this.ContourInput);
@@ -136,16 +129,15 @@ namespace SandiaNationalLaboratories.Hyram {
             this.inputTab.Location = new System.Drawing.Point(4, 22);
             this.inputTab.Name = "inputTab";
             this.inputTab.Padding = new System.Windows.Forms.Padding(3);
-            this.inputTab.Size = new System.Drawing.Size(984, 568);
+            this.inputTab.Size = new System.Drawing.Size(1142, 568);
             this.inputTab.TabIndex = 0;
             this.inputTab.Text = "Input";
             this.inputTab.UseVisualStyleBackColor = true;
             // 
             // massFlowLabel
             // 
-            this.massFlowLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.massFlowLabel.AutoSize = true;
-            this.massFlowLabel.Location = new System.Drawing.Point(9, 64);
+            this.massFlowLabel.Location = new System.Drawing.Point(6, 117);
             this.massFlowLabel.Name = "massFlowLabel";
             this.massFlowLabel.Size = new System.Drawing.Size(184, 13);
             this.massFlowLabel.TabIndex = 75;
@@ -153,27 +145,27 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // MassFlowInput
             // 
-            this.MassFlowInput.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.MassFlowInput.Location = new System.Drawing.Point(203, 61);
+            this.MassFlowInput.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.MassFlowInput.Location = new System.Drawing.Point(196, 114);
             this.MassFlowInput.Name = "MassFlowInput";
-            this.MassFlowInput.Size = new System.Drawing.Size(247, 20);
-            this.MassFlowInput.TabIndex = 74;
+            this.MassFlowInput.Size = new System.Drawing.Size(219, 20);
+            this.MassFlowInput.TabIndex = 5;
             this.MassFlowInput.TextChanged += new System.EventHandler(this.MassFlowInput_TextChanged);
             // 
             // AutoSetLimits
             // 
             this.AutoSetLimits.AutoSize = true;
-            this.AutoSetLimits.Location = new System.Drawing.Point(201, 87);
+            this.AutoSetLimits.Location = new System.Drawing.Point(196, 140);
             this.AutoSetLimits.Name = "AutoSetLimits";
             this.AutoSetLimits.Size = new System.Drawing.Size(171, 17);
-            this.AutoSetLimits.TabIndex = 72;
+            this.AutoSetLimits.TabIndex = 6;
             this.AutoSetLimits.Text = "Automatically set plot axis limits";
             this.AutoSetLimits.UseVisualStyleBackColor = true;
             this.AutoSetLimits.CheckedChanged += new System.EventHandler(this.AutoSetLimits_CheckedChanged);
             // 
             // inputWarning
             // 
-            this.inputWarning.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.inputWarning.AutoSize = true;
             this.inputWarning.BackColor = System.Drawing.Color.MistyRose;
             this.inputWarning.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -187,50 +179,11 @@ namespace SandiaNationalLaboratories.Hyram {
             this.inputWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.inputWarning.Visible = false;
             // 
-            // PhaseSelector
-            // 
-            this.PhaseSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.PhaseSelector.FormattingEnabled = true;
-            this.PhaseSelector.Location = new System.Drawing.Point(203, 34);
-            this.PhaseSelector.Name = "PhaseSelector";
-            this.PhaseSelector.Size = new System.Drawing.Size(247, 21);
-            this.PhaseSelector.TabIndex = 58;
-            this.PhaseSelector.SelectionChangeCommitted += new System.EventHandler(this.PhaseSelector_SelectionChangeCommitted);
-            // 
-            // phaseLabel
-            // 
-            this.phaseLabel.AutoSize = true;
-            this.phaseLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.phaseLabel.Location = new System.Drawing.Point(9, 35);
-            this.phaseLabel.Name = "phaseLabel";
-            this.phaseLabel.Size = new System.Drawing.Size(71, 15);
-            this.phaseLabel.TabIndex = 57;
-            this.phaseLabel.Text = "Fluid phase";
-            // 
-            // NozzleSelector
-            // 
-            this.NozzleSelector.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.NozzleSelector.FormattingEnabled = true;
-            this.NozzleSelector.Location = new System.Drawing.Point(203, 7);
-            this.NozzleSelector.Name = "NozzleSelector";
-            this.NozzleSelector.Size = new System.Drawing.Size(247, 21);
-            this.NozzleSelector.TabIndex = 22;
-            this.NozzleSelector.SelectionChangeCommitted += new System.EventHandler(this.NozzleSelector_SelectionChangeCommitted);
-            // 
-            // label1
-            // 
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(9, 8);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(156, 18);
-            this.label1.TabIndex = 21;
-            this.label1.Text = "Notional nozzle model";
-            // 
             // spinnerPictureBox
             // 
-            this.spinnerPictureBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.spinnerPictureBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.spinnerPictureBox.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.AjaxSpinner;
-            this.spinnerPictureBox.Location = new System.Drawing.Point(348, 518);
+            this.spinnerPictureBox.Location = new System.Drawing.Point(318, 516);
             this.spinnerPictureBox.Margin = new System.Windows.Forms.Padding(2);
             this.spinnerPictureBox.MinimumSize = new System.Drawing.Size(15, 16);
             this.spinnerPictureBox.Name = "spinnerPictureBox";
@@ -241,9 +194,8 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // lblContourLevels
             // 
-            this.lblContourLevels.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblContourLevels.AutoSize = true;
-            this.lblContourLevels.Location = new System.Drawing.Point(9, 523);
+            this.lblContourLevels.Location = new System.Drawing.Point(6, 91);
             this.lblContourLevels.Name = "lblContourLevels";
             this.lblContourLevels.Size = new System.Drawing.Size(132, 13);
             this.lblContourLevels.TabIndex = 18;
@@ -251,32 +203,31 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // ContourInput
             // 
-            this.ContourInput.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.ContourInput.Location = new System.Drawing.Point(175, 520);
+            this.ContourInput.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.ContourInput.Location = new System.Drawing.Point(196, 88);
             this.ContourInput.Name = "ContourInput";
-            this.ContourInput.Size = new System.Drawing.Size(170, 20);
-            this.ContourInput.TabIndex = 17;
+            this.ContourInput.Size = new System.Drawing.Size(219, 20);
+            this.ContourInput.TabIndex = 4;
             this.ContourInput.TextChanged += new System.EventHandler(this.ContourInput_TextChanged);
             // 
             // pbFlameGeometry
             // 
-            this.pbFlameGeometry.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pbFlameGeometry.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pbFlameGeometry.Image = global::SandiaNationalLaboratories.Hyram.Properties.Resources.geometry_of_flame;
-            this.pbFlameGeometry.Location = new System.Drawing.Point(456, 31);
+            this.pbFlameGeometry.Location = new System.Drawing.Point(554, 6);
             this.pbFlameGeometry.Name = "pbFlameGeometry";
-            this.pbFlameGeometry.Size = new System.Drawing.Size(522, 407);
+            this.pbFlameGeometry.Size = new System.Drawing.Size(558, 407);
             this.pbFlameGeometry.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pbFlameGeometry.TabIndex = 1;
             this.pbFlameGeometry.TabStop = false;
             // 
             // lblZElementCount
             // 
-            this.lblZElementCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblZElementCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblZElementCount.AutoSize = true;
             this.lblZElementCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblZElementCount.Location = new System.Drawing.Point(453, 499);
+            this.lblZElementCount.Location = new System.Drawing.Point(421, 65);
             this.lblZElementCount.Name = "lblZElementCount";
             this.lblZElementCount.Size = new System.Drawing.Size(76, 13);
             this.lblZElementCount.TabIndex = 13;
@@ -284,10 +235,10 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // lblYElemCount
             // 
-            this.lblYElemCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblYElemCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblYElemCount.AutoSize = true;
             this.lblYElemCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblYElemCount.Location = new System.Drawing.Point(453, 473);
+            this.lblYElemCount.Location = new System.Drawing.Point(421, 39);
             this.lblYElemCount.Name = "lblYElemCount";
             this.lblYElemCount.Size = new System.Drawing.Size(76, 13);
             this.lblYElemCount.TabIndex = 12;
@@ -295,10 +246,10 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // lblXElemCount
             // 
-            this.lblXElemCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblXElemCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblXElemCount.AutoSize = true;
             this.lblXElemCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblXElemCount.Location = new System.Drawing.Point(453, 447);
+            this.lblXElemCount.Location = new System.Drawing.Point(421, 13);
             this.lblXElemCount.Name = "lblXElemCount";
             this.lblXElemCount.Size = new System.Drawing.Size(103, 13);
             this.lblXElemCount.TabIndex = 11;
@@ -306,18 +257,18 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // LocZInput
             // 
-            this.LocZInput.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.LocZInput.Location = new System.Drawing.Point(175, 496);
+            this.LocZInput.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.LocZInput.Location = new System.Drawing.Point(196, 62);
             this.LocZInput.Name = "LocZInput";
-            this.LocZInput.Size = new System.Drawing.Size(273, 20);
-            this.LocZInput.TabIndex = 8;
+            this.LocZInput.Size = new System.Drawing.Size(219, 20);
+            this.LocZInput.TabIndex = 3;
             this.LocZInput.TextChanged += new System.EventHandler(this.LocZInput_TextChanged);
             // 
             // lblHeatFluxPointsZ
             // 
-            this.lblHeatFluxPointsZ.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblHeatFluxPointsZ.AutoSize = true;
-            this.lblHeatFluxPointsZ.Location = new System.Drawing.Point(9, 499);
+            this.lblHeatFluxPointsZ.Location = new System.Drawing.Point(6, 65);
             this.lblHeatFluxPointsZ.Name = "lblHeatFluxPointsZ";
             this.lblHeatFluxPointsZ.Size = new System.Drawing.Size(162, 13);
             this.lblHeatFluxPointsZ.TabIndex = 7;
@@ -325,18 +276,18 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // LocYInput
             // 
-            this.LocYInput.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.LocYInput.Location = new System.Drawing.Point(175, 470);
+            this.LocYInput.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.LocYInput.Location = new System.Drawing.Point(196, 36);
             this.LocYInput.Name = "LocYInput";
-            this.LocYInput.Size = new System.Drawing.Size(273, 20);
-            this.LocYInput.TabIndex = 6;
+            this.LocYInput.Size = new System.Drawing.Size(219, 20);
+            this.LocYInput.TabIndex = 2;
             this.LocYInput.TextChanged += new System.EventHandler(this.LocYInput_TextChanged);
             // 
             // lblHeadFluxPointsY
             // 
-            this.lblHeadFluxPointsY.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblHeadFluxPointsY.AutoSize = true;
-            this.lblHeadFluxPointsY.Location = new System.Drawing.Point(9, 473);
+            this.lblHeadFluxPointsY.Location = new System.Drawing.Point(6, 39);
             this.lblHeadFluxPointsY.Name = "lblHeadFluxPointsY";
             this.lblHeadFluxPointsY.Size = new System.Drawing.Size(162, 13);
             this.lblHeadFluxPointsY.TabIndex = 5;
@@ -344,18 +295,18 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // LocXInput
             // 
-            this.LocXInput.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.LocXInput.Location = new System.Drawing.Point(175, 444);
+            this.LocXInput.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.LocXInput.Location = new System.Drawing.Point(196, 10);
             this.LocXInput.Name = "LocXInput";
-            this.LocXInput.Size = new System.Drawing.Size(273, 20);
-            this.LocXInput.TabIndex = 4;
+            this.LocXInput.Size = new System.Drawing.Size(219, 20);
+            this.LocXInput.TabIndex = 1;
             this.LocXInput.TextChanged += new System.EventHandler(this.LocXInput_TextChanged);
             // 
             // lblHeatFluxPointsX
             // 
-            this.lblHeatFluxPointsX.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblHeatFluxPointsX.AutoSize = true;
-            this.lblHeatFluxPointsX.Location = new System.Drawing.Point(9, 447);
+            this.lblHeatFluxPointsX.Location = new System.Drawing.Point(6, 13);
             this.lblHeatFluxPointsX.Name = "lblHeatFluxPointsX";
             this.lblHeatFluxPointsX.Size = new System.Drawing.Size(162, 13);
             this.lblHeatFluxPointsX.TabIndex = 3;
@@ -363,11 +314,11 @@ namespace SandiaNationalLaboratories.Hyram {
             // 
             // SubmitBtn
             // 
-            this.SubmitBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.SubmitBtn.Location = new System.Drawing.Point(377, 518);
+            this.SubmitBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.SubmitBtn.Location = new System.Drawing.Point(347, 516);
             this.SubmitBtn.Name = "SubmitBtn";
             this.SubmitBtn.Size = new System.Drawing.Size(71, 23);
-            this.SubmitBtn.TabIndex = 2;
+            this.SubmitBtn.TabIndex = 8;
             this.SubmitBtn.Text = "Calculate";
             this.SubmitBtn.UseVisualStyleBackColor = true;
             this.SubmitBtn.Click += new System.EventHandler(this.SubmitBtn_Click);
@@ -377,15 +328,16 @@ namespace SandiaNationalLaboratories.Hyram {
             this.InputGrid.AllowUserToAddRows = false;
             this.InputGrid.AllowUserToDeleteRows = false;
             this.InputGrid.AllowUserToResizeRows = false;
-            this.InputGrid.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
+            this.InputGrid.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.InputGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.InputGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.InputGrid.Location = new System.Drawing.Point(3, 110);
+            this.InputGrid.Location = new System.Drawing.Point(5, 163);
             this.InputGrid.Name = "InputGrid";
             this.InputGrid.RowHeadersVisible = false;
-            this.InputGrid.Size = new System.Drawing.Size(445, 328);
-            this.InputGrid.TabIndex = 0;
+            this.InputGrid.Size = new System.Drawing.Size(413, 347);
+            this.InputGrid.TabIndex = 7;
+            this.InputGrid.CellValidating += new System.Windows.Forms.DataGridViewCellValidatingEventHandler(this.InputGrid_CellValidating);
             this.InputGrid.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.InputGrid_CellValueChanged);
             // 
             // outputTab
@@ -394,7 +346,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.outputTab.Location = new System.Drawing.Point(4, 22);
             this.outputTab.Name = "outputTab";
             this.outputTab.Padding = new System.Windows.Forms.Padding(3);
-            this.outputTab.Size = new System.Drawing.Size(984, 568);
+            this.outputTab.Size = new System.Drawing.Size(1142, 568);
             this.outputTab.TabIndex = 1;
             this.outputTab.Text = "Output";
             this.outputTab.UseVisualStyleBackColor = true;
@@ -413,42 +365,83 @@ namespace SandiaNationalLaboratories.Hyram {
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.outputWarning);
-            this.splitContainer1.Size = new System.Drawing.Size(978, 562);
+            this.splitContainer1.Size = new System.Drawing.Size(1136, 562);
             this.splitContainer1.SplitterDistance = 524;
             this.splitContainer1.TabIndex = 6;
             // 
             // tcOutputs
             // 
-            this.tcOutputs.Controls.Add(this.outputTabData);
-            this.tcOutputs.Controls.Add(this.tpPlotIsoPlot);
-            this.tcOutputs.Controls.Add(this.tpt_fname);
+            this.tcOutputs.Controls.Add(this.fluxPlotTab);
+            this.tcOutputs.Controls.Add(this.tempPlotTab);
+            this.tcOutputs.Controls.Add(this.dataTab);
             this.tcOutputs.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tcOutputs.Location = new System.Drawing.Point(0, 0);
             this.tcOutputs.Name = "tcOutputs";
             this.tcOutputs.SelectedIndex = 0;
-            this.tcOutputs.Size = new System.Drawing.Size(978, 524);
-            this.tcOutputs.TabIndex = 5;
+            this.tcOutputs.Size = new System.Drawing.Size(1136, 524);
+            this.tcOutputs.TabIndex = 3;
             // 
-            // outputTabData
+            // fluxPlotTab
             // 
-            this.outputTabData.Controls.Add(this.outputRadiantFrac);
-            this.outputTabData.Controls.Add(this.label4);
-            this.outputTabData.Controls.Add(this.outputFlameLength);
-            this.outputTabData.Controls.Add(this.label3);
-            this.outputTabData.Controls.Add(this.outputSrad);
-            this.outputTabData.Controls.Add(this.lblSeconds);
-            this.outputTabData.Controls.Add(this.outputMassFlowRate);
-            this.outputTabData.Controls.Add(this.label2);
-            this.outputTabData.Controls.Add(this.dgResult);
-            this.outputTabData.Controls.Add(this.resultLabel);
-            this.outputTabData.Controls.Add(this.CopyBtn);
-            this.outputTabData.Location = new System.Drawing.Point(4, 22);
-            this.outputTabData.Name = "outputTabData";
-            this.outputTabData.Padding = new System.Windows.Forms.Padding(3);
-            this.outputTabData.Size = new System.Drawing.Size(970, 498);
-            this.outputTabData.TabIndex = 0;
-            this.outputTabData.Text = "Values";
-            this.outputTabData.UseVisualStyleBackColor = true;
+            this.fluxPlotTab.Controls.Add(this.FluxPlot);
+            this.fluxPlotTab.Location = new System.Drawing.Point(4, 22);
+            this.fluxPlotTab.Name = "fluxPlotTab";
+            this.fluxPlotTab.Padding = new System.Windows.Forms.Padding(3);
+            this.fluxPlotTab.Size = new System.Drawing.Size(1128, 498);
+            this.fluxPlotTab.TabIndex = 1;
+            this.fluxPlotTab.Text = "Heat Flux Plot";
+            this.fluxPlotTab.UseVisualStyleBackColor = true;
+            // 
+            // FluxPlot
+            // 
+            this.FluxPlot.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.FluxPlot.Location = new System.Drawing.Point(3, 3);
+            this.FluxPlot.Name = "FluxPlot";
+            this.FluxPlot.Size = new System.Drawing.Size(1122, 492);
+            this.FluxPlot.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.FluxPlot.TabIndex = 5;
+            this.FluxPlot.TabStop = false;
+            // 
+            // tempPlotTab
+            // 
+            this.tempPlotTab.Controls.Add(this.TempPlot);
+            this.tempPlotTab.Location = new System.Drawing.Point(4, 22);
+            this.tempPlotTab.Name = "tempPlotTab";
+            this.tempPlotTab.Size = new System.Drawing.Size(1128, 498);
+            this.tempPlotTab.TabIndex = 2;
+            this.tempPlotTab.Text = "Temperature Plot";
+            this.tempPlotTab.UseVisualStyleBackColor = true;
+            // 
+            // TempPlot
+            // 
+            this.TempPlot.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.TempPlot.Location = new System.Drawing.Point(0, 0);
+            this.TempPlot.Name = "TempPlot";
+            this.TempPlot.Size = new System.Drawing.Size(1128, 498);
+            this.TempPlot.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.TempPlot.TabIndex = 6;
+            this.TempPlot.TabStop = false;
+            // 
+            // dataTab
+            // 
+            this.dataTab.Controls.Add(this.outputRadiantFrac);
+            this.dataTab.Controls.Add(this.label4);
+            this.dataTab.Controls.Add(this.outputFlameLength);
+            this.dataTab.Controls.Add(this.label3);
+            this.dataTab.Controls.Add(this.outputSrad);
+            this.dataTab.Controls.Add(this.lblSeconds);
+            this.dataTab.Controls.Add(this.outputMassFlowRate);
+            this.dataTab.Controls.Add(this.label2);
+            this.dataTab.Controls.Add(this.dgResult);
+            this.dataTab.Controls.Add(this.resultLabel);
+            this.dataTab.Controls.Add(this.CopyBtn);
+            this.dataTab.Location = new System.Drawing.Point(4, 22);
+            this.dataTab.Name = "dataTab";
+            this.dataTab.Padding = new System.Windows.Forms.Padding(3);
+            this.dataTab.Size = new System.Drawing.Size(1128, 498);
+            this.dataTab.TabIndex = 0;
+            this.dataTab.Text = "Values";
+            this.dataTab.UseVisualStyleBackColor = true;
             // 
             // outputRadiantFrac
             // 
@@ -456,7 +449,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.outputRadiantFrac.Name = "outputRadiantFrac";
             this.outputRadiantFrac.ReadOnly = true;
             this.outputRadiantFrac.Size = new System.Drawing.Size(114, 20);
-            this.outputRadiantFrac.TabIndex = 18;
+            this.outputRadiantFrac.TabIndex = 14;
             // 
             // label4
             // 
@@ -473,7 +466,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.outputFlameLength.Name = "outputFlameLength";
             this.outputFlameLength.ReadOnly = true;
             this.outputFlameLength.Size = new System.Drawing.Size(114, 20);
-            this.outputFlameLength.TabIndex = 16;
+            this.outputFlameLength.TabIndex = 12;
             // 
             // label3
             // 
@@ -490,7 +483,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.outputSrad.Name = "outputSrad";
             this.outputSrad.ReadOnly = true;
             this.outputSrad.Size = new System.Drawing.Size(114, 20);
-            this.outputSrad.TabIndex = 14;
+            this.outputSrad.TabIndex = 13;
             // 
             // lblSeconds
             // 
@@ -507,7 +500,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.outputMassFlowRate.Name = "outputMassFlowRate";
             this.outputMassFlowRate.ReadOnly = true;
             this.outputMassFlowRate.Size = new System.Drawing.Size(114, 20);
-            this.outputMassFlowRate.TabIndex = 12;
+            this.outputMassFlowRate.TabIndex = 11;
             // 
             // label2
             // 
@@ -524,6 +517,15 @@ namespace SandiaNationalLaboratories.Hyram {
             this.dgResult.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgResult.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgResult.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dgResult.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgResult.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colX,
@@ -532,8 +534,9 @@ namespace SandiaNationalLaboratories.Hyram {
             this.colFlux});
             this.dgResult.Location = new System.Drawing.Point(3, 82);
             this.dgResult.Name = "dgResult";
-            this.dgResult.Size = new System.Drawing.Size(962, 380);
-            this.dgResult.TabIndex = 3;
+            this.dgResult.RowHeadersVisible = false;
+            this.dgResult.Size = new System.Drawing.Size(712, 338);
+            this.dgResult.TabIndex = 15;
             // 
             // colX
             // 
@@ -558,67 +561,27 @@ namespace SandiaNationalLaboratories.Hyram {
             this.colFlux.HeaderText = "Flux (kW/m^2)";
             this.colFlux.Name = "colFlux";
             this.colFlux.ReadOnly = true;
-            this.colFlux.Width = 110;
             // 
             // resultLabel
             // 
             this.resultLabel.AutoSize = true;
-            this.resultLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.resultLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.resultLabel.Location = new System.Drawing.Point(6, 66);
             this.resultLabel.Name = "resultLabel";
-            this.resultLabel.Size = new System.Drawing.Size(306, 13);
+            this.resultLabel.Size = new System.Drawing.Size(252, 13);
             this.resultLabel.TabIndex = 0;
             this.resultLabel.Text = "Radiative heat flux calculated at specified locations:";
             // 
             // CopyBtn
             // 
             this.CopyBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.CopyBtn.Location = new System.Drawing.Point(845, 468);
+            this.CopyBtn.Location = new System.Drawing.Point(596, 426);
             this.CopyBtn.Name = "CopyBtn";
             this.CopyBtn.Size = new System.Drawing.Size(119, 23);
-            this.CopyBtn.TabIndex = 2;
+            this.CopyBtn.TabIndex = 16;
             this.CopyBtn.Text = "Copy to Clipboard";
             this.CopyBtn.UseVisualStyleBackColor = true;
             this.CopyBtn.Click += new System.EventHandler(this.CopyBtn_Click);
-            // 
-            // tpPlotIsoPlot
-            // 
-            this.tpPlotIsoPlot.Controls.Add(this.pbPlotIsoOutput);
-            this.tpPlotIsoPlot.Location = new System.Drawing.Point(4, 22);
-            this.tpPlotIsoPlot.Name = "tpPlotIsoPlot";
-            this.tpPlotIsoPlot.Padding = new System.Windows.Forms.Padding(3);
-            this.tpPlotIsoPlot.Size = new System.Drawing.Size(970, 498);
-            this.tpPlotIsoPlot.TabIndex = 1;
-            this.tpPlotIsoPlot.Text = "Heat Flux Plot";
-            this.tpPlotIsoPlot.UseVisualStyleBackColor = true;
-            // 
-            // pbPlotIsoOutput
-            // 
-            this.pbPlotIsoOutput.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbPlotIsoOutput.Location = new System.Drawing.Point(3, 3);
-            this.pbPlotIsoOutput.Name = "pbPlotIsoOutput";
-            this.pbPlotIsoOutput.Size = new System.Drawing.Size(964, 492);
-            this.pbPlotIsoOutput.TabIndex = 4;
-            this.pbPlotIsoOutput.TabStop = false;
-            // 
-            // tpt_fname
-            // 
-            this.tpt_fname.Controls.Add(this.pbTPlot);
-            this.tpt_fname.Location = new System.Drawing.Point(4, 22);
-            this.tpt_fname.Name = "tpt_fname";
-            this.tpt_fname.Size = new System.Drawing.Size(970, 498);
-            this.tpt_fname.TabIndex = 2;
-            this.tpt_fname.Text = "Temperature Plot";
-            this.tpt_fname.UseVisualStyleBackColor = true;
-            // 
-            // pbTPlot
-            // 
-            this.pbTPlot.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbTPlot.Location = new System.Drawing.Point(0, 0);
-            this.pbTPlot.Name = "pbTPlot";
-            this.pbTPlot.Size = new System.Drawing.Size(970, 498);
-            this.pbTPlot.TabIndex = 0;
-            this.pbTPlot.TabStop = false;
             // 
             // outputWarning
             // 
@@ -628,7 +591,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.outputWarning.ForeColor = System.Drawing.Color.DarkGoldenrod;
             this.outputWarning.Location = new System.Drawing.Point(0, 0);
             this.outputWarning.Name = "outputWarning";
-            this.outputWarning.Size = new System.Drawing.Size(978, 34);
+            this.outputWarning.Size = new System.Drawing.Size(1136, 34);
             this.outputWarning.TabIndex = 19;
             this.outputWarning.Text = "blank";
             this.outputWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -640,7 +603,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.tcIO);
             this.Name = "JetFlameHeatAnalysisForm";
-            this.Size = new System.Drawing.Size(992, 594);
+            this.Size = new System.Drawing.Size(1150, 594);
             this.Load += new System.EventHandler(this.JetFlameHeatAnalysisForm_Load);
             this.tcIO.ResumeLayout(false);
             this.inputTab.ResumeLayout(false);
@@ -654,13 +617,13 @@ namespace SandiaNationalLaboratories.Hyram {
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.tcOutputs.ResumeLayout(false);
-            this.outputTabData.ResumeLayout(false);
-            this.outputTabData.PerformLayout();
+            this.fluxPlotTab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.FluxPlot)).EndInit();
+            this.tempPlotTab.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.TempPlot)).EndInit();
+            this.dataTab.ResumeLayout(false);
+            this.dataTab.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgResult)).EndInit();
-            this.tpPlotIsoPlot.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pbPlotIsoOutput)).EndInit();
-            this.tpt_fname.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pbTPlot)).EndInit();
             this.ResumeLayout(false);
 
 		}
@@ -692,19 +655,13 @@ namespace SandiaNationalLaboratories.Hyram {
 		private PictureBox pbFlameGeometry;
         private TextBox ContourInput;
         private Label lblContourLevels;
-		private PictureBoxWithSave pbPlotIsoOutput;
 		private TabControl tcOutputs;
-		private TabPage outputTabData;
-		private TabPage tpPlotIsoPlot;
-		private TabPage tpt_fname;
-		private PictureBoxWithSave pbTPlot;
+		private TabPage dataTab;
+		private TabPage fluxPlotTab;
+		private TabPage tempPlotTab;
         private PictureBox spinnerPictureBox;
-        private ComboBox NozzleSelector;
-        private Label label1;
         private SplitContainer splitContainer1;
         private Label outputWarning;
-        private ComboBox PhaseSelector;
-        private Label phaseLabel;
         private Label inputWarning;
 
         private TextBox outputSrad;
@@ -718,5 +675,7 @@ namespace SandiaNationalLaboratories.Hyram {
         private Label label4;
         private Label massFlowLabel;
         private TextBox MassFlowInput;
+        private PictureBox FluxPlot;
+        private PictureBox TempPlot;
     }
 }

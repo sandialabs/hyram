@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -8,6 +8,9 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 */
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -23,15 +26,23 @@ namespace SandiaNationalLaboratories.Hyram
         private string _statusMsg;
         private string _warningMsg;
         private double _massFlow;
+        private List<double> _orderedContours;
+        private List<double> _streamlineDists;
+        // one elem for each contour: {x: [2 doubles], y: [2 doubles]}
+        private List<List<double>> _contourDists;
 
         public PlumeForm()
         {
             InitializeComponent();
-        }
 
-        ~PlumeForm()
-        {
-            _state.FuelTypeChangedEvent -= OnFuelChange;
+            // right-click to save images
+            var picMenu = new ContextMenuStrip();
+            {
+                var item = new ToolStripMenuItem {Text = "Save As..."};
+                item.MouseUp += UiHelpers.SaveImageToolStripMenuItem_Click;
+                picMenu.Items.Add(item);
+            }
+            OutputPlot.ContextMenuStrip = picMenu;
         }
 
         private void PlumeForm_Load(object sender, EventArgs e)
@@ -39,29 +50,11 @@ namespace SandiaNationalLaboratories.Hyram
             spinnerPictureBox.Hide();
             CheckFormValid();
 
-            // Populate notional nozzle model combo box. Manual to exclude Harstad
-            NozzleSelector.DataSource = _state.NozzleModels;
-            NozzleSelector.SelectedItem = _state.Nozzle;
-
-            PhaseSelector.DataSource = _state.Phases;
-            PhaseSelector.SelectedItem = _state.Phase;
-
-            _state.FuelTypeChangedEvent += OnFuelChange;
-
-            RefreshForm();
-        }
-
-        private void OnFuelChange(object o, EventArgs e)
-        {
             RefreshForm();
         }
 
         private void RefreshForm()
         {
-            NozzleSelector.DataSource = _state.NozzleModels;
-            NozzleSelector.SelectedItem = _state.Nozzle;
-            PhaseSelector.SelectedItem = _state.Phase;
-
             if (!string.IsNullOrEmpty(_state.PlumePlotTitle))
             {
                 PlotTitleInput.Text = _state.PlumePlotTitle;
@@ -69,31 +62,32 @@ namespace SandiaNationalLaboratories.Hyram
 
             // match fuel LFL if not blend or null before updating grid.
             var fuel = _state.GetActiveFuel();
-            if (fuel.Lfl != null)
+            if (fuel.Lfl != null && _state.PlumeContourLevels.Length == 0)
             {
-                _state.PlumeContours.SetValue((double)fuel.Lfl);
+                _state.PlumeContourLevels = new[] {(double)fuel.Lfl};
             }
+            ParseUtility.PutDoubleArrayIntoTextBox(ContourInput, _state.PlumeContourLevels);
 
             InputGrid.Rows.Clear();
             var formParams = ParameterInput.GetParameterInputList(new[]
             {
-                _state.AmbientPressure, _state.AmbientTemperature,
-                _state.OrificeDiameter, _state.OrificeDischargeCoefficient,
-                _state.PlumeReleaseAngle, _state.FluidPressure,
-
-                _state.PlumeXMin, _state.PlumeXMax,
-                _state.PlumeYMin, _state.PlumeYMax,
-                _state.PlumeContours,
-                _state.PlumeVMin, _state.PlumeVMax,
+                _state.OrificeDiameter,
+                _state.PlumeReleaseAngle,
             });
 
-            if (_state.DisplayTemperature())
+            AutoSetLimits.Checked = _state.PlumePlotAutoLimits;
+            if (!_state.PlumePlotAutoLimits)
             {
-                formParams.Insert(6, new ParameterInput(_state.FluidTemperature));
+                formParams.AddRange(ParameterInput.GetParameterInputList(new []
+                {
+                    _state.PlumeXMin, _state.PlumeXMax,
+                    _state.PlumeYMin, _state.PlumeYMax,
+                    _state.PlumeVMin, _state.PlumeVMax,
+                }));
             }
 
+//            Debug.WriteLine(_state.PlumeXMin.ToString());
             GridHelpers.InitParameterGrid(InputGrid, formParams, false);
-            InputGrid.Columns[0].Width = 200;
 
             CheckFormValid();
         }
@@ -103,23 +97,14 @@ namespace SandiaNationalLaboratories.Hyram
             bool showWarning = false;
             string warningText = "";
 
-            // if liquid, validate fuel pressure
-            if (!_state.ReleasePressureIsValid())
-            {
-                warningText = MessageContainer.ReleasePressureInvalid();
-                showWarning = true;
-            }
-
             if (_state.FuelFlowUnchoked())
             {
-                MassFlowInput.Visible = true;
-                massFlowLabel.Visible = true;
+                MassFlowInput.Enabled = true;
                 MassFlowInput.Text = _state.FluidMassFlow.ToString();
             }
             else
             {
-                MassFlowInput.Visible = false;
-                massFlowLabel.Visible = false;
+                MassFlowInput.Enabled = false;
                 MassFlowInput.Text = "";
             }
 
@@ -131,42 +116,68 @@ namespace SandiaNationalLaboratories.Hyram
         private void Execute()
         {
             var physInt = new PhysicsInterface();
-            _analysisStatus = physInt.CreatePlumePlot(out _statusMsg, out _warningMsg, out _plotFilename, out _massFlow);
+            _analysisStatus = physInt.CreatePlumePlot(out _statusMsg, out _warningMsg, out _plotFilename, out _massFlow,
+                out _orderedContours, out _streamlineDists, out _contourDists);
         }
 
         private void DisplayResults()
         {
             spinnerPictureBox.Hide();
             SubmitBtn.Enabled = true;
+            resultTipLabel.Hide();
 
             if (!_analysisStatus)
             {
                 MessageBox.Show(_statusMsg);
+                return;
+            }
+
+            OutputPlot.Load(_plotFilename);
+            outputMassFlowRate.Text = _massFlow.ToString("E3");
+
+            contourGrid.Rows.Clear();
+            if (_orderedContours.Count > 0)
+            {
+                contourGrid.Enabled = true;
             }
             else
             {
-                OutputPictureBox.Load(_plotFilename);
-                mainTabControl.SelectedTab = outputTab;
-                outputMassFlowRate.Text = _massFlow.ToString("E3");
+                contourGrid.Enabled = false;
+            }
 
-                if (_warningMsg.Length != 0)
-                {
-                    outputWarning.Text = _warningMsg;
-                    outputWarning.Show();
-                }
+            for (int i = 0; i < _orderedContours.Count; i++)
+            {
+                string contour = _orderedContours[i].ToString();
+                double streamline = _streamlineDists[i];
+                List<double> xys = _contourDists[i];
+
+                contourGrid.Rows.Add(contour, streamline, xys[0], xys[1], xys[2], xys[3]);
+            }
+
+            for (int i = 0; i < _contourDists.Count; i++)
+            {
+                var contourDict = _contourDists[i];
+                double streamlineDist = _streamlineDists[i];
+
+            }
+
+            if (_warningMsg.Length != 0)
+            {
+                inputWarning.Text = _warningMsg;
+                inputWarning.Show();
             }
         }
 
         private void InputGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            GridHelpers.ChangeParameterValue((DataGridView) sender, e, 1, 2);
+            GridHelpers.ChangeParameterValue((DataGridView) sender, e);
             CheckFormValid();
         }
 
         private async void SubmitBtn_Click(object sender, EventArgs e)
         {
             spinnerPictureBox.Show();
-            outputWarning.Hide();
+            inputWarning.Hide();
             SubmitBtn.Enabled = false;
             await Task.Run(() => Execute());
             DisplayResults();
@@ -177,27 +188,34 @@ namespace SandiaNationalLaboratories.Hyram
             _state.PlumePlotTitle = PlotTitleInput.Text ?? "";
         }
 
-        private void NozzleSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        private void MassFlowInput_TextChanged(object sender, EventArgs e)
         {
-            _state.Nozzle = (ModelPair)NozzleSelector.SelectedItem;
+            FormHelpers.HandleNullableDoubleInputChange(MassFlowInput, sender, e, out _state.FluidMassFlow);
         }
 
-        private void PhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        private void AutoSetLimits_CheckedChanged(object sender, EventArgs e)
         {
-            _state.Phase = (ModelPair)PhaseSelector.SelectedItem;
+            _state.PlumePlotAutoLimits = AutoSetLimits.Checked;
             RefreshForm();
         }
 
-        private void MassFlowInput_TextChanged(object sender, EventArgs e)
+        private void InputGrid_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
-            if (double.TryParse(MassFlowInput.Text, out double result))
+            GridHelpers.CellValidating_CheckDoubleOrNullable(InputGrid, sender, e);
+        }
+
+        private void ContourInput_TextChanged(object sender, EventArgs e)
+        {
+            var contours = new List<double>();
+
+            string val = ContourInput.Text;
+            Regex.Replace(val, @"\s+", "");  // trim whitespace
+            if (val != "")
             {
-                _state.FluidMassFlow = result;
+                contours = new List<double>(ParseUtility.GetArrayFromString(ContourInput.Text, ','));
             }
-            else
-            {
-                MassFlowInput.Text = _state.FluidMassFlow.ToString();
-            }
+
+            _state.PlumeContourLevels = contours.ToArray();
         }
     }
 }

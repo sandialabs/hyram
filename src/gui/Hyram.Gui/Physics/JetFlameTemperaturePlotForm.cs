@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -35,20 +35,17 @@ namespace SandiaNationalLaboratories.Hyram
             InitializeComponent();
         }
 
-        ~JetFlameTemperaturePlotForm()
-        {
-            _state.FuelTypeChangedEvent -= OnFuelChange;
-        }
-
         private void PhysJetTempPlotForm_Load(object sender, EventArgs e)
         {
             spinnerPictureBox.Hide();
-            outputWarning.Hide();
 
-            NozzleSelector.DataSource = _state.NozzleModels;
-            PhaseSelector.DataSource = _state.Phases;
-
-            _state.FuelTypeChangedEvent += OnFuelChange;
+            var picMenu = new ContextMenuStrip();
+            {
+                var item = new ToolStripMenuItem {Text = "Save As..."};
+                item.MouseUp += UiHelpers.SaveImageToolStripMenuItem_Click;
+                picMenu.Items.Add(item);
+            }
+            OutputPlot.ContextMenuStrip = picMenu;
 
             RefreshForm();
             ParseUtility.PutDoubleArrayIntoTextBox(ContourInput, _state.TempContourLevels);
@@ -56,20 +53,12 @@ namespace SandiaNationalLaboratories.Hyram
             _mIgnoreXyzChangeEvent = false;
         }
 
-        private void OnFuelChange(object o, EventArgs e)
-        {
-            RefreshForm();
-        }
-
         /// <summary>
         /// Change which parameters are displayed based on fuel selection
         /// </summary>
         private void RefreshForm()
         {
-            NozzleSelector.DataSource = _state.NozzleModels;
-            NozzleSelector.SelectedItem = _state.Nozzle;
-            PhaseSelector.SelectedItem = _state.Phase;
-            AutoSetLimits.Checked = _state.FlameAutoLimits;
+            AutoSetLimits.Checked = _state.FlameTempAutoLimits;
 
             if (!string.IsNullOrEmpty(_state.FlamePlotTitle))
             {
@@ -78,19 +67,11 @@ namespace SandiaNationalLaboratories.Hyram
 
             InputGrid.Rows.Clear();
             var formParams = ParameterInput.GetParameterInputList(new[] {
-                _state.AmbientTemperature,
-                _state.AmbientPressure,
                 _state.OrificeDiameter,
-                _state.OrificeDischargeCoefficient,
                 _state.ReleaseAngle,
-                _state.FluidPressure,
             });
-            if (_state.DisplayTemperature())
-            {
-                formParams.Insert(6, new ParameterInput(_state.FluidTemperature));
-            }
 
-            if (!_state.FlameAutoLimits)
+            if (!_state.FlameTempAutoLimits)
             {
                 formParams.AddRange(ParameterInput.GetParameterInputList(new[]
                     {
@@ -113,20 +94,18 @@ namespace SandiaNationalLaboratories.Hyram
             if (!_state.ReleasePressureIsValid())
             {
                 // if liquid, validate fuel pressure
-                warningText = MessageContainer.ReleasePressureInvalid();
+                warningText = Notifications.ReleasePressureInvalid();
                 showWarning = true;
             }
 
             if (_state.FuelFlowUnchoked())
             {
-                MassFlowInput.Visible = true;
-                massFlowLabel.Visible = true;
+                MassFlowInput.Enabled = true;
                 MassFlowInput.Text = _state.FluidMassFlow.ToString();
             }
             else
             {
-                MassFlowInput.Visible = false;
-                massFlowLabel.Visible = false;
+                MassFlowInput.Enabled = false;
                 MassFlowInput.Text = "";
             }
 
@@ -153,17 +132,17 @@ namespace SandiaNationalLaboratories.Hyram
             }
             else
             {
-                OutputPictureBox.Load(_resultImageFilepath);
+                resultTipLabel.Hide();
+                OutputPlot.Load(_resultImageFilepath);
                 outputMassFlowRate.Text = _massFlow.ToString("E3");
                 outputSrad.Text = _srad.ToString("E3");
                 outputFlameLength.Text = _flameLength.ToString("F3");
                 outputRadiantFrac.Text = _radiantFrac.ToString("F3");
-                tcIO.SelectedTab = outputTab;
 
                 if (_warningMsg.Length != 0)
                 {
-                    outputWarning.Text = _warningMsg;
-                    outputWarning.Show();
+                    inputWarning.Text = _warningMsg;
+                    inputWarning.Show();
                 }
             }
         }
@@ -171,7 +150,7 @@ namespace SandiaNationalLaboratories.Hyram
         private async void SubmitBtn_Click(object sender, EventArgs e)
         {
             spinnerPictureBox.Show();
-            outputWarning.Hide();
+            OutputPlot.Image?.Dispose();
             SubmitBtn.Enabled = false;
             await Task.Run(() => Execute());
             DisplayResults();
@@ -179,19 +158,8 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void InputGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            GridHelpers.ChangeParameterValue((DataGridView) sender, e, 1, 2);
+            GridHelpers.ChangeParameterValue((DataGridView) sender, e);
             CheckFormValid();
-        }
-
-        private void NozzleSelector_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            _state.Nozzle = (ModelPair)NozzleSelector.SelectedItem;
-        }
-
-        private void PhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            _state.Phase = (ModelPair)PhaseSelector.SelectedItem;
-            RefreshForm();
         }
 
         private void ContourInput_TextChanged(object sender, EventArgs e)
@@ -219,7 +187,7 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void AutoSetLimits_CheckedChanged(object sender, EventArgs e)
         {
-            _state.FlameAutoLimits = AutoSetLimits.Checked;
+            _state.FlameTempAutoLimits = AutoSetLimits.Checked;
             RefreshForm();
         }
 
@@ -233,6 +201,11 @@ namespace SandiaNationalLaboratories.Hyram
             {
                 MassFlowInput.Text = _state.FluidMassFlow.ToString();
             }
+        }
+
+        private void InputGrid_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+            GridHelpers.CellValidating_CheckDoubleOrNullable(InputGrid, sender, e);
         }
     }
 }

@@ -33,7 +33,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -90,10 +90,10 @@
   <ItemGroup>
     <Compile Include="ComponentProbability.cs" />
     <Compile Include="FailureMode.cs" />
+    <Compile Include="FormHelpers.cs" />
     <Compile Include="FuelType.cs" />
-    <Compile Include="MessageContainer.cs" />
+    <Compile Include="Notifications.cs" />
     <Compile Include="OccupantDistributionInfo.cs" />
-    <Compile Include="ModelPair.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StateContainer.cs" />
     <Compile Include="GridHelpers.cs" />

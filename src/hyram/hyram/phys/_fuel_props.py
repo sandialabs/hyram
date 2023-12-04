@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -18,7 +18,7 @@ class FuelProperties:
     Requires any fuel with CoolProp chemical formula or 'other_fluid' in the _data dictionary below
 
     Currently Available fluids: 
-        H2, CH4, C3H8, N2, CO2, C2H6, C4H10, C5H12, C6H16
+        H2, CH4, C3H8, N2, CO2, CO, C2H6, C4H10, C5H12, C6H16
 
     Required Fields:
         LFL: Lower Flammability Limit, mole/volume fraction
@@ -50,6 +50,11 @@ class FuelProperties:
                      'UFL': np.nan,
                      'dHc': 0,
                      'other_name': 'CO2'
+                     },
+             'CarbonMonoxide': {'LFL': 0.125,
+                     'UFL': 0.74,
+                     'dHc': 1.01e7,
+                     'other_name': 'CO'
                      },
              'C2H6': {'LFL': 0.03,
                       'UFL': .124,
@@ -135,6 +140,7 @@ class FuelProperties:
         elif 'pentane'  in species.lower(): nC, nH, nO = 5, 12, 0
         elif 'hexane'   in species.lower(): nC, nH, nO = 6, 14, 0
         elif 'carbondioxide' in species.lower(): nC, nH, nO = 1, 0, 2
+        elif 'carbonmonoxide' in species.lower(): nC, nH, nO = 1, 0, 1
         elif 'nitrogen' in species.lower() or species == 'N2': nC, nH, nO = 0, 0, 0
         return nC, nH, nO
     

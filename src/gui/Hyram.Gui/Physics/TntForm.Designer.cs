@@ -44,7 +44,7 @@
             this.VaporMassInput.Location = new System.Drawing.Point(332, 16);
             this.VaporMassInput.Name = "VaporMassInput";
             this.VaporMassInput.Size = new System.Drawing.Size(107, 20);
-            this.VaporMassInput.TabIndex = 41;
+            this.VaporMassInput.TabIndex = 2;
             this.VaporMassInput.TextChanged += new System.EventHandler(this.VaporMassInput_TextChanged);
             // 
             // massInputLabel
@@ -70,7 +70,7 @@
             this.YieldInput.Location = new System.Drawing.Point(332, 44);
             this.YieldInput.Name = "YieldInput";
             this.YieldInput.Size = new System.Drawing.Size(107, 20);
-            this.YieldInput.TabIndex = 43;
+            this.YieldInput.TabIndex = 3;
             this.YieldInput.TextChanged += new System.EventHandler(this.YieldInput_TextChanged);
             // 
             // EqMassOutput
@@ -80,7 +80,7 @@
             this.EqMassOutput.Name = "EqMassOutput";
             this.EqMassOutput.ReadOnly = true;
             this.EqMassOutput.Size = new System.Drawing.Size(107, 20);
-            this.EqMassOutput.TabIndex = 49;
+            this.EqMassOutput.TabIndex = 6;
             // 
             // equivalentMassLabel
             // 
@@ -99,7 +99,7 @@
             this.EqMassUnitSelector.SelectedItem = null;
             this.EqMassUnitSelector.Size = new System.Drawing.Size(142, 22);
             this.EqMassUnitSelector.StoredValue = new double[0];
-            this.EqMassUnitSelector.TabIndex = 48;
+            this.EqMassUnitSelector.TabIndex = 5;
             this.EqMassUnitSelector.OnSelectedIndexChanged += new System.EventHandler(this.EqMassUnitSelector_OnSelectedIndexChanged);
             // 
             // VaporMassUnitSelector
@@ -110,7 +110,7 @@
             this.VaporMassUnitSelector.SelectedItem = null;
             this.VaporMassUnitSelector.Size = new System.Drawing.Size(142, 22);
             this.VaporMassUnitSelector.StoredValue = new double[0];
-            this.VaporMassUnitSelector.TabIndex = 40;
+            this.VaporMassUnitSelector.TabIndex = 1;
             this.VaporMassUnitSelector.OnSelectedIndexChanged += new System.EventHandler(this.VaporMassUnitSelector_OnSelectedIndexChanged);
             // 
             // SubmitBtn
@@ -119,7 +119,7 @@
             this.SubmitBtn.Location = new System.Drawing.Point(332, 98);
             this.SubmitBtn.Name = "SubmitBtn";
             this.SubmitBtn.Size = new System.Drawing.Size(107, 23);
-            this.SubmitBtn.TabIndex = 50;
+            this.SubmitBtn.TabIndex = 4;
             this.SubmitBtn.Text = "Calculate";
             this.SubmitBtn.UseVisualStyleBackColor = true;
             this.SubmitBtn.Click += new System.EventHandler(this.SubmitBtn_Click);

@@ -1,0 +1,62 @@
+﻿# Data from Table 5-3 in book my Vladimir Molkov https://www.arma.org.au/wp-content/uploads/2017/03/fundamentals-of-hydrogen-safety-engineering-i.pdf,,,,,,,,
+Author-Year,T,D,P,rho_n,x,X,Y,comment
+Chaineaux et al. (1991),207,6,3.6,2.58,7.5,0.053,0.0039,pressure given 5 s after discharge initiation
+Chaineaux et al. (1991),207,6,3.6,2.58,2.5,0.093,0.0071,pressure given 5 s after discharge initiation
+Chaineaux et al. (1991),174,12,1.8,1.56,15,0.044,0.0032,pressure given 2 s after discharge initiation
+Chaineaux et al. (1991),174,12,1.8,1.56,5,0.099,0.0076,pressure given 2 s after discharge initiation
+Houf and Schefer (2008),298,1.905,nan,0.08,0.24,0.108,0.0084,assumed T
+Houf and Schefer (2008),298,1.905,nan,0.08,0.01,0.866,0.3108,assumed T
+Houf and Schefer (2008),298,1.905,nan,0.08,0.19,0.078,0.0058,assumed T
+Houf and Schefer (2008),298,1.905,nan,0.08,0.06,0.382,0.0412,assumed T
+Houf and Schefer (2008),298,1.905,nan,0.08,0.01,0.826,0.2484,assumed T
+Houf and Schefer (2008),298,1.905,nan,0.08,0.19,0.062,0.0046,assumed T
+Houf and Schefer (2008),298,1.905,nan,0.08,0.06,0.259,0.0238,assumed T
+Houf and Schefer (2008),298,1.905,nan,0.08,0.01,0.807,0.2257,assumed T
+Kuznetsov (2006),287,0.25,16.1,7.68,2.25,0.01,0.0007,
+Kuznetsov (2006),287,0.25,16.1,7.68,0.75,0.02,0.0015,
+Kuznetsov (2006),287,0.75,10.6,5.25,1.5,0.055,0.004,
+Kuznetsov (2006),287,0.75,10.6,5.25,0.75,0.094,0.0072,
+Kuznetsov (2006),287,1,9.7,4.84,2.25,0.05,0.0036,
+Kuznetsov (2006),287,1,9.7,4.84,1.5,0.066,0.0049,
+Kuznetsov (2006),287,1,5.3,2.73,1.5,0.052,0.0038,
+Kuznetsov (2006),287,1,5.3,2.73,0.75,0.092,0.007,
+Okabayashi et al. (2005),288,2,20,9.29,13.22,0.01,0.0007,
+Okabayashi et al. (2005),288,2,20,9.29,3.74,0.076,0.0057,
+Okabayashi et al. (2005),288,0.25,40,16.45,7.15,0.005,0.0003,
+Okabayashi et al. (2005),288,0.25,40,16.45,5.41,0.011,0.0008,
+Okabayashi et al. (2005),288,0.5,40,16.45,7.15,0.009,0.0006,
+Okabayashi et al. (2005),288,0.5,40,16.45,3.85,0.02,0.0014,
+Okabayashi et al. (2005),288,1,40,16.45,11.73,0.011,0.0008,
+Okabayashi et al. (2005),288,1,40,16.45,3.39,0.05,0.0036,
+Okabayashi et al. (2005),288,1,40,16.45,0.41,0.225,0.0198,
+Okabayashi et al. (2005),288,2,40,16.45,17.59,0.014,0.001,
+Okabayashi et al. (2005),288,2,40,16.45,8.79,0.031,0.0022,
+Okabayashi et al. (2005),288,2,40,16.45,3.52,0.101,0.0078,
+Ruffin et al. (1996),288,25,3.24,1.79,10,0.094,0.0072,pressure calculated using Molkov (2009) - verified with HyRAM 3 tank blowdown and tank temperature updated - aligns density with table
+Ruffin et al. (1996),288,25,3.24,1.79,7.5,0.127,0.01,pressure calculated using Molkov (2009) - verified with HyRAM 3 tank blowdown and tank temperature updated - aligns density with table
+Ruffin et al. (1996),288,50,1.8,1.18,25,0.076,0.0057,pressure calculated using Molkov (2009) - verified with HyRAM 3 tank blowdown and tank temperature updated - aligns density with table
+Ruffin et al. (1996),288,50,1.8,1.18,15,0.133,0.0106,pressure calculated using Molkov (2009) - verified with HyRAM 3 tank blowdown and tank temperature updated - aligns density with table
+Ruffin et al. (1996),288,75,0.75,0.63,30,0.102,0.0078,pressure calculated using Molkov (2009) - verified with HyRAM 3 tank blowdown and tank temperature updated - aligns density with table
+Ruffin et al. (1996),288,75,0.75,0.63,20,0.178,0.0149,pressure calculated using Molkov (2009) - verified with HyRAM 3 tank blowdown and tank temperature updated - aligns density with table
+Ruffin et al. (1996),288,100,0.26,0.35,50,0.06,0.0044,pressure calculated using Molkov (2009) - verified with HyRAM 3 tank blowdown and tank temperature updated - aligns density with table
+Ruffin et al. (1996),288,100,0.26,0.35,40,0.094,0.0072,pressure calculated using Molkov (2009) - verified with HyRAM 3 tank blowdown and tank temperature updated - aligns density with table
+Shevayakov et al. (1977),288,6,nan,0.08,0.37,0.17,0.0141,
+Shevayakov et al. (1977),288,6,nan,0.08,0.46,0.17,0.0141,
+Shevayakov et al. (1977),288,6,nan,0.08,0.1,0.6,0.0945,
+Shevayakov et al. (1977),288,6,nan,0.08,0.25,0.3,0.029,
+Shevayakov et al. (1977),288,20.8,nan,0.08,0.77,0.3,0.029,
+Shevayakov et al. (1977),288,20.8,nan,0.08,0.31,0.6,0.0945,
+Shirvill et al. (2006),287,3,10,4.98,11,0.027,0.0019,
+Shirvill et al. (2006),287,3,10,4.98,3,0.1,0.0076,
+Shirvill et al. (2006),287,3,13.5,6.57,9,0.02,0.0014,
+Shirvill et al. (2006),287,3,13.5,6.57,3,0.122,0.0096,
+Shirvill et al. (2006),287,12,2.5,1.32,9,0.05,0.0036,
+Shirvill et al. (2006),287,12,2.5,1.32,1.8,0.318,0.0315,
+Veser et al. (2009),298,1,5.43,2.7,2.2,0.035,0.0025,
+Veser et al. (2009),298,1,5.43,2.7,0.19,0.272,0.0253,
+Veser et al. (2009),80,1,2.99,5.32,2.5,0.043,0.0031,
+Veser et al. (2009),80,1,2.99,5.32,0.19,0.368,0.0389,
+Veser et al. (2009),298,2,1.01,1.88,0.05,0.472,0.0585,
+Veser et al. (2009),298,2,1.01,1.88,1.25,0.045,0.0032,
+Veser et al. (2009),80,2,1.81,0.92,0.05,0.49,0.0627,
+Veser et al. (2009),80,2,1.81,0.92,1.25,0.032,0.0023,

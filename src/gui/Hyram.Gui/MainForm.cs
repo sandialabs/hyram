@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -33,21 +33,12 @@ namespace SandiaNationalLaboratories.Hyram
         private static UserControl _currentControl;
         public static MainForm TheMainForm { get; private set; }
         private ContentPanel _rightFormPanel;
-        private FuelForm _fuelForm;
 
         private CancellationTokenSource _token;
         private string _progressMessage;
         private int _progressStatus;
         private ProgressDisplay _progressDisplay;
         private delegate void Delegate();
-
-        private bool _ignoreStateChange;
-
-        private static SystemDescriptionForm _systemDescriptionForm;
-        private static ProbabilitiesForm _probabilitiesForm;
-        private static ScenariosForm _scenariosForm;
-        private static ConsequenceModelsForm _consequencesForm;
-        private static List<AnalysisForm> _qraForms = new List<AnalysisForm>();
         private static FormMode _mode = FormMode.Qra;
 
 
@@ -56,15 +47,6 @@ namespace SandiaNationalLaboratories.Hyram
             InitializeComponent();
 
             State.Data.InitializeState();
-            RefreshState();
-
-            _ignoreStateChange = true;
-            _scenariosForm = new ScenariosForm(this);
-            _probabilitiesForm = new ProbabilitiesForm(this);
-            _consequencesForm = new ConsequenceModelsForm(this);
-            _systemDescriptionForm = new SystemDescriptionForm(this);
-            _qraForms = new List<AnalysisForm> { _scenariosForm, _probabilitiesForm, _consequencesForm, _systemDescriptionForm };
-            _ignoreStateChange = false;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -78,20 +60,23 @@ namespace SandiaNationalLaboratories.Hyram
             TheMainForm.formArea.Controls.Clear();
             TheMainForm.formArea.Controls.Add(_rightFormPanel);
 
-            PhysicsFuelBtn.Click += (o, args) => DisplayFuelForm();
-            QraFuelBtn.Click += (o, args) => DisplayFuelForm();
             ExitMenuItem.Click += (o, args) => Close();
 
-            ScenariosFormBtn.Click += (o, args) => ChangeForm(o, _scenariosForm, Narratives.QraScenariosDescrip);
-            ProbabilitiesFormBtn.Click += (o, args) => ChangeForm(o, _probabilitiesForm, Narratives.QraProbabilitiesDescrip);
-            ConsequenceFormBtn.Click += (o, args) => ChangeForm(o, _consequencesForm, Narratives.QraConsequenceModelsDescrip);
-            SystemDescripFormBtn.Click += (o, args) => ChangeForm(o, _systemDescriptionForm, Narratives.QraSystemDescriptionDescrip);
+            FuelFormBtn.Click += (o, args) => ChangeForm(o, new SharedStateForm(), Narratives.FuelFormDescrip);
+
+            ScenariosFormBtn.Click += (o, args) => ChangeForm(o, new ScenariosForm(), Narratives.QraScenariosDescrip);
+            ProbabilitiesFormBtn.Click += (o, args) => ChangeForm(o, new ProbabilitiesForm(this), Narratives.QraProbabilitiesDescrip);
+            ConsequenceFormBtn.Click += (o, args) => ChangeForm(o, new ConsequenceModelsForm(this), Narratives.QraConsequenceModelsDescrip);
+
+            SystemDescripFormBtn.Click += (o, args) => ChangeForm(o, new SystemDescriptionForm(), 
+                                                                  Narratives.QraSystemDescriptionDescrip);
 
             PlumeFormBtn.Click += (o, args) => ChangeForm(o, new PlumeForm(), Narratives.PhysPlumeDescrip);
             AccumulationFormBtn.Click += (o, args) => ChangeForm(o, new AccumulationForm(), Narratives.PhysAccumulationDescrip);
             JetPlotFormBtn.Click += (o, args) => ChangeForm(o, new JetFlameTemperaturePlotForm(), Narratives.PhysJetFlameDescrip);
             JetFluxFormBtn.Click += (o, args) => ChangeForm(o, new JetFlameHeatAnalysisForm(), Narratives.PhysRadHeatDescrip);
             OverpressureFormBtn.Click += (o, args) => ChangeForm(o, new UnconfinedOverpressureForm(), Narratives.PhysUnconfinedOverpressureDescrip);
+            PoolingFormBtn.Click += (o, args) => ChangeForm(o, new PoolingForm(), Narratives.PhysPoolingDescrip);
 
             TpdFormBtn.Click += (o, args) => ChangeForm(o, new TpdForm(), Narratives.PhysTpdDescrip);
             TankMassFormBtn.Click += (o, args) => ChangeForm(o, new TankMassForm(), Narratives.PhysTankMassDescrip);
@@ -100,30 +85,73 @@ namespace SandiaNationalLaboratories.Hyram
 
             DataDirectoryMenuItem.Click += (o, args) => Process.Start(StateContainer.UserDataDir);
 
-            FuelType.FuelChangedEvent += (o, args) => RefreshState();
+            RefreshState();
 
+            FuelFormBtn.PerformClick();
             TheSplashscreen.FadeOut();
-            SystemDescripFormBtn.PerformClick();
         }
 
 
         private void RefreshState()
         {
             _state = State.Data;
+            _state.FuelTypeChangedEvent -= HandleKeyParameterChanged;
+            _state.FuelPhaseEvent -= HandleKeyParameterChanged;
+            _state.FluidPressure.ParameterChangedEvent -= HandleKeyParameterChanged;
 
-            if (!_ignoreStateChange)
+            _state.FuelTypeChangedEvent += HandleKeyParameterChanged;
+            _state.FuelPhaseEvent += HandleKeyParameterChanged;
+            _state.FluidPressure.ParameterChangedEvent += HandleKeyParameterChanged;
+        }
+
+        private void HandleKeyParameterChanged(object sender, EventArgs args)
+        {
+            RefreshNotifications();
+        }
+
+
+        /// <summary>
+        /// Update display of notifications and alerts.
+        /// Will prioritize top-level messages and hoist child-level messages if current form has none but siblings do.
+        /// </summary>
+        private void RefreshNotifications()
+        {
+            fuelLabel.Text = _state.GetSpeciesOptionString();
+
+            AlertLevel level = AlertLevel.AlertNull;
+            string message = "";
+
+            QraSubmitBtn.Enabled = true;
+
+            // if liquid, validate fuel pressure
+            if (!_state.ReleasePressureIsValid())
             {
-                FuelType fuel = _state.GetActiveFuel();
-                List<FuelType> displayFuels = new List<FuelType> { _state.FuelH2, _state.FuelMethane, _state.FuelPropane, _state.FuelBlend };
-                QraFuelTypeSelector.DataSource = null;
-                QraFuelTypeSelector.DataSource = displayFuels;
-                QraFuelTypeSelector.SelectedItem = fuel;
-                PhysicsFuelTypeSelector.DataSource = null;
-                PhysicsFuelTypeSelector.DataSource = displayFuels;
-                PhysicsFuelTypeSelector.SelectedItem = fuel;
+                message = Notifications.ReleasePressureInvalid();
+                level = AlertLevel.AlertError;
             }
-            RefreshQraForms();
-            RefreshAlerts();
+
+            if (_mode == FormMode.Qra)
+            {
+                if (_state.GetActiveFuel() == _state.FuelBlend)
+                {
+                    level = AlertLevel.AlertWarning;
+                    message = Notifications.QraBlendWarning;
+                }
+                // warn about other pure fluids from QRA analysis
+                else if (_state.GetActiveFuel() != _state.FuelH2 &&
+                        _state.GetActiveFuel() != _state.FuelMethane &&
+                        _state.GetActiveFuel() != _state.FuelPropane)
+                {
+                    level = AlertLevel.AlertWarning;
+                    message = Notifications.QraNonDefaultPureFluidWarning;
+                }
+            }
+
+            mainMessage.BackColor = _state.AlertBackColors[(int)level];
+            mainMessage.ForeColor = _state.AlertTextColors[(int)level];
+            mainMessage.Text = message;
+//            mainMessage.Visible = _mode == FormMode.Qra && level != AlertLevel.AlertNull;
+            mainMessage.Visible = level != AlertLevel.AlertNull;
         }
 
         private static Splashscreen _mTheSplashscreen;
@@ -143,10 +171,7 @@ namespace SandiaNationalLaboratories.Hyram
         /// </summary>
         public void NotifyOfChildPublicStateChange()
         {
-            if (!_ignoreStateChange)
-            {
-                RefreshAlerts();
-            }
+            RefreshNotifications();
         }
 
         /// <summary>
@@ -157,19 +182,16 @@ namespace SandiaNationalLaboratories.Hyram
             UiHelpers.UnselectButtons(qraNavPanel);
             UiHelpers.UnselectButtons(physicsNavPanel);
             UiHelpers.UnselectButton(QraSubmitBtn);
+            UiHelpers.UnselectButton(FuelFormBtn);
 
             _currentControl = form;
             _rightFormPanel.ChildControl = form;
             _rightFormPanel.UpdateNarrative(rtfFilepath);
 
-            // refresh persisted QRA forms
-            if (_mode == FormMode.Qra && form is AnalysisForm)
-            {
-                ((AnalysisForm)form).RefreshForm();
-            }
+            Controls.Remove(_currentControl);
 
             UiHelpers.ShowButtonActive((Button)caller);
-            RefreshAlerts();
+            RefreshNotifications();
         }
 
         /// <summary>
@@ -182,43 +204,6 @@ namespace SandiaNationalLaboratories.Hyram
         // container function for delegate
         public void ToggleNavigability() { ToggleNavigability(true);}
 
-
-        /// <summary>
-        /// Update display of notifications and alerts.
-        /// Will prioritize top-level messages and hoist child-level messages if current form has none but siblings do.
-        /// </summary>
-        private void RefreshAlerts()
-        {
-            AlertLevel alert = AlertLevel.AlertNull;
-            string alertMessage = "";
-
-            // top-level alerts
-            if (_mode == FormMode.Qra && _state.GetActiveFuel() == _state.FuelBlend)
-            {
-                alert = AlertLevel.AlertError;
-                alertMessage = "QRA cannot assess blends at this time.";
-                QraSubmitBtn.Enabled = false;
-            }
-            else
-            {
-                QraSubmitBtn.Enabled = true;
-                // display sibling child alert from QRA form if no top alert
-                foreach (AnalysisForm form in _qraForms)
-                {
-                    if (form.Alert != AlertLevel.AlertNull && form != _currentControl)
-                    {
-                        alertMessage = form.AlertMessage;
-                        alert = form.Alert;
-                        break;
-                    }
-                }
-            }
-
-            mainMessage.BackColor = _state.AlertBackColors[(int)alert];
-            mainMessage.ForeColor = _state.AlertTextColors[(int)alert];
-            mainMessage.Text = alertMessage;
-            mainMessage.Visible = _mode == FormMode.Qra && alert != AlertLevel.AlertNull;
-        }
 
         /// <summary>
         /// Switch between main analysis modes (QRA and phys)
@@ -237,15 +222,7 @@ namespace SandiaNationalLaboratories.Hyram
                 _mode = FormMode.Physics;
                 PlumeFormBtn.PerformClick();
             }
-            RefreshAlerts();
-        }
-
-        private void RefreshQraForms()
-        {
-            foreach (AnalysisForm form in _qraForms)
-            {
-                form.RefreshForm();
-            }
+            RefreshNotifications();
         }
 
         /// <summary>
@@ -254,11 +231,9 @@ namespace SandiaNationalLaboratories.Hyram
         private void GotoAppStartDefaultLocation()
         {
             ModeTabs.SelectedIndex = 0;
-            RefreshState();
 
-            SystemDescripFormBtn.PerformClick();
-            RefreshQraForms();
-            RefreshAlerts();
+            FuelFormBtn.PerformClick();
+            RefreshNotifications();
         }
 
 
@@ -298,6 +273,9 @@ namespace SandiaNationalLaboratories.Hyram
                 if (loadDialog.CurrentLoadedState != null)
                 {
                     State.Data = loadDialog.CurrentLoadedState;
+                    RefreshState();
+                    RefreshNotifications();
+                    GotoAppStartDefaultLocation();
                 }
 
                 loadDialog.Dispose();
@@ -307,45 +285,6 @@ namespace SandiaNationalLaboratories.Hyram
                 MessageBox.Show(@"Could not open input file. Error: " + ex.Message);
             }
 
-            RefreshState();
-            GotoAppStartDefaultLocation();
-        }
-
-        private void PhysicsFuelTypeSelector_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            _ignoreStateChange = true;
-
-            FuelType fuel = (FuelType)PhysicsFuelTypeSelector.SelectedItem;
-            _state.SetFuel(fuel);
-
-            _ignoreStateChange = false;
-
-            if (fuel == _state.FuelBlend)
-            {
-                PhysicsFuelBtn.PerformClick();
-            }
-        }
-
-        private void QraFuelTypeSelector_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            _ignoreStateChange = true;
-
-            FuelType fuel = (FuelType)QraFuelTypeSelector.SelectedItem;
-            _state.SetFuel(fuel);
-
-            _ignoreStateChange = false;
-            RefreshAlerts();
-
-            if (fuel == _state.FuelBlend)
-            {
-                QraFuelBtn.PerformClick();
-            }
-        }
-
-        private void DisplayFuelForm()
-        {
-            _fuelForm = new FuelForm();
-            _fuelForm.ShowDialog();
         }
 
 

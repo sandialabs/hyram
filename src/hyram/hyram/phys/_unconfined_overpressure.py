@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -749,11 +749,38 @@ class Bauwens_method(Generic_overpressure_method):
     def calc_energy(self):
         return self.detonable_mass*self.heat_of_combustion
 
-    def get_scaled_overpressure(self, scaled_distance):
+    @staticmethod
+    def calc_scaled_overpressure_from_dist(scaled_distance):
+        '''Function to calculate scaled overpressure for Bauwens model based on scaled distance'''
         scaled_overpressure = (0.34 / scaled_distance ** (4/3)
                                + 0.062 / scaled_distance ** 2
                                + 0.0033 / scaled_distance ** 3)
         return scaled_overpressure
+
+    def get_scaled_overpressure(self, scaled_distance):
+        '''
+        Determine scaled overpressure for Bauwens model based on scaled distance
+
+        Parameters
+        ----------
+        scaled_distance : float
+            scaled distance (unitless)
+            any distance shorter than 1E-2 is set to 1E-2
+
+        Returns
+        ----------
+        scaled_overpressure : float
+            scaled overpressure (unitless)
+        '''
+        minimum_scaled_distance = 1E-2
+        scaled_overpressure = []
+        for scaled_dist in scaled_distance:
+            if scaled_dist < minimum_scaled_distance:
+                scaled_overp = self.calc_scaled_overpressure_from_dist(minimum_scaled_distance)
+            else:
+                scaled_overp = self.calc_scaled_overpressure_from_dist(scaled_dist)
+            scaled_overpressure.append(scaled_overp)
+        return np.array(scaled_overpressure)
 
     def calc_detonable_cell_size(self, moleFractionField):
         equivalence_ratio = moleFractionField/(1 - moleFractionField)/self.fuel_to_air_stoich_ratio

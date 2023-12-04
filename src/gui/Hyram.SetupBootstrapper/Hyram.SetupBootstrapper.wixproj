@@ -27,7 +27,7 @@
     <ProductVersion>3.10</ProductVersion>
     <ProjectGuid>89739331-5be8-4eb2-a5a4-32b1b732d15f</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>Hyram-5.0.Setup</OutputName>
+    <OutputName>Hyram-5.1.Setup</OutputName>
     <OutputType>Bundle</OutputType>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>

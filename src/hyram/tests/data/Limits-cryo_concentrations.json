@@ -1,0 +1,120 @@
+{
+	"Test_Xiao_2010": {
+		"Xiao et al. 2010 - Figure 3, Inverse Mass Fraction over Normalized Distance, Case 1": {
+            "Max Absolute Error": 1.30,
+            "Avg Absolute Error": 0.80,
+            "Max Percent Error": 60,
+            "Avg Percent Error": 25,
+            "R2": 0.999
+        },
+		"Xiao et al. 2010 - Figure 3, Inverse Mass Fraction over Normalized Distance, Case 2": {
+            "Max Absolute Error": 2.50,
+            "Avg Absolute Error": 0.91,
+            "Max Percent Error": 66,
+            "Avg Percent Error": 21,
+            "R2": 0.998
+        },
+		"Xiao et al. 2010 - Figure 3, Inverse Mass Fraction over Normalized Distance, Case 3": {
+            "Max Absolute Error": 3.16,
+            "Avg Absolute Error": 1.34,
+            "Max Percent Error": 28,
+            "Avg Percent Error": 21,
+            "R2": 0.999
+        },
+		"Xiao et al. 2010 - Figure 3, Inverse Mass Fraction over Normalized Distance, Case 4": {
+            "Max Absolute Error": 3.66,
+            "Avg Absolute Error": 1.05,
+            "Max Percent Error": 26,
+            "Avg Percent Error": 16,
+            "R2": 0.998
+        }
+	},
+	"Test_Friedrich_Dist1": {
+		"Friedrich - Figure 5, Inverse Centerline Mole Fraction over Normalized Distance 1, Experiment #3000": {
+            "Max Absolute Error": 5.33,
+            "Avg Absolute Error": 2.54,
+            "Max Percent Error": 50,
+            "Avg Percent Error": 28,
+            "R2": 0.961
+        },
+		"Friedrich - Figure 5, Inverse Centerline Mole Fraction over Normalized Distance 1, Experiment #3002": {
+            "Max Absolute Error": 5.75,
+            "Avg Absolute Error": 2.54,
+            "Max Percent Error": 48,
+            "Avg Percent Error": 31,
+            "R2": 0.968
+        },
+		"Friedrich - Figure 5, Inverse Centerline Mole Fraction over Normalized Distance 1, Experiment #3004": {
+            "Max Absolute Error": 6.49,
+            "Avg Absolute Error": 3.38,
+            "Max Percent Error": 67,
+            "Avg Percent Error": 55,
+            "R2": 0.960
+        },
+		"Friedrich - Figure 5, Inverse Centerline Mole Fraction over Normalized Distance 1, Experiment #3005": {
+            "Max Absolute Error": 11.02,
+            "Avg Absolute Error": 4.96,
+            "Max Percent Error": 96,
+            "Avg Percent Error": 64,
+            "R2": 0.884
+        },
+		"Friedrich - Figure 5, Inverse Centerline Mole Fraction over Normalized Distance 1, Experiment #5001": {
+            "Max Absolute Error": 2.89,
+            "Avg Absolute Error": 1.74,
+            "Max Percent Error": 33,
+            "Avg Percent Error": 22,
+            "R2": 0.986
+        },
+		"Friedrich - Figure 5, Inverse Centerline Mole Fraction over Normalized Distance 1, Experiment #5002": {
+            "Max Absolute Error": 0.28,
+            "Avg Absolute Error": 0.15,
+            "Max Percent Error": 5,
+            "Avg Percent Error": 3,
+            "R2": 0.998
+        }
+	},
+	"Test_Friedrich_Dist2": {
+		"Friedrich - Figure 5, Inverse Centerline Mole Fraction over Normalized Distance 2, Experiment #3000": {
+            "Max Absolute Error": 4.40,
+            "Avg Absolute Error": 2.08,
+            "Max Percent Error": 44,
+            "Avg Percent Error": 24,
+            "R2": 0.963
+        },
+		"Friedrich - Figure 5, Inverse Centerline Mole Fraction over Normalized Distance 2, Experiment #3002": {
+            "Max Absolute Error": 3.69,
+            "Avg Absolute Error": 1.25,
+            "Max Percent Error": 33,
+            "Avg Percent Error": 16,
+            "R2": 0.971
+        },
+		"Friedrich - Figure 5, Inverse Centerline Mole Fraction over Normalized Distance 2, Experiment #3004": {
+            "Max Absolute Error": 5.88,
+            "Avg Absolute Error": 3.13,
+            "Max Percent Error": 65,
+            "Avg Percent Error": 52,
+            "R2": 0.967
+        },
+		"Friedrich - Figure 5, Inverse Centerline Mole Fraction over Normalized Distance 2, Experiment #3005": {
+            "Max Absolute Error": 9.59,
+            "Avg Absolute Error": 4.45,
+            "Max Percent Error": 90,
+            "Avg Percent Error": 59,
+            "R2": 0.887
+        },
+		"Friedrich - Figure 5, Inverse Centerline Mole Fraction over Normalized Distance 2, Experiment #5001": {
+            "Max Absolute Error": 1.68,
+            "Avg Absolute Error": 0.92,
+            "Max Percent Error": 18,
+            "Avg Percent Error": 11,
+            "R2": 0.985
+        },
+		"Friedrich - Figure 5, Inverse Centerline Mole Fraction over Normalized Distance 2, Experiment #5002": {
+            "Max Absolute Error": 1.14,
+            "Avg Absolute Error": 0.72,
+            "Max Percent Error": 16,
+            "Avg Percent Error": 12,
+            "R2": 0.997
+        }
+	}
+}

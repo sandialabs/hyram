@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -13,6 +13,8 @@ import numpy as np
 
 from hyram.qra import effects
 import hyram.phys.api as phys_api
+from hyram.phys._jet import DevelopingFlow
+from hyram.phys._therm import Combustion
 from hyram.phys import Orifice
 from hyram.utilities import misc_utils
 
@@ -36,6 +38,12 @@ class TestThermalEffects(unittest.TestCase):
         self.orifices = [Orifice(leak_diam) for leak_diam in leak_diams]
         self.rel_humid = 0.89
         self.not_nozzle_model = 'yuce'
+        cons_momentum, notional_noz_t = misc_utils.convert_nozzle_model_to_params(self.not_nozzle_model, self.rel_fluid)
+        self.developing_flows = [DevelopingFlow(self.rel_fluid, o, self.amb_fluid,
+                                                theta0 = self.rel_angle,
+                                                nn_conserve_momentum=cons_momentum, nn_T=notional_noz_t,
+                                                verbose=False) for o in self.orifices]
+        self.chem = Combustion(self.rel_fluid)
         self.locations = [(5, 0, 1), (6, 1, 2), (7, 0, 2)]  # m
         self.create_plots = True
         self.output_dir = misc_utils.get_temp_folder()
@@ -51,11 +59,31 @@ class TestThermalEffects(unittest.TestCase):
                                                  self.rel_humid,
                                                  self.not_nozzle_model,
                                                  self.locations,
+                                                 self.developing_flows,
+                                                 self.chem,
                                                  self.create_plots,
                                                  self.output_dir,
                                                  self.verbose)
         self.assertGreater(max(flux_dict['fluxes']), 0)
         self.assertGreater(len(flux_dict['all_pos_files']), 0)
+
+        # ensure that specifying a developing flow performs the same as not
+        flux_dict_no_develop_flow = \
+            effects.calc_thermal_effects(amb_fluid=self.amb_fluid,
+                                         rel_fluid=self.rel_fluid,
+                                         rel_angle=self.rel_angle,
+                                         site_length=self.site_length,
+                                         site_width=self.site_width,
+                                         orifices=self.orifices,
+                                         rel_humid=self.rel_humid,
+                                         not_nozzle_model=self.not_nozzle_model,
+                                         locations=self.locations,
+                                         developing_flows=None,
+                                         chem=None,
+                                         create_plots=self.create_plots,
+                                         output_dir=self.output_dir,
+                                         verbose=self.verbose)
+        self.assertListEqual(flux_dict['fluxes'].tolist(), flux_dict_no_develop_flow['fluxes'].tolist())
 
     def test_zero_occupants(self):
         locations = []
@@ -68,6 +96,8 @@ class TestThermalEffects(unittest.TestCase):
                                                  self.rel_humid,
                                                  self.not_nozzle_model,
                                                  locations,
+                                                 self.developing_flows,
+                                                 self.chem,
                                                  self.create_plots,
                                                  self.output_dir,
                                                  self.verbose)
@@ -90,6 +120,11 @@ class TestOverpressureEffects(unittest.TestCase):
                                                    temp=288,  # K
                                                    pres=101325)  # Pa
         self.release_angle = 0  # radians
+        cons_momentum, notional_noz_t = misc_utils.convert_nozzle_model_to_params(self.notional_nozzle_model, self.release_fluid)
+        self.developing_flows = [DevelopingFlow(self.release_fluid, o, self.ambient_fluid,
+                                                theta0 = self.release_angle,
+                                                nn_conserve_momentum=cons_momentum, nn_T=notional_noz_t,
+                                                verbose=False) for o in self.orifices]
         self.overp_method = 'bst'
         self.locations = [(5, 0, 1), (6, 1, 2), (7, 0, 2)]  # m
         self.site_length = 20  # m
@@ -112,6 +147,7 @@ class TestOverpressureEffects(unittest.TestCase):
                                                 'tnt',
                                                 self.BST_mach_flame_speed,
                                                 self.TNT_equivalence_factor,
+                                                self.developing_flows,
                                                 self.create_plots,
                                                 self.output_dir,
                                                 self.verbose)
@@ -119,6 +155,27 @@ class TestOverpressureEffects(unittest.TestCase):
         self.assertGreater(max(overp_dict['impulses']), 0)
         self.assertGreater(len(overp_dict['all_pos_overp_files']), 0)
         self.assertGreater(len(overp_dict['all_pos_impulse_files']), 0)
+
+        # ensure that specifying a developing flow performs the same as not
+        overp_dict_no_develop_flow = \
+            effects.calc_overp_effects(orifices=self.orifices,
+                                       notional_nozzle_model=self.notional_nozzle_model,
+                                       release_fluid=self.release_fluid,
+                                       ambient_fluid=self.ambient_fluid,
+                                       release_angle=self.release_angle,
+                                       locations=self.locations,
+                                       site_length=self.site_length,
+                                       site_width=self.site_width,
+                                       overp_method='tnt',
+                                       BST_mach_flame_speed=self.BST_mach_flame_speed,
+                                       TNT_equivalence_factor=self.TNT_equivalence_factor,
+                                       developing_flows=None,
+                                       create_plots=self.create_plots,
+                                       output_dir=self.output_dir,
+                                       verbose=self.verbose)
+        self.assertListEqual(overp_dict['overpressures'].tolist(),
+                             overp_dict_no_develop_flow['overpressures'].tolist())
+
 
     def test_calc_overp_effects_BST(self):
         overp_dict = effects.calc_overp_effects(self.orifices,
@@ -132,6 +189,7 @@ class TestOverpressureEffects(unittest.TestCase):
                                                 'bst',
                                                 self.BST_mach_flame_speed,
                                                 self.TNT_equivalence_factor,
+                                                self.developing_flows,
                                                 self.create_plots,
                                                 self.output_dir,
                                                 self.verbose)
@@ -152,6 +210,7 @@ class TestOverpressureEffects(unittest.TestCase):
                                                 'bauwens',
                                                 self.BST_mach_flame_speed,
                                                 self.TNT_equivalence_factor,
+                                                self.developing_flows,
                                                 self.create_plots,
                                                 self.output_dir,
                                                 self.verbose)
@@ -173,6 +232,7 @@ class TestOverpressureEffects(unittest.TestCase):
                                                 self.overp_method,
                                                 self.BST_mach_flame_speed,
                                                 self.TNT_equivalence_factor,
+                                                self.developing_flows,
                                                 self.create_plots,
                                                 self.output_dir,
                                                 self.verbose)

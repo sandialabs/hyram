@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -14,6 +14,7 @@ import numpy as np
 
 from . import Fluid, Orifice, Source, Vent, Enclosure, Flame, Jet
 from . import IndoorRelease, FuelProperties, Bauwens_method, TNT_method, BST_method
+from ._plots import plot_contour
 from ..utilities import misc_utils
 
 """
@@ -324,9 +325,9 @@ def compute_equivalent_tnt_mass(vapor_mass, percent_yield, species):
 
 
 def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam, mass_flow=None,
-                      rel_angle=0, dis_coeff=1, nozzle_model='yuce',
-                      create_plot=True, contour=None,
-                      xmin=-2.5, xmax=2.5, ymin=0, ymax=10, vmin=0, vmax=0.1,
+                      rel_angle=(np.pi/2), dis_coeff=1, nozzle_model='yuce',
+                      create_plot=True, contours=None,
+                      xmin=None, xmax=None, ymin=None, ymax=None, vmin=0, vmax=0.1,
                       plot_title="Mole Fraction of Leak",
                       filename=None, output_dir=None, verbose=False):
     """
@@ -358,26 +359,26 @@ def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam, mass_flow=None,
     create_plot : bool
         Whether mole fraction contour plot should be created
 
-    contour : list or int or float
-        define contour lines
+    contours : list or int or float
+        Define contour lines
         Default is None: will use default LFL for selected fuel
 
-    xmin : float
-        Plot x minimum.
+    xmin : float, optional
+        Plot x-axis minimum.
 
-    xmax : float
-        Plot x maximum.
+    xmax : float, optional
+        Plot x-axis maximum.
 
-    ymin : float
-        Plot y minimum.
+    ymin : float, optional
+        Plot y-axis minimum.
 
-    ymax : float
-        Plot y maximum.
+    ymax : float, optional
+        Plot y-axis maximum.
 
-    vmin : float
+    vmin : float, optional
         Molar fraction (color bar) scale minimum
 
-    vmax : float
+    vmax : float, optional
         Molar fraction (color bar) scale maximum
 
     plot_title : str
@@ -410,11 +411,18 @@ def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam, mass_flow=None,
             temperatures (K) along jet plume
         mass_flow_rate : float
             Mass flow rate (kg/s) of steady release.
+        streamline_dists: [float]
+            Distance(s) of streamline for each contour
+        mole_frac_dists: dict
+            x and y min-max values for each contour. {contour (float): [(x1, x2), (y1, y2) }
     """
     log.info("Plume plot requested")
-    if contour is None:
+    if contours is None:
         fuel_props = FuelProperties(rel_fluid.species)
-        contour = fuel_props.LFL
+        contours = [fuel_props.LFL]
+
+    contours = [contours] if type(contours) in [int, float] else contours
+    contours = np.sort(contours)
 
     log.info('Creating components')
     orifice = Orifice(orif_diam, dis_coeff)
@@ -429,6 +437,8 @@ def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam, mass_flow=None,
 
     xs, ys, mole_fracs, mass_fracs, vs, temps = jet_obj.get_contour_data()
     mass_flow_rate = jet_obj.mass_flow_rate
+    streamline_dists = jet_obj.get_streamline_distances_to_mole_fractions(contours)
+    mole_frac_dists = jet_obj.get_xy_distances_to_mole_fractions(contours)
 
     if create_plot:
         log.info("Creating mole fraction contour plot")
@@ -438,27 +448,29 @@ def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam, mass_flow=None,
         if filename is None:
             filename = "plume-mole-plot-{}.png".format(misc_utils.get_now_str())
 
-        if xmax >= xmin:
+        if xmin is not None and xmax is not None:
+            if xmin >= xmax:
+                raise ValueError('x minimum must be less than x maximum')
             xlims = (xmin, xmax)
         else:
-            raise ValueError(f'xmin ({xmin}) is greater than xmax ({xmax})')
-        if ymax >= ymin:
+            xlims = None
+
+        if ymin is not None and ymax is not None:
+            if ymin >= ymax:
+                raise ValueError('y minimum must be less than y maximum')
             ylims = (ymin, ymax)
         else:
-            raise ValueError(f'ymin ({ymin}) is greater than ymax ({ymax})')
+            ylims = None
 
-        contours = [contour] if type(contour) in [int, float] else contour
-        for contour in contours:
-            if contour <= 0 or contour >=1:
-                error_msg = ('Mole fraction contour values must be >0 and <1'
-                             + ' (current value: {})'.format(contour))
-                raise ValueError(error_msg)
+        if vmin is None:
+            vmin = 0
+        if vmax is None:
+            vmax = 0.1
+
         plot_filepath = os.path.join(output_dir, filename)
-        plot_fig = jet_obj.plot_moleFrac_Contour(xlims=xlims, ylims=ylims,
-                                                 plot_title=plot_title,
-                                                 mark=contours,
-                                                 vmin=vmin,
-                                                 vmax=vmax)
+        plot_fig = plot_contour(data_type="mole", jet_or_flame=jet_obj,
+                                xlims=xlims, ylims=ylims, vlims=(vmin, vmax),
+                                plot_title=plot_title, contour_levels=contours,)
         plot_fig.savefig(plot_filepath, bbox_inches='tight')
         plt.close(plot_fig)
         log.info("Plume plot complete")
@@ -472,7 +484,9 @@ def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam, mass_flow=None,
                    'vs': vs,
                    'temps': temps,
                    'plot': plot_filepath,
-                   'mass_flow_rate': mass_flow_rate}
+                   'mass_flow_rate': mass_flow_rate,
+                   'streamline_dists': streamline_dists,
+                   'mole_frac_dists': mole_frac_dists}
     return result_dict
 
 
@@ -700,7 +714,6 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam, mass_flow=None, dis_coef
                        # heat flux plot
                        analyze_flux=True, flux_plot_filename=None, flux_coordinates=None, flux_contours=None,
                        flux_xlims=None, flux_ylims=None, flux_zlims=None,
-
                        output_dir=None, verbose=False):
     """
     Assess jet flame behavior and flux data and create corresponding plots.
@@ -833,7 +846,8 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam, mass_flow=None, dis_coef
             temp_plot_filename = 'flame_temp_plot_{}.png'.format(now_str)
         temp_plot_filepath = os.path.join(output_dir, temp_plot_filename)
 
-        fig, _ = flame_obj.plot_Ts(xlims=temp_xlims, ylims=temp_ylims, plot_title=temp_plot_title, mark=temp_contours)
+        fig = plot_contour(data_type="temperature", jet_or_flame=flame_obj, xlims=temp_xlims, ylims=temp_ylims, plot_title=temp_plot_title,
+                           contour_levels=temp_contours)
         fig.savefig(temp_plot_filepath, bbox_inches='tight')
         plt.close(fig)
     else:
@@ -866,6 +880,7 @@ def compute_overpressure(method: str, locations,
                          release_angle: float = 0, discharge_coefficient: float = 1,
                          nozzle_model: str = 'yuce',
                          bst_flame_speed: float = 0.35, tnt_factor: float = 0.03,
+                         flammability_limits=None,
                          origin_at_orifice=False,
                          create_overpressure_plot: bool = True,
                          create_impulse_plot: bool = True,
@@ -921,6 +936,9 @@ def compute_overpressure(method: str, locations,
         # based on HSE guidance in CCPS book https://ebookcentral.proquest.com/lib/sandia/detail.action?docID=624492
         equivalence_factor = 0.03
     
+    flammability_limits : tuple of (lower_flammability_limit, upper_flammability_limit), optional
+        Default is None: use default LFL, UFL for selected fuel
+        
     origin_at_orifice : boolean, optional, default to False
         specify if the origin should be at the orifice or calculated
 
@@ -968,16 +986,19 @@ def compute_overpressure(method: str, locations,
     Returns
     -------
     dict
-        overpressure : ndarray of floats
+        overpressures : ndarray of floats
             overpressure in Pa
-        impulse : ndarray of floats
+        impulses : ndarray of floats
             impulse in Pa*s
-        overpressure_figure_filepath : str or None
+        overp_plot_filepath : str or None
             path to overpressure figure
-        impulse_figure_filepath : str or None
+        impulse_plot_filepath : str or None
             path to impulse figure
         mass_flow_rate : float
             Mass flow rate (kg/s) of release
+        flam_or_det_mass : float
+            Mass of release related to overpressure calculation (kg). 
+            Outputs flammable mass for BST and TNT methods, detonable mass for Bauwens
 
     """
     log.info("Unconfined overpressure calculation requested")
@@ -995,18 +1016,24 @@ def compute_overpressure(method: str, locations,
         log.info("Calculating overpressure with BST method")
         over_pressure_model = BST_method(jet_object=jet_object,
                                          mach_flame_speed=bst_flame_speed,
+                                         flammability_limits=flammability_limits,
                                          origin_at_orifice=origin_at_orifice)
+        flam_or_det_mass = over_pressure_model.flammable_mass
     elif method == 'tnt':
         log.info("Calculating overpressure with TNT method")
         over_pressure_model = TNT_method(jet_object=jet_object,
                                          equivalence_factor=tnt_factor,
+                                         flammability_limits=flammability_limits,
                                          origin_at_orifice=origin_at_orifice)
+        flam_or_det_mass = over_pressure_model.flammable_mass
     elif method == 'bauwens':
         log.info("Calculating overpressure with Bauwens method")
         over_pressure_model = Bauwens_method(jet_object=jet_object,
                                              origin_at_orifice=origin_at_orifice)
+        flam_or_det_mass = over_pressure_model.detonable_mass
     else:
         raise ValueError('Invalid method name in unconfined overpressure analysis')
+    
     overpressure = over_pressure_model.calc_overpressure(locations)
     impulse = over_pressure_model.calc_impulse(locations)
 
@@ -1050,10 +1077,11 @@ def compute_overpressure(method: str, locations,
 
     log.info("Unconfined overpressure calculation complete")
     results = {
-        'overpressure': overpressure,
-        'impulse': impulse,
+        'overpressures': overpressure,
+        'impulses': impulse,
         'overp_plot_filepath': overpressure_plot_filepath,
         'impulse_plot_filepath': impulse_plot_filepath,
         'mass_flow_rate': jet_object.mass_flow_rate,
+        'flam_or_det_mass': flam_or_det_mass
     }
     return results

@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -8,7 +8,6 @@ If not, see https://www.gnu.org/licenses/.
 
 import copy
 import warnings
-import logging
 import time
 
 import numpy as np
@@ -19,8 +18,6 @@ from ._therm import CoolPropWrapper
 from ..utilities.custom_warnings import PhysicsWarning
 from ..utilities import misc_utils
 
-
-log = logging.getLogger(__name__)
 
 
 class Fluid:
@@ -68,46 +65,23 @@ class Fluid:
 
         if therm is None:
             therm = CoolPropWrapper(self.species)
-        if phase is not None:
-            if T is not None and P is None and rho is None:
-                rho, P = therm.rho_P(T, phase)
-            elif P is not None and T is None and rho is None:
-                rho, T = therm.rho_T(P, phase)
-            elif rho is not None and T is None and P is None:
-                P, T = therm.P_T(rho, phase)
-            else:
-                raise ValueError('Fluid not properly defined - too many or too few fluid initialization variables')
-        elif T is not None and P is not None and rho is None:
-            rho = therm.rho(T, P)
-        elif rho is not None and P is not None and T is None:
-            T = therm.T(P, rho)
-        elif T is not None and rho is not None and P is None:
-            P = therm.P(T, rho)
-        else:
-            raise ValueError('Fluid not properly defined - too many or too few fluid initialization variables')
-        self.T, self.P, self.rho, self.phase = T, P, rho, therm.phase
+
+        params = therm._init_fluid_params({'D':rho, 'P':P, 'T':T, 'phase':phase})
+        
+        self.rho, self.P, self.T, self.phase = params['D'], params['P'], params['T'], params['phase']
         self.therm = therm
         self.v = v
 
     def update(self, T=None, P=None, rho=None, v=None):
         if v != None:
             self.v = v
-        if T != None and P != None:
-            self.T = T
-            self.rho = self.therm.rho(T, P)
-            self.P = P
-        elif T != None and rho != None:
-            self.T = T
-            self.rho = rho
-            self.P = self.therm.P(T, rho)
-        elif P != None and rho != None:
-            self.T = self.therm.T(P, rho)
-            self.rho = rho
-            self.P = P
-        elif v != None:
-            self.v = v
-        else:
-            warnings.warn('No updates made.  Update not properly defined')
+
+        if T is not None or P is not None or rho is not None:
+            params = self.therm._init_fluid_params({'D':rho, 'P':P, 'T':T, 'phase':None})
+            self.rho = params['D']
+            self.P = params['P']
+            self.T = params['T']
+            self.phase = params['phase']
 
     def __repr__(self):
         return 'Gas\n%s\n  P = %.3f bar\n  T = %0.1f K\n  rho = %.3f kg/m^3)\n  v = %.1f m/s' % (
@@ -167,17 +141,15 @@ class Orifice:
         -------
         Fluid object containing T, P, rho, v at the throat (orifice)
         '''           
-        h0 = upstream_fluid.therm._total_enthalpy(P=upstream_fluid.P,
-                                                  rho=upstream_fluid.rho,
-                                                  v=upstream_fluid.v)
+        h0 = upstream_fluid.therm.get_property('H0', P=upstream_fluid.P, D=upstream_fluid.rho, v=upstream_fluid.v)
         if upstream_fluid.v > 0:
-            s0 = upstream_fluid.therm.PropsSI('S', H = h0, D = np.round(upstream_fluid.rho, 12))
+            s0 = upstream_fluid.therm.get_property('S', H = h0, D = np.round(upstream_fluid.rho, 12))
         else: #LH2 simulations were giving weird results when calculating entropy from enthalpy
-            s0 = upstream_fluid.therm.PropsSI('S', D = upstream_fluid.rho, T = upstream_fluid.T)
+            s0 = upstream_fluid.therm.get_property('S', D = upstream_fluid.rho, T = upstream_fluid.T)
         
         fluid = copy.copy(upstream_fluid)
         if fluid.P < downstream_P:
-            raise ValueError('Downstream pressure is lower than upstream pressure.  Nonphysical.')
+            raise ValueError('Downstream pressure is higher than upstream pressure.  Nonphysical.')
         if fluid.P == downstream_P:
             if mdot is not None:
                 v = mdot/(self.Cd*fluid.rho*self.A)
@@ -186,11 +158,13 @@ class Orifice:
                 return fluid
             else:
                 raise ValueError('Downstream pressure is the same as upstream pressure.  Need to specify mass flow rate (mdot).')
+
         def negflux(P):
-            h, rho = fluid.therm.PropsSI(['H', 'D'], P = P, S = s0)
+            h, rho = fluid.therm.get_property(['H', 'D'], P=P, S=s0)
             return -rho*np.sqrt(2 * (h0 - h))
+
         P = optimize.minimize_scalar(negflux, bounds = (downstream_P, upstream_fluid.P), method = 'bounded')['x']
-        h, rho = fluid.therm.PropsSI(['H', 'D'], P = P, S = s0)
+        h, rho = fluid.therm.get_property(['H', 'D'], P = P, S = s0)
         fluid.update(rho = rho, P = P, v = np.sqrt(2 * (h0 - h)))
         if P - downstream_P > .01: 
             if mdot is not None:
@@ -316,11 +290,11 @@ class Source(object):
         m, U = ind_vars
         m, U = float(m), float(U)
         rho = m / Vol
-        T = therm.PropsSI('T', U = U, D = np.round(rho, 10))
+        T = therm.get_property('T', U=U, D=np.round(rho, 10))
         fluid = copy.copy(self.fluid)
         fluid.update(T=T, rho=rho)
         throat = orifice.flow(fluid, ambient_P)
-        h = therm.PropsSI('H', T = fluid.T, D = fluid.rho)
+        h = therm.get_property('H', T=fluid.T, D=fluid.rho)
         dm_dt = -orifice.mdot(throat)
         du_dt = 1 / m * (heat_flux + (h - U) * dm_dt)
         return np.array([dm_dt, du_dt])
@@ -356,7 +330,7 @@ class Source(object):
         volume = self.V
         A_orifice = orifice.A * orifice.Cd
         T0, rho0, P = self.fluid.T, self.fluid.rho, self.fluid.P
-        u0 = therm.PropsSI('U', T = T0, D = rho0)
+        u0 = therm.get_property('U', T=T0, D=rho0)
         r = integrate.ode(self._blowdown_gov_eqns).set_integrator('dopri5')
         r.set_initial_value([m0, u0]).set_f_params(volume, orifice, heat_flux, ambient_P)
         throat = orifice.flow(self.fluid, ambient_P)
@@ -372,7 +346,7 @@ class Source(object):
                 if times[-1] == t:
                     return
             rho = y[0] / volume
-            T = therm.PropsSI('T', U = y[1], D = np.round(rho, 10))
+            T = therm.get_property('T', U=y[1], D=np.round(rho, 10))
             fluid = copy.copy(self.fluid)
             fluid.update(T=T, rho=rho)
             throat = orifice.flow(fluid, ambient_P)

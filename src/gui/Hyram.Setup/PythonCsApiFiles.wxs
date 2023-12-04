@@ -16,6 +16,9 @@
             <Component Id="cmp0035B24663D3431AA8B271FF9FE2F2B6" Directory="PythonCsApi" Guid="*">
                 <File Id="fil1DE8D8157F43F672AE965F64780562C6" KeyPath="yes" Source="$(var.PythonCsApiDir)\qra.py" />
             </Component>
+            <Component Id="cmp4A34D949BD5596FE8975EBC458111452" Directory="PythonCsApi" Guid="*">
+                <File Id="fil952D9CC3D4C117DF7F382A80D39538DE" KeyPath="yes" Source="$(var.PythonCsApiDir)\requirements.txt" />
+            </Component>
             <Component Id="cmp91B079059910486F33189229A2892BCD" Directory="PythonCsApi" Guid="*">
                 <File Id="fil51862BB9F72796A6B806DD078D80940C" KeyPath="yes" Source="$(var.PythonCsApiDir)\utils.py" />
             </Component>

@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -10,35 +10,33 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace SandiaNationalLaboratories.Hyram
 {
-
-    public partial class FuelForm : Form
+    public partial class SharedStateForm : UserControl
     {
         private readonly StateContainer _state = State.Data;
+
         private SortedDictionary<int, string> _allocationOptions;
-        private bool _ignoreStateChange = false;
+//        private bool _ignoreStateChange = false;
 
         BindingSource bs = new BindingSource();
 
-        /// <summary>
-        ///
-        /// Note on handling fuel change and fuelchange event, which triggers updates in other forms:
-        /// The fuelchange event is fired when fuel is changed via simple fuel dropdowns.
-        /// It is also fired when this fuelform is closed.
-        /// Also note that user changes in this form are stored immediately, not at form close.
-        /// </summary>
-        public FuelForm()
+
+        public SharedStateForm()
         {
             InitializeComponent();
         }
 
-
-        private void FuelForm_Load(object sender, EventArgs e)
+        private void FuelSpecForm_Load(object sender, EventArgs e)
         {
-            // Use species enum for preset blends.
+            StateAlert.Hide();
+            // TODO: hoist warnings to mainform if user leaves
+
+            // Initialize fuel blend specification table
             var selectorFuels = new Dictionary<string, SpeciesOptions>
             {
                 {_state.FuelH2.ToString(), SpeciesOptions.EFuelH2},
@@ -54,9 +52,8 @@ namespace SandiaNationalLaboratories.Hyram
             FuelSelector.DataSource = new BindingSource(selectorFuels, null);
             FuelSelector.DisplayMember = "Key";
             FuelSelector.ValueMember = "Value";
-            RefreshFuelSelectorSelection();
 
-            // use int instead of fuel to allow for customized options
+            // use id instead of fuel to allow for customized options
             _allocationOptions = new SortedDictionary<int, string>
             {
                 {_state.FuelBlend.Id, "Normalize" },
@@ -85,55 +82,107 @@ namespace SandiaNationalLaboratories.Hyram
                 _state.FuelNPentane, _state.FuelIsoPentane, _state.FuelNHexane,
             };
             bs.DataSource = gridFuels;
-            FuelDataGrid.AutoGenerateColumns = false;
-            // NOTE: to make this sortable, either convert to datatable or extend with BindingList and IBindingListView
-            FuelDataGrid.DataSource = bs;
-            FuelDataGrid.Columns[0].DataPropertyName = "Active";
-            FuelDataGrid.Columns[0].SortMode = DataGridViewColumnSortMode.Automatic;
+            FuelGrid.AutoGenerateColumns = false;
 
-            FuelDataGrid.Columns[1].DataPropertyName = "Name";
-            FuelDataGrid.Columns[2].DataPropertyName = "Formula";
-            FuelDataGrid.Columns[3].DataPropertyName = "Amount";
-            FuelDataGrid.Columns[3].DefaultCellStyle.Format = "P3";
-            FuelDataGrid.Columns[3].ValueType = typeof(Double);
+            // to make this sortable, either convert to datatable or extend with BindingList and IBindingListView
+            FuelGrid.DataSource = bs;
+            FuelGrid.Columns[0].DataPropertyName = "Active";
+            FuelGrid.Columns[0].SortMode = DataGridViewColumnSortMode.Automatic;
 
-            FuelDataGrid.Columns[0].Width = 55;
-            FuelDataGrid.Columns[1].Width = 110;
-            FuelDataGrid.Columns[2].Width = 100;
-            FuelDataGrid.Columns[3].Width = 120;
+            FuelGrid.Columns[1].DataPropertyName = "Name";
+            FuelGrid.Columns[2].DataPropertyName = "Formula";
+            FuelGrid.Columns[3].DataPropertyName = "Amount";
+            FuelGrid.Columns[3].DefaultCellStyle.Format = "P3";
+            FuelGrid.Columns[3].ValueType = typeof(Double);
 
-            _state.FuelTypeChangedEvent += (o, args) => RefreshState();
+            FuelGrid.Columns[0].Width = 55;
+            FuelGrid.Columns[1].Width = 110;
+            FuelGrid.Columns[2].Width = 100;
+            FuelGrid.Columns[3].Width = 120;
 
-            UpdateTotal();
+            PhaseSelector.DataSource = _state.Phases;
+            PhaseSelector.SelectedItem = _state.Phase;
+
+            NozzleSelector.DataSource = _state.NozzleModels;
+            NozzleSelector.SelectedItem = _state.Nozzle;
+
+            RefreshFuelSelectorSelection();
+
+            RefreshFuelGrid();
+            RefreshParameterGrid();
         }
 
-        private void UpdateTotal()
+        private void RefreshParameterGrid()
         {
+            ParameterGrid.Rows.Clear();
+
+            List<ParameterInput> formParams;
+            formParams = ParameterInput.GetParameterInputList(new[] {
+                _state.FluidPressure,
+                _state.AmbientTemperature,
+                _state.AmbientPressure,
+                _state.OrificeDischargeCoefficient,
+            });
+
+            if (_state.DisplayTemperature())
+            {
+                formParams.Insert(0, new ParameterInput(_state.FluidTemperature));
+            }
+
+            pressureAbsoluteToggle.Checked = _state.PressureIsAbsolute;
+            GridHelpers.InitParameterGrid(ParameterGrid, formParams, false);
+            ParameterGrid.ColumnHeadersDefaultCellStyle.Font = new Font("Sans Serif", 9.0F, FontStyle.Bold);
+            ParameterGrid.Columns[0].Width = 180;
+
+            var pressureDescripCell = (DataGridViewTextBoxCell)ParameterGrid.Rows[1].Cells[0];
+            pressureDescripCell.Value = _state.PressureIsAbsolute ? "Tank fluid pressure (absolute)" : "Tank fluid pressure (gauge)";
+
+
+            CheckFormValid();
+
+        }
+
+
+        private void CheckFormValid()
+        {
+            bool showAlert = false;
+            string alertText = "";
+
+            if (showAlert)
+            {
+                StateAlert.Text = alertText;
+                StateAlert.Show();
+            }
+            else
+            {
+                StateAlert.Hide();
+            }
+        }
+
+
+        private void RefreshFuelGrid()
+        {
+            FuelGrid.Update();
+            FuelGrid.Refresh();
+
+            // update displayed total
             double val = _state.SumFuelAmounts();
             totalAmountLabel.Text = val.ToString("P3");
 
             if (Math.Abs(val - 1.0f) > _state.FuelPrecision)
             {
-                alertLabel.Show();
-                closeBtn.Enabled = false;
+                FuelCompAlert.Show();
+                AllocateBtn.Enabled = true;
             }
             else
             {
-                alertLabel.Hide();
-                closeBtn.Enabled = true;
+                FuelCompAlert.Hide();
+                AllocateBtn.Enabled = false;
             }
+
+            RefreshFuelSelectorSelection();
         }
 
-        private void RefreshState()
-        {
-            if (!_ignoreStateChange)
-            {
-                RefreshFuelSelectorSelection();
-                FuelDataGrid.Update();
-                FuelDataGrid.Refresh();
-            }
-            UpdateTotal();
-        }
 
         private void RefreshFuelSelectorSelection()
         {
@@ -156,51 +205,27 @@ namespace SandiaNationalLaboratories.Hyram
         }
 
 
-        private void CloseBtn_Click(object sender, System.EventArgs e)
-        {
-            if (Math.Abs(_state.SumFuelAmounts() - 1.0f) > _state.FuelPrecision)
-            {
-                UpdateTotal();
-            }
-            else
-            {
-                Close();
-            }
-        }
-
-
-        private void FuelForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            _state.NotifyFuelChange();
-        }
-
-        private void AllocateBtn_Click(object sender, System.EventArgs e)
+        private void AllocateBtn_Click(object sender, EventArgs e)
         {
             int fuelId = ((KeyValuePair<int, string>)AllocationSelector.SelectedItem).Key;
             FuelType selectedFuel = _state.GetFuel(fuelId);
             _state.AllocateFuelRemainder(selectedFuel);
-            RefreshState();
+            RefreshFuelGrid();
         }
 
         private void FuelSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            _ignoreStateChange = true;
-
             SpeciesOptions species = ((dynamic)FuelSelector.SelectedItem).Value;
             _state.SetFuel(species);
-            FuelDataGrid.Update();
-            FuelDataGrid.Refresh();
-            UpdateTotal();
-
-            _ignoreStateChange = false;
+            RefreshFuelGrid();
         }
 
-        private void FuelDataGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        private void FuelGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            RefreshState();
+            RefreshFuelGrid();
         }
 
-        private void FuelDataGrid_CellParsing(object sender, DataGridViewCellParsingEventArgs e)
+        private void FuelGrid_CellParsing(object sender, DataGridViewCellParsingEventArgs e)
         {
             if (e.ColumnIndex == 3)
             {
@@ -230,11 +255,46 @@ namespace SandiaNationalLaboratories.Hyram
                     }
                 }
             }
+
         }
 
-        private void FuelDataGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        private void FuelGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            MessageBox.Show("Fuel concentration format invalid");
+        }
+
+        private void ParameterGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            GridHelpers.ChangeParameterValue((DataGridView) sender, e);
+            CheckFormValid();
+
+        }
+
+        private void ParameterGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             MessageBox.Show("Input format invalid");
+        }
+
+        private void PhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            _state.Phase = (ModelPair)PhaseSelector.SelectedItem;
+            RefreshParameterGrid();
+        }
+
+        private void NozzleSelector_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            _state.Nozzle = (ModelPair)NozzleSelector.SelectedItem;
+        }
+
+        private void ParameterGrid_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+            GridHelpers.CellValidating_CheckDoubleOrNullable(ParameterGrid, sender, e);
+        }
+
+        private void pressureAbsoluteToggle_CheckedChanged(object sender, EventArgs e)
+        {
+            _state.PressureIsAbsolute = pressureAbsoluteToggle.Checked;
+            RefreshParameterGrid();
         }
     }
 }

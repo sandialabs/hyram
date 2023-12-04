@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -7,7 +7,6 @@ If not, see https://www.gnu.org/licenses/.
 """
 
 import warnings
-import logging
 
 from CoolProp import CoolProp
 import numpy as np
@@ -17,8 +16,6 @@ from scipy import constants as const
 from ._fuel_props import FuelProperties
 from ..utilities.custom_warnings import PhysicsWarning
 
-
-log = logging.getLogger(__name__)
 
 
 class CoolPropWrapper:
@@ -31,95 +28,63 @@ class CoolPropWrapper:
         self._cp = CoolProp
         self.spec = species
         self.MW = self._cp.PropsSI(self.spec, 'molemass')        
-        
-    def P(self, T, rho):
-        '''
-        returns the temperature given the pressure and density (and sets the phase)
-        
-        Parameters
-        ----------
-        T: float
-            temperature (K)
-        rho: float
-            density (kg/m^3)
-        
-        Returns
-        -------
-        P: float
-            pressure (Pa)
-        '''
-        P, Q = self.PropsSI(['P', 'Q'], D=rho, T = T)
-        try:
-            if '&' in self.spec:
-                raise ValueError
-
-            self.phase = self._cp.PhaseSI('D', rho, 'P', P, self.spec)
-        except ValueError:
-            if (Q < 1) and (Q > 0):
-                self.phase = 'twophase'
-            elif Q == 1:
-                self.phase = 'vapor'
-            elif Q == 0:
-                self.phase = 'liquid'
-            else:
-                self.phase = ''
-
-        return P
     
-    def T(self, P, rho):
+    def _init_fluid_params(self, params):
         '''
-        returns the temperature given the pressure and density
+        Initializes Fluid properties.
+        Calculates 2 remaining properties given 2 of rho, pressure, temperature, or phase
         
         Parameters
         ----------
-        P: float
-            pressure (Pa)
-        rho: float
-            density (kg/m^3)
-        
+        params : dict
+            Dict of Fluid parameters keyed by the labels 'D', 'P', 'T', and 'phase'
+            Valid input requires 2 of the parameters to be defined and 2 to be None
+
         Returns
         -------
-        T: float
-            temperature (K)
+        params : dict
+            Returns the same dict with all values filled in
         '''
-        T, Q = self.PropsSI(['T', 'Q'], D=rho, P=P)
-        try:
-            if '&' in self.spec: raise ValueError
-            self.phase = self._cp.PhaseSI('D', rho, 'P', P, self.spec)
-        except ValueError:
-            if (Q < 1) and (Q > 0):
-                self.phase = 'twophase'
-            elif Q == 1:
-                self.phase = 'vapor'
-            elif Q == 0:
-                self.phase = 'liquid'
+        # Set input and output values
+        output = [key for key, val in params.items() if val is None]
+        input_dict = {key:val for key, val in params.items() if val is not None}
+
+        if len(output) != 2 or len(input_dict) != 2:
+            raise ValueError("Fluid not properly defined - too many or too few fluid initialization variables")
+
+        # Put keys and values in seperate tuples
+        input_params, input_values = zip(*input_dict.items())
+
+        if 'phase' in input_params:
+            self.phase = input_dict.get('phase')
+            # Convert phase string to Q value
+            input_dict.pop('phase')
+            input_dict.update({'Q':{'gas':1, 'liquid':0}[self.phase]})
+            props = self.PropsSI(output, **input_dict)
+        else:
+            # Change phase output to Q for CoolProp to handle
+            idx = output.index('phase')
+            output[idx] = 'Q'
+
+            # Handle special case for calculating density at saturation
+            if 'D' in output and 'Q' in output:
+                try: 
+                    props = self.PropsSI(output, **input_dict)
+                except ValueError:
+                    print('exception')
+                    warnings.warn('Assuming gas phase to calculate density.', category=PhysicsWarning)
+                    self.phase = 'gas'
+                    rho = self._cp.PropsSI('D', input_params[0]+self.phase, input_values[0], input_params[1], input_values[1], self.spec)
+                    props = [rho, self.phase]
             else:
-                self.phase = ''
-        return T
-    
-    def rho(self, T, P):
-        '''
-        returns the density given the temperature and pressure - if at saturation conditions,
-        requires phase to already be set
-        
-        Parameters
-        ----------
-        T: float
-            temperature (K)
-        P: float
-            pressure (Pa)
-        
-        Returns
-        -------
-        rho:
-            density (kg/m^3)
-        '''
-        try:
-            rho, Q = self.PropsSI(['D', 'Q'], T = T, P = P)
+                props = self.PropsSI(output, **input_dict)
+
             try:
-                if '&' in self.spec: raise ValueError
-                self.phase = self._cp.PhaseSI('D', rho, 'P', P, self.spec)
+                if '&' in self.spec: 
+                    raise ValueError
+                self.phase = self._cp.PhaseSI(input_params[0], input_values[0], input_params[1], input_values[1], self.spec)
             except ValueError:
+                Q = props[idx]
                 if (Q < 1) and (Q > 0):
                     self.phase = 'twophase'
                 elif Q == 1:
@@ -128,138 +93,71 @@ class CoolPropWrapper:
                     self.phase = 'liquid'
                 else:
                     self.phase = ''
-            return rho
-        except:
-            print('exception')
+
+        # Put calculated values into the params dict
+        params[output[0]] = props[0]
+        params[output[1]] = props[1]
+
+        # Overwrite phase info with string
+        params['phase'] = self.phase
+        return params
+    
+    def get_property(self, output, **kwargs):
+        '''
+        General method for calculating one or more fluid properties
+
+        Parameters
+        ----------
+        output : string or list of strings
+            Same output parameters accepted by CoolProp.PropsSI (e.g., T, P, S, D) with additional custom keywords
+                - 'H0' calculates total enthalpy using 'P', 'D', and 'v'
+
+        keyword args : input parameters
+            Pair of known parameters entered as individual params (e.g., T=273, P=1e6, etc.)
+            An extra 3rd parameter can be added to define either 'phase' or 'v'
+
+        Returns
+        -------
+        props : float or list of floats
+            Return values based on the 'output' parameter
+
+        Examples
+        --------
+        total_enthalpy = get_property('H0', P=fluid.P, D=rho, v=v)
+        rho = get_property('D', T=T, P=P, phase=liquid)
+        rho = get_property('D', T=T, P=P)
+        s = get_property('S', D=fluid.rho, T = fluid.T)
+        h, rho = get_property(['H', 'D'], P=P, S=s0)
+        '''
+        input_dict = {key:val for key, val in kwargs.items() if val is not None}
+
+        # H0 keyword
+        if output == 'H0':
             try:
-                warnings.warn('Using {} phase information to calculate density.'.format(self.phase),
-                              category=PhysicsWarning)
-            except:
-                warnings.warn('Assuming gas phase to calculate density.', category=PhysicsWarning)
-                self.phase = 'gas'
-            rho = self._cp.PropsSI('D', 'T|'+self.phase, T, 'P', P, self.spec)
+                v = input_dict.pop('v')
+                h = self.PropsSI('H', **input_dict)
+            except Exception as err:
+                if self.phase == '':
+                    raise ValueError(f'Unable to find enthalpy of fluid with {input_dict}')
+                warnings.warn(f'Recalculating with specification of phase {self.phase}.')
+                h = self.PropsSI('H', phase=self.phase, **input_dict)
+            return h + v**2/2
 
-            return rho
-
-    def rho_P(self, T, phase):
-        '''
-        returns the density and pressure given the temperature and phase
-        
-        Parameters
-        ----------
-        T: float
-            temperature (K)
-        phase: string
-            'gas' or 'liquid'
-        
-        Returns
-        -------
-        (rho, P): tuple of floats 
-            rho - density (kg/m^3)
-            P - pressure (Pa)
-        '''
-        rho, P = self._cp.PropsSI(['D', 'P'], 'T', T, 'Q', {'gas':1, 'liquid':0}[phase], self.spec)
-        self.phase = phase
-        return rho, P
-        
-    def rho_T(self, P, phase):
-        '''
-        returns the density and temperature given the pressure and phase
-        
-        Parameters
-        ----------
-        P: float
-            temperature (K)
-        phase: string
-            'gas' or 'liquid'
-        
-        Returns
-        -------
-        (rho, P): tuple of floats 
-            rho - density (kg/m^3)
-            P - pressure (Pa)
-        '''
-        rho, T = self._cp.PropsSI(['D', 'T'], 'P', P, 'Q', {'gas':1, 'liquid':0}[phase], self.spec)
-        self.phase = phase
-        return rho, T
-        
-    def P_T(self, rho, phase):
-        '''
-        returns the pressure and temperature given the density and phase
-        
-        Parameters
-        ----------
-        T: float
-            temperature (K)
-        phase: string
-            'gas' or 'liquid'
-        
-        Returns
-        -------
-        (rho, P): tuple of floats 
-            rho - density (kg/m^3)
-            P - pressure (Pa)
-        '''
-        P, T = self._cp.PropsSI(['P', 'T'], 'D', rho, 'Q', {'gas':1, 'liquid':0}[phase], self.spec)
-        self.phase = phase
-        return P, T
-        
-    def _total_enthalpy(self, P, rho, v):
-        '''
-        total enthalpy (J/kg) for a fluid at a given pressure, density and velocity
-        '''
+        # General case
         try:
-            h = self.PropsSI('H', P = P, D = rho)
+            out = self.PropsSI(output, **input_dict)
         except:
-            if self.phase == '':
-                raise warnings.warn(f'Unable to find enthalpy of fluid with P = {P} and rho = {rho}', category=PhysicsWarning)
-                return None
-            raise warnings.warn(f'exception in enthalpy calculation with P = {P} and rho = {rho} - recalculating with specificaiton of phase = {self.phase}')
-            h = self.PropsSI('H', **{'P|'+self.phase: P, 'D':rho})
-        return h + v**2/2
+            raise ValueError(f'Unable to calculate {output} using input parameters {input_dict}')
+        return out
 
-    def _X(self, Y, other = 'air'):
-        MW = self._cp.PropsSI('M', self.spec)
-        MW_other = self._cp.PropsSI('M', other)
-        return Y/MW/(Y/MW + (1-Y)/MW_other)
-    
-    def a(self, T = None, P = None, S = None):
-        '''
-        returns the speed of sound given the temperature and entropy or pressure and entropy
-          note: 2-phase calculations no longer supported by this method see git history if
-                interested in 2-phase speed of sound calculations
-        
-        Parameters
-        ----------
-        T: float
-            temperature (K)
-        P: float
-            Pressure (Pa)
-        S: float
-            Entropy (J/K)
-        
-        Returns
-        -------
-        a: float
-            speed of sound (m/s)
-        '''
-        if S == None and P != None and T != None: 
-            a = self.PropsSI('A', T = T, P = P)
-        elif P == None and S != None and T != None:
-            a, Q, P = self.PropsSI(['A', 'Q', 'P'], T=T, S=S)
-        elif T == None and P != None and S != None:
-            a, Q, T = self.PropsSI(['A', 'Q', 'T'], P=P, S=S)
-        else:
-            raise warnings.warn('Under-defined - need 2 of T, P, S', category=PhysicsWarning)
-            return None
-        return a
-    
     def PropsSI(self, output, **kwargs):
-        '''wrapper on CoolProps PropsSI
+        '''
+        Wrapper on CoolProps PropsSI
         
         Parameters 
         ----------
-        those accepted by CoolProp.PropsSI (e.g., T, P, S, D - with the addition of the keyword 'phase')
+        output : list of strings
+            Same parameters accepted by CoolProp.PropsSI (e.g., T, P, S, D)
         
         Returns
         -------
@@ -281,7 +179,30 @@ class CoolPropWrapper:
             if type(v2) == list or type(v2) == np.ndarray:
                 if len(v2) == 1:
                     v2 = float(v2)
-            out = self._cp.PropsSI(output, k1, v1, k2, v2, self.spec)
+
+            try:
+                out = self._cp.PropsSI(output, k1, v1, k2, v2, self.spec)
+            except:
+                warnings.warn('PropsSI could not find a solution - estimating', category=PhysicsWarning)
+
+                # Estimate using the first input property
+                for i in range(0, 5000):
+                    try:
+                        result_high = self._cp.PropsSI(output, k1, v1+i, k2, v2, self.spec)
+                        result_low = self._cp.PropsSI(output, k1, v1-i, k2, v2, self.spec)
+                        break
+                    except:
+                        continue
+
+                if len(output) == 1:
+                    out = (result_high + result_low) / 2
+                else:
+                    out = []
+                    for idx in range(len(output)):
+                        high = result_high[idx]
+                        low = result_low[idx]
+                        out.append((high + low) / 2)
+                    
             return out
 
         except ValueError:  # likely blend
@@ -384,37 +305,6 @@ class CoolPropWrapper:
         except:
             raise warnings.warn('system not properly defined')
 
-            
-    def s(self, T = None, P = None, rho = None, phase = None):
-        '''
-        entropy (J/kg-K) of a fluid at temperature T (K) and pressure P (Pa)
-        
-        Parameters
-        ----------
-        T: float
-            temperature (K)
-        P: float
-            pressure (Pa)
-        
-        Returns
-        -------
-        h: float
-            heat capacity (J/kg)
-        '''
-        if phase is None:
-            str = '|not_imposed'
-        else:
-            str = '|' + phase
-        if T is not None and P is not None:
-            return self._cp.PropsSI('S', 'T' + str, T, 'P', P, self.spec)
-        elif T is not None and rho is not None:
-            return self._cp.PropsSI('S', 'T' + str, T, 'D', rho, self.spec)
-        elif P is not None and rho is not None:
-            return self._cp.PropsSI('S', 'D' + str, rho, 'P', P, self.spec)
-        else:
-            raise warnings.warn('system not properly defined')
-
-            
 
 class Combustion:
     def __init__(self, fluid, #ambient, # TODO: add ambient object
@@ -447,49 +337,34 @@ class Combustion:
         fuel_props = FuelProperties(fluid.species)
         self.xO2stoich = fuel_props.nC + fuel_props.nH/4 - fuel_props.nO/2
 
-        Treac, P = fluid.T, fluid.P
+        self.Treac, self.Preac, self.rho_reac = fluid.T, fluid.P, fluid.rho
         # TODO: # Tair, P = ambient.T, ambient.P
         if verbose:
             print('initializing chemistry...', end = '')
-        self._myPropsSI = fluid.therm.PropsSI
-        self._PropsSI = fluid.therm._cp.PropsSI
-        #reac = ('C%dH%d' % (nC, 2*nC+2)).replace('C0', '').replace('C1', 'C')
-        #self.reac = reac 
         self.reac = fluid.species
         self._nC, self._nH, self._nO = fuel_props.nC, fuel_props.nH, fuel_props.nO
 
         self.DHc = fuel_props.dHc # heat of combustion, J/kg
 
-        self.Treac, self.P = Treac, P
-
-        MW = dict([[spec, self._PropsSI('M', spec)] for spec in ['O2', 'N2', 'H2O', 'CO2']])
-        MW[self.reac] = fluid.therm.MW
-        self.MW = MW
-        self.fstoich = MW[self.reac]/(MW[self.reac] + self.xO2stoich * (MW['O2'] + MW['N2']*3.76))
+        self.therm = {spec:CoolPropWrapper(spec) for spec in ['O2', 'N2', 'H2O', 'CO2', self.reac]}
+        self.MW = {spec:therm.MW for spec, therm in self.therm.items()}
+        self.fstoich = self.MW[self.reac]/(self.MW[self.reac] + self.xO2stoich * (self.MW['O2'] + self.MW['N2']*3.76))
         ifstoich = int(max(numpoints*self.fstoich, 5))
         fvals = np.append(np.linspace(0, self.fstoich, int(max(numpoints*self.fstoich, 5))), 
                           np.linspace(self.fstoich, 1, int(max(numpoints*(1-self.fstoich), 5))))
-        T = self._T_combustion(Treac, fvals)
+        T = self._T_combustion(self.Treac, fvals)
         MWvals = self._MWmix(self._Yprod(fvals))
         
-        
+        # Creates some interpolating functions - only create them once during initialization to save computational time later
         self.MW_prod = lambda f: self._MWmix(self._Yprod(f))
-        # Creates a couple of interpolating functions
-        # Only create them once during initialization, to use as a lookup value
         self.T_prod = interpolate.interp1d(fvals, T)
-        self.rho_prod = lambda f: P*self.MW_prod(f)/(const.R*self.T_prod(f))
+        self.rho_prod = lambda f: self.Preac*self.MW_prod(f)/(const.R*self.T_prod(f))
         self.drhodf = interpolate.interp1d(fvals,
-                                           P/(const.R*T)*(np.append(np.gradient(MWvals[:ifstoich], fvals[:ifstoich]),
-                                                          np.gradient(MWvals[ifstoich:], fvals[ifstoich:])) - 
-                                                          np.append(np.gradient(T[:ifstoich], fvals[:ifstoich]),
-                                                          np.gradient(T[ifstoich:], fvals[ifstoich:]))/T*MWvals))
-
-        
-        self.X_reac_stoich = self._Yreac(self.fstoich)[self.reac]*self._MWmix(self._Yreac(self.fstoich))/self.MW[self.reac]
-        self.sigma = ((self._MWmix(self._Yreac(self.fstoich))/Treac) /
-                      (self._MWmix(self._Yprod(self.fstoich))/self.T_prod(self.fstoich)))
-        cp, cv = self._PropsSI(['CPMASS', 'CVMASS'], 'T', Treac, 'P', P, self.reac)
-        self.gamma_reac = cp/cv
+                                           self.Preac/(const.R*T)*(np.append(np.gradient(MWvals[:ifstoich], fvals[:ifstoich]),
+                                                                   np.gradient(MWvals[ifstoich:], fvals[ifstoich:])) - 
+                                                                   np.append(np.gradient(T[:ifstoich], fvals[:ifstoich]),
+                                                                   np.gradient(T[ifstoich:], fvals[ifstoich:]))/T*MWvals))
+        self.absorption_coeff = self._plank_mean_absorption_coefficient_stoich()
         if verbose:
             print('done.')
 
@@ -563,13 +438,13 @@ class Combustion:
     def _Hdict(self, Tmin, Tmax = 6000, npoints = 500):
         '''returns dictionary of interpolating enthalpy functions from Tmin to Tmax'''
         Hdict = {}
-        for spec in self.MW.keys():
-            T = np.linspace(np.max([Tmin, self._PropsSI('T_min', spec)+0.1]), Tmax, npoints)
-            if spec == self.reac:
-                Hdict[spec] = interpolate.interp1d(T, [self._myPropsSI('H', T = Tval, P = self.P) for Tval in T], 
+        for spec in self.therm.keys():
+            T = np.linspace(np.max([Tmin, self.therm[spec]._cp.PropsSI('T_min', spec)+0.1]), Tmax, npoints)
+            try:
+                Hdict[spec] = interpolate.interp1d(T, self.therm[spec].get_property('H', T = T, P = self.Preac), 
                                                    fill_value = 'extrapolate')
-            else:
-                Hdict[spec] = interpolate.interp1d(T, self._PropsSI('H', 'T', T, 'P', self.P, spec), 
+            except:
+                Hdict[spec] = interpolate.interp1d(T, [self.therm[spec].get_property('H', T = Tval, P = self.Preac) for Tval in T], 
                                                    fill_value = 'extrapolate')
         return Hdict
 
@@ -582,3 +457,110 @@ class Combustion:
         H = H0 + DHc
         T = optimize.root(lambda T: self._H(T, self._Yprod(f), Hdict) - H, T_reac*np.ones_like(np.array(f)))['x']
         return T
+        
+    def _mean_absorption_coefficient(self, species, temperature, pressure=const.atm):
+        '''
+        Calculates mean absorption coefficient m^-1 for a species at a temperature and pressure
+
+        Parameters
+        ----------
+        species: string
+            species of interest (either H2O or CO2)
+        temperaure: float
+            temperature (K)
+        pressure: float
+            pressure (Pa)
+
+        Returns
+        -------
+        mean_absorption_coefficient: float
+            mean absorption coefficient (m)^-1
+            
+        Note: Formulas and data from Chmielewski and Gieras, "Planck Mean Absorption Coefficients of H2O, CO2, CO and NO 
+        for radiation numerical modeling in combusting flows," Journal of Power Technogies 95 (2) 2015: 97-104. 
+        Calculations agree with https://doi.org/10.1016/S0022-4073(01)00178-9
+        '''
+        data = {'H2O':[[63.87, 149.5, 174.3],
+                       [2.629, 493.6, 111.1],
+                       [222.9, -2110, 1592],
+                       [0.991, 1700, 619.2]],
+                'CO2':[[34.57, 45.32, 838.4],
+                       [1.22, 930.2, 184.9],
+                       [-22.32, 323.9, 217.9],
+                       [17.14, 92.98, 1657]]}
+        
+        coeffs = data[species]
+        ap_mean = sum([coeff[0] * np.exp(-((temperature - coeff[1]) / coeff[2]) ** 2)
+                       for coeff in coeffs])
+        return ap_mean * pressure / const.bar
+        
+    def _plank_mean_absorption_coefficient(self, temperature, x_H2O, x_CO2, pressure=const.atm):
+        '''
+        Calculates Plank mean absorption coefficient m^-1 for a mixture of water vapor and CO2
+
+        Parameters
+        ----------
+        temperaure: float
+            temperature (K)
+        x_H2O: float
+            mole fraction water
+        x_CO2: float
+            mole fraction CO2
+        pressure: float
+            pressure (Pa)
+
+        Returns
+        -------
+        plank_mean_absorption_coefficient: float
+            Plank mean absorption coefficient (m)^-1
+        '''
+        return sum([x * self._mean_absorption_coefficient(spec, temperature, pressure) 
+                    for x, spec in zip([x_H2O, x_CO2], ['H2O', 'CO2'])])
+                    
+    def _plank_mean_absorption_coefficient_stoich(self):
+        '''
+        Calculates Plank mean absorption coefficient at stiochiometric combustion conditions - used in radiation calculations
+        
+        Returns
+        -------
+        plank_mean_absorption_coefficient: float
+            Plank mean absorption coefficient (m)^-1 at stoichiometric conditions
+        '''
+        Y = self._Yprod(self.fstoich)
+        x_H2O = Y['H2O'] / self.MW['H2O'] * self._MWmix(Y)
+        x_CO2 = Y['CO2'] / self.MW['CO2'] * self._MWmix(Y)
+        T = self.T_prod(self.fstoich)
+        return self._plank_mean_absorption_coefficient(T, x_H2O, x_CO2, self.Preac)
+        
+    def dP_expansion(self, enclosure, mass):
+        '''
+        Pressure due to the expansion of gas from combustion in an enclosure
+        
+        Parameters
+        ----------
+        enclosure: object 
+            object that contains information about the enclosure including the volume
+        mass : float
+           mass of combustible gas in enclosure
+
+        Returns
+        -------
+        P : float
+           pressure upon expansion
+        '''
+        Vol_total = enclosure.V
+        Vol_gas   = mass/self.rho_reac
+        
+        X_reac_stoich = self._Yreac(self.fstoich)[self.reac]*self._MWmix(self._Yreac(self.fstoich))/self.MW[self.reac]
+        sigma = ((self._MWmix(self._Yreac(self.fstoich))/self.Treac) /
+                 (self._MWmix(self._Yprod(self.fstoich))/self.T_prod(self.fstoich)))
+        cp, cv = self.therm[self.reac].get_property(['CPMASS', 'CVMASS'], T = self.Treac, P = self.Preac)
+        try:
+            gamma = cp/cv
+        except:
+            gamma = np.nan
+        
+        VolStoich = Vol_gas/X_reac_stoich
+
+        deltaP  = self.Preac*((((Vol_total+Vol_gas)/Vol_total)*((Vol_total+VolStoich*(sigma-1))/Vol_total))**gamma-1)
+        return deltaP

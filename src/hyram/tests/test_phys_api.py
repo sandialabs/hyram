@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -8,9 +8,9 @@ If not, see https://www.gnu.org/licenses/.
 
 import os
 import unittest
-import logging
-import numpy as np
 from math import isnan
+
+import numpy as np
 
 from hyram.phys import api, Fluid
 from hyram.utilities import misc_utils
@@ -205,7 +205,7 @@ class TestETKTNTEquivalentMass(unittest.TestCase):
 
 class PlumeDispersionTestCase(unittest.TestCase):
     """
-    Test plue dispersion physics API interface
+    Test plume dispersion physics API interface
     """
     def setUp(self):
         # Default inputs
@@ -228,6 +228,16 @@ class PlumeDispersionTestCase(unittest.TestCase):
         self.filename = None  # use default
         self.output_dir = None  # use default
         self.verbose = False
+
+    def test_valid_input(self):
+        result = api.analyze_jet_plume(self.amb_fluid, self.rel_fluid, self.orif_diam)
+        self.assertTrue(result is not None)
+
+    def test_blend(self):
+        # self.rel_fluid = Fluid({'h2': 1, 'ch4': 0.}, T=298, P=35e6)
+        self.rel_fluid = Fluid({'h2': 0.05, 'ch4': 0.95}, T=298, P=1e6)
+        result = api.analyze_jet_plume(self.amb_fluid, self.rel_fluid, self.orif_diam)
+        self.assertTrue(result is not None)
 
     def test_reject_mole_frac_0(self):
         contour = 0  # mole fraction
@@ -274,6 +284,31 @@ class PlumeDispersionTestCase(unittest.TestCase):
                           self.xmin, self.xmax, ymin, ymax,
                           self.plot_title, self.filename, self.output_dir,
                           self.verbose)
+
+    def test_default_inputs(self):
+        results = api.analyze_jet_plume(self.amb_fluid,
+                                        self.rel_fluid,
+                                        self.orif_diam,
+                                        self.mass_flow,
+                                        self.rel_angle,
+                                        self.dis_coeff,
+                                        self.nozzle_model,
+                                        self.create_plot,
+                                        self.contour,
+                                        self.contour_min,
+                                        self.contour_max,
+                                        self.xmin,
+                                        self.xmax,
+                                        self.ymin,
+                                        self.ymax,
+                                        self.plot_title,
+                                        self.filename,
+                                        self.output_dir,
+                                        self.verbose)
+        self.assertTrue(os.path.isfile(results['plot']))
+        self.assertGreater(results['mass_flow_rate'], 0)
+        self.assertGreater(results['streamline_dists'], 0)
+        self.assertGreaterEqual(results['mole_frac_dists'][self.contour][0][1], 0)
 
 
 class AccumulationTestCase(unittest.TestCase):
@@ -442,10 +477,7 @@ class OverpressureTestCase(unittest.TestCase):
     """
     def setUp(self):
         self.output_dir = misc_utils.get_temp_folder()
-        # Set up logging
-        logname = __name__
-        misc_utils.setup_file_log(self.output_dir, verbose=VERBOSE, logfile='hyram-test.log', logname=logname)
-        self.log = logging.getLogger(logname)
+
         # Default values
         self.locations = [(1, 1, 0)]  # distance is sqrt(2) m
         P_inf = 101325.  # Pa, ambient pressure
@@ -456,7 +488,6 @@ class OverpressureTestCase(unittest.TestCase):
         self.orifice_diameter = 2*0.0254  # m, jet exit diameter
 
     def test_basic_bst_overpressure(self):
-        self.log.info("TESTING BST overpressure calculation")
         method = 'BST'
         BST_mach_flame_speed = 0.35
         result_dict = api.compute_overpressure(method, self.locations,
@@ -465,8 +496,8 @@ class OverpressureTestCase(unittest.TestCase):
                                                orifice_diameter=self.orifice_diameter,
                                                bst_flame_speed=BST_mach_flame_speed,
                                                output_dir=self.output_dir)
-        overpressure = result_dict["overpressure"]
-        impulse = result_dict["impulse"]
+        overpressure = result_dict["overpressures"]
+        impulse = result_dict["impulses"]
         overpressure_figure_path = result_dict["overp_plot_filepath"]
         impulse_figure_path = result_dict["impulse_plot_filepath"]
         self.assertTrue(result_dict is not None)
@@ -474,9 +505,8 @@ class OverpressureTestCase(unittest.TestCase):
         self.assertGreaterEqual(impulse, 0)
         self.assertTrue(os.path.exists(overpressure_figure_path))
         self.assertTrue(os.path.exists(impulse_figure_path))
-    
+
     def test_basic_tnt_overpressure(self):
-        self.log.info("TESTING TNT overpressure calculation")
         method = 'TNT'
         tnt_factor = 0.03
         result_dict = api.compute_overpressure(method, self.locations,
@@ -485,8 +515,8 @@ class OverpressureTestCase(unittest.TestCase):
                                                orifice_diameter=self.orifice_diameter,
                                                tnt_factor=tnt_factor,
                                                output_dir=self.output_dir)
-        overpressure = result_dict["overpressure"]
-        impulse = result_dict["impulse"]
+        overpressure = result_dict["overpressures"]
+        impulse = result_dict["impulses"]
         overpressure_figure_path = result_dict["overp_plot_filepath"]
         impulse_figure_path = result_dict["impulse_plot_filepath"]
         self.assertTrue(result_dict is not None)
@@ -496,15 +526,14 @@ class OverpressureTestCase(unittest.TestCase):
         self.assertTrue(os.path.exists(impulse_figure_path))
 
     def test_basic_bauwens_overpressure(self):
-        self.log.info("TESTING Bauwens overpressure calculation")
         method = 'Bauwens'
         result_dict = api.compute_overpressure(method, self.locations,
                                                ambient_fluid=self.ambient_fluid,
                                                release_fluid=self.release_fluid,
                                                orifice_diameter=self.orifice_diameter,
                                                output_dir=self.output_dir)
-        overpressure = result_dict["overpressure"]
-        impulse = result_dict["impulse"]
+        overpressure = result_dict["overpressures"]
+        impulse = result_dict["impulses"]
         overpressure_figure_path = result_dict["overp_plot_filepath"]
         impulse_figure_path = result_dict["impulse_plot_filepath"]
         self.assertTrue(result_dict is not None)

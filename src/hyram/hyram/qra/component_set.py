@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -7,9 +7,85 @@ If not, see https://www.gnu.org/licenses/.
 """
 
 import numpy as np
+from . import _utils
 
 from .data import component_data
 from .leaks import Leak
+
+
+def init_component_sets(species, phase, leak_sizes=None,
+                        n_compressors=0, n_vessels=0, n_valves=5, n_instruments=3, n_joints=35, n_hoses=1, n_pipes=20, n_filters=0,
+                        n_flanges=0, n_exchangers=0, n_vaporizers=0, n_arms=0, n_extra1s=0, n_extra2s=0,
+                        compressor_ps=None, vessel_ps=None, valve_ps=None, instrument_ps=None, joint_ps=None,
+                        hose_ps=None, pipe_ps=None, filter_ps=None, flange_ps=None, exchanger_ps=None,
+                        vaporizer_ps=None, arm_ps=None, extra1_ps=None, extra2_ps=None,
+                        fuel_component_data=None):
+    if fuel_component_data is None:
+        fuel_component_data = component_data.h2_gas_params
+
+    if leak_sizes is None:
+        leak_sizes = _utils.get_default_leak_sizes()
+
+    if compressor_ps is None:
+        compressor_ps = fuel_component_data['compressor']
+    if vessel_ps is None:
+        vessel_ps = fuel_component_data['vessel']
+    if valve_ps is None:
+        valve_ps = fuel_component_data['valve']
+    if instrument_ps is None:
+        instrument_ps = fuel_component_data['instrument']
+    if joint_ps is None:
+        joint_ps = fuel_component_data['joint']
+    if hose_ps is None:
+        hose_ps = fuel_component_data['hose']
+    if pipe_ps is None:
+        pipe_ps = fuel_component_data['pipe']
+    if filter_ps is None:
+        filter_ps = fuel_component_data['filter']
+    if flange_ps is None:
+        flange_ps = fuel_component_data['flange']
+    if exchanger_ps is None:
+        exchanger_ps = fuel_component_data['exchanger']
+    if vaporizer_ps is None:
+        vaporizer_ps = fuel_component_data['vaporizer']
+    if arm_ps is None:
+        arm_ps = fuel_component_data['arm']
+    if extra1_ps is None:
+        extra1_ps = fuel_component_data['extra1']
+    if extra2_ps is None:
+        extra2_ps = fuel_component_data['extra2']
+
+    component_sets = [
+        ComponentSet(category='compressor', num_components=n_compressors, species=species, saturated_phase=phase,
+                     leak_frequency_lists=compressor_ps, leak_sizes=leak_sizes),
+        ComponentSet(category='vessel', num_components=n_vessels, species=species, saturated_phase=phase,
+                     leak_frequency_lists=vessel_ps, leak_sizes=leak_sizes),
+        ComponentSet(category='valve', num_components=n_valves, species=species, saturated_phase=phase,
+                     leak_frequency_lists=valve_ps, leak_sizes=leak_sizes),
+        ComponentSet(category='instrument', num_components=n_instruments, species=species, saturated_phase=phase,
+                     leak_frequency_lists=instrument_ps, leak_sizes=leak_sizes),
+        ComponentSet(category='joint', num_components=n_joints, species=species, saturated_phase=phase,
+                     leak_frequency_lists=joint_ps, leak_sizes=leak_sizes),
+        ComponentSet(category='hose', num_components=n_hoses, species=species, saturated_phase=phase,
+                     leak_frequency_lists=hose_ps, leak_sizes=leak_sizes),
+        ComponentSet(category='pipe', num_components=n_pipes, species=species, saturated_phase=phase,
+                     leak_frequency_lists=pipe_ps, leak_sizes=leak_sizes),
+        ComponentSet(category='filter', num_components=n_filters, species=species, saturated_phase=phase,
+                     leak_frequency_lists=filter_ps, leak_sizes=leak_sizes),
+        ComponentSet(category='flange', num_components=n_flanges, species=species, saturated_phase=phase,
+                     leak_frequency_lists=flange_ps, leak_sizes=leak_sizes),
+        ComponentSet(category='exchanger', num_components=n_exchangers, species=species, saturated_phase=phase,
+                     leak_frequency_lists=exchanger_ps, leak_sizes=leak_sizes),
+        ComponentSet(category='vaporizer', num_components=n_vaporizers, species=species, saturated_phase=phase,
+                     leak_frequency_lists=vaporizer_ps, leak_sizes=leak_sizes),
+        ComponentSet(category='arm', num_components=n_arms, species=species, saturated_phase=phase,
+                     leak_frequency_lists=arm_ps, leak_sizes=leak_sizes),
+        ComponentSet(category='extra1', num_components=n_extra1s, species=species, saturated_phase=phase,
+                     leak_frequency_lists=extra1_ps, leak_sizes=leak_sizes),
+        ComponentSet(category='extra2', num_components=n_extra2s, species=species, saturated_phase=phase,
+                     leak_frequency_lists=extra2_ps, leak_sizes=leak_sizes)
+    ]
+    return component_sets
 
 
 class ComponentSet:
@@ -54,10 +130,9 @@ class ComponentSet:
 
     """
     
-    default_leak_sizes = [0.01, 0.10, 1, 10, 100]
+    default_leak_sizes = _utils.get_default_leak_sizes()
     
-    def __init__(self, category, num_components, species, saturated_phase=None,
-                 leak_frequency_lists=None, leak_sizes=None):
+    def __init__(self, category, num_components, species, saturated_phase=None, leak_frequency_lists=None, leak_sizes=None):
         if type(category) != str:
             raise ValueError("Category must be string")
         if num_components < 0:
@@ -96,6 +171,7 @@ class ComponentSet:
         alpha_1 = 1
         alpha_2 = 1
         #predicted_mean = alpha_1 + alpha_2*np.log(leak_size)
+        # TODO: should this refer to default leak sizes or provided leak sizes?
         predicted_mean = np.interp(np.log(leak_size), np.log(self.default_leak_sizes), np.array(leak_frequency_lists)[:, 0])
         predicted_sigma = np.interp(np.log(leak_size), np.log(self.default_leak_sizes), np.array(leak_frequency_lists)[:, 1])
         return predicted_mean, predicted_sigma

@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -31,6 +31,7 @@ namespace SandiaNationalLaboratories.Hyram
         private string _overpPlotFilepath;
         private string _impulsePlotFilepath;
         private float _massFlowRate;
+        private float _flamOrDetMass;
 
         public UnconfinedOverpressureForm()
         {
@@ -39,15 +40,21 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void UnconfinedOverpressureForm_Load(object sender, EventArgs e)
         {
+            // right-click to save images
+            var picMenu = new ContextMenuStrip();
+            {
+                var item = new ToolStripMenuItem {Text = "Save As..."};
+                item.MouseUp += UiHelpers.SaveImageToolStripMenuItem_Click;
+                picMenu.Items.Add(item);
+            }
+            OverpPlot.ContextMenuStrip = picMenu;
+            ImpulsePlot.ContextMenuStrip = picMenu;
+
             spinnerPictureBox.Hide();
             outputWarning.Hide();
 
             MethodSelector.DataSource = _state.OverpressureMethods;
             FlameSpeedSelector.DataSource = _state.MachFlameSpeeds;
-            NozzleSelector.DataSource = _state.NozzleModels;
-            PhaseSelector.DataSource = _state.Phases;
-
-            _state.FuelTypeChangedEvent += OnFuelChange;
 
             _mIgnoreXyzChangeEvent = true;
             RefreshForm();
@@ -57,16 +64,8 @@ namespace SandiaNationalLaboratories.Hyram
             ParseUtility.PutDoubleArrayIntoTextBox(LocZInput, _state.OverpressureZ);
 
             _mIgnoreXyzChangeEvent = false;
-        }
 
-        ~UnconfinedOverpressureForm()
-        {
-            _state.FuelTypeChangedEvent -= OnFuelChange;
-        }
-
-        private void OnFuelChange(object o, EventArgs e)
-        {
-            RefreshForm();
+            outputTabControl.Enabled = false;
         }
 
         /// <summary>
@@ -74,15 +73,12 @@ namespace SandiaNationalLaboratories.Hyram
         /// </summary>
         private void RefreshForm()
         {
-            var method = _state.SelectedOverpressureMethod;
+            var method = _state.OverpressureMethod;
             FlameSpeedSelector.Visible = method == _state.BstMethod;
             flameSpeedLabel.Visible = method == _state.BstMethod;
 
-            MethodSelector.SelectedItem = _state.SelectedOverpressureMethod;
+            MethodSelector.SelectedItem = _state.OverpressureMethod;
             FlameSpeedSelector.SelectedItem = _state.OverpressureFlameSpeed;
-            NozzleSelector.DataSource = _state.NozzleModels;
-            NozzleSelector.SelectedItem = _state.Nozzle;
-            PhaseSelector.SelectedItem = _state.Phase;
             AutoSetLimits.Checked = _state.OverpAutoLimits;
 
             InputGrid.Rows.Clear();
@@ -92,17 +88,10 @@ namespace SandiaNationalLaboratories.Hyram
             // Create collection initially containing common params
             var formParams = ParameterInput.GetParameterInputList(new[]
             {
-                _state.AmbientTemperature,
-                _state.AmbientPressure,
                 _state.OrificeDiameter,
                 _state.ReleaseAngle,
                 _state.OrificeDischargeCoefficient,
-                _state.FluidPressure,
             });
-            if (_state.DisplayTemperature())
-            {
-                formParams.Add(new ParameterInput(_state.FluidTemperature));
-            }
             if (method == _state.TntMethod)
             {
                 formParams.Add(new ParameterInput(_state.TntEquivalenceFactor));
@@ -142,34 +131,27 @@ namespace SandiaNationalLaboratories.Hyram
             int alertType = 0;
             string alertText = "";
 
-            if (_state.GetActiveFuel() == _state.FuelBlend && _state.SelectedOverpressureMethod == _state.BauwensMethod)
+            if (_state.GetActiveFuel() == _state.FuelBlend && _state.OverpressureMethod == _state.BauwensMethod)
             {
                 alertText = "Cannot assess blend with Bauwens calculation method";
                 alertType = 2;
             }
             else if (_state.GetActiveFuel() != _state.FuelH2 || _state.Phase != _state.GasDefault)
             {
-                alertText = "Unconfined overpressure analysis currently tailored to gaseous H2";
+                alertText = "Analysis tailored to gaseous H2";
                 alertType = 1;
-            }
-
-            if (!_state.ReleasePressureIsValid())
-            {
-                // if liquid, validate fuel pressure
-                alertText = MessageContainer.ReleasePressureInvalid();
-                alertType = 2;
             }
 
             if (_state.FuelFlowUnchoked())
             {
-                MassFlowInput.Visible = true;
-                massFlowLabel.Visible = true;
+                MassFlowInput.Enabled = true;
+//                massFlowLabel.Visible = true;
                 MassFlowInput.Text = _state.FluidMassFlow.ToString();
             }
             else
             {
-                MassFlowInput.Visible = false;
-                massFlowLabel.Visible = false;
+                MassFlowInput.Enabled = false;
+//                massFlowLabel.Visible = false;
                 MassFlowInput.Text = "";
             }
 
@@ -184,9 +166,9 @@ namespace SandiaNationalLaboratories.Hyram
                     alertText = "X, Y, Z location arrays must be the same size";
                     alertType = 2;
                 }
-                lblXElemCount.Text = numXElems + " elements";
-                lblYElemCount.Text = numYElems + " elements";
-                lblZElementCount.Text = numZElems + " elements";
+                XCountLabel.Text = numXElems + " elements";
+                YCountLabel.Text = numYElems + " elements";
+                ZCountLabel.Text = numZElems + " elements";
             }
 
             inputWarning.Text = alertText;
@@ -201,7 +183,8 @@ namespace SandiaNationalLaboratories.Hyram
             Trace.TraceInformation("Creating PhysicsInterface for python call");
             var physInt = new PhysicsInterface();
             _analysisStatus = physInt.AnalyzeUnconfinedOverpressure(out _statusMsg, out _warningMsg, out _overpressures, out _impulses,
-                                                                    out _overpPlotFilepath, out _impulsePlotFilepath, out _massFlowRate);
+                                                                    out _overpPlotFilepath, out _impulsePlotFilepath,
+                                                                    out _massFlowRate, out _flamOrDetMass);
             Trace.TraceInformation("PhysicsInterface call complete");
         }
 
@@ -221,18 +204,30 @@ namespace SandiaNationalLaboratories.Hyram
             }
             else
             {
+                resultTipLabel.Hide();
                 if (!string.IsNullOrEmpty(_overpPlotFilepath))
                 {
-                    OverpPlotBox.Load(_overpPlotFilepath);
+                    OverpPlot.Load(_overpPlotFilepath);
                 }
 
                 if (!string.IsNullOrEmpty(_impulsePlotFilepath))
                 {
-                    ImpulsePlotBox.Load(_impulsePlotFilepath);
+                    ImpulsePlot.Load(_impulsePlotFilepath);
                 }
 
                 OutputMassFlowRate.Text = _massFlowRate.ToString("E3");
 
+                FlamDetMassOutput.Text = _flamOrDetMass.ToString("E3");
+                if (_state.OverpressureMethod == _state.BauwensMethod)
+                {
+                    FlamDetMassLabel.Text = "Detonable mass (kg)";
+                }
+                else
+                {
+                    FlamDetMassLabel.Text = "Flammable mass (kg)";
+                }
+
+                outputTabControl.Enabled = true;
                 ResultGrid.Rows.Clear();
                 for (var index = 0; index < _overpressures.Length; index++)
                 {
@@ -255,8 +250,8 @@ namespace SandiaNationalLaboratories.Hyram
 
                 spinnerPictureBox.Hide();
                 SubmitBtn.Enabled = true;
-                outputTabControl.SelectTab(dataTab);
-                mainTabControl.SelectTab(outputTab);
+                outputTabControl.SelectTab(overpPlotTab);
+//                mainTabControl.SelectTab(outputTab);
 
             }
         }
@@ -304,10 +299,15 @@ namespace SandiaNationalLaboratories.Hyram
 
         private async void SubmitBtn_Click(object sender, EventArgs e)
         {
-            if (OverpPlotBox.Image != null)
+            if (OverpPlot.Image != null)
             {
-                OverpPlotBox.Image.Dispose();
-                OverpPlotBox.Image = null;
+                OverpPlot.Image.Dispose();
+                OverpPlot.Image = null;
+            }
+            if (ImpulsePlot.Image != null)
+            {
+                ImpulsePlot.Image.Dispose();
+                ImpulsePlot.Image = null;
             }
             ResultGrid.Rows.Clear();
             outputWarning.Hide();
@@ -319,7 +319,7 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void GridInput_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            GridHelpers.ChangeParameterValue((DataGridView) sender, e, 1, 2);
+            GridHelpers.ChangeParameterValue((DataGridView) sender, e);
             CheckFormValid();
         }
 
@@ -366,20 +366,9 @@ namespace SandiaNationalLaboratories.Hyram
             }
         }
 
-        private void NozzleSelector_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            _state.Nozzle = (ModelPair)NozzleSelector.SelectedItem;
-        }
-
-        private void PhaseSelector_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            _state.Phase = (ModelPair)PhaseSelector.SelectedItem;
-            RefreshForm();
-        }
-
         private void MethodSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            _state.SelectedOverpressureMethod = (ModelPair)MethodSelector.SelectedItem;
+            _state.OverpressureMethod = (ModelPair)MethodSelector.SelectedItem;
             RefreshForm();
         }
 
@@ -443,6 +432,12 @@ namespace SandiaNationalLaboratories.Hyram
             {
                 MassFlowInput.Text = _state.FluidMassFlow.ToString();
             }
+        }
+
+        private void InputGrid_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+
+            GridHelpers.CellValidating_CheckDoubleOrNullable(InputGrid, sender, e);
         }
     }
 }

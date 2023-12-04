@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -9,6 +9,7 @@ HyRAM+. If not, see https://www.gnu.org/licenses/.
 
 using Python.Runtime;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 
@@ -295,35 +296,52 @@ namespace SandiaNationalLaboratories.Hyram
         /// Creates release plume plot.
         /// </summary>
         /// <returns>True if successful</returns>
-        public bool CreatePlumePlot(out string statusMsg, out string warningMsg, out string plotFilepath, out double massFlowRate)
+        public bool CreatePlumePlot(out string statusMsg, out string warningMsg, out string plotFilepath, out double massFlowRate,
+            out List<double> orderedContours, out List<double> streamlineDists,
+            out List<List<double>> contourDistSets)
         {
             statusMsg = "";
             warningMsg = "";
             plotFilepath = "";
             massFlowRate = float.NaN;
-
+            orderedContours = new List<double>();
+            streamlineDists = new List<double>();
+            contourDistSets = new List<List<double>>();
 
             string phaseKey = _state.Phase.GetKey();
             double ambientP = _state.AmbientPressure.GetValue(PressureUnit.Pa);
             double ambientT = _state.AmbientTemperature.GetValue(TempUnit.Kelvin);
-            double releaseP = _state.FluidPressure.GetValue(PressureUnit.Pa);
+            double releaseP = _state.GetFluidPressure(PressureUnit.Pa);
             double releaseT = _state.FluidTemperature.GetValue(TempUnit.Kelvin);
             double releaseAngle = _state.PlumeReleaseAngle.GetValue(AngleUnit.Radians);
             double? inputMassFlow = _state.FluidMassFlow;
             double orificeDiam = _state.OrificeDiameter.GetValue();
             double dischargeCoeff = _state.OrificeDischargeCoefficient.GetValue();
-            double xMin = _state.PlumeXMin.GetValue();
-            double xMax = _state.PlumeXMax.GetValue();
-            double yMin = _state.PlumeYMin.GetValue();
-            double yMax = _state.PlumeYMax.GetValue();
-            double vMin = _state.PlumeVMin.GetValue();
-            double vMax = _state.PlumeVMax.GetValue();
-            double contours = _state.PlumeContours.GetValue();
+            double[] contours = _state.PlumeContourLevels;
             string nozzleKey = _state.Nozzle.GetKey();
             string plotTitle = _state.PlumePlotTitle;
 
+            double? xmin = _state.PlumeXMin.GetValueMaybeNull();
+            double? xmax = _state.PlumeXMax.GetValueMaybeNull();
+            double? ymin = _state.PlumeYMin.GetValueMaybeNull();
+            double? ymax = _state.PlumeYMax.GetValueMaybeNull();
+            double? vmin = _state.PlumeVMin.GetValueMaybeNull();
+            double? vmax = _state.PlumeVMax.GetValueMaybeNull();
+            if (_state.PlumePlotAutoLimits)
+            {
+                xmin = null; xmax = null;
+                ymin = null; ymax = null;
+                vmin = null; vmax = null;
+            }
+
             Trace.TraceInformation($"Output directory: {outputDirPath}, Verbose {isVerbose}");
             Trace.TraceInformation("Acquiring python lock and importing module...");
+
+            //var testDict = new Dictionary<string, string>
+            //{
+            //    {"test", "123.554454"},
+            //    { "two", "-43435.3433"}
+            //};
 
             using (Py.GIL())
             {
@@ -341,7 +359,7 @@ namespace SandiaNationalLaboratories.Hyram
                     resultPyObj = pyApi.phys.analyze_jet_plume(ambientT, ambientP,
                                                                relSpecies, releaseT, releaseP, phaseKey,
                                                                orificeDiam, inputMassFlow, releaseAngle, dischargeCoeff, nozzleKey,
-                                                               contours, xMin, xMax, yMin, yMax, vMin, vMax,
+                                                               contours, xmin, xmax, ymin, ymax, vmin, vmax,
                                                                plotTitle, outputDirPath, isVerbose);
                     Trace.TraceInformation("Python call complete. Processing results...");
 
@@ -354,6 +372,22 @@ namespace SandiaNationalLaboratories.Hyram
                         plotFilepath = (string)resultData["plot"];
                         warningMsg = (string)resultPyObj["warning"];
                         massFlowRate = (float)resultData["mass_flow_rate"];
+                        var streamlineDoubles = (double[])resultData["streamline_dists"];
+                        if (streamlineDoubles.Length > 0)
+                        {
+                            streamlineDists = new List<double>(streamlineDoubles);
+                            // parse xy contour distance data. Contours in ordered list.
+                            orderedContours = new List<double>(
+                                                (double[])resultData["ordered_contours"]);
+                            // distance values are in sets of 4 (x1, x2, y1, y2)
+                            var orderedDistSets = (double[][])resultData["mole_frac_dists"];
+                            foreach (var distSet in orderedDistSets)
+                            {
+                                contourDistSets.Add(new List<double>(distSet));
+                            }
+
+                        }
+
                         resultPyObj.Dispose();
                         Trace.TraceInformation("Plume plot: " + plotFilepath);
                     }
@@ -410,7 +444,7 @@ namespace SandiaNationalLaboratories.Hyram
             string phaseKey = _state.Phase.GetKey();
             double ambientP = _state.AmbientPressure.GetValue(PressureUnit.Pa);
             double ambientT = _state.AmbientTemperature.GetValue(TempUnit.Kelvin);
-            double releaseP = _state.FluidPressure.GetValue(PressureUnit.Pa);
+            double releaseP = _state.GetFluidPressure(PressureUnit.Pa);
             double releaseT = _state.FluidTemperature.GetValue(TempUnit.Kelvin);
             double releaseAngle = _state.ReleaseAngle.GetValue(AngleUnit.Radians);
             double orificeDiam = _state.OrificeDiameter.GetValue();
@@ -514,11 +548,11 @@ namespace SandiaNationalLaboratories.Hyram
             flameLength = float.NaN;
             radiantFrac = float.NaN;
 
-            double? xmin = _state.FlameXMin.GetValue();
-            double? xmax = _state.FlameXMax.GetValue();
-            double? ymin = _state.FlameYMin.GetValue();
-            double? ymax = _state.FlameYMax.GetValue();
-            if (_state.FlameAutoLimits)
+            double? xmin = _state.FlameXMin.GetValueMaybeNull();
+            double? xmax = _state.FlameXMax.GetValueMaybeNull();
+            double? ymin = _state.FlameYMin.GetValueMaybeNull();
+            double? ymax = _state.FlameYMax.GetValueMaybeNull();
+            if (_state.FlameTempAutoLimits)
             {
                 xmin = null; xmax = null;
                 ymin = null; ymax = null;
@@ -527,7 +561,7 @@ namespace SandiaNationalLaboratories.Hyram
             string phaseKey = _state.Phase.GetKey();
             double ambientP = _state.AmbientPressure.GetValue(PressureUnit.Pa);
             double ambientT = _state.AmbientTemperature.GetValue(TempUnit.Kelvin);
-            double releaseP = _state.FluidPressure.GetValue(PressureUnit.Pa);
+            double releaseP = _state.GetFluidPressure(PressureUnit.Pa);
             double releaseT = _state.FluidTemperature.GetValue(TempUnit.Kelvin);
             double releaseAngle = _state.ReleaseAngle.GetValue(AngleUnit.Radians);
             double orificeDiam = _state.OrificeDiameter.GetValue();
@@ -625,7 +659,7 @@ namespace SandiaNationalLaboratories.Hyram
             string phaseKey = _state.Phase.GetKey();
             double ambientP = _state.AmbientPressure.GetValue(PressureUnit.Pa);
             double ambientT = _state.AmbientTemperature.GetValue(TempUnit.Kelvin);
-            double releaseP = _state.FluidPressure.GetValue(PressureUnit.Pa);
+            double releaseP = _state.GetFluidPressure(PressureUnit.Pa);
             double releaseT = _state.FluidTemperature.GetValue(TempUnit.Kelvin);
             double releaseAngle = _state.ReleaseAngle.GetValue(AngleUnit.Radians);
             double orificeDiam = _state.OrificeDiameter.GetValue();
@@ -641,19 +675,19 @@ namespace SandiaNationalLaboratories.Hyram
             bool analyzeFlux = true;
             fluxData = new double[radHeatFluxX.Length];
 
-            double? txmin = _state.FlameXMin.GetValue();
-            double? txmax = _state.FlameXMax.GetValue();
-            double? tymin = _state.FlameYMin.GetValue();
-            double? tymax = _state.FlameYMax.GetValue();
+            double? txmin = _state.FlameXMin.GetValueMaybeNull();
+            double? txmax = _state.FlameXMax.GetValueMaybeNull();
+            double? tymin = _state.FlameYMin.GetValueMaybeNull();
+            double? tymax = _state.FlameYMax.GetValueMaybeNull();
 
-            double? fxmin = _state.FluxXMin.GetValue();
-            double? fxmax = _state.FluxXMax.GetValue();
-            double? fymin = _state.FluxYMin.GetValue();
-            double? fymax = _state.FluxYMax.GetValue();
-            double? fzmin = _state.FluxZMin.GetValue();
-            double? fzmax = _state.FluxZMax.GetValue();
+            double? fxmin = _state.FluxXMin.GetValueMaybeNull();
+            double? fxmax = _state.FluxXMax.GetValueMaybeNull();
+            double? fymin = _state.FluxYMin.GetValueMaybeNull();
+            double? fymax = _state.FluxYMax.GetValueMaybeNull();
+            double? fzmin = _state.FluxZMin.GetValueMaybeNull();
+            double? fzmax = _state.FluxZMax.GetValueMaybeNull();
 
-            if (_state.FlameAutoLimits)
+            if (_state.FlameFluxAutoLimits)
             {
                 txmin = null; txmax = null;
                 tymin = null; tymax = null;
@@ -739,12 +773,13 @@ namespace SandiaNationalLaboratories.Hyram
         /// </summary>
         /// <returns>True if successful</returns>
         public bool AnalyzeUnconfinedOverpressure(out string statusMsg, out string warningMsg, out double[] overpressures, out double[] impulses,
-                                                    out string overpPlot, out string impulsePlot, out float massFlowRate)
+                                                    out string overpPlot, out string impulsePlot, out float massFlowRate, out float flamOrDetMass)
         {
             bool status = false;
             statusMsg = "";
             warningMsg = "";
             massFlowRate = float.NaN;
+            flamOrDetMass = float.NaN;
             overpPlot = "";
             impulsePlot = "";
 
@@ -757,7 +792,7 @@ namespace SandiaNationalLaboratories.Hyram
             string phaseKey = _state.Phase.GetKey();
             double ambientP = _state.AmbientPressure.GetValue(PressureUnit.Pa);
             double ambientT = _state.AmbientTemperature.GetValue(TempUnit.Kelvin);
-            double releaseP = _state.FluidPressure.GetValue(PressureUnit.Pa);
+            double releaseP = _state.GetFluidPressure(PressureUnit.Pa);
             double releaseT = _state.FluidTemperature.GetValue(TempUnit.Kelvin);
             double releaseAngle = _state.ReleaseAngle.GetValue(AngleUnit.Radians);
             double orificeDiam = _state.OrificeDiameter.GetValue();
@@ -767,23 +802,23 @@ namespace SandiaNationalLaboratories.Hyram
 
             double flameSpeed = _state.OverpressureFlameSpeed;
             double tntFactor = _state.TntEquivalenceFactor.GetValue();
-            string overpMethod = _state.SelectedOverpressureMethod.GetKey();
+            string overpMethod = _state.OverpressureMethod.GetKey();
             double[] overpContours = _state.OverpressureContours;  // kPa
             double[] impulseContours = _state.ImpulseContours;  // kPa*s
 
-            double? oxmin = _state.OverpXMin.GetValue();
-            double? oxmax = _state.OverpXMax.GetValue();
-            double? oymin = _state.OverpYMin.GetValue();
-            double? oymax = _state.OverpYMax.GetValue();
-            double? ozmin = _state.OverpZMin.GetValue();
-            double? ozmax = _state.OverpZMax.GetValue();
+            double? oxmin = _state.OverpXMin.GetValueMaybeNull();
+            double? oxmax = _state.OverpXMax.GetValueMaybeNull();
+            double? oymin = _state.OverpYMin.GetValueMaybeNull();
+            double? oymax = _state.OverpYMax.GetValueMaybeNull();
+            double? ozmin = _state.OverpZMin.GetValueMaybeNull();
+            double? ozmax = _state.OverpZMax.GetValueMaybeNull();
 
-            double? ixmin = _state.ImpulseXMin.GetValue();
-            double? ixmax = _state.ImpulseXMax.GetValue();
-            double? iymin = _state.ImpulseYMin.GetValue();
-            double? iymax = _state.ImpulseYMax.GetValue();
-            double? izmin = _state.ImpulseZMin.GetValue();
-            double? izmax = _state.ImpulseZMax.GetValue();
+            double? ixmin = _state.ImpulseXMin.GetValueMaybeNull();
+            double? ixmax = _state.ImpulseXMax.GetValueMaybeNull();
+            double? iymin = _state.ImpulseYMin.GetValueMaybeNull();
+            double? iymax = _state.ImpulseYMax.GetValueMaybeNull();
+            double? izmin = _state.ImpulseZMin.GetValueMaybeNull();
+            double? izmax = _state.ImpulseZMax.GetValueMaybeNull();
 
             if (_state.OverpAutoLimits)
             {
@@ -806,15 +841,14 @@ namespace SandiaNationalLaboratories.Hyram
                 {
                     pyApi.phys.setup(outputDirPath, isVerbose);
                     Trace.TraceInformation("Unconfined overpressure analysis...");
-                    dynamic resultPyObj = pyApi.phys.unconfined_overpressure_analysis(ambientT, ambientP,
-                                                                                    relSpecies, releaseT, releaseP, phaseKey,
-                                                                                    orificeDiam, inputMassFlow, releaseAngle, dischargeCoeff,
-                                                                                    nozzleKey, overpMethod,
-                                                                                    xLocs, yLocs, zLocs,
-                                                                                    overpContours, oxmin, oxmax, oymin, oymax, ozmin, ozmax,
-                                                                                    impulseContours, ixmin, ixmax, iymin, iymax, izmin, izmax,
-                                                                                    flameSpeed, tntFactor,
-                                                                                    outputDirPath, isVerbose);
+                    dynamic resultPyObj = pyApi.phys.unconfined_overpressure_analysis(
+                                                        ambientT, ambientP, relSpecies, releaseT, releaseP, phaseKey,
+                                                        orificeDiam, inputMassFlow, releaseAngle, dischargeCoeff,
+                                                        nozzleKey, overpMethod,
+                                                        xLocs, yLocs, zLocs,
+                                                        overpContours, oxmin, oxmax, oymin, oymax, ozmin, ozmax,
+                                                        impulseContours, ixmin, ixmax, iymin, iymax, izmin, izmax,
+                                                        flameSpeed, tntFactor, outputDirPath, isVerbose);
 
                     Trace.TraceInformation("Python call complete. Processing results...");
 
@@ -824,11 +858,12 @@ namespace SandiaNationalLaboratories.Hyram
 
                     if (status)
                     {
-                        overpressures = (double[])resultData["overpressure"];
-                        impulses = (double[])resultData["impulse"];
+                        overpressures = (double[])resultData["overpressures"];
+                        impulses = (double[])resultData["impulses"];
                         overpPlot = (string)resultData["overp_plot_filepath"];
                         impulsePlot = (string)resultData["impulse_plot_filepath"];
                         massFlowRate = (float)resultData["mass_flow_rate"];
+                        flamOrDetMass = (float)resultData["flam_or_det_mass"];
                         warningMsg = (string)resultPyObj["warning"];
 
                         resultPyObj.Dispose();
@@ -855,6 +890,91 @@ namespace SandiaNationalLaboratories.Hyram
                 return status;
             }
         }
+
+
+        /// <summary>
+        /// Creates cryogenic pooling plot.
+        /// </summary>
+        /// <returns>True if successful</returns>
+        public bool CreatePoolingPlot(out string statusMsg, out string warningMsg, out string plotFilepath)
+        {
+            statusMsg = "";
+            warningMsg = "";
+            plotFilepath = "";
+
+            string relSpeciesKey = _state.GetActiveFuel().Key;
+            double thermC = _state.SurfaceThermCond.GetValue();
+            double thermD = _state.SurfaceThermDiff.GetValue();
+            double temp = _state.SurfaceTemp.GetValue(TempUnit.Kelvin);
+            double massFlow = _state.PoolMassFlow.GetValue(MassFlowUnit.KgPerMin);
+            double inflowR = _state.InflowRadius.GetValue(DistanceUnit.Meter);
+            double simTime = _state.SimTime.GetValue(TimeUnit.Second);
+
+            double? xmin = _state.CryoXMin.GetValueMaybeNull();
+            double? xmax = _state.CryoXMax.GetValueMaybeNull();
+            double? ymin = _state.CryoYMin.GetValueMaybeNull();
+            double? ymax = _state.CryoYMax.GetValueMaybeNull();
+
+            if (_state.CryoAutoLimits)
+            {
+                xmin = null; xmax = null;
+                ymin = null; ymax = null;
+            }
+
+            Trace.TraceInformation($"Output directory: {outputDirPath}, Verbose {isVerbose}");
+            Trace.TraceInformation("Acquiring python lock and importing module...");
+
+            using (Py.GIL())
+            {
+                dynamic pyGC = Py.Import("gc");
+                dynamic pyApi = Py.Import(pyApiName);
+
+                bool status;
+                try
+                {
+                    pyApi.phys.setup(outputDirPath, isVerbose);
+
+                    Trace.TraceInformation("Executing python pooling call...");
+                    dynamic resultPyObj;
+                    resultPyObj = pyApi.phys.analyze_pooling(relSpeciesKey, thermC, thermD, temp, 
+                                                             massFlow, inflowR, simTime,
+                                                               outputDirPath, isVerbose);
+                    Trace.TraceInformation("Python call complete. Processing results...");
+
+                    status = (bool)resultPyObj["status"];
+                    statusMsg = (string)resultPyObj["message"];
+
+                    if (status)
+                    {
+                        dynamic resultData = resultPyObj["data"];
+                        plotFilepath = (string)resultData["plot"];
+                        warningMsg = (string)resultPyObj["warning"];
+                        resultPyObj.Dispose();
+                        Trace.TraceInformation("Pooling plot: " + plotFilepath);
+                    }
+                    else
+                    {
+                        Trace.TraceError(statusMsg);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError(ex.ToString());
+                    status = false;
+                    statusMsg = "Error during pooling plot generation. Check log for details.";
+                    plotFilepath = "";
+                }
+                finally
+                {
+                    pyGC.InvokeMethod("collect");
+                    pyGC.Dispose();
+                    pyApi.Dispose();
+                }
+
+                return status;
+            }
+        }
+
 
     }
 }

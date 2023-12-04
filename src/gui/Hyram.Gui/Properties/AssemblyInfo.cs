@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC ("NTESS").
 
 Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive license
 for use of this work by or on behalf of the U.S. Government.  Export of this
@@ -43,7 +43,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sandia National Laboratories")]
 [assembly: AssemblyProduct("HyRAM")]
-[assembly: AssemblyCopyright("Copyright © Sandia Corporation 2015-2022")]
+[assembly: AssemblyCopyright("Copyright © Sandia Corporation 2015-2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -65,5 +65,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("5.0")]
-[assembly: AssemblyFileVersion("5.0")]
+[assembly: AssemblyVersion("5.1")]
+[assembly: AssemblyFileVersion("5.1")]

@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -16,6 +16,7 @@ from hyram.qra.component_set import ComponentSet
 from hyram.qra.data import component_data
 
 VERBOSE = False
+
 
 class QraBlendsTestCase(unittest.TestCase):
     """
@@ -129,14 +130,13 @@ class QraBlendsTestCase(unittest.TestCase):
             "discharge_coeff": 1,
             "detection_credit": 0.9,
             "overp_method": 'bst',
-            "TNT_equivalence_factor": None,
-            "BST_mach_flame_speed": 0.35,
+            "tnt_factor": None,
+            "bst_flame_speed": 0.35,
             "probit_thermal_id": 'eise', "exposure_time": 60, "probit_overp_id": 'head',
             "nozzle_model": 'yuce',
             "rel_angle": 0, "rel_humid": 0.89,
             "rand_seed": 3632850, "excl_radius": 0.01,
-            "release_freq_overrides": None,
-            "event_tree_override": None,
+            "f_release_overrides": None,
             "verbose": VERBOSE, "output_dir": None, "create_plots": False,
         }
 

@@ -1,5 +1,5 @@
 /*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -19,7 +19,7 @@ using System.Reflection;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sandia National Laboratories")]
 [assembly: AssemblyProduct("")]
-[assembly: AssemblyCopyright("Copyright © Sandia Corporation 2015-2022")]
+[assembly: AssemblyCopyright("Copyright © Sandia Corporation 2015-2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -34,7 +34,7 @@ using System.Reflection;
 // You can specify all the values or you can default the Revision and Build Numbers 
 // by using the '*' as shown below:
 
-[assembly: AssemblyVersion("5.0")]
+[assembly: AssemblyVersion("5.1")]
 
 //
 // In order to sign your assembly you must specify a key to use. Refer to the 
@@ -64,4 +64,4 @@ using System.Reflection;
 [assembly: AssemblyDelaySign(false)]
 [assembly: AssemblyKeyFile("")]
 [assembly: AssemblyKeyName("")]
-[assembly: AssemblyFileVersion("5.0")]
+[assembly: AssemblyFileVersion("5.1")]

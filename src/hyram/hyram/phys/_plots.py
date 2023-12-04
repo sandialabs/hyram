@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -9,9 +9,13 @@ If not, see https://www.gnu.org/licenses/.
 import copy
 import os
 
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import ImageGrid
 import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+from mpl_toolkits.axes_grid1 import ImageGrid
+
+from ._fuel_props import FuelProperties
 
 
 def plot_sliced_contour(contours, xlims, ylims, zlims, nx, ny, nz,
@@ -159,7 +163,8 @@ def plot_sliced_contour(contours, xlims, ylims, zlims, nx, ny, nz,
     ax_cb.set_axis_off()
     ax_cb.cax.set_visible(True)
 
-    ClrMap = copy.copy(plt.cm.get_cmap('RdYlGn_r'))
+    # ClrMap = copy.copy(plt.cm.get_cmap('RdYlGn_r'))
+    ClrMap = copy.copy(mpl.colormaps['RdYlGn_r'])
     ClrMap.set_under('white')
 
     ax_xy.contourf(x_z, y_z, fxy, cmap=ClrMap,
@@ -203,3 +208,224 @@ def plot_sliced_contour(contours, xlims, ylims, zlims, nx, ny, nz,
         return filepath
     else:
         return fig
+
+
+def plot_contour(data_type, jet_or_flame, mcolors='w',
+                 xlims=None, ylims=None, vlims=None,
+                 contour_levels=None, add_colorbar=True, plot_color=None,
+                 plot_title=None, x_label=None, y_label=None,
+                 fig_params=None, plot_params=None, subplot_params=None, fig=None, ax=None):
+    '''
+    Creates contour plot.
+    Currently handles temperature, mole fraction, mass fraction, and velocity curves. Specify type using the 'data_type' parameter.
+
+    Parameters
+    ----------
+    data_type: str
+        Specifies the type of plot (controls labels and default colors). Options are 'temperature', 'mole', 'mass', and 'velocity'
+    jet_or_flame: object
+        Jet or Flame object
+    mcolors: color or list of colors, optional
+        Color(s) of marked contour levels
+    xlims: tuple(float or None) or None, optional
+        X-axis boundaries of (xmin, xmax) for contour plot
+    ylims: tuple(float or None) or None, optional
+        Y-axis boundaries of (ymin, ymax) for contour plot
+    vlims: tuple(float or None) or None, optional
+        Value (z-axis) boundaries of (vmin, vmax) for contour plot
+    contour_levels: int or list, optional
+        Contour levels to mark and label
+    add_colorbar: boolean, optional
+        Add a colorbar to the plot. Defaults to True
+    plot_color: str, optional
+        Matplotlib Colormap name to use for the contour plot. Default colors are set by the different types of plot
+    plot_title: str, optional
+        Title text for the plot
+    x_label: str, optional
+        X-axis label for the plot
+    y_label: str, optional
+        Y-axis label for the plot
+    fig_params: dict or None, optional
+        Dictionary of figure parameters (e.g. figsize)
+    plot_params: dict or None, optional
+        Dictionary of contour plot parameters (e.g. colors)
+    subplot_params: dict or None, optional
+        Dictionary of subplots_adjust parameters (e.g. top)
+    fig: matplotlib Figure, optional
+        Figure on which to make the plot, used if figure already exists before this function is called
+    ax: matplotlib Axes, optional
+        Axes on which to make the plot, used if figure already exists 
+
+    Returns
+    -------
+    fig: matplotlib Figure
+        Figure containing the contour plot
+    '''
+    # Set params to dicts
+    if fig_params is None:
+        fig_params = {}
+    if plot_params is None:
+        plot_params = {}
+    if subplot_params is None:
+        subplot_params = {}
+
+    # Make figure and axis if not specified
+    if ax is None and fig is None:
+        fig, ax = plt.subplots(**fig_params)
+        plt.subplots_adjust(**subplot_params)
+    elif ax is None and fig is not None:
+        ax = fig.subplots(**fig_params)
+        plt.subplots_adjust(**subplot_params)
+    else:
+        fig = ax.figure
+
+    # Format plot
+    ax.set_aspect('equal')
+    if xlims is not None:
+        ax.set_xlim(*xlims)
+    if ylims is not None:
+        ax.set_ylim(*ylims)        
+    if plot_title is not None:
+        ax.set_title(plot_title)
+
+    if x_label is not None:
+        ax.set_xlabel(x_label)
+    else:
+        ax.set_xlabel('x (m)')
+
+    if y_label is not None:
+        ax.set_ylabel(y_label)
+    else:
+        ax.set_ylabel('y (m)')
+
+    # Contour plot parameters based on type selection
+    if data_type == "temperature":
+        x, y, v = jet_or_flame._contourdata
+        cb_label = 'Temperature (K)'
+        if not plot_color:
+            plot_color = 'plasma'
+        
+    elif data_type == "mole":
+        x, y, v, __, __, __ = jet_or_flame._contourdata
+        cb_label = 'Mole Fraction'
+        if not plot_color:
+            plot_color = 'viridis'
+
+    elif data_type == "mass":
+        x, y, __, v, __, __ = jet_or_flame._contourdata
+        cb_label = 'Mass Fraction'
+        if not plot_color:
+            plot_color = 'viridis'
+        
+    elif data_type == "velocity":
+        x, y, __, __, v, __ = jet_or_flame._contourdata
+        cb_label = 'Velocity (m/s)'    
+        if not plot_color:
+            plot_color = 'viridis'
+
+    else:
+        raise ValueError('Invalid datatype')
+
+    # Adjust v-limits for filled contour colors
+    if vlims is not None:
+        vmin = vlims[0]
+        vmax = vlims[1]
+        if vmin is None and vmax is not None:
+            if np.amax(v) > vmax: 
+                extend = 'max'
+            else: 
+                extend = 'neither'
+            vmin = np.amin(v)
+        elif vmax is None and vmin is not None:
+            if np.amin(v) < vmin: 
+                extend = 'min'
+            else: 
+                extend = 'neither'
+            vmax = np.amax(v)
+        else:
+            if np.amax(v) > vmax and np.amin(v) < vmin: 
+                extend = 'both'
+            elif np.amax(v) > vmax and np.amin(v) >= vmin: 
+                extend = 'max'
+            elif np.amax(v) <= vmax and np.amin(v) < vmin: 
+                extend = 'min'
+            else: 
+                extend = 'neither'
+    else:
+        vmin = np.amin(v)
+        vmax = np.amax(v)
+        extend = 'neither'
+
+    filled_levels = np.linspace(vmin, vmax, 101)
+
+    # Filled contour and background
+    plt.set_cmap(plot_color)
+    if hasattr(mpl, 'colormaps'):
+        ax.set_facecolor(mpl.colormaps[plot_color](0))
+    else:
+        ax.set_facecolor(mpl.cm.get_cmap(plot_color)(0))
+
+    filled_contour = ax.contourf(x, y, v, levels=filled_levels, vmin=vmin, vmax=vmax, extend=extend, **plot_params)
+    
+    # Add specific line contours 
+    if contour_levels is not None:
+        contour_levels = [contour_levels] if type(contour_levels) in [int, float] else contour_levels
+        
+        # Check for values outside of range
+        if data_type == "mole":
+            contour_levels = [FuelProperties(jet_or_flame.fluid.species).LFL if value == 'LFL' else value for value in contour_levels]
+            contour_levels = [FuelProperties(jet_or_flame.fluid.species).UFL if value == 'UFL' else value for value in contour_levels]
+
+            for contour in contour_levels:
+                if contour <= 0 or contour >= 1:
+                    error_msg = (f'Mole fraction contour values must be >0 and <1 (current value: {contour})')
+                    raise ValueError(error_msg)
+
+        # Draw contour lines
+        CS = ax.contour(x, y, v, levels=np.sort(contour_levels), colors=mcolors, linewidths=1.5, **plot_params)
+
+        # Draw contour line labels
+        if xlims is not None and ylims is not None:
+            manual = [np.interp(m, jet_or_flame.X_cl[::-1], 
+                                jet_or_flame.S[::-1]) * np.array([np.cos(jet_or_flame.theta[0]), 
+                                                                    np.sin(jet_or_flame.theta[0])])*.7 for m in contour_levels]
+        else:
+            manual = False
+
+        ax.clabel(CS, levels=CS.levels, inline=True, manual=manual, inline_spacing=2)
+    
+    # Add color bar
+    if add_colorbar:
+        cb_kwargs = {}
+        cb_label_kwargs = {}
+        
+        # Automatically set colorbar orientation
+        if xlims:
+            width = np.abs(xlims[1] - xlims[0])
+        else:
+            lims = ax.get_xlim()
+            width = np.abs(lims[1] - lims[0])
+
+        if ylims:
+            height = np.abs(ylims[1] - ylims[0])
+        else:
+            lims = ax.get_ylim()
+            height = np.abs(lims[1] - lims[0])
+
+        if width <= height:
+            cb_kwargs = {'orientation':'vertical'}
+            cb_label_kwargs = {'rotation':-90, 'va':'bottom'}
+        else:
+            cb_kwargs = {'orientation':'horizontal'}
+
+        if vmin and vmax:
+            colorbar = plt.colorbar(filled_contour, ticks=MaxNLocator().tick_values(vmin, vmax), **cb_kwargs)
+        else:
+            colorbar = plt.colorbar(filled_contour, **cb_kwargs)
+
+        colorbar.set_label(cb_label, **cb_label_kwargs)
+    
+    ax.set_aspect(1)
+    fig.tight_layout()
+
+    return fig

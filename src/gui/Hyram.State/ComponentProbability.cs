@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -689,82 +689,82 @@ namespace SandiaNationalLaboratories.Hyram
         {
             Compressor = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%",0.7785,1.3159),
-                new ComponentProbability("0.10%",-2.2394,0.9997),
-                new ComponentProbability("1%",-5.2560,1.0068),
-                new ComponentProbability("10%",-8.2731,0.7015),
-                new ComponentProbability("100%",-11.2905,1.2350),
+                new ComponentProbability("0.01%", -5.72, 7.44e-1),
+                new ComponentProbability("0.10%", -6.74, 7.14e-1),
+                new ComponentProbability("1%", -7.75, 1.57),
+                new ComponentProbability("10%", -8.77, 7.37e-1),
+                new ComponentProbability("100%", -9.78, 1.87),
             },
 
             Vessel = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%",-0.4139,1.3445),
-                new ComponentProbability("0.10%",-3.8954,1.0446),
-                new ComponentProbability("1%",-7.3613,0.8054),
-                new ComponentProbability("10%",-10.8805,0.6776),
-                new ComponentProbability("100%",-14.3160,0.6934),
+                new ComponentProbability("0.01%", -8.74, 1.02),
+                new ComponentProbability("0.10%", -9.39, 1.77),
+                new ComponentProbability("1%", -1e1, 2.63),
+                new ComponentProbability("10%", -1.07e1, 2.03),
+                new ComponentProbability("100%", -1.13e1, 4.19),
             },
 
             Filter = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%",-5.2348,1.6955),
-                new ComponentProbability("0.10%",-5.2822,1.2885),
-                new ComponentProbability("1%",-5.3303,1.2879),
-                new ComponentProbability("10%",-5.3798,0.7448),
-                new ComponentProbability("100%",-5.4288,0.8171),
+                new ComponentProbability("0.01%", -6.08, 5.38e-1),
+                new ComponentProbability("0.10%", -7.03, 5.05e-1),
+                new ComponentProbability("1%", -7.98, 1.97),
+                new ComponentProbability("10%", -8.93, 8.07e-1),
+                new ComponentProbability("100%", -9.88, 2.76),
             },
 
             Flange = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%",-3.9125,1.4920),
-                new ComponentProbability("0.10%",-6.1191,1.1345),
-                new ComponentProbability("1%",-8.3252,2.0541),
-                new ComponentProbability("10%",-10.5327,0.7208),
-                new ComponentProbability("100%",-12.7385,1.6925),
+                new ComponentProbability("0.01%", -1.01e1, 6.57e-1),
+                new ComponentProbability("0.10%", -1.08e1, 1.09),
+                new ComponentProbability("1%", -1.16e1, 2.16),
+                new ComponentProbability("10%", -1.24e1, 6.45e-1),
+                new ComponentProbability("100%", -1.32e1, 1.65),
             },
 
             Hose = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%",2.5434,1.2507),
-                new ComponentProbability("0.10%",0.3455,0.9447),
-                new ComponentProbability("1%",-1.8439,0.7670),
-                new ComponentProbability("10%",-4.0745,0.6712),
-                new ComponentProbability("100%",-6.2263,1.3906),
+                new ComponentProbability("0.01%", -1.05e1, 8.37e-1),
+                new ComponentProbability("0.10%", -1.02e1, 1.42),
+                new ComponentProbability("1%", -9.77, 2.93),
+                new ComponentProbability("10%", -9.39, 1.11),
+                new ComponentProbability("100%", -9.01, 2.2),
             },
 
             Joint = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%",-0.6255,1.2727),
-                new ComponentProbability("0.10%",-2.3062,0.9835),
-                new ComponentProbability("1%",-4.0101,0.9541),
-                new ComponentProbability("10%",-5.6481,0.5745),
-                new ComponentProbability("100%",-7.3739,0.6569),
+                new ComponentProbability("0.01%", -8.86e-2, 2.55),
+                new ComponentProbability("0.10%", -1.83, 1.87),
+                new ComponentProbability("1%", -3.56, 1.22),
+                new ComponentProbability("10%", -5.3, 7.07e-1),
+                new ComponentProbability("100%", -7.04, 7.07e-1),
             },
 
             Pipe = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%",-7.9272,0.9882),
-                new ComponentProbability("0.10%",-9.6818,0.7884),
-                new ComponentProbability("1%",-11.4317,1.5059),
-                new ComponentProbability("10%",-13.2003,1.2938),
-                new ComponentProbability("100%",-14.9400,2.1066),
+                new ComponentProbability("0.01%", -1.2e1, 1.11),
+                new ComponentProbability("0.10%", -1.25e1, 1.04),
+                new ComponentProbability("1%", -1.31e1, 1.79),
+                new ComponentProbability("10%", -1.36e1, 1.3),
+                new ComponentProbability("100%", -1.41e1, 1.74),
             },
             Valve = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%",-4.4577,1.0301),
-                new ComponentProbability("0.10%",-6.2603,0.8332),
-                new ComponentProbability("1%",-8.0664,1.5396),
-                new ComponentProbability("10%",-9.8503,0.6458),
-                new ComponentProbability("100%",-11.6738,1.4350),
+                new ComponentProbability("0.01%", -9.26, 6.35e-1),
+                new ComponentProbability("0.10%", -9.87, 1.06),
+                new ComponentProbability("1%", -1.05e1, 2.73),
+                new ComponentProbability("10%", -1.11e1, 1.16),
+                new ComponentProbability("100%", -1.17e1, 2.2),
             },
 
             Instrument = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%", 999, 999),
-                new ComponentProbability("0.10%", 999, 999),
-                new ComponentProbability("1%", 999, 999),
-                new ComponentProbability("10%", 999, 999),
-                new ComponentProbability("100%", 999, 999),
+                new ComponentProbability("0.01%", -7.28, 7.14e-1),
+                new ComponentProbability("0.10%", -8.11, 6.05e-1),
+                new ComponentProbability("1%", -8.94, 5.51e-1),
+                new ComponentProbability("10%", -9.78, 5.35e-1),
+                new ComponentProbability("100%", -1.06e1, 6.53e-1),
             },
 
             HeatExchanger = new List<ComponentProbability>
@@ -787,11 +787,11 @@ namespace SandiaNationalLaboratories.Hyram
 
             LoadingArm = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%", 999, 999),
-                new ComponentProbability("0.10%", 999, 999),
-                new ComponentProbability("1%", 999, 999),
-                new ComponentProbability("10%", 999, 999),
-                new ComponentProbability("100%", 999, 999),
+                new ComponentProbability("0.01%", -4.79, 1.23),
+                new ComponentProbability("0.10%", -5.37, 9.37e-1),
+                new ComponentProbability("1%", -5.94, 7.07e-1),
+                new ComponentProbability("10%", -6.51, 6.14e-1),
+                new ComponentProbability("100%", -7.09, 8.8e-1),
             },
 
             Extra1 = new List<ComponentProbability>
@@ -817,82 +817,82 @@ namespace SandiaNationalLaboratories.Hyram
         {
             Compressor = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%", 0.7785, 1.3159),
-                new ComponentProbability("0.10%", -2.2394, 0.9997),
-                new ComponentProbability("1%", -5.2560, 1.0068),
-                new ComponentProbability("10%", -8.2731, 0.7015),
-                new ComponentProbability("100%", -11.2905, 1.2350),
+                new ComponentProbability("0.01%", -5.72, 7.44e-1),
+                new ComponentProbability("0.10%", -6.74, 7.14e-1),
+                new ComponentProbability("1%", -7.75, 1.57),
+                new ComponentProbability("10%", -8.77, 7.37e-1),
+                new ComponentProbability("100%", -9.78, 1.87),
             },
 
             Vessel = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%", -0.4139, 1.3445),
-                new ComponentProbability("0.10%", -3.8954, 1.0446),
-                new ComponentProbability("1%", -7.3613, 0.8054),
-                new ComponentProbability("10%", -10.8805, 0.6776),
-                new ComponentProbability("100%", -14.3160, 0.6934),
+                new ComponentProbability("0.01%", -8.74, 1.02),
+                new ComponentProbability("0.10%", -9.39, 1.77),
+                new ComponentProbability("1%", -1e1, 2.63),
+                new ComponentProbability("10%", -1.07e1, 2.03),
+                new ComponentProbability("100%", -1.13e1, 4.19),
             },
 
             Filter = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%", -5.2348, 1.6955),
-                new ComponentProbability("0.10%", -5.2822, 1.2885),
-                new ComponentProbability("1%", -5.3303, 1.2879),
-                new ComponentProbability("10%", -5.3798, 0.7448),
-                new ComponentProbability("100%", -5.4288, 0.8171),
+                new ComponentProbability("0.01%", -6.08, 5.38e-1),
+                new ComponentProbability("0.10%", -7.03, 5.05e-1),
+                new ComponentProbability("1%", -7.98, 1.97),
+                new ComponentProbability("10%", -8.93, 8.07e-1),
+                new ComponentProbability("100%", -9.88, 2.76),
             },
 
             Flange = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%", -3.9125, 1.4920),
-                new ComponentProbability("0.10%", -6.1191, 1.1345),
-                new ComponentProbability("1%", -8.3252, 2.0541),
-                new ComponentProbability("10%", -10.5327, 0.7208),
-                new ComponentProbability("100%", -12.7385, 1.6925),
+                new ComponentProbability("0.01%", -1.01e1, 6.57e-1),
+                new ComponentProbability("0.10%", -1.08e1, 1.09),
+                new ComponentProbability("1%", -1.16e1, 2.16),
+                new ComponentProbability("10%", -1.24e1, 6.45e-1),
+                new ComponentProbability("100%", -1.32e1, 1.65),
             },
 
             Hose = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%", 2.5434, 1.2507),
-                new ComponentProbability("0.10%", 0.3455, 0.9447),
-                new ComponentProbability("1%", -1.8439, 0.7670),
-                new ComponentProbability("10%", -4.0745, 0.6712),
-                new ComponentProbability("100%", -6.2263, 1.3906),
+                new ComponentProbability("0.01%", -1.05e1, 8.37e-1),
+                new ComponentProbability("0.10%", -1.02e1, 1.42),
+                new ComponentProbability("1%", -9.77, 2.93),
+                new ComponentProbability("10%", -9.39, 1.11),
+                new ComponentProbability("100%", -9.01, 2.2),
             },
 
             Joint = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%", -0.6255, 1.2727),
-                new ComponentProbability("0.10%", -2.3062, 0.9835),
-                new ComponentProbability("1%", -4.0101, 0.9541),
-                new ComponentProbability("10%", -5.6481, 0.5745),
-                new ComponentProbability("100%", -7.3739, 0.6569),
+                new ComponentProbability("0.01%", -8.86e-2, 2.55),
+                new ComponentProbability("0.10%", -1.83, 1.87),
+                new ComponentProbability("1%", -3.56, 1.22),
+                new ComponentProbability("10%", -5.3, 7.07e-1),
+                new ComponentProbability("100%", -7.04, 7.07e-1),
             },
 
             Pipe = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%", -7.9272, 0.9882),
-                new ComponentProbability("0.10%", -9.6818, 0.7884),
-                new ComponentProbability("1%", -11.4317, 1.5059),
-                new ComponentProbability("10%", -13.2003, 1.2938),
-                new ComponentProbability("100%", -14.9400, 2.1066),
+                new ComponentProbability("0.01%", -1.2e1, 1.11),
+                new ComponentProbability("0.10%", -1.25e1, 1.04),
+                new ComponentProbability("1%", -1.31e1, 1.79),
+                new ComponentProbability("10%", -1.36e1, 1.3),
+                new ComponentProbability("100%", -1.41e1, 1.74),
             },
             Valve = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%", -4.4577, 1.0301),
-                new ComponentProbability("0.10%", -6.2603, 0.8332),
-                new ComponentProbability("1%", -8.0664, 1.5396),
-                new ComponentProbability("10%", -9.8503, 0.6458),
-                new ComponentProbability("100%", -11.6738, 1.4350),
+                new ComponentProbability("0.01%", -9.26, 6.35e-1),
+                new ComponentProbability("0.10%", -9.87, 1.06),
+                new ComponentProbability("1%", -1.05e1, 2.73),
+                new ComponentProbability("10%", -1.11e1, 1.16),
+                new ComponentProbability("100%", -1.17e1, 2.2),
             },
 
             Instrument = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%", 999, 999),
-                new ComponentProbability("0.10%", 999, 999),
-                new ComponentProbability("1%", 999, 999),
-                new ComponentProbability("10%", 999, 999),
-                new ComponentProbability("100%", 999, 999),
+                new ComponentProbability("0.01%", -7.28, 7.14e-1),
+                new ComponentProbability("0.10%", -8.11, 6.05e-1),
+                new ComponentProbability("1%", -8.94, 5.51e-1),
+                new ComponentProbability("10%", -9.78, 5.35e-1),
+                new ComponentProbability("100%", -1.06e1, 6.53e-1),
             },
 
             HeatExchanger = new List<ComponentProbability>
@@ -915,11 +915,11 @@ namespace SandiaNationalLaboratories.Hyram
 
             LoadingArm = new List<ComponentProbability>
             {
-                new ComponentProbability("0.01%", 999, 999),
-                new ComponentProbability("0.10%", 999, 999),
-                new ComponentProbability("1%", 999, 999),
-                new ComponentProbability("10%", 999, 999),
-                new ComponentProbability("100%", 999, 999),
+                new ComponentProbability("0.01%", -4.79, 1.23),
+                new ComponentProbability("0.10%", -5.37, 9.37e-1),
+                new ComponentProbability("1%", -5.94, 7.07e-1),
+                new ComponentProbability("10%", -6.51, 6.14e-1),
+                new ComponentProbability("100%", -7.09, 8.8e-1),
             },
 
             Extra1 = new List<ComponentProbability>

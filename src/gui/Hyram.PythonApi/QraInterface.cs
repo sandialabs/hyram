@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -54,7 +54,7 @@ namespace SandiaNationalLaboratories.Hyram
 
             double ambientP = _state.AmbientPressure.GetValue(PressureUnit.Pa);
             double ambientT = _state.AmbientTemperature.GetValue(TempUnit.Kelvin);
-            double releaseP = _state.FluidPressure.GetValue(PressureUnit.Pa);
+            double releaseP = _state.GetFluidPressure(PressureUnit.Pa);
             double? releaseT = _state.FluidTemperature.GetValue(TempUnit.Kelvin);
             if (!_state.DisplayTemperature()) releaseT = null;  // clear temp if not gas
 
@@ -67,20 +67,22 @@ namespace SandiaNationalLaboratories.Hyram
             var facilityLength = _state.FacilityLength.GetValue();
             var facilityWidth = _state.FacilityWidth.GetValue();
 
+            double? massFlow = _state.QraMassFlow.GetValueMaybeNull();
+            int massFlowLeakSize = _state.QraMassFlowLeakSize;
+
             var immediateIgnitionProbs = _state.ImmediateIgnitionProbs;
             var delayedIgnitionProbs = _state.DelayedIgnitionProbs;
             var ignitionThresholds = _state.IgnitionThresholds;
 
-            double h2Release000d01 = _state.Release000d01.GetValue();
-            double h2Release000d10 = _state.Release000d10.GetValue();
-            double h2Release001d00 = _state.Release001d00.GetValue();
-            double h2Release010d00 = _state.Release010d00.GetValue();
-            double h2Release100d00 = _state.Release100d00.GetValue();
-
-            double failureManualOverride = _state.FailureOverride.GetValue();
+            double? h2Release000d01 = _state.Release000d01.GetValueMaybeNull();
+            double? h2Release000d10 = _state.Release000d10.GetValueMaybeNull();
+            double? h2Release001d00 = _state.Release001d00.GetValueMaybeNull();
+            double? h2Release010d00 = _state.Release010d00.GetValueMaybeNull();
+            double? h2Release100d00 = _state.Release100d00.GetValueMaybeNull();
+            double? failureOverride = _state.FailureOverride.GetValueMaybeNull();
             double gasDetectCredit = _state.GasDetectionProb.GetValue();
 
-            var overpMethod = _state.SelectedOverpressureMethod.GetKey();
+            var overpMethod = _state.OverpressureMethod.GetKey();
             var tntFactor = _state.TntEquivalenceFactor.GetValue();
             double bstMachFlameSpeed = _state.OverpressureFlameSpeed;
 
@@ -189,6 +191,7 @@ namespace SandiaNationalLaboratories.Hyram
                         numExtraComp1, numExtraComp2,
                         facilityLength, facilityWidth,
                         pipeDiameter, pipeThickness,
+                        massFlow, massFlowLeakSize,
                         relSpecies, releaseT, releaseP, phaseKey, ambientT, ambientP, dischargeCoeff,
                         numVehicles, numFuelingPerDay, numVehicleOpDays,
                         immediateIgnitionProbs, delayedIgnitionProbs, ignitionThresholds,
@@ -214,7 +217,7 @@ namespace SandiaNationalLaboratories.Hyram
                         driveoffDist, driveoffParamA, driveoffParamB,
                         couplingFtcDist, couplingFtcParamA, couplingFtcParamB,
                         h2Release000d01, h2Release000d10, h2Release001d00, h2Release010d00, h2Release100d00,
-                        failureManualOverride,
+                        failureOverride,
                         dataDirLoc, isVerbose
                     );
 

@@ -1,0 +1,261 @@
+{
+	"Test_Ekoto_2014": {
+        "Ekoto et al. 2014 - Table 2, Flame Length": {
+            "Max Absolute Error": 2.47,
+            "Avg Absolute Error": 2.14,
+            "Max Percent Error": 13.19,
+            "Avg Percent Error": 8.52,
+            "R2": "N/A"
+        },
+		"Ekoto et al. 2014 - Table 2, Heat Flux": {
+			"Max Absolute Error": 3.6,
+            "Avg Absolute Error": 2.6,
+            "Max Percent Error": 30,
+            "Avg Percent Error": 22,
+            "R2": "N/A"
+		}
+	},
+	
+	"Test_Schefer_2006_2007": {
+		"Schefer 2006 - Figure 8, Flux v. Normalized Distance at t=5": {
+			"Max Absolute Error": 2015,
+            "Avg Absolute Error": 685,
+            "Max Percent Error": 75,
+            "Avg Percent Error": 31,
+            "R2": 0.95
+		},
+		"Schefer 2006 - Figure 8, Flux v. Normalized Distance at t=20": {
+			"Max Absolute Error": 630,
+            "Avg Absolute Error": 260,
+            "Max Percent Error": 157.3,
+            "Avg Percent Error": 37.3,
+            "R2": 0.965
+		},
+		"Schefer 2006 - Figure 8, Flux v. Normalized Distance at t=40": {
+			"Max Absolute Error": 235,
+            "Avg Absolute Error": 135,
+            "Max Percent Error": 132.7,
+            "Avg Percent Error": 50.4,
+            "R2": 0.965
+		},
+		"Schefer 2006 - Figure 8, Flux v. Normalized Distance at t=60": {
+			"Max Absolute Error": 157,
+            "Avg Absolute Error": 111,
+            "Max Percent Error": 159.9,
+            "Avg Percent Error": 79.1,
+            "R2": 0.96
+		},
+		"Schefer 2006 - Figure 8, Flux v. Normalized Distance at t=70": {
+			"Max Absolute Error": 82,
+            "Avg Absolute Error": 64,
+            "Max Percent Error": 200,
+            "Avg Percent Error": 100,
+            "R2": 0.965
+		},
+		"Houf & Shefer 2007 - Figure 6, Flux v. Normalized Distance": {
+			"Max Absolute Error": 961,
+            "Avg Absolute Error": 355,
+            "Max Percent Error": 200,
+            "Avg Percent Error": 32.9,
+            "R2": 0.985
+		},
+		"Houf & Shefer 2007 - Figure 5, Flame Length v. Time": {
+			"Max Absolute Error": 0.63,
+            "Avg Absolute Error": 0.32,
+            "Max Percent Error": 22,
+            "Avg Percent Error": 14,
+            "R2": 0.99
+		}
+	},
+	
+	"Test_Imamura_2008": {
+		"Imamura et al. 2008 - Figure 3, Mass Flow Rate v. Pressure, d=1mm": {
+			"Max Absolute Error": 9e-5,
+            "Avg Absolute Error": 7e-5,
+            "Max Percent Error": 8.6,
+            "Avg Percent Error": 7,
+            "R2": 0.999
+		},
+		"Imamura et al. 2008 - Figure 3, Mass Flow Rate v. Pressure, d=2mm": {
+			"Max Absolute Error": 3e-4,
+            "Avg Absolute Error": 3e-4,
+            "Max Percent Error": 21.6,
+            "Avg Percent Error": 9,
+            "R2": 0.9999
+		},
+		"Imamura et al. 2008 - Figure 3, Mass Flow Rate v. Pressure, d=3mm": {
+			"Max Absolute Error": 7e-4,
+            "Avg Absolute Error": 6e-4,
+            "Max Percent Error": 29.3,
+            "Avg Percent Error": 13,
+            "R2": 0.999
+		},
+		"Imamura et al. 2008 - Figure 3, Mass Flow Rate v. Pressure, d=4mm": {
+			"Max Absolute Error": 1e-3,
+            "Avg Absolute Error": 1e-3,
+            "Max Percent Error": 35.5,
+            "Avg Percent Error": 16.2,
+            "R2": 0.9999
+		},
+		"Imamura et al. 2008 - Figure 3, Flame Length v. Pressure, d=1mm": {
+			"Max Absolute Error": 0.11,
+            "Avg Absolute Error": 0.07,
+            "Max Percent Error": 27.1,
+            "Avg Percent Error": 12.7,
+            "R2": 0.98
+		},
+		"Imamura et al. 2008 - Figure 3, Flame Length v. Pressure, d=2mm": {
+			"Max Absolute Error": 0.15,
+            "Avg Absolute Error": 0.09,
+            "Max Percent Error": 18.7,
+            "Avg Percent Error": 9.9,
+            "R2": 0.98
+		},
+		"Imamura et al. 2008 - Figure 3, Flame Length v. Pressure, d=3mm": {
+			"Max Absolute Error": 0.21,
+            "Avg Absolute Error": 0.13,
+            "Max Percent Error": 15.6,
+            "Avg Percent Error": 9.1,
+            "R2": 0.99
+		},
+		"Imamura et al. 2008 - Figure 3, Flame Length v. Pressure, d=4mm": {
+			"Max Absolute Error": 0.24,
+            "Avg Absolute Error": 0.14,
+            "Max Percent Error": 12.5,
+            "Avg Percent Error": 8.5,
+            "R2": 0.985
+		}
+	},
+	
+	"Test_Mogi_2005": {
+		"Mogi et al. 2005 - Figure 9, Heat Flux v. Mass Flow Rate, L=1.5m": {
+			"Max Absolute Error": 1580,
+            "Avg Absolute Error": 280,
+            "Max Percent Error": 200,
+            "Avg Percent Error": 55,
+            "R2": 0.998
+		},
+		"Mogi et al. 2005 - Figure 9, Heat Flux v. Mass Flow Rate, L=2.5m": {
+			"Max Absolute Error": 815,
+            "Avg Absolute Error": 135,
+            "Max Percent Error": 200,
+            "Avg Percent Error": 67,
+            "R2": 0.999
+		},
+		"Mogi et al. 2005 - Figure 9, Heat Flux v. Mass Flow Rate, L=3.5m": {
+			"Max Absolute Error": 340,
+            "Avg Absolute Error": 75,
+            "Max Percent Error": 101,
+            "Avg Percent Error": 64,
+            "R2": 0.999
+		}
+	},
+	
+	"Test_Proust_2011": {
+		"Proust et al. 2011 - Pressure v. Time, d=2mm": {
+			"Max Absolute Error": 301,
+            "Avg Absolute Error": 55,
+            "Max Percent Error": 200,
+            "Avg Percent Error": 117,
+            "R2": 0.973
+		},
+		"Proust et al. 2011 - Figure 4a, Temperature v. Pressure, d=1mm": {
+			"Max Absolute Error": 224,
+            "Avg Absolute Error": 150,
+            "Max Percent Error": 200,
+            "Avg Percent Error": 137,
+            "R2": 0.589
+		},
+		"Proust et al. 2011 - Figure 4a, Temperature v. Pressure, d=2mm": {
+			"Max Absolute Error": 196,
+            "Avg Absolute Error": 133,
+            "Max Percent Error": 200,
+            "Avg Percent Error": 112,
+            "R2": 0.783
+		},
+		"Proust et al. 2011 - Figure 4a, Temperature v. Pressure, d=3mm": {
+			"Max Absolute Error": 173,
+            "Avg Absolute Error": 121,
+            "Max Percent Error": 200,
+            "Avg Percent Error": 101,
+            "R2": 0.914
+		},
+		"Proust et al. 2011 - Figure 5, Density v. Pressure, d=1mm": {
+			"Max Absolute Error": 4.7,
+            "Avg Absolute Error": 2.2,
+            "Max Percent Error": 160,
+            "Avg Percent Error": 100,
+            "R2": 0.995
+		},
+		"Proust et al. 2011 - Figure 5, Density v. Pressure, d=2mm": {
+			"Max Absolute Error": 4.7,
+            "Avg Absolute Error": 2.2,
+            "Max Percent Error": 160,
+            "Avg Percent Error": 104,
+            "R2": 0.995
+		},
+		"Proust et al. 2011 - Figure 5, Density v. Pressure, d=3mm": {
+			"Max Absolute Error": 4.7,
+            "Avg Absolute Error": 2.1,
+            "Max Percent Error": 160,
+            "Avg Percent Error": 105,
+            "R2": 0.996
+		},
+		"Proust et al. 2011 - Figure 8, Flame Length v. Pressure, d=1mm": {
+			"Max Absolute Error": 0.33,
+            "Avg Absolute Error": 0.20,
+            "Max Percent Error": 38,
+            "Avg Percent Error": 15,
+            "R2": 0.992
+		},
+		"Proust et al. 2011 - Figure 8, Flame Length v. Pressure, d=2mm": {
+			"Max Absolute Error": 3.63,
+            "Avg Absolute Error": 0.94,
+            "Max Percent Error": 189,
+            "Avg Percent Error": 39,
+            "R2": 0.888
+		},
+		"Proust et al. 2011 - Figure 8, Flame Length v. Pressure, d=3mm": {
+			"Max Absolute Error": 2.99,
+            "Avg Absolute Error": 1.59,
+            "Max Percent Error": 43,
+            "Avg Percent Error": 30,
+            "R2": 0.983
+		},
+		"Proust et al. 2011 - Figure 10, Heat Flux v. Time, Fluxmeter 1": {
+			"Max Absolute Error": 18560,
+            "Avg Absolute Error": 3480,
+            "Max Percent Error": 196,
+            "Avg Percent Error": 51,
+            "R2": 0.275
+		},
+		"Proust et al. 2011 - Figure 10, Heat Flux v. Time, Fluxmeter 2": {
+			"Max Absolute Error": 15070,
+            "Avg Absolute Error": 3000,
+            "Max Percent Error": 198,
+            "Avg Percent Error": 61,
+            "R2": 0.380
+		},
+		"Proust et al. 2011 - Figure 10, Heat Flux v. Time, Fluxmeter 3": {
+			"Max Absolute Error": 12190,
+            "Avg Absolute Error": 2600,
+            "Max Percent Error": 200,
+            "Avg Percent Error": 75,
+            "R2": 0.328
+		},
+		"Proust et al. 2011 - Figure 10, Heat Flux v. Time, Fluxmeter 4": {
+			"Max Absolute Error": 7270,
+            "Avg Absolute Error": 1860,
+            "Max Percent Error": 194,
+            "Avg Percent Error": 95,
+            "R2": 0.230
+		},
+		"Proust et al. 2011 - Figure 10, Heat Flux v. Time, Fluxmeter 5": {
+			"Max Absolute Error": 4150,
+            "Avg Absolute Error": 1250,
+            "Max Percent Error": 200,
+            "Avg Percent Error": 100,
+            "R2": 0.201
+		}
+	}
+}

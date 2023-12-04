@@ -1,23 +1,19 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
 """
 
-import logging
-
 import numpy as np
 
-from . import effects, ignition_probs, leak_frequency, pipe_size, risk, event_tree, consequence
+from . import effects, ignition_probs, pipe_size, risk, event_tree, consequence, leak_size_results
 from . import component_set
 from . import positions as qra_positions
 from ..phys import api as phys_api
-from ..phys import _comps
+from ..phys import _comps, _jet, _therm
 from ..utilities import misc_utils
-
-log = logging.getLogger(__name__)
 
 
 def conduct_analysis(pipe_outer_diam, pipe_thickness,
@@ -34,14 +30,14 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
                      leak_sizes=None,
                      discharge_coeff=1, detection_credit=0.9,
                      overp_method='bst',
-                     TNT_equivalence_factor=None,
-                     BST_mach_flame_speed=None,
+                     tnt_factor=None,
+                     bst_flame_speed=None,
                      probit_thermal_id='eise', exposure_time=30, probit_overp_id='head',
                      nozzle_model='yuce',
                      rel_angle=0, rel_humid=0.89,
-                     rand_seed=3632850, excl_radius=0.01,
-                     release_freq_overrides=None,
-                     event_tree_override=None,
+                     rand_seed=None, excl_radius=0.01,
+                     mass_flow=None, mass_flow_leak_size=None,
+                     f_release_overrides=None,
                      verbose=False,
                      output_dir=None,
                      create_plots=True):
@@ -124,11 +120,12 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
     overp_method : {'tnt', 'bst', 'bauwens'}
         ID of unconfined overpressure model to use
 
-    TNT_equivalence_factor : float
+    tnt_factor : float
         TNT mass equivalence factor for use with TNT unconfined overpressure model
         (unused if TNT overpressure model is not used)
 
-    BST_mach_flame_speed : {0.2, 0.35, 0.7, 1.0, 1.4, 2.0, 3.0, 4.0, 5.2}
+    bst_flame_speed : float
+        One of {0.2, 0.35, 0.7, 1.0, 1.4, 2.0, 3.0, 4.0, 5.2}
         Mach flame speed for use with BST unconfined overpressure model
         (unused if BST overpressure model is not used)
 
@@ -150,20 +147,23 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
     rel_humid : float
         Relative humidity between 0.0 and 1.0
 
-    rand_seed : int
-        Random seed value for random number position generator
+    rand_seed : int or None
+        Random seed value for random number position generator.
+        If None, will generate new random seed each call.
+
+    mass_flow : float, optional
+        [kg/s] Mass flow rate for specified leak size, if unchoked
+
+    mass_flow_leak_size : {1, 10, 100, 1000, 10000}, optional
+        Represents leak size (as hundredth of percent) of specified mass flow rate, assuming unchoked flow.
 
     excl_radius : float
         [m] Exclusion radius, for use in qrad flame calculation
 
-    release_freq_overrides : list of floats or None
+    f_release_overrides : list of floats or None
         Manual override values for release frequency at each leak size.
-        Not used if == -1
+        Not used if == -1 or None
         If None, vals will be set to -1 (i.e. ignored).
-
-    event_tree_override : list of event_node specifications with order dictating event_tree construction or None
-        Manual override specification for event tree construction.
-        If None, will use default event tree specification
 
     verbose : bool
         If True, extra output will be printed (default False)
@@ -198,13 +198,13 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
                 (x,y,z) coordinates of occupants
             position_qrads : 2d array
                 flux data [W/m2] per leak per position
-                e.g. for 9 positions, 9x5 array
+                e.g. for 9 positions with 5 leak sizes, 9x5 array
             position_overps : 2d array
                 peak overpressure data [Pa] per leak per position
-                e.g. for 9 positions, 9x5 array
+                e.g. for 9 positions with 5 leak sizes, 9x5 array
             position_impulses : 2d array
-                impulse data [Pa] per leak per position,
-                e.g. for 9 positions, 9x5 array
+                impulse data [Pa s] per leak per position,
+                e.g. for 9 positions with 5 leak sizes, 9x5 array
     """
     if probit_overp_id in ['head', 'coll'] and overp_method == 'bauwens':
         impulse_probit_error_msg = ('Overpressure method "bauwens"'
@@ -213,24 +213,24 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
                                     + f' overpressure probit "{probit_overp_id}"')
         raise ValueError(impulse_probit_error_msg)
 
-    params = locals()  # for logging
+    params = locals()
     sorted_params = sorted(params)
 
     if output_dir is None:
         output_dir = misc_utils.get_temp_folder()
 
-    log.info("")
-    log.info("=== BEGINNING ANALYSIS ===")
-    log.info("")
-    log.info("PARAMETERS")
-    for param_name in sorted_params:
-        param_val = params[param_name]
-        if isinstance(param_val, list) and isinstance(param_val[0], component_set.ComponentSet):
-            log.info("Component Sets:")
-            for comp_set in param_val:
-                log.info(f"{comp_set}")
-        else:
-            log.info("{}: {}".format(param_name, str(param_val)))
+    if verbose:
+        print("=== BEGINNING ANALYSIS ===")
+        print("Parameters:")
+        for param_name in sorted_params:
+            param_val = params[param_name]
+            if isinstance(param_val, list) and isinstance(param_val[0], component_set.ComponentSet):
+                print("Component Sets:")
+                for comp_set in param_val:
+                    print(f"{comp_set}")
+            else:
+                print("{}: {}".format(param_name, str(param_val)))
+        print("\n")
 
     amb_fluid = phys_api.create_fluid('AIR', amb_temp, amb_pres)
     rel_fluid = phys_api.create_fluid(rel_species, rel_temp, rel_pres, phase=rel_phase)
@@ -263,87 +263,80 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
         for compset in component_sets:
             if compset.num_components:
                 component_set_log_msg += "{}\n".format(str(compset))
-        log.info(f"Location distributions: {loc_distributions}")
-        log.info(f"{total_occupants} Occupants for {occupant_avg_hours} average hours")
-        log.info("")
+        print(component_set_log_msg)
+        print(f"Location distributions: {loc_distributions}")
+        print(f"{total_occupants} Occupants for {occupant_avg_hours} average hours\n")
 
-    leak_results, leak_result100 = leak_frequency.compute_leak_frequencies(leak_sizes,
-                                                                           release_freq_overrides,
-                                                                           component_sets)
+    leak_results = leak_size_results.init_leak_results(leak_sizes, f_release_overrides, component_sets,
+                                                       mass_flow_leak_size=mass_flow_leak_size, mass_flow=mass_flow)
+    leak_result100 = leak_results[-1]
     num_leak_sizes = len(leak_results)
 
-    # Account for non-leak fueling failure contributors in 100% release only. Use override value if provided
-    leak_result100.set_failures(component_failure_set)
-    total_leak_freqs = np.array([leak_res.total_release_freq for leak_res in leak_results])
-
-    log.info("RELEASE FREQUENCIES:")
-    for leak_result in leak_results[:-1]:
-        log.info(f" {leak_result.leak_size:0.2f}% - {leak_result.total_release_freq:.3g}")
-    log.info(f"  {leak_result100.leak_size:.2f}% - {leak_result100.total_release_freq:.3g}")
+    # Account for non-leak fueling failure contributors in 100% release only. Will use override value if provided.
+    leak_result100.set_failure_set(component_failure_set)
+    total_leak_freqs = np.array([leak_res.f_release for leak_res in leak_results])
 
     # Compute leak diameters and discharge rates, one per leak size
     pipe_inner_diam = pipe_size.calc_pipe_inner_diameter(pipe_outer_diam, pipe_thickness)
     pipe_flow_area = pipe_size.calc_pipe_flow_area(pipe_inner_diam)
-    log.info("System pipe inner diameter {:.3g} m, area {:.3g} m^2".format(pipe_inner_diam, pipe_flow_area))
+
+    if verbose:
+        print("RELEASE FREQUENCIES:")
+        for leak_result in leak_results:
+            print(f" {leak_result.leak_size:0.2f}% - {leak_result.f_release:.3g}")
+        print(f"System pipe inner diameter {pipe_inner_diam:.3g} m, area {pipe_flow_area:.3g} m^2")
+
     orifices = []
     discharge_rates = []
+    developing_flows = []
+    cons_momentum, notional_noz_t = misc_utils.convert_nozzle_model_to_params(nozzle_model, rel_fluid)
+    # Calculate mass flows for leak sizes if given unchoked mass flow for single leak size
+
     for leak_result in leak_results:
         orifice_leak_diam = pipe_size.calc_orifice_diameter(pipe_flow_area, leak_result.leak_size/100)
         orifice = _comps.Orifice(orifice_leak_diam, discharge_coeff)
         orifices.append(orifice)
-        discharge_rate = orifice.mdot(orifice.flow(rel_fluid))
+        developing_flow = _jet.DevelopingFlow(rel_fluid, orifice, amb_fluid, theta0=rel_angle,
+                                              nn_conserve_momentum=cons_momentum, nn_T=notional_noz_t, verbose=verbose)
+        developing_flows.append(developing_flow)
+        # discharge_rate = orifice.mdot(developing_flow.fluid_orifice)
+        discharge_rate = orifice.mdot(orifice.flow(rel_fluid, mdot=leak_result.mass_flow_override))
         discharge_rates.append(discharge_rate)
-        log.info("For {}% leak size: orifice leak diameter: {:.3g} m, discharge rate: {:.3g} kg/s".format(leak_result.leak_size, orifice_leak_diam, discharge_rate))
+        if verbose:
+            print(f"For {leak_result.leak_size}% leak size: orifice leak diameter: {orifice_leak_diam:.3g} m, "
+                     f"discharge rate: {discharge_rate:.3g} kg/s")
 
+    # Evaluate event tree
     # Determine ignition probabilities for each leak size based on discharge rates and thresholds
-    immed_ign_probs_per_leak = []
-    delay_ign_probs_per_leak = []
+    end_state_probabilities_per_leak = []
+    end_state_consequence_types = {'Shutdown': None,
+                                   'No Ignition': None,
+                                   'Jet Fire': 'thermal',
+                                   'Explosion': 'overp'}
     for rate in discharge_rates:
         (immed_ign_prob, delayed_ign_prob) = ignition_probs.get_ignition_probability(rate,
                                                                                      ign_thresholds,
                                                                                      immed_ign_probs,
                                                                                      delayed_ign_probs)
-        immed_ign_probs_per_leak.append(immed_ign_prob)
-        delay_ign_probs_per_leak.append(delayed_ign_prob)
-        log.info("Flow rate {:.3g} (kg/s) ignition probabilities: immed {}, delayed {}".format(rate, immed_ign_prob, delayed_ign_prob))
-    immed_ign_probs_per_leak = np.array(immed_ign_probs_per_leak)
-    delay_ign_probs_per_leak = np.array(delay_ign_probs_per_leak)
+        if verbose:
+            print("Flow rate {:.3g} (kg/s) ignition probabilities: immed {}, delayed {}".format(rate, immed_ign_prob, delayed_ign_prob))
 
-    # Evaluate event tree
-    # Use override event tree specification if provided
-    if event_tree_override is None:
-        events_in_tree = []
-        events_in_tree.append({'name': 'Shutdown',
-                               'key': 'shut',
-                               'event_prob': detection_credit,
-                               'consequence_type': None})
-        events_in_tree.append({'name': 'No Ignition',
-                               'key': 'noig',
-                               'event_prob': 1 - (immed_ign_probs_per_leak + delay_ign_probs_per_leak),
-                               'consequence_type': None})                       
-        events_in_tree.append({'name': 'Jetfire',
-                               'key': 'jetf',
-                               'event_prob': immed_ign_probs_per_leak / (immed_ign_probs_per_leak + delay_ign_probs_per_leak),
-                               'consequence_type': 'thermal'})
-        events_in_tree.append({'name': 'Explosion',
-                               'key': 'expl',
-                               'event_prob': 1,
-                               'consequence_type': 'overp'})
-        end_states = event_tree.build_event_tree(events_in_tree, num_leak_sizes)
-
-    else:
-        end_states = event_tree.build_event_tree(event_tree_override, num_leak_sizes)
+        # Calculate event tree end-state probabilities
+        total_ign_prob = immed_ign_prob + delayed_ign_prob
+        no_ign_prob = event_tree.calc_probability_not_occur(total_ign_prob)
+        conditional_immed_ign_prob = immed_ign_prob / total_ign_prob
+        event_probabilities = [detection_credit, no_ign_prob, conditional_immed_ign_prob]
+        end_state_probabilities = event_tree.calc_end_state_probabilities(event_probabilities)
+        end_state_probabilities_per_leak.append(end_state_probabilities)
 
     # Generate positions
-    posgen = qra_positions.PositionGenerator(loc_distributions,
-                                             excl_radius,
-                                             rand_seed)
+    posgen = qra_positions.PositionGenerator(loc_distributions, excl_radius, rand_seed)
     locations = posgen.locs
-    transposed_positions = np.array(locations).transpose()
+
+    # Note - these are the same conditions for initializing the Combustion object as is in phys.Flame
+    chem = _therm.Combustion(_comps.Fluid(species = rel_fluid.species, T = amb_temp, P = amb_pres))
 
     # Calculate harm/hazard effects at each position for each leak size
-    # Calculate thermal effects
-    log.info("Computing thermal effects...")
     rel_angle_rads = np.radians(rel_angle)
     try:
         flux_dict = effects.calc_thermal_effects(amb_fluid,
@@ -355,6 +348,8 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
                                                  rel_humid=rel_humid,
                                                  not_nozzle_model=nozzle_model,
                                                  locations=locations,
+                                                 developing_flows=developing_flows,
+                                                 chem = chem,
                                                  create_plots=create_plots,
                                                  output_dir=output_dir,
                                                  verbose=verbose)
@@ -362,13 +357,8 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
         if type(rel_species) == dict:
             raise ValueError('Invalid blend provided')
 
-    log.info("Thermal effects analysis complete")
     qrads = flux_dict['fluxes']
     qrad_plot_files = flux_dict['all_pos_files']
-    log.info("Heat flux data:\n{}".format(qrads))
-
-    # Calculate overpressure effects
-    log.info("Computing overpressure effects...")
     overp_dict = effects.calc_overp_effects(orifices,
                                             nozzle_model,
                                             rel_fluid,
@@ -378,72 +368,82 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
                                             facil_length,
                                             facil_width,
                                             overp_method,
-                                            BST_mach_flame_speed,
-                                            TNT_equivalence_factor,
+                                            bst_flame_speed,
+                                            tnt_factor,
+                                            developing_flows,
                                             create_plots=create_plots,
                                             output_dir=output_dir,
                                             verbose=verbose)
-    log.info("Overpressure effects analysis complete")
     overpressures = overp_dict['overpressures']
     impulses = overp_dict['impulses']
     overp_plot_files = overp_dict['all_pos_overp_files']
     impulse_plot_files = overp_dict['all_pos_impulse_files']
-    log.info("Overpressure data:\n{}".format(overpressures))
-    log.info("Impulse data:\n{}".format(impulses))
+
+    if verbose:
+        print(f"Heat flux data:\n{qrads}\n Overpressure data:\n{overpressures}\n Impulse data:\n{impulses}")
 
     # Estimate fatality probabilities
-    event_consequences = []
     physical_responses = {'qrads': qrads,
                           'overpressures': overpressures,
                           'impulses': impulses}
     consequence_modeling_decisions = {'probit_thermal_id': probit_thermal_id,
                                       'exposure_time': exposure_time,
                                       'probit_overp_id': probit_overp_id}
-    for end_state in end_states:
-        event_consequences.append(consequence.calculate_event_consequence(end_state.consequence_type,
-                                                                          num_leak_sizes,
-                                                                          total_occupants,
-                                                                          physical_responses,
-                                                                          consequence_modeling_decisions))
+    event_consequences = []
+    for end_state_name in end_state_consequence_types:
+        event_consequence = consequence.calculate_event_consequence(end_state_consequence_types[end_state_name],
+                                                                    num_leak_sizes,
+                                                                    total_occupants,
+                                                                    physical_responses,
+                                                                    consequence_modeling_decisions,
+                                                                    verbose)
+        event_consequences.append(event_consequence)
 
-    # Calculate risk metrics
+    # //////////////////////
+    # CALCULATE RISK METRICS
 
     # Risk for each scenario
-    log.info("Calculating frequencies and consequences for each scenario...")
+    if verbose:
+        print("Calculating frequencies and consequences for each scenario...")
     scenario_freqs = []
     scenario_fatalities = []
     for i in range(num_leak_sizes):
         # Compute expected events per year for this leak size
-        for end_state, consequence_outcome in zip(end_states, event_consequences):
-            scenario_freqs.append(end_state.end_state_probability[i] * total_leak_freqs[i])
+        for end_state_probability, consequence_outcome in zip(end_state_probabilities_per_leak[i], event_consequences):
+            scenario_freqs.append(end_state_probability * total_leak_freqs[i])
             scenario_fatalities.append(consequence_outcome[i])
 
     # Overall risk metrics
-    log.info("Calculating risk for each scenario...")
+    if verbose:
+        print("Calculating risk for each scenario...")
     plls = risk.calc_all_plls(scenario_freqs, scenario_fatalities)
-    log.info("Calculating overall risk metrics and risk contributions for each scenario...")
+    if verbose:
+        print("Calculating overall risk metrics and risk contributions for each scenario...")
     total_pll, pll_contributions = risk.calc_risk_contributions(plls)
     far = risk.calc_far(total_pll, total_occupants)
     air = risk.calc_air(far, occupant_avg_hours)
-    
-
-    # Output results
 
     # Collect results for each leak size
-    log.info("Results for each leak size:")
+    if verbose:
+        print("Results for each leak size:")
+    end_state_keys = {'Shutdown': 'shut',
+                      'No Ignition': 'noig',
+                      'Jet Fire': 'jetf',
+                      'Explosion': 'expl'}
     for i, leak_result in enumerate(leak_results):
-        for j, end_state in enumerate(end_states):
-            leak_result.list_event_names.append(end_state.name)
-            leak_result.list_event_keys.append(end_state.key)
-            leak_result.list_p_events.append(np.around(end_state.end_state_probability[i], 20))
-            leak_result.list_avg_events.append(np.around(scenario_freqs[i*len(end_states)+j], 20))
-            leak_result.list_pll_contrib.append(np.around(pll_contributions[i*len(end_states)+j], 20))
+        for j, end_state_name in enumerate(end_state_consequence_types):
+            leak_result.list_event_names.append(end_state_name)
+            leak_result.list_event_keys.append(end_state_keys[end_state_name])
+            leak_result.list_p_events.append(np.around(end_state_probabilities_per_leak[i][j], 20))
+            leak_result.list_avg_events.append(np.around(scenario_freqs[i*len(end_state_consequence_types)+j], 20))
+            leak_result.list_pll_contrib.append(np.around(pll_contributions[i*len(end_state_consequence_types)+j], 20))
             # event data in dict format for easier GUI consumption
             leak_result.event_dicts = leak_result.get_result_dicts()
 
         leak_result.mass_flow_rate = discharge_rates[i]
         leak_result.leak_diam = orifices[i].d
-        log.info(str(leak_result))
+        if verbose:
+            print(str(leak_result))
 
     # Re-shape harm values into position table
     position_qrads_reshape = (qrads.reshape((num_leak_sizes, total_occupants))).T
@@ -458,22 +458,17 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
         'qrad_plot_files': qrad_plot_files,
         'overp_plot_files': overp_plot_files,
         'impulse_plot_files': impulse_plot_files,
-        'positions': transposed_positions,
+        'positions': np.array(locations).transpose(),
         'position_qrads': position_qrads_reshape,
         'position_overps': position_overps_reshape,
         'position_impulses': position_impulses_reshape
     }
 
     if verbose:
-        print("")
-        for leak_res in leak_results:
-            print(leak_res)
-        print("PLL: {:.5E}".format(total_pll))
-        print("FAR: {:.5E}".format(far))
-        print("AIR: {:.5E}\n".format(air))
+        print(f"PLL: {total_pll:.5E}\nFAR: {far:.5E}\nAIR: {air:.5E}")
 
-    # Print one result key/val pair per line
-    log.info("\nANALYSIS RESULTS:\n{}".format("\n".join(["{}: {}".format(key, val) for key, val in results.items()])))
-    log.info("=== ANALYSIS COMPLETE ===")
+        # Print one result key/val pair per line
+        print("\nANALYSIS RESULTS:\n{}".format("\n".join(["{}: {}".format(key, val) for key, val in results.items()])))
+        print("=== ANALYSIS COMPLETE ===")
 
     return results

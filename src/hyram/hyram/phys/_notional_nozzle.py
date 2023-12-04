@@ -1,5 +1,5 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -46,12 +46,12 @@ class NotionalNozzle:
             v = throat.v + (throat.P - self.low_P_fluid.P)/(throat.v*throat.rho*self.orifice.Cd)
             if T == 'solve_energy':
                 #YuceilOtugen
-                throat_enthalpy = throat.therm._total_enthalpy(throat.P, throat.rho, throat.v)
-                rho = optimize.brentq(lambda rho: throat_enthalpy - throat.therm._total_enthalpy(self.low_P_fluid.P, rho, v), 
-                                      throat.rho, throat.therm.rho(self.low_P_fluid.T, self.low_P_fluid.P))
+                throat_enthalpy = throat.therm.get_property('H0', P=throat.P, D=throat.rho, v=throat.v)
+                rho = optimize.brentq(lambda rho: throat_enthalpy - throat.therm.get_property('H0', P=self.low_P_fluid.P, D=rho, v=v), 
+                                      throat.rho, throat.therm.get_property('D', T=self.low_P_fluid.T, P=self.low_P_fluid.P))
             elif np.isreal(T):
                 #Birch2 - T specified as T0
-                rho = throat.therm.rho(T, self.low_P_fluid.P)
+                rho = throat.therm.get_property('D', T=T, P=self.low_P_fluid.P)
             else:
                 raise NotImplementedError('Notional nozzle model not defined properly, ' + 
                                           "nn_T must be specified temperature or 'solve_energy'.")
@@ -59,27 +59,27 @@ class NotionalNozzle:
             #EwanMoodie, Birch, Molkov -- assume sonic at notional nozzle location
             if np.isreal(T):
                 # Birch: T specified as T0
-                v = throat.therm.a(T = T, P = self.low_P_fluid.P)
-                rho = throat.therm.rho(T = T, P = self.low_P_fluid.P)
+                v = throat.therm.get_property('A', T=T, P=self.low_P_fluid.P)
+                rho = throat.therm.get_property('D', T=T, P=self.low_P_fluid.P)
             elif T == 'Tthroat':
                 #EwanMoodie - T is Throat temperature
-                v = throat.therm.a(T = throat.T, P = self.low_P_fluid.P)
-                rho = throat.therm.rho(T = throat.T, P = self.low_P_fluid.P)
+                v = throat.therm.get_property('A', T=throat.T, P=self.low_P_fluid.P)
+                rho = throat.therm.get_property('D', T=throat.T, P=self.low_P_fluid.P)
             elif T == 'solve_energy':
                 #Molkov
                 def err(rho):
-                    T = throat.therm.T(P = self.low_P_fluid.P, rho = rho)
-                    v = throat.therm.a(T = T, P = self.low_P_fluid.P)
-                    return (throat.therm._total_enthalpy(throat.P, throat.rho, throat.v) -
-                            throat.therm._total_enthalpy(self.low_P_fluid.P, rho, v))
-                rho = optimize.newton(err, throat.therm.rho(self.low_P_fluid.T, self.low_P_fluid.P))
-                T = throat.therm.T(self.low_P_fluid.P, rho)
-                v = throat.therm.a(T = T, P = self.low_P_fluid.P)
+                    T = throat.therm.get_property('T', P=self.low_P_fluid.P, rho=rho)
+                    v = throat.therm.get_property('A', T=T, P=self.low_P_fluid.P)
+                    return (throat.therm.get_property('H0', P=throat.P, D=throat.rho, v=throat.v) -
+                            throat.therm.get_property('H0', P=self.low_P_fluid.P, D=rho, v=v))
+                rho = optimize.newton(err, throat.therm.get_property('D', T=self.low_P_fluid.T, P=self.low_P_fluid.P))
+                T = throat.therm.get_property('T', P=self.low_P_fluid.P, D=rho)
+                v = throat.therm.get_property('A', T=T, P=self.low_P_fluid.P)
             else:
                 raise NotImplementedError('Notional nozzle model not defined properly, ' + 
                                           "nn_T must be specified temperature or 'solve_energy'")
         fluid = copy.copy(throat)
-        fluid.update(rho = rho, P = self.low_P_fluid.P, v = v)
+        fluid.update(rho=rho, P=self.low_P_fluid.P, v=v)
         # conserve mass to solve for effective diameter:
         orifice = Orifice(np.sqrt(self.orifice.mdot(throat)/(fluid.rho*fluid.v)*4/np.pi))
         return fluid, orifice    

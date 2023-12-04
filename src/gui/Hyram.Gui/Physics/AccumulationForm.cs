@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -50,26 +50,32 @@ namespace SandiaNationalLaboratories.Hyram
         ~AccumulationForm()
         {
             GeometryPicture.Dispose();
-            _state.FuelTypeChangedEvent -= OnFuelChange;
+//            _state.FuelTypeChangedEvent -= OnFuelChange;
         }
 
         private void IndoorReleaseForm_Load(object sender, EventArgs e)
         {
             _state = State.Data;
             PressureLinesCheckbox.Checked = Settings.Default.OPHorizLines;
-//            PressureLinesCheckbox.Refresh();
             PressuresPerTimeCheckbox.Checked = Settings.Default.OPMarkDots;
-//            PressuresPerTimeCheckbox.Refresh();
 
             OverpressureSpinner.Hide();
             InputWarning.Hide();
             outputWarning.Hide();
 
-            NozzleSelector.DataSource = _state.NozzleModels;
-            NozzleSelector.SelectedItem = _state.Nozzle;
-            PhaseSelection.DataSource = _state.Phases;
+            // right-click to save images
+            var picMenu = new ContextMenuStrip();
+            {
+                var item = new ToolStripMenuItem {Text = "Save As..."};
+                item.MouseUp += UiHelpers.SaveImageToolStripMenuItem_Click;
+                picMenu.Items.Add(item);
+            }
+            PressurePlot.ContextMenuStrip = picMenu;
+            MassPlot.ContextMenuStrip = picMenu;
+            TrajectoryPlot.ContextMenuStrip = picMenu;
+            MassFlowPlot.ContextMenuStrip = picMenu;
+            LayerPlot.ContextMenuStrip = picMenu;
 
-            _state.FuelTypeChangedEvent += OnFuelChange;
             RefreshForm();
         }
 
@@ -83,6 +89,8 @@ namespace SandiaNationalLaboratories.Hyram
         /// </summary>
         private void RefreshForm()
         {
+            AutoSetLimits.Checked = _state.AccumPlotAutoLimits;
+
             PressureLinesCheckbox.Refresh();
             PressuresPerTimeCheckbox.Refresh();
 
@@ -119,10 +127,6 @@ namespace SandiaNationalLaboratories.Hyram
                 _ignoreLineChange = false;
             }
 
-            NozzleSelector.DataSource = _state.NozzleModels;
-            NozzleSelector.SelectedItem = _state.Nozzle;
-            PhaseSelection.SelectedItem = _state.Phase;
-
             // Fill time unit selector
             var timeUnit = _state.AccumulationTimeUnit;
             var defaultIndex = 0;
@@ -143,10 +147,7 @@ namespace SandiaNationalLaboratories.Hyram
             InputGrid.Rows.Clear();
             var formParams = ParameterInput.GetParameterInputList(new[]
             {
-                _state.AmbientTemperature,
-                _state.AmbientPressure,
                 _state.OrificeDiameter,
-                _state.OrificeDischargeCoefficient,
                 _state.ReleaseHeight,
                 _state.EnclosureHeight,
                 _state.FloorCeilingArea,
@@ -156,14 +157,17 @@ namespace SandiaNationalLaboratories.Hyram
                 _state.FloorVentArea,
                 _state.FloorVentHeight,
                 _state.ReleaseAngle,
-                _state.FluidPressure,
+                _state.TankVolume,
+                _state.VentFlowRate
             });
-            if (_state.DisplayTemperature())
+
+            if (!_state.AccumPlotAutoLimits)
             {
-                formParams.Add(new ParameterInput(_state.FluidTemperature));
+//                formParams.AddRange(ParameterInput.GetParameterInputList(new[]
+//                {
+//                    _state.AccumPresXMin, _state.AccumPresXMax, _state.AccumPresYMin, _state.AccumPresYMax,
+//                }));
             }
-            formParams.Add(new ParameterInput(_state.TankVolume));
-            formParams.Add(new ParameterInput(_state.VentFlowRate));
 
             GridHelpers.InitParameterGrid(InputGrid, formParams, false);
             InputGrid.Columns[0].Width = 200;
@@ -179,7 +183,7 @@ namespace SandiaNationalLaboratories.Hyram
             // if liquid, validate fuel pressure
             if (!_state.ReleasePressureIsValid())
             {
-                warningText = MessageContainer.ReleasePressureInvalid();
+                warningText = Notifications.ReleasePressureInvalid();
                 showWarning = true;
             }
 
@@ -343,20 +347,29 @@ namespace SandiaNationalLaboratories.Hyram
                     overpressureResultGrid.ResumeLayout();
                 }
 
-                pbPressure.Unload();
-                pbPressure.Load(_pressurePlotFilepath);
-                pbLayer.Unload();
-                pbLayer.Load(_layerPlotFilepath);
-                pbFlammableMass.Unload();
-                pbFlammableMass.Load(_massPlotFilepath);
-                pbTrajectory.Unload();
-                pbTrajectory.Load(_trajectoryPlotFilepath);
+                PressurePlot.Image?.Dispose();
+                PressurePlot.Image = null;
+                PressurePlot.Load(_pressurePlotFilepath);
 
-                pbMassFlowPlot.Unload();
+                LayerPlot.Image?.Dispose();
+                LayerPlot.Image = null;
+                LayerPlot.Load(_layerPlotFilepath);
+
+                MassPlot.Image?.Dispose();
+                MassPlot.Image = null;
+                MassPlot.Load(_massPlotFilepath);
+
+                TrajectoryPlot.Image?.Dispose();
+                TrajectoryPlot.Image = null;
+                TrajectoryPlot.Load(_trajectoryPlotFilepath);
+
+                MassFlowPlot.Image?.Dispose();
+                MassFlowPlot.Image = null;
+
                 // steady release won't provide mass flow plot
                 if (!string.IsNullOrEmpty(_massFlowPlotFilepath))
                 {
-                    pbMassFlowPlot.Load(_massFlowPlotFilepath);
+                    MassFlowPlot.Load(_massFlowPlotFilepath);
                 }
 
                 IOTabs.SelectedTab = outputTab;
@@ -485,8 +498,7 @@ namespace SandiaNationalLaboratories.Hyram
 
         private void InputGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-//            GridHelpers.ProcessDataGridViewRowValueChangedEvent((DataGridView) sender, e, 1, 2, false);
-            GridHelpers.ChangeParameterValue((DataGridView) sender, e, 1, 2);
+            GridHelpers.ChangeParameterValue((DataGridView) sender, e);
             CheckFormValid();
         }
 
@@ -568,17 +580,6 @@ namespace SandiaNationalLaboratories.Hyram
             QuickFunctions.PerformNumericSortOnGrid(sender, e);
         }
 
-        private void PhaseSelection_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            _state.Phase = (ModelPair)PhaseSelection.SelectedItem;
-            RefreshForm();
-        }
-
-        private void NozzleSelector_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            _state.Nozzle = (ModelPair)NozzleSelector.SelectedItem;
-        }
-
         private void TimeUnitSelector_SelectionChangeCommitted(object sender, EventArgs e)
         {
             var iValue = GetTimeUnitFromDropdown();
@@ -600,6 +601,17 @@ namespace SandiaNationalLaboratories.Hyram
             if (Enum.TryParse<TimeUnit>(selectedItemName, out var iResult)) result = iResult;
 
             return result;
+        }
+
+        private void AutoSetLimits_CheckedChanged(object sender, EventArgs e)
+        {
+            _state.AccumPlotAutoLimits = AutoSetLimits.Checked;
+            RefreshForm();
+        }
+
+        private void InputGrid_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+            GridHelpers.CellValidating_CheckDoubleOrNullable(InputGrid, sender, e);
         }
     }
 }

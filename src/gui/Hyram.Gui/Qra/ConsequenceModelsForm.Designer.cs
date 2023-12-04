@@ -56,7 +56,7 @@
             this.notionalNozzleSelector.Location = new System.Drawing.Point(199, 12);
             this.notionalNozzleSelector.Name = "notionalNozzleSelector";
             this.notionalNozzleSelector.Size = new System.Drawing.Size(248, 23);
-            this.notionalNozzleSelector.TabIndex = 3;
+            this.notionalNozzleSelector.TabIndex = 1;
             this.notionalNozzleSelector.SelectionChangeCommitted += new System.EventHandler(this.notionalNozzleSelector_SelectionChangeCommitted);
             // 
             // notionalNozzleLabel
@@ -105,7 +105,7 @@
             this.tntInput.Location = new System.Drawing.Point(199, 99);
             this.tntInput.Name = "tntInput";
             this.tntInput.Size = new System.Drawing.Size(248, 21);
-            this.tntInput.TabIndex = 68;
+            this.tntInput.TabIndex = 4;
             this.tntInput.TextChanged += new System.EventHandler(this.tntInput_TextChanged);
             // 
             // tntLabel
@@ -124,7 +124,7 @@
             this.flameSpeedSelector.Location = new System.Drawing.Point(199, 70);
             this.flameSpeedSelector.Name = "flameSpeedSelector";
             this.flameSpeedSelector.Size = new System.Drawing.Size(248, 23);
-            this.flameSpeedSelector.TabIndex = 66;
+            this.flameSpeedSelector.TabIndex = 3;
             this.flameSpeedSelector.SelectionChangeCommitted += new System.EventHandler(this.flameSpeedSelector_SelectionChangeCommitted);
             // 
             // flameSpeedLabel
@@ -143,7 +143,7 @@
             this.overpMethodSelector.Location = new System.Drawing.Point(199, 41);
             this.overpMethodSelector.Name = "overpMethodSelector";
             this.overpMethodSelector.Size = new System.Drawing.Size(248, 23);
-            this.overpMethodSelector.TabIndex = 64;
+            this.overpMethodSelector.TabIndex = 2;
             this.overpMethodSelector.SelectionChangeCommitted += new System.EventHandler(this.overpMethodSelector_SelectionChangeCommitted);
             // 
             // label1
@@ -179,7 +179,7 @@
             this.exposureTimeUnitSelector.Location = new System.Drawing.Point(320, 41);
             this.exposureTimeUnitSelector.Name = "exposureTimeUnitSelector";
             this.exposureTimeUnitSelector.Size = new System.Drawing.Size(127, 23);
-            this.exposureTimeUnitSelector.TabIndex = 21;
+            this.exposureTimeUnitSelector.TabIndex = 3;
             this.exposureTimeUnitSelector.SelectedIndexChanged += new System.EventHandler(this.exposureTimeUnitSelector_SelectedIndexChanged);
             // 
             // thermalProbitSelector
@@ -194,7 +194,7 @@
             this.thermalProbitSelector.Location = new System.Drawing.Point(199, 12);
             this.thermalProbitSelector.Name = "thermalProbitSelector";
             this.thermalProbitSelector.Size = new System.Drawing.Size(248, 23);
-            this.thermalProbitSelector.TabIndex = 15;
+            this.thermalProbitSelector.TabIndex = 1;
             this.thermalProbitSelector.SelectionChangeCommitted += new System.EventHandler(this.thermalProbitSelector_SelectionChangeCommotted);
             // 
             // exposureTimeInput
@@ -206,7 +206,7 @@
             this.exposureTimeInput.MinimumSize = new System.Drawing.Size(2, 26);
             this.exposureTimeInput.Name = "exposureTimeInput";
             this.exposureTimeInput.Size = new System.Drawing.Size(116, 21);
-            this.exposureTimeInput.TabIndex = 20;
+            this.exposureTimeInput.TabIndex = 2;
             this.exposureTimeInput.TextChanged += new System.EventHandler(this.exposureTimeInput_TextChanged);
             // 
             // label4
@@ -248,7 +248,7 @@
             this.overpressureProbitSelector.Location = new System.Drawing.Point(199, 69);
             this.overpressureProbitSelector.Name = "overpressureProbitSelector";
             this.overpressureProbitSelector.Size = new System.Drawing.Size(248, 23);
-            this.overpressureProbitSelector.TabIndex = 16;
+            this.overpressureProbitSelector.TabIndex = 4;
             this.overpressureProbitSelector.SelectionChangeCommitted += new System.EventHandler(this.overpressureProbitSelector_SelectionChangeCommotted);
             // 
             // formWarning

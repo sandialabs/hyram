@@ -1,18 +1,15 @@
 """
-Copyright 2015-2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
 """
 
-import logging
 import numpy as np
 
 from . import probits
 
-
-log = logging.getLogger('hyram.qra')
 
 def thermal_consequence(physical_responses,
                         consequence_modeling_decisions):
@@ -124,7 +121,8 @@ def calculate_event_consequence(consequence_type,
                                 num_leak_sizes,
                                 total_occupants,
                                 physical_responses,
-                                consequence_modeling_decisions):
+                                consequence_modeling_decisions,
+                                verbose=False):
     """
     Calculate consequence for different consequence types for all leak sizes and locations
 
@@ -144,6 +142,9 @@ def calculate_event_consequence(consequence_type,
 
     consequence_modeling_decisions : dict
         Dictionary holding modeling decisions/specifications used to enacted the desired consequence model
+    
+    verbose : bool, optional
+        Toogle extra output to command line
 
     Returns
     -------
@@ -163,12 +164,13 @@ def calculate_event_consequence(consequence_type,
                                     + ' "None", "thermal", and "overp".')
         raise ValueError(consequence_type_error_msg)
 
-
-    log.info(f"Calculating {consequence_type} fatality probabilities...")
+    if verbose:
+        print(f"Calculating {consequence_type} fatality probabilities...")
     consequence_probs = consequence_model(physical_responses,
                                           consequence_modeling_decisions)
     consequence_probs_per_leak = convert_consequence_to_per_leak_basis(consequence_probs,
                                                                        num_leak_sizes,
                                                                        total_occupants)
-    log.info(f"Probit {consequence_type} data:\n{consequence_probs_per_leak}\n")
+    if verbose:
+        print(f"Probit {consequence_type} data:\n{consequence_probs_per_leak}\n")
     return consequence_probs_per_leak
