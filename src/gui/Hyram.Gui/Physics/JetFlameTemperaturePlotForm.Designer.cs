@@ -27,6 +27,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.panel1 = new System.Windows.Forms.Panel();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.resultTipLabel = new System.Windows.Forms.Label();
+            this.OutputPlot = new System.Windows.Forms.PictureBox();
             this.label2 = new System.Windows.Forms.Label();
             this.outputMassFlowRate = new System.Windows.Forms.TextBox();
             this.outputRadiantFrac = new System.Windows.Forms.TextBox();
@@ -38,7 +39,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.massFlowLabel = new System.Windows.Forms.Label();
             this.MassFlowInput = new System.Windows.Forms.TextBox();
             this.AutoSetLimits = new System.Windows.Forms.CheckBox();
-            this.lblContourLevels = new System.Windows.Forms.Label();
+            this.ContoursLabel = new System.Windows.Forms.Label();
             this.ContourInput = new System.Windows.Forms.TextBox();
             this.PlotTitleInput = new System.Windows.Forms.TextBox();
             this.lblPlotTitle = new System.Windows.Forms.Label();
@@ -46,12 +47,11 @@ namespace SandiaNationalLaboratories.Hyram {
             this.spinnerPictureBox = new System.Windows.Forms.PictureBox();
             this.SubmitBtn = new System.Windows.Forms.Button();
             this.InputGrid = new System.Windows.Forms.DataGridView();
-            this.OutputPlot = new System.Windows.Forms.PictureBox();
             this.panel1.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.OutputPlot)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.spinnerPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.InputGrid)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.OutputPlot)).BeginInit();
             this.SuspendLayout();
             // 
             // panel1
@@ -61,7 +61,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.panel1.Controls.Add(this.massFlowLabel);
             this.panel1.Controls.Add(this.MassFlowInput);
             this.panel1.Controls.Add(this.AutoSetLimits);
-            this.panel1.Controls.Add(this.lblContourLevels);
+            this.panel1.Controls.Add(this.ContoursLabel);
             this.panel1.Controls.Add(this.ContourInput);
             this.panel1.Controls.Add(this.PlotTitleInput);
             this.panel1.Controls.Add(this.lblPlotTitle);
@@ -107,6 +107,18 @@ namespace SandiaNationalLaboratories.Hyram {
             this.resultTipLabel.Size = new System.Drawing.Size(222, 20);
             this.resultTipLabel.TabIndex = 103;
             this.resultTipLabel.Text = "Submit analysis to view results";
+            // 
+            // OutputPlot
+            // 
+            this.OutputPlot.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.OutputPlot.Location = new System.Drawing.Point(6, 71);
+            this.OutputPlot.Name = "OutputPlot";
+            this.OutputPlot.Size = new System.Drawing.Size(754, 480);
+            this.OutputPlot.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.OutputPlot.TabIndex = 104;
+            this.OutputPlot.TabStop = false;
             // 
             // label2
             // 
@@ -206,14 +218,14 @@ namespace SandiaNationalLaboratories.Hyram {
             this.AutoSetLimits.UseVisualStyleBackColor = true;
             this.AutoSetLimits.CheckedChanged += new System.EventHandler(this.AutoSetLimits_CheckedChanged);
             // 
-            // lblContourLevels
+            // ContoursLabel
             // 
-            this.lblContourLevels.AutoSize = true;
-            this.lblContourLevels.Location = new System.Drawing.Point(3, 37);
-            this.lblContourLevels.Name = "lblContourLevels";
-            this.lblContourLevels.Size = new System.Drawing.Size(136, 13);
-            this.lblContourLevels.TabIndex = 90;
-            this.lblContourLevels.Text = "Contour levels (K, optional):";
+            this.ContoursLabel.AutoSize = true;
+            this.ContoursLabel.Location = new System.Drawing.Point(3, 37);
+            this.ContoursLabel.Name = "ContoursLabel";
+            this.ContoursLabel.Size = new System.Drawing.Size(136, 13);
+            this.ContoursLabel.TabIndex = 90;
+            this.ContoursLabel.Text = "Contour levels (K, optional):";
             // 
             // ContourInput
             // 
@@ -294,18 +306,6 @@ namespace SandiaNationalLaboratories.Hyram {
             this.InputGrid.CellValidating += new System.Windows.Forms.DataGridViewCellValidatingEventHandler(this.InputGrid_CellValidating);
             this.InputGrid.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.InputGrid_CellValueChanged);
             // 
-            // OutputPlot
-            // 
-            this.OutputPlot.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.OutputPlot.Location = new System.Drawing.Point(6, 71);
-            this.OutputPlot.Name = "OutputPlot";
-            this.OutputPlot.Size = new System.Drawing.Size(754, 480);
-            this.OutputPlot.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.OutputPlot.TabIndex = 104;
-            this.OutputPlot.TabStop = false;
-            // 
             // JetFlameTemperaturePlotForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -318,9 +318,9 @@ namespace SandiaNationalLaboratories.Hyram {
             this.panel1.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.OutputPlot)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.spinnerPictureBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.InputGrid)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.OutputPlot)).EndInit();
             this.ResumeLayout(false);
 
 		}
@@ -339,7 +339,7 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.Label massFlowLabel;
         private System.Windows.Forms.TextBox MassFlowInput;
         private System.Windows.Forms.CheckBox AutoSetLimits;
-        private System.Windows.Forms.Label lblContourLevels;
+        private System.Windows.Forms.Label ContoursLabel;
         private System.Windows.Forms.TextBox ContourInput;
         private System.Windows.Forms.TextBox PlotTitleInput;
         private System.Windows.Forms.Label lblPlotTitle;

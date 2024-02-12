@@ -1,0 +1,454 @@
+{
+	"Test_Molkov_2012": {
+		"Molkov 2012, Table 5.3 - Chaineaux et al. (1991), Sample 1": {
+            "Max Absolute Error": 0.02,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 57,
+            "Avg Percent Error": 25,
+            "R2": 0.917
+        },
+		"Molkov 2012, Table 5.3 - Chaineaux et al. (1991), Sample 2": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 23,
+            "Avg Percent Error": 10,
+            "R2": 0.924
+        },
+		"Molkov 2012, Table 5.3 - Kuznetsov (2006), Sample 1": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 62,
+            "Avg Percent Error": 35,
+            "R2": 0.922
+        },
+		"Molkov 2012, Table 5.3 - Kuznetsov (2006), Sample 2": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 17,
+            "Avg Percent Error": 12,
+            "R2": 0.967
+        },
+		"Molkov 2012, Table 5.3 - Kuznetsov (2006), Sample 3": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 18,
+            "Avg Percent Error": 15,
+            "R2": 0.990
+        },
+		"Molkov 2012, Table 5.3 - Kuznetsov (2006), Sample 4": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 17,
+            "Avg Percent Error": 13,
+            "R2": 0.967
+        },
+		"Molkov 2012, Table 5.3 - Okabayashi et al. (2005), Sample 1": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 39,
+            "Avg Percent Error": 26,
+            "R2": 0.905
+        },
+		"Molkov 2012, Table 5.3 - Okabayashi et al. (2005), Sample 2": {
+            "Max Absolute Error": 0.90,
+            "Avg Absolute Error": 0.16,
+            "Max Percent Error": 199,
+            "Avg Percent Error": 122,
+            "R2": 0.160
+        },
+		"Molkov 2012, Table 5.3 - Okabayashi et al. (2005), Sample 3": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 28,
+            "Avg Percent Error": 16,
+            "R2": 0.977
+        },
+		"Molkov 2012, Table 5.3 - Okabayashi et al. (2005), Sample 4": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 28,
+            "Avg Percent Error": 16,
+            "R2": 0.909
+        },
+		"Molkov 2012, Table 5.3 - Okabayashi et al. (2005), Sample 5": {
+            "Max Absolute Error": 0.03,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 116,
+            "Avg Percent Error": 72,
+            "R2": 0.539
+        },
+		"Molkov 2012, Table 5.3 - Okabayashi et al. (2005), Sample 6": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 19,
+            "Avg Percent Error": 12,
+            "R2": 0.948
+        },
+		"Molkov 2012, Table 5.3 - Ruffin et al. (1996), Sample 1": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 40,
+            "Avg Percent Error": 39,
+            "R2": 0.995
+        },
+		"Molkov 2012, Table 5.3 - Ruffin et al. (1996), Sample 2": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 14,
+            "Avg Percent Error": 9,
+            "R2": 0.983
+        },
+		"Molkov 2012, Table 5.3 - Ruffin et al. (1996), Sample 3": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 41,
+            "Avg Percent Error": 36,
+            "R2": 0.992
+        },
+		"Molkov 2012, Table 5.3 - Ruffin et al. (1996), Sample 4": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 30,
+            "Avg Percent Error": 23,
+            "R2": 0.998
+        },
+		"Molkov 2012, Table 5.3 - Shirvill et al. (2006), Sample 1": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 47,
+            "Avg Percent Error": 34,
+            "R2": 0.880
+        },
+		"Molkov 2012, Table 5.3 - Shirvill et al. (2006), Sample 2": {
+            "Max Absolute Error": 0.01,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 35,
+            "Avg Percent Error": 26,
+            "R2": 0.931
+        },
+		"Molkov 2012, Table 5.3 - Shirvill et al. (2006), Sample 3": {
+            "Max Absolute Error": 0.02,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 74,
+            "Avg Percent Error": 52,
+            "R2": 0.822
+        },
+		"Molkov 2012, Table 5.3 - Veser et al. (2009), Sample 1": {
+            "Max Absolute Error": 0.02,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 106,
+            "Avg Percent Error": 68,
+            "R2": 0.672
+        },
+		"Molkov 2012, Table 5.3 - Veser et al. (2009), Sample 2": {
+            "Max Absolute Error": 0.02,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 108,
+            "Avg Percent Error": 69,
+            "R2": 0.663
+        },
+		"Molkov 2012, Table 5.3 - Veser et al. (2009), Sample 3": {
+            "Max Absolute Error": 0.48,
+            "Avg Absolute Error": 0.09,
+            "Max Percent Error": 161,
+            "Avg Percent Error": 70,
+            "R2": 0.387
+        },
+		"Molkov 2012, Table 5.3 - Veser et al. (2009), Sample 4": {
+            "Max Absolute Error": 0.10,
+            "Avg Absolute Error": 0.03,
+            "Max Percent Error": 100,
+            "Avg Percent Error": 61,
+            "R2": 0.538
+        }
+	},
+	"Test_HoufSchefer_2008_fig5": {
+        "Houf and Schefer 2008 - Figure 5, Mass Fraction over Radial Distance, zdist = 10": {
+            "Max Absolute Error": 0.11,
+            "Avg Absolute Error": 0.07,
+            "Max Percent Error": 200,
+            "Avg Percent Error": 93,
+            "R2": 0.745
+        },
+		"Houf and Schefer 2008 - Figure 5, Mass Fraction over Radial Distance, zdist = 25": {
+            "Max Absolute Error": 0.04,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 200,
+            "Avg Percent Error": 47,
+            "R2": 0.853
+        },
+		"Houf and Schefer 2008 - Figure 5, Mass Fraction over Radial Distance, zdist = 50": {
+            "Max Absolute Error": 0.02,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 197,
+            "Avg Percent Error": 28,
+            "R2": 0.909
+        },
+		"Houf and Schefer 2008 - Figure 5, Mass Fraction over Radial Distance, zdist = 75": {
+            "Max Absolute Error": 0.02,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 149,
+            "Avg Percent Error": 14,
+            "R2": 0.912
+        },
+		"Houf and Schefer 2008 - Figure 5, Mass Fraction over Radial Distance, zdist = 100": {
+            "Max Absolute Error": 0.02,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 112,
+            "Avg Percent Error": 14,
+            "R2": 0.879
+        }
+	},
+	"Test_HoufSchefer_2008_fig8": {
+		"Houf and Schefer 2008 - Figure 8, Inverse Mole Fraction over Axial Distance": {
+			"Max Absolute Error": 0.44,
+            "Avg Absolute Error": 0.15,
+            "Max Percent Error": 18,
+            "Avg Percent Error": 9,
+            "R2": 0.994
+		}
+	},
+	"Test_HoufSchefer_2008_fig9": {
+		"Houf and Schefer 2008 - Figure 9, Inverse Mass Fraction over Axial Distance, Fr = 99": {
+			"Max Absolute Error": 6.75,
+            "Avg Absolute Error": 1.41,
+            "Max Percent Error": 61,
+            "Avg Percent Error": 27,
+            "R2": 0.989
+		},
+		"Houf and Schefer 2008 - Figure 9, Inverse Mass Fraction over Axial Distance, Fr = 152": {
+			"Max Absolute Error": 5.06,
+            "Avg Absolute Error": 0.79,
+            "Max Percent Error": 52,
+            "Avg Percent Error": 19,
+            "R2": 0.971
+		},
+		"Houf and Schefer 2008 - Figure 9, Inverse Mass Fraction over Axial Distance, Fr = 268": {
+			"Max Absolute Error": 0.45,
+            "Avg Absolute Error": 0.14,
+            "Max Percent Error": 23,
+            "Avg Percent Error": 7,
+            "R2": 0.997
+		}
+	},
+	"Test_RugglesEkoto_2012": {
+		"Ruggles and Ekoto 2012 - Figure 7, Inverse Mass Fraction over Axial Distance": {
+			"Max Absolute Error": 12.3,
+            "Avg Absolute Error": 8.5,
+            "Max Percent Error": 28,
+            "Avg Percent Error": 26,
+            "R2": 0.998
+		},
+		"Ruggles and Ekoto 2012 - Figure 7, Jet Width over Axial Distance": {
+			"Max Absolute Error": 6.3,
+            "Avg Absolute Error": 3.7,
+            "Max Percent Error": 31,
+            "Avg Percent Error": 27,
+            "R2": 0.997
+		}
+	},
+	"Test_Han_2013_fig3": {
+		"Han et al. 2013 - Figure 3, Centerline Mass Fraction vs. Distance, P0 = 100 bar, d = 0.5mm": {
+			"Max Absolute Error": 0.04,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 147,
+            "Avg Percent Error": 30,
+            "R2": 0.858
+		},
+		"Han et al. 2013 - Figure 3, Centerline Mass Fraction vs. Distance, P0 = 100 bar, d = 0.7mm": {
+			"Max Absolute Error": 0.05,
+            "Avg Absolute Error": 0.01,
+            "Max Percent Error": 72,
+            "Avg Percent Error": 19,
+            "R2": 0.863
+		},
+		"Han et al. 2013 - Figure 3, Centerline Mass Fraction vs. Distance, P0 = 100 bar, d = 1.0mm": {
+			"Max Absolute Error": 0.06,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 88,
+            "Avg Percent Error": 23,
+            "R2": 0.869
+		},
+		"Han et al. 2013 - Figure 3, Centerline Mass Fraction vs. Distance, P0 = 200 bar, d = 0.5mm": {
+			"Max Absolute Error": 0.05,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 112,
+            "Avg Percent Error": 26,
+            "R2": 0.860
+		},
+		"Han et al. 2013 - Figure 3, Centerline Mass Fraction vs. Distance, P0 = 200 bar, d = 0.7mm": {
+			"Max Absolute Error": 0.07,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 43,
+            "Avg Percent Error": 18,
+            "R2": 0.868
+		},
+		"Han et al. 2013 - Figure 3, Centerline Mass Fraction vs. Distance, P0 = 200 bar, d = 1.0mm": {
+			"Max Absolute Error": 0.08,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 61,
+            "Avg Percent Error": 22,
+            "R2": 0.878
+		},
+		"Han et al. 2013 - Figure 3, Centerline Mass Fraction vs. Distance, P0 = 300 bar, d = 0.5mm": {
+			"Max Absolute Error": 0.06,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 94,
+            "Avg Percent Error": 27,
+            "R2": 0.869
+		},
+		"Han et al. 2013 - Figure 3, Centerline Mass Fraction vs. Distance, P0 = 300 bar, d = 0.7mm": {
+			"Max Absolute Error": 0.08,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 40,
+            "Avg Percent Error": 19,
+            "R2": 0.875
+		},
+		"Han et al. 2013 - Figure 3, Centerline Mass Fraction vs. Distance, P0 = 300 bar, d = 1.0mm": {
+			"Max Absolute Error": 0.08,
+            "Avg Absolute Error": 0.03,
+            "Max Percent Error": 42,
+            "Avg Percent Error": 21,
+            "R2": 0.886
+		},
+		"Han et al. 2013 - Figure 3, Centerline Mass Fraction vs. Distance, P0 = 400 bar, d = 0.5mm": {
+			"Max Absolute Error": 0.07,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 68,
+            "Avg Percent Error": 25,
+            "R2": 0.851
+		},
+		"Han et al. 2013 - Figure 3, Centerline Mass Fraction vs. Distance, P0 = 400 bar, d = 0.7mm": {
+			"Max Absolute Error": 0.09,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 45,
+            "Avg Percent Error": 16,
+            "R2": 0.880
+		},
+		"Han et al. 2013 - Figure 3, Centerline Mass Fraction vs. Distance, P0 = 400 bar, d = 1.0mm": {
+			"Max Absolute Error": 0.05,
+            "Avg Absolute Error": 0.02,
+            "Max Percent Error": 16,
+            "Avg Percent Error": 8,
+            "R2": 0.999
+		}
+	},
+	"Test_Han_2013_fig6": {
+		"Han et al. 2013 - Figure 6, Dilution Length vs. Pressure, d = 0.5mm, LFL": {
+			"Max Absolute Error": 0.09,
+            "Avg Absolute Error": 0.06,
+            "Max Percent Error": 4,
+            "Avg Percent Error": 3,
+            "R2": 0.998
+		},
+		"Han et al. 2013 - Figure 6, Dilution Length vs. Pressure, d = 0.5mm, LFL_2": {
+			"Max Absolute Error": 0.42,
+            "Avg Absolute Error": 0.32,
+            "Max Percent Error": 16,
+            "Avg Percent Error": 9,
+            "R2": 0.979
+		},
+		"Han et al. 2013 - Figure 6, Dilution Length vs. Pressure, d = 0.5mm, LFL_4": {
+			"Max Absolute Error": 2.19,
+            "Avg Absolute Error": 1.45,
+            "Max Percent Error": 28,
+            "Avg Percent Error": 22,
+            "R2": 0.972
+		},
+		"Han et al. 2013 - Figure 6, Dilution Length vs. Pressure, d = 0.7mm, LFL": {
+			"Max Absolute Error": 0.08,
+            "Avg Absolute Error": 0.05,
+            "Max Percent Error": 3,
+            "Avg Percent Error": 2,
+            "R2": 0.998
+		},
+		"Han et al. 2013 - Figure 6, Dilution Length vs. Pressure, d = 0.7mm, LFL_2": {
+			"Max Absolute Error": 0.61,
+            "Avg Absolute Error": 0.37,
+            "Max Percent Error": 13,
+            "Avg Percent Error": 8,
+            "R2": 0.963
+		},
+		"Han et al. 2013 - Figure 6, Dilution Length vs. Pressure, d = 0.7mm, LFL_4": {
+			"Max Absolute Error": 3.47,
+            "Avg Absolute Error": 1.78,
+            "Max Percent Error": 32,
+            "Avg Percent Error": 18,
+            "R2": 0.965
+		},
+		"Han et al. 2013 - Figure 6, Dilution Length vs. Pressure, d = 1.0mm, LFL": {
+			"Max Absolute Error": 0.19,
+            "Avg Absolute Error": 0.10,
+            "Max Percent Error": 6,
+            "Avg Percent Error": 3,
+            "R2": 0.996
+		},
+		"Han et al. 2013 - Figure 6, Dilution Length vs. Pressure, d = 1.0mm, LFL_2": {
+			"Max Absolute Error": 1.18,
+            "Avg Absolute Error": 0.78,
+            "Max Percent Error": 14,
+            "Avg Percent Error": 11,
+            "R2": 0.994
+		},
+		"Han et al. 2013 - Figure 6, Dilution Length vs. Pressure, d = 1.0mm, LFL_4": {
+			"Max Absolute Error": 4.68,
+            "Avg Absolute Error": 3.65,
+            "Max Percent Error": 43,
+            "Avg Percent Error": 37,
+            "R2": 0.999
+		}
+	},
+	"Test_Han_2013_fig7": {
+		"Han et al. 2013 - Figure 7, Inverse Mole Fraction vs. Axial Distance, d = 0.5mm": {
+			"Max Absolute Error": 13.4,
+            "Avg Absolute Error": 3.74,
+            "Max Percent Error": 14,
+            "Avg Percent Error": 9,
+            "R2": 0.995
+		},
+		"Han et al. 2013 - Figure 7, Inverse Mole Fraction vs. Axial Distance, d = 0.7mm": {
+			"Max Absolute Error": 13.4,
+            "Avg Absolute Error": 4.97,
+            "Max Percent Error": 14,
+            "Avg Percent Error": 11,
+            "R2": 0.999
+		},
+		"Han et al. 2013 - Figure 7, Inverse Mole Fraction vs. Axial Distance, d = 1.0mm": {
+			"Max Absolute Error": 1.41,
+            "Avg Absolute Error": 0.88,
+            "Max Percent Error": 19,
+            "Avg Percent Error": 6,
+            "R2": 0.999
+		}
+	},
+	"Test_Han_2013_fig8": {
+		"Han et al. 2013 - Figure 8, Inverse Mole Fraction vs. Axial Distance, P0 = 100.0 bar": {
+			"Max Absolute Error": 3.08,
+            "Avg Absolute Error": 2.36,
+            "Max Percent Error": 9,
+            "Avg Percent Error": 7,
+            "R2": 0.999
+		},
+		"Han et al. 2013 - Figure 8, Inverse Mole Fraction vs. Axial Distance, P0 = 200.0 bar": {
+			"Max Absolute Error": 3.52,
+            "Avg Absolute Error": 2.28,
+            "Max Percent Error": 10,
+            "Avg Percent Error": 9,
+            "R2": 0.999
+		},
+		"Han et al. 2013 - Figure 8, Inverse Mole Fraction vs. Axial Distance, P0 = 300.0 bar": {
+			"Max Absolute Error": 2.99,
+            "Avg Absolute Error": 2.17,
+            "Max Percent Error": 12,
+            "Avg Percent Error": 11,
+            "R2": 0.998
+		},
+		"Han et al. 2013 - Figure 8, Inverse Mole Fraction vs. Axial Distance, P0 = 400.0 bar": {
+			"Max Absolute Error": 1.52,
+            "Avg Absolute Error": 0.78,
+            "Max Percent Error": 7,
+            "Avg Percent Error": 4,
+            "R2": 0.997
+		}
+	}
+}

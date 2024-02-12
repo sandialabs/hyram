@@ -1,5 +1,5 @@
 """
-Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -31,13 +31,16 @@ log = logging.getLogger(__name__)
 class PrintToLogger(object):
     def __init__(self, logfile):
         self.terminal = sys.stdout
-        self.log = open(logfile, "a")
+        self.writer = open(logfile, "a")
 
-    def write(self, message):
-        tm = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    def write(self, msg):
+        msg = str.strip(msg)
+        if msg == '':
+            return
+        msg = f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}  {msg}\n'
         if self.terminal is not None:
-            self.terminal.write(message)
-        self.log.write(f"{tm}    PRINT    {message}")
+            self.terminal.write(msg)
+        self.writer.write(msg)
 
 
 def setup(output_dir, verbose):
@@ -52,6 +55,7 @@ def setup(output_dir, verbose):
         Determine level of logging
     """
     logfilepath = utils.setup_file_log(output_dir, verbose=verbose, logname=__name__)
+    # send print statement output to logfile
     if verbose:
         sys.stdout = PrintToLogger(logfilepath)
 
@@ -153,7 +157,6 @@ def c_request_analysis(n_pipes, n_compressors, n_vessels, n_valves, n_instrument
     results = {"status": False, "data": None, "message": None}
 
     if type(rel_species) == dict:
-        # rel_species = misc_utils.parse_fluid_str_into_dict(rel_species)
         rel_species_cp_str = '&'.join(['%s[%f]' % (s, X) for s, X in zip(rel_species.keys(), rel_species.values())])
         major_species = utils.get_fluid_formula_from_blend_str(rel_species_cp_str)
     else:  # species is string
@@ -258,11 +261,6 @@ def c_request_analysis(n_pipes, n_compressors, n_vessels, n_valves, n_instrument
         # convert objects to dicts for C# consumption.
         leak_result_dicts = [res.to_dict() for res in analysis_dict['leak_results']]
         analysis_dict['leak_results'] = leak_result_dicts
-
-        if verbose:
-            log.info("\n LEAK RESULT DICTS:")
-            for leak_result_dict in leak_result_dicts:
-                log.info(json.dumps(leak_result_dict, sort_keys=True, indent=4))
 
         # Convert heat flux and overpressure to expected units in GUI
         analysis_dict['position_qrads'] /= 1000.  # kW/m2 from W/m2

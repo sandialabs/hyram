@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -48,6 +48,13 @@ namespace SandiaNationalLaboratories.Hyram
             OutputPlot.ContextMenuStrip = picMenu;
 
             RefreshForm();
+
+            var toolTip1 = new ToolTip
+            {
+                AutoPopDelay = 5000, InitialDelay = 1000, ReshowDelay = 500, ShowAlways = true
+            };
+            toolTip1.SetToolTip(ContoursLabel, "Separate multiple contour values with spaces");
+
             ParseUtility.PutDoubleArrayIntoTextBox(ContourInput, _state.TempContourLevels);
 
             _mIgnoreXyzChangeEvent = false;
@@ -172,7 +179,7 @@ namespace SandiaNationalLaboratories.Hyram
                 Regex.Replace(contourText, @"\s+", "");  // trim whitespace
                 if (contourText != "")
                 {
-                    contours = new List<double>(ParseUtility.GetArrayFromString(ContourInput.Text, ','));
+                    contours = new List<double>(ParseUtility.GetArrayFromString(ContourInput.Text, ' '));
                 }
 
                 _state.TempContourLevels = contours.ToArray();

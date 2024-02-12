@@ -1,0 +1,5 @@
+include src/hyram/README.md
+graft tests/hyram
+
+exclude README.md
+global-exclude */__pycache__/*

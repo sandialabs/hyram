@@ -54,7 +54,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.hDist2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.vDist1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.vDist2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.lblContourLevels = new System.Windows.Forms.Label();
+            this.ContourLabel = new System.Windows.Forms.Label();
             this.ContourInput = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.spinnerPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.InputGrid)).BeginInit();
@@ -363,14 +363,14 @@ namespace SandiaNationalLaboratories.Hyram {
             this.vDist2.Name = "vDist2";
             this.vDist2.ReadOnly = true;
             // 
-            // lblContourLevels
+            // ContourLabel
             // 
-            this.lblContourLevels.AutoSize = true;
-            this.lblContourLevels.Location = new System.Drawing.Point(6, 37);
-            this.lblContourLevels.Name = "lblContourLevels";
-            this.lblContourLevels.Size = new System.Drawing.Size(164, 13);
-            this.lblContourLevels.TabIndex = 95;
-            this.lblContourLevels.Text = "Contours (mole fraction, optional):";
+            this.ContourLabel.AutoSize = true;
+            this.ContourLabel.Location = new System.Drawing.Point(6, 37);
+            this.ContourLabel.Name = "ContourLabel";
+            this.ContourLabel.Size = new System.Drawing.Size(164, 13);
+            this.ContourLabel.TabIndex = 95;
+            this.ContourLabel.Text = "Contours (mole fraction, optional):";
             // 
             // ContourInput
             // 
@@ -385,7 +385,7 @@ namespace SandiaNationalLaboratories.Hyram {
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.Controls.Add(this.lblContourLevels);
+            this.Controls.Add(this.ContourLabel);
             this.Controls.Add(this.ContourInput);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.AutoSetLimits);
@@ -432,7 +432,7 @@ namespace SandiaNationalLaboratories.Hyram {
         private System.Windows.Forms.Label resultTipLabel;
         private System.Windows.Forms.Label contourGridLabel;
         private System.Windows.Forms.DataGridView contourGrid;
-        private System.Windows.Forms.Label lblContourLevels;
+        private System.Windows.Forms.Label ContourLabel;
         private System.Windows.Forms.TextBox ContourInput;
         private System.Windows.Forms.DataGridViewTextBoxColumn contour;
         private System.Windows.Forms.DataGridViewTextBoxColumn streamline;

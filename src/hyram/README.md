@@ -68,4 +68,4 @@ The models and equations used in the HyRAM+ Python package are described in the 
 
 ## Development/Modifications
 
-To make changes to the source code, either for a specific need or to contribute to HyRAM+, please follow the instructions in the [CONTRIBUTING](https://github.com/sandialabs/hyram/blob/master/src/hyram/CONTRIBUTING.md) file for the HyRAM+ Python package.
+To make changes to the source code, either for a specific need or to contribute to HyRAM+, please follow the instructions in the [CONTRIBUTING](https://github.com/sandialabs/hyram/blob/master/CONTRIBUTING.md) file for the HyRAM+ Python package.

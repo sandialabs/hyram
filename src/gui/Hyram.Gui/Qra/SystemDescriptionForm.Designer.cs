@@ -34,9 +34,6 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle16 = new System.Windows.Forms.DataGridViewCellStyle();
             this.tcSystemDescription = new System.Windows.Forms.TabControl();
             this.tpComponents = new System.Windows.Forms.TabPage();
-            this.SeedDescrip = new System.Windows.Forms.Label();
-            this.SeedLabel = new System.Windows.Forms.Label();
-            this.SeedInput = new System.Windows.Forms.TextBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.MassFlowLeakSizeSelector = new System.Windows.Forms.ComboBox();
             this.MassFlowInput = new System.Windows.Forms.TextBox();
@@ -83,6 +80,9 @@
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.OverridesGrid = new System.Windows.Forms.DataGridView();
             this.formWarning = new System.Windows.Forms.Label();
+            this.SeedDescrip = new System.Windows.Forms.Label();
+            this.SeedLabel = new System.Windows.Forms.Label();
+            this.SeedInput = new System.Windows.Forms.TextBox();
             this.tcSystemDescription.SuspendLayout();
             this.tpComponents.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -124,9 +124,6 @@
             // 
             // tpComponents
             // 
-            this.tpComponents.Controls.Add(this.SeedDescrip);
-            this.tpComponents.Controls.Add(this.SeedLabel);
-            this.tpComponents.Controls.Add(this.SeedInput);
             this.tpComponents.Controls.Add(this.groupBox4);
             this.tpComponents.Controls.Add(this.groupBox3);
             this.tpComponents.Controls.Add(this.groupBox2);
@@ -138,36 +135,6 @@
             this.tpComponents.TabIndex = 0;
             this.tpComponents.Text = "Components";
             this.tpComponents.UseVisualStyleBackColor = true;
-            // 
-            // SeedDescrip
-            // 
-            this.SeedDescrip.AutoSize = true;
-            this.SeedDescrip.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F);
-            this.SeedDescrip.ForeColor = System.Drawing.SystemColors.GrayText;
-            this.SeedDescrip.Location = new System.Drawing.Point(470, 405);
-            this.SeedDescrip.Name = "SeedDescrip";
-            this.SeedDescrip.Size = new System.Drawing.Size(338, 26);
-            this.SeedDescrip.TabIndex = 63;
-            this.SeedDescrip.Text = "Determines pseudo-random occupant positions in selected distribution.\r\nChange thi" +
-    "s between runs to generate new positions.";
-            // 
-            // SeedLabel
-            // 
-            this.SeedLabel.AutoSize = true;
-            this.SeedLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.SeedLabel.Location = new System.Drawing.Point(470, 363);
-            this.SeedLabel.Name = "SeedLabel";
-            this.SeedLabel.Size = new System.Drawing.Size(94, 16);
-            this.SeedLabel.TabIndex = 62;
-            this.SeedLabel.Text = "Random seed";
-            // 
-            // SeedInput
-            // 
-            this.SeedInput.Location = new System.Drawing.Point(473, 381);
-            this.SeedInput.Name = "SeedInput";
-            this.SeedInput.Size = new System.Drawing.Size(135, 21);
-            this.SeedInput.TabIndex = 61;
-            this.SeedInput.TextChanged += new System.EventHandler(this.SeedInput_TextChanged);
             // 
             // groupBox4
             // 
@@ -196,7 +163,7 @@
             this.MassFlowInput.Location = new System.Drawing.Point(146, 20);
             this.MassFlowInput.MinimumSize = new System.Drawing.Size(4, 23);
             this.MassFlowInput.Name = "MassFlowInput";
-            this.MassFlowInput.Size = new System.Drawing.Size(107, 23);
+            this.MassFlowInput.Size = new System.Drawing.Size(107, 21);
             this.MassFlowInput.TabIndex = 3;
             this.MassFlowInput.TextChanged += new System.EventHandler(this.MassFlowInput_TextChanged);
             // 
@@ -348,6 +315,9 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.SeedDescrip);
+            this.splitContainer1.Panel2.Controls.Add(this.SeedLabel);
+            this.splitContainer1.Panel2.Controls.Add(this.SeedInput);
             this.splitContainer1.Panel2.Controls.Add(this.WidthUnitSelector);
             this.splitContainer1.Panel2.Controls.Add(this.LengthUnitSelector);
             this.splitContainer1.Panel2.Controls.Add(this.label3);
@@ -398,9 +368,10 @@
             // label3
             // 
             this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label3.Location = new System.Drawing.Point(12, 248);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(144, 15);
+            this.label3.Size = new System.Drawing.Size(155, 16);
             this.label3.TabIndex = 37;
             this.label3.Text = "Facility width (z-direction)";
             // 
@@ -415,9 +386,10 @@
             // pressureInputLabel
             // 
             this.pressureInputLabel.AutoSize = true;
+            this.pressureInputLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.pressureInputLabel.Location = new System.Drawing.Point(12, 199);
             this.pressureInputLabel.Name = "pressureInputLabel";
-            this.pressureInputLabel.Size = new System.Drawing.Size(149, 15);
+            this.pressureInputLabel.Size = new System.Drawing.Size(161, 16);
             this.pressureInputLabel.TabIndex = 34;
             this.pressureInputLabel.Text = "Facility length (x-direction)";
             // 
@@ -585,9 +557,10 @@
             // lblExclusionRadius
             // 
             this.lblExclusionRadius.AutoSize = true;
+            this.lblExclusionRadius.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblExclusionRadius.Location = new System.Drawing.Point(12, 301);
             this.lblExclusionRadius.Name = "lblExclusionRadius";
-            this.lblExclusionRadius.Size = new System.Drawing.Size(119, 15);
+            this.lblExclusionRadius.Size = new System.Drawing.Size(127, 16);
             this.lblExclusionRadius.TabIndex = 11;
             this.lblExclusionRadius.Text = "Exclusion radius (m)";
             // 
@@ -661,6 +634,36 @@
             this.formWarning.Text = "Errors and warnings here";
             this.formWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // SeedDescrip
+            // 
+            this.SeedDescrip.AutoSize = true;
+            this.SeedDescrip.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F);
+            this.SeedDescrip.ForeColor = System.Drawing.SystemColors.GrayText;
+            this.SeedDescrip.Location = new System.Drawing.Point(12, 423);
+            this.SeedDescrip.Name = "SeedDescrip";
+            this.SeedDescrip.Size = new System.Drawing.Size(338, 26);
+            this.SeedDescrip.TabIndex = 66;
+            this.SeedDescrip.Text = "Determines pseudo-random occupant positions in selected distribution.\r\nChange thi" +
+    "s between runs to generate new positions.";
+            // 
+            // SeedLabel
+            // 
+            this.SeedLabel.AutoSize = true;
+            this.SeedLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SeedLabel.Location = new System.Drawing.Point(12, 381);
+            this.SeedLabel.Name = "SeedLabel";
+            this.SeedLabel.Size = new System.Drawing.Size(94, 16);
+            this.SeedLabel.TabIndex = 65;
+            this.SeedLabel.Text = "Random seed";
+            // 
+            // SeedInput
+            // 
+            this.SeedInput.Location = new System.Drawing.Point(15, 399);
+            this.SeedInput.Name = "SeedInput";
+            this.SeedInput.Size = new System.Drawing.Size(135, 21);
+            this.SeedInput.TabIndex = 64;
+            this.SeedInput.TextChanged += new System.EventHandler(this.SeedInput_TextChanged);
+            // 
             // SystemDescriptionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -671,7 +674,6 @@
             this.Size = new System.Drawing.Size(1154, 595);
             this.tcSystemDescription.ResumeLayout(false);
             this.tpComponents.ResumeLayout(false);
-            this.tpComponents.PerformLayout();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             this.groupBox3.ResumeLayout(false);

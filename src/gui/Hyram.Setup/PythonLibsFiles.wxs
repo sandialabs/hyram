@@ -2,6 +2,7 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Fragment>
         <DirectoryRef Id="HyramPythonLib">
+            <Directory Id="dirA6151493DF366DF36075FEE5158A7F67" Name=".idea" />
             <Directory Id="dir0D483AFE08CE557B8028AEB9CD311670" Name="phys" />
             <Directory Id="dir16BC304A3C66D86CD856D11DC8C19ACD" Name="qra" />
             <Directory Id="dir58DED0CFFB88F0977458E19277C40386" Name="utilities" />
@@ -9,8 +10,35 @@
     </Fragment>
     <Fragment>
         <ComponentGroup Id="PythonLibsComponentGroup">
+            <Component Id="cmpC41547B10A92B27ED12B4A3CCAE862BB" Directory="HyramPythonLib" Guid="*">
+                <File Id="filEF608475507A8664A780B194A59E6E6C" KeyPath="yes" Source="$(var.PythonLibsDir)\README.md" />
+            </Component>
             <Component Id="cmpEC67949288AE6F25D20C28583C4CC5A5" Directory="HyramPythonLib" Guid="*">
                 <File Id="filF37195ABC4BEBC08EBB96B17BEE9B264" KeyPath="yes" Source="$(var.PythonLibsDir)\__init__.py" />
+            </Component>
+            <Component Id="cmpD62D0CF7572201963DAA514F05D0D19A" Directory="dirA6151493DF366DF36075FEE5158A7F67" Guid="*">
+                <File Id="fil63E97A48D842BEF98778D3BEDE31E0E5" KeyPath="yes" Source="$(var.PythonLibsDir)\.idea\hyram.iml" />
+            </Component>
+            <Component Id="cmp47B0DE264F014E4A52DD26A7AE7851C8" Directory="dirA6151493DF366DF36075FEE5158A7F67" Guid="*">
+                <File Id="fil7F5EC25A005977F402FE96CE0A84301A" KeyPath="yes" Source="$(var.PythonLibsDir)\.idea\misc.xml" />
+            </Component>
+            <Component Id="cmpB3E549375311EB0A1BFD79E483F541F6" Directory="dirA6151493DF366DF36075FEE5158A7F67" Guid="*">
+                <File Id="fil27EE8227285E5E68CFFCC9AA64B340EC" KeyPath="yes" Source="$(var.PythonLibsDir)\.idea\modules.xml" />
+            </Component>
+            <Component Id="cmp4709E469E196B875C2AAF342EB939DD2" Directory="dirA6151493DF366DF36075FEE5158A7F67" Guid="*">
+                <File Id="filEBF22847F0D9D65D56CB326216CF53D6" KeyPath="yes" Source="$(var.PythonLibsDir)\.idea\other.xml" />
+            </Component>
+            <Component Id="cmp6DFA719F69AC1A068BEB2B664B24CA71" Directory="dirA6151493DF366DF36075FEE5158A7F67" Guid="*">
+                <File Id="fil16F6A4D4C4A077C21C3314780651BB02" KeyPath="yes" Source="$(var.PythonLibsDir)\.idea\vcs.xml" />
+            </Component>
+            <Component Id="cmpE25EAE3E7D5C68ABD6C85F15F30D7EC1" Directory="dirA6151493DF366DF36075FEE5158A7F67" Guid="*">
+                <File Id="filCFE01A1C2963C0C367F98146B6923B3B" KeyPath="yes" Source="$(var.PythonLibsDir)\.idea\workspace.xml" />
+            </Component>
+            <Component Id="cmpFFE70A5B66F6EA09381B4546B6869DA7" Directory="dir0750E0AC4D5F8DF65D3F40001C5C7436" Guid="*">
+                <File Id="fil603AE7D19DD67001FEFD0041CBE30F30" KeyPath="yes" Source="$(var.PythonLibsDir)\.idea\dictionaries\ctasi.xml" />
+            </Component>
+            <Component Id="cmpA9314CB6410FA4C554D1A26EED0821DF" Directory="dir2DED21B0951A466BD1165B73A57BD85C" Guid="*">
+                <File Id="fil99EEE1F0A66979B7A3674C3BF69D2099" KeyPath="yes" Source="$(var.PythonLibsDir)\.idea\inspectionProfiles\profiles_settings.xml" />
             </Component>
             <Component Id="cmp5427BCA2D5E4A13560CE6DB9BA68C426" Directory="dir0D483AFE08CE557B8028AEB9CD311670" Guid="*">
                 <File Id="fil3B18815DB7035F6519BC5AD23732D926" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\api.py" />
@@ -41,9 +69,6 @@
             </Component>
             <Component Id="cmp32A3CF2371A9A6912FA21E4B82AAE4B7" Directory="dir0D483AFE08CE557B8028AEB9CD311670" Guid="*">
                 <File Id="filA19240E3232909277C73ED1381408A77" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\_plots.py" />
-            </Component>
-            <Component Id="cmp531059FEE0BE86F9470185BB13D71AD7" Directory="dir0D483AFE08CE557B8028AEB9CD311670" Guid="*">
-                <File Id="fil675EFF95FE098678B811C00332BDB2B3" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\_pool.py" />
             </Component>
             <Component Id="cmpA81A46BB276E5166D621602D0D5F4743" Directory="dir0D483AFE08CE557B8028AEB9CD311670" Guid="*">
                 <File Id="filCFDA90A0CC2626BA32F9E2AEC6336B24" KeyPath="yes" Source="$(var.PythonLibsDir)\phys\_therm.py" />
@@ -121,6 +146,16 @@
                 <File Id="filCF1DDD38E6D1606EA7A3442BAE6C4E3C" KeyPath="yes" Source="$(var.PythonLibsDir)\utilities\__init__.py" />
             </Component>
         </ComponentGroup>
+    </Fragment>
+    <Fragment>
+        <DirectoryRef Id="dirA6151493DF366DF36075FEE5158A7F67">
+            <Directory Id="dir0750E0AC4D5F8DF65D3F40001C5C7436" Name="dictionaries" />
+        </DirectoryRef>
+    </Fragment>
+    <Fragment>
+        <DirectoryRef Id="dirA6151493DF366DF36075FEE5158A7F67">
+            <Directory Id="dir2DED21B0951A466BD1165B73A57BD85C" Name="inspectionProfiles" />
+        </DirectoryRef>
     </Fragment>
     <Fragment>
         <DirectoryRef Id="dir16BC304A3C66D86CD856D11DC8C19ACD">

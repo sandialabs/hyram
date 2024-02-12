@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Fragment>
-        <DirectoryRef Id="PythonCsApi">
-            <Directory Id="dir13DCFF43A8F1744F9025965FA9CC8DE5" Name="tests" />
-        </DirectoryRef>
+        <DirectoryRef Id="PythonCsApi" />
     </Fragment>
     <Fragment>
         <ComponentGroup Id="PythonCsApiComponentGroup">
@@ -24,24 +22,6 @@
             </Component>
             <Component Id="cmp1B22E51ADAAE821A93E0991A0F210399" Directory="PythonCsApi" Guid="*">
                 <File Id="fil83EB68A4F1FF09C7338764DD44FB74E6" KeyPath="yes" Source="$(var.PythonCsApiDir)\__init__.py" />
-            </Component>
-            <Component Id="cmpD7F7B8F55E83A99AF258E91F0EA36045" Directory="dir13DCFF43A8F1744F9025965FA9CC8DE5" Guid="*">
-                <File Id="fil90A0C84131AB4FF61568533428B581FB" KeyPath="yes" Source="$(var.PythonCsApiDir)\tests\test_c_api_etk.py" />
-            </Component>
-            <Component Id="cmp97A059C14B25CBA2072C7197A69FF4E9" Directory="dir13DCFF43A8F1744F9025965FA9CC8DE5" Guid="*">
-                <File Id="filA54D00EDC1E56A580BB44DD280D1F132" KeyPath="yes" Source="$(var.PythonCsApiDir)\tests\test_c_api_jet_plume.py" />
-            </Component>
-            <Component Id="cmp37EA7D90E6AE1CCB507B193D0C9AB8A8" Directory="dir13DCFF43A8F1744F9025965FA9CC8DE5" Guid="*">
-                <File Id="fil71FF32CE4EDD93537BF3F9A2C67304CB" KeyPath="yes" Source="$(var.PythonCsApiDir)\tests\test_c_api_overpressure.py" />
-            </Component>
-            <Component Id="cmp4E442913EEEFA1482194599D1BCE3AF8" Directory="dir13DCFF43A8F1744F9025965FA9CC8DE5" Guid="*">
-                <File Id="fil0C060CA93D1592F8BB9B1ACF7184DC6C" KeyPath="yes" Source="$(var.PythonCsApiDir)\tests\test_c_api_phys.py" />
-            </Component>
-            <Component Id="cmp9AAD33652C2924088635A046EF8AB6F2" Directory="dir13DCFF43A8F1744F9025965FA9CC8DE5" Guid="*">
-                <File Id="fil529377B43CB078279EF7929AD66A770B" KeyPath="yes" Source="$(var.PythonCsApiDir)\tests\test_c_api_qra.py" />
-            </Component>
-            <Component Id="cmp0C72E5FDEFD5C43A9807A36605A0E3E0" Directory="dir13DCFF43A8F1744F9025965FA9CC8DE5" Guid="*">
-                <File Id="fil247D1A1D3A5DB1B75B9F465488376B4A" KeyPath="yes" Source="$(var.PythonCsApiDir)\tests\__init__.py" />
             </Component>
         </ComponentGroup>
     </Fragment>

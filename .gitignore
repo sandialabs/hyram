@@ -5,6 +5,7 @@
 python/
 
 **/temp/
+**/out/
 
 ## Standard python ignore settings
 # Byte-compiled / optimized / DLL files

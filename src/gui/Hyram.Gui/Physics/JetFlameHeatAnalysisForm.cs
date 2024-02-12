@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -126,7 +126,7 @@ namespace SandiaNationalLaboratories.Hyram
                 var numZElems = CountElements(LocZInput.Text);
                 if (!(numZElems == numYElems && numZElems == numXElems))
                 {
-                    warningText = "X, Y, Z flux arrays must be the same size";
+                    warningText = "X, Y, Z flux lists must have the same number of elements";
                     showWarning = true;
                 }
                 lblXElemCount.Text = numXElems + " elements";
@@ -206,9 +206,9 @@ namespace SandiaNationalLaboratories.Hyram
         {
             if (!_mIgnoreXyzChangeEvent)
             {
-                var xValues = ParseUtility.GetArrayFromString(LocXInput.Text, ',');
-                var yValues = ParseUtility.GetArrayFromString(LocYInput.Text, ',');
-                var zValues = ParseUtility.GetArrayFromString(LocZInput.Text, ',');
+                var xValues = ParseUtility.GetArrayFromString(LocXInput.Text, ' ');
+                var yValues = ParseUtility.GetArrayFromString(LocYInput.Text, ' ');
+                var zValues = ParseUtility.GetArrayFromString(LocZInput.Text, ' ');
                 if (xValues.Length == yValues.Length && yValues.Length == zValues.Length && zValues.Length > 0)
                 {
                     _state.RadiativeFluxX = xValues;
@@ -221,7 +221,7 @@ namespace SandiaNationalLaboratories.Hyram
 
         private int CountElements(string textToParse)
         {
-            var values = textToParse.Trim().Split(',');
+            var values = textToParse.Trim().Split(' ');
             return values.Length;
         }
 
@@ -310,7 +310,7 @@ namespace SandiaNationalLaboratories.Hyram
                 Regex.Replace(contourText, @"\s+", "");  // trim whitespace
                 if (contourText != "")
                 {
-                    contours = new List<double>(ParseUtility.GetArrayFromString(ContourInput.Text, ','));
+                    contours = new List<double>(ParseUtility.GetArrayFromString(ContourInput.Text, ' '));
                 }
 
                 _state.FlameContourLevels = contours.ToArray();

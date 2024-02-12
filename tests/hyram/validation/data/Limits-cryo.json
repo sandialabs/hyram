@@ -1,0 +1,46 @@
+{
+	"Test_LabCryoData": {
+		"Lab Cryo Data - Flamelength": {
+            "Max Absolute Error": 0.20,
+            "Avg Absolute Error": 0.12,
+            "Max Percent Error": 81,
+            "Avg Percent Error": 35,
+            "R2": 0.929
+        },
+		"Lab Cryo Data - Heatflux, Axial Distance = 0.064 m": {
+			"Max Absolute Error": 353,
+            "Avg Absolute Error": 153,
+            "Max Percent Error": 43,
+            "Avg Percent Error": 21,
+            "R2": 0.946
+		},
+		"Lab Cryo Data - Heatflux, Axial Distance = 0.22 m": {
+			"Max Absolute Error": 750,
+            "Avg Absolute Error": 306,
+            "Max Percent Error": 54,
+            "Avg Percent Error": 30,
+            "R2": 0.939
+		},
+		"Lab Cryo Data - Heatflux, Axial Distance = 0.32 m": {
+			"Max Absolute Error": 647,
+            "Avg Absolute Error": 202,
+            "Max Percent Error": 45,
+            "Avg Percent Error": 18,
+            "R2": 0.954
+		},
+		"Lab Cryo Data - Heatflux, Axial Distance = 0.42 m": {
+			"Max Absolute Error": 765,
+            "Avg Absolute Error": 281,
+            "Max Percent Error": 54,
+            "Avg Percent Error": 30,
+            "R2": 0.977
+		},
+		"Lab Cryo Data - Heatflux, Axial Distance = 0.65 m": {
+			"Max Absolute Error": 1100,
+            "Avg Absolute Error": 97,
+            "Max Percent Error": 67,
+            "Avg Percent Error": 16,
+            "R2": 0.932
+		}
+	}
+}

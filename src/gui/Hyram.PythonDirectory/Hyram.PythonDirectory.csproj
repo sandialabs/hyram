@@ -102,11 +102,8 @@ del "$(TargetDir)\pylibs\*.pyc" /q /s
 del "$(TargetDir)\python\*.pyc" /q /s
 
 
-echo "CLEARING TEST DIRECTORIES"
-rd "$(TargetDir)\pylibs\hyram\tests" /q /s
+echo "CLEARING IDE DIRECTORIES"
 rd "$(TargetDir)\pylibs\hyram\.idea" /q /s
-
-rd "$(TargetDir)\pylibs\cs_api\tests" /q /s
 rd "$(TargetDir)\pylibs\cs_api\.idea" /q /s
 
 echo "=== POST-BUILD EVENTS COMPLETE ==="</PostBuildEvent>
@@ -115,12 +112,17 @@ echo "=== POST-BUILD EVENTS COMPLETE ==="</PostBuildEvent>
     <PreBuildEvent>echo "=== PRE-BUILD EVENTS ==="
 
 echo "CLEARING TEST IMAGES AND LOGS"
-del "$(ProjectDir)\..\..\hyram\tests\*.png" /q /s
-del "$(ProjectDir)\..\..\hyram\tests\temp\*.log" /q /s
-del "$(ProjectDir)\..\..\hyram\tests\temp\*.txt" /q /s
-del "$(ProjectDir)\..\..\cs_api\tests\temp\*.png" /q /s
-del "$(ProjectDir)\..\..\cs_api\tests\temp\*.log" /q /s
-del "$(ProjectDir)\..\..\cs_api\tests\temp\*.txt" /q /s
+del "$(ProjectDir)\..\..\..\tests\hyram\phys\out\*" /q /s
+del "$(ProjectDir)\..\..\..\tests\hyram\phys\temp\*" /q /s
+
+del "$(ProjectDir)\..\..\..\tests\hyram\qra\out\*" /q /s
+del "$(ProjectDir)\..\..\..\tests\hyram\qra\temp\*" /q /s
+
+del "$(ProjectDir)\..\..\..\tests\hyram\validation\out\*" /q /s
+del "$(ProjectDir)\..\..\..\tests\hyram\validation\temp\*" /q /s
+
+del "$(ProjectDir)\..\..\..\tests\cs_api\out\*" /q /s
+del "$(ProjectDir)\..\..\..\tests\cs_api\temp\*" /q /s
 
 echo "CLEARING .pyc FILES"
 del "$(ProjectDir)\..\..\hyram\*.pyc" /q /s

@@ -20,11 +20,13 @@ For any significant changes made to the source code, it is expected that the cha
 &nbsp;&nbsp;[B.5 Misc. Notes](#c-notes)<br>
 
 [C. Python HyRAM+ Module Development](#py-dev)<br>
-&nbsp;&nbsp;[C.1 Module Layout](#py-layout)<br>
+&nbsp;&nbsp;[C.1 Package Layout](#py-layout)<br>
+&nbsp;&nbsp;[C.2 Installation](#py-install)<br>
 
 [D. Python HyRAM+ Usage](#py-usage)<br>
 &nbsp;&nbsp;[D.1 As C# Backend](#py-usage-c)<br>
 &nbsp;&nbsp;[D.2 As standalone Python module](#py-usage-py)<br>
+&nbsp;&nbsp;[D.3 Changelog](#py-changelog)<br>
 
 
 
@@ -36,32 +38,37 @@ Source code is organized as follows:
 ```
 $
 ├───build
-└───src
-    ├───gui
-    │   ├───Hyram.gui
-    │   ├───Hyram.PythonApi
-    │   ├───Hyram.PythonDirectory
-    │   │   └───python interpreter
-    │   ├───Hyram.State
-    │   ├───Hyram.Units
-    │   ├───Hyram.Utilities
-    │   ├───Hyram.Setup
-    │   └───Hyram.SetupBootstrapper
+├───src
+│   ├───cs_api
+│   ├───gui
+│   │   ├───Hyram.gui
+│   │   ├───Hyram.PythonApi
+│   │   ├───Hyram.PythonDirectory
+│   │   │   └───python interpreter
+│   │   ├───Hyram.State
+│   │   ├───Hyram.Units
+│   │   ├───Hyram.Utilities
+│   │   ├───Hyram.Setup
+│   │   └───Hyram.SetupBootstrapper
+│   └───hyram
+│       ├───phys
+│       ├───qra
+│       └───utilities
+└───tests
     ├───cs_api
     └───hyram
-        ├───tests
-        └───hyram
-            ├───phys
-            ├───qra
-            └───utilities
+        ├───phys
+        ├───qra
+        └───validation
 ```
 
 * `src` - Project source code under version control, including C# GUI and python package.
+* `src/cs_api` - python functions providing C# access to HyRAM+ python code via the python.NET library.
 * `src/gui` - Front-end C# user interface, including MSVS Solution and C# projects.
     * The python interpreter is installed in `gui/Hyram.PythonDirectory` and should *not* be added to version control.
 * `src/hyram` - Python module of HyRAM+ tools including physics, quantitative risk assessment, and miscellaneous utilities.
-* `src/cs_api` - python functions providing C# access to HyRAM+ python code via the python.NET library.
-* `build` - should be located alongside the source directory to contain C# build files excluded from version control.
+* `build` - located alongside the source directory to contain C# build files excluded from version control.
+* `tests` - automated tests both both C# API (`cs_api`) and HyRAM+ (`hyram`) packages.
 
 
 <a name="c-gui">&nbsp;</a>
@@ -332,20 +339,38 @@ In some cases you can set the target to Any CPU after doing the above, and the d
 <a name="py-dev">&nbsp;</a>
 # C. Python HyRAM+ Module Development
 
-This section describes the layout, usage, and front-end integration of the Python HyRAM+ module. For more information about the installation, use, and developement of the Python HyRAM+ module specifically, see the [README](./src/hyram/README.md) file in the `src/hyram` directory.
+This section describes the layout, usage, and front-end integration of the Python HyRAM+ module. 
+The complete package source code can be cloned from the [HyRAM+ Github page](https://github.com/sandialabs/hyram).
+
+The standalone Python package source code can also be downloaded from [PyPI](https://pypi.org/project/hyram/#files) or from [Conda-Forge](https://anaconda.org/conda-forge/hyram/files).
+
+For more information about the installation, use, and developement of the Python HyRAM+ module specifically, see the [README](./src/hyram/README.md) file in the `src/hyram` directory.
 
 <a name="py-layout">&nbsp;</a>
 ## C.1 Module Layout
 HyRAM+ primarily consists of two sub-modules: physics and qra.
 
     ├───hyram
-    │   ├───phys
-    │   ├───qra
-    │   └───utilities
+        ├───phys
+        ├───qra
+        └───utilities
 
 C# access to these modules is provided by the sibling `cs_api` directory and code.
 The physics sub-module includes a `api.py` file for interacting with the main function calls programmatically.
 The quantitative risk analysis algorithm can be found in `qra/analysis.py`.
+
+<a name="py-install">&nbsp;</a>
+## C.2 Installation
+
+It is recommended to install the HyRAM+ source code to your Python environment as a symbolic link for modifications/development.
+This way, when local modifications are made, there is no need to reinstall the Python package.
+This is especially useful with the `%load_ext autoreload` and `%autorelaod 2` commands in iPython/Jupyter Notebooks.
+
+To install as a symbolic link, use this command in the repository root directory (where the `pyproject.toml` file is located):
+
+~~~~ 
+pip install -e .
+~~~~
 
 
 
@@ -353,7 +378,6 @@ The quantitative risk analysis algorithm can be found in `qra/analysis.py`.
 # D. Python HyRAM+ Usage
 HyRAM+ can be utilized as a C# backend with Python.NET, or independently via Python as a standalone module.
 C# calls via python.NET utilize the `phys` and `qra` wrapper code found in the `cs_api` directory.
-
 
 
 <a name="py-usage-c">&nbsp;</a>
@@ -386,4 +410,3 @@ Refer to existing functions for reference.
 QRA analysis can be executed via command-line through the `qra/analysis.py` file.
 Physics analyses can be conducted via the `phys/api.py` file.
 See the analysis function docstring for details and guidance.
-

@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -31,12 +31,13 @@ namespace SandiaNationalLaboratories.Hyram
                 return;
             }
             string result = null;
-            string format = "0.####";
-            string delimiter = ",";
+            // string format = "0.####";
+            string delimiter = " ";
             foreach (var thisValue in arrayWithData)
             {
                 string stringValue = null;
-                stringValue = thisValue.ToString(format, new CultureInfo("en-US"));
+                // stringValue = thisValue.ToString(new CultureInfo("es-ES"));
+                stringValue = thisValue.ToString();
 
                 if (result == null)
                     result = stringValue;
@@ -44,7 +45,7 @@ namespace SandiaNationalLaboratories.Hyram
                     result += delimiter + stringValue;
             }
 
-            tb.Text = result.Replace(",", ", ");
+            tb.Text = result;
         }
 
         public static double[] GetArrayFromString(string delimitedString, char delimiter)
@@ -56,7 +57,10 @@ namespace SandiaNationalLaboratories.Hyram
             {
                 result[index] = double.NaN;
 
-                if (double.TryParse(values[index], out double parsedValue)) result[index] = parsedValue;
+                if (double.TryParse(values[index], out double parsedValue))
+                {
+                    result[index] = parsedValue;
+                }
             }
 
             return result;

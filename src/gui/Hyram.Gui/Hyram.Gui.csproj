@@ -119,10 +119,10 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MainFormPanels\SharedStateForm.cs">
+    <Compile Include="SharedStateForm.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="MainFormPanels\SharedStateForm.Designer.cs">
+    <Compile Include="SharedStateForm.Designer.cs">
       <DependentUpon>SharedStateForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Physics\PoolingForm.cs">
@@ -286,7 +286,7 @@
     <None Include="Resources\BannerLogov2Thin2.jpg" />
     <Content Include="Resources\hyram_bigtitle.jpg" />
     <Content Include="Resources\CopyrightFormatted.rtf" />
-    <EmbeddedResource Include="MainFormPanels\SharedStateForm.resx">
+    <EmbeddedResource Include="SharedStateForm.resx">
       <DependentUpon>SharedStateForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Physics\PoolingForm.resx">

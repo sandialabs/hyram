@@ -4,7 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [5.1.0] - 2023-12-4
+## [5.1.1] - 2024-02-08
+
+### Changed
+- Re-organized source code to simplify repository structure
+- Changed delimiter of list-based inputs in the GUI to a space (' ') instead of a comma (',') to improve compatibility for international users
+- Fixed bug with empty temp folder being created when not needed
+- Renamed 'temp' folder to 'out'
+- Fixed typo in package keywords
+- Fixed R-squared calculation in validation tests
+- Updated validation test criteria for 5.1
+- Fixed a bug with QRA immediate and delayed ignition probabilities processing values of 0 and 1 in the GUI
+- Ambient temperature input now retains its label when a saturated phase is selected
+- Updated copyright year in source files
+
+
+## [5.1.0] - 2023-12-04
 
 ### Added
 - Added ability to output streamline and x-/y-distances to mole fractions to unignited plume

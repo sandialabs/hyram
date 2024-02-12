@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -145,13 +145,11 @@ namespace SandiaNationalLaboratories.Hyram
             if (_state.FuelFlowUnchoked())
             {
                 MassFlowInput.Enabled = true;
-//                massFlowLabel.Visible = true;
                 MassFlowInput.Text = _state.FluidMassFlow.ToString();
             }
             else
             {
                 MassFlowInput.Enabled = false;
-//                massFlowLabel.Visible = false;
                 MassFlowInput.Text = "";
             }
 
@@ -163,7 +161,7 @@ namespace SandiaNationalLaboratories.Hyram
                 var numZElems = CountElements(LocZInput.Text);
                 if (!(numZElems == numYElems && numZElems == numXElems))
                 {
-                    alertText = "X, Y, Z location arrays must be the same size";
+                    alertText = "X, Y, Z location lists must have the same number of elements";
                     alertType = 2;
                 }
                 XCountLabel.Text = numXElems + " elements";
@@ -275,12 +273,9 @@ namespace SandiaNationalLaboratories.Hyram
         {
             if (!_mIgnoreXyzChangeEvent)
             {
-                var xValues =
-                    ExtractFloatArrayFromDelimitedString(LocXInput.Text, ',');
-                var yValues =
-                    ExtractFloatArrayFromDelimitedString(LocYInput.Text, ',');
-                var zValues =
-                    ExtractFloatArrayFromDelimitedString(LocZInput.Text, ',');
+                var xValues = ExtractFloatArrayFromDelimitedString(LocXInput.Text, ' ');
+                var yValues = ExtractFloatArrayFromDelimitedString(LocYInput.Text, ' ');
+                var zValues = ExtractFloatArrayFromDelimitedString(LocZInput.Text, ' ');
                 if (xValues.Length == yValues.Length && yValues.Length == zValues.Length && zValues.Length > 0)
                 {
                     _state.OverpressureX = xValues;
@@ -293,7 +288,7 @@ namespace SandiaNationalLaboratories.Hyram
 
         private int CountElements(string textToParse)
         {
-            var values = textToParse.Trim().Split(',');
+            var values = textToParse.Trim().Split(' ');
             return values.Length;
         }
 
@@ -393,7 +388,7 @@ namespace SandiaNationalLaboratories.Hyram
                 Regex.Replace(contourText, @"\s+", "");  // trim whitespace
                 if (contourText != "")
                 {
-                    overpContours = new List<double>(ExtractFloatArrayFromDelimitedString(OverpContourInput.Text, ','));
+                    overpContours = new List<double>(ExtractFloatArrayFromDelimitedString(OverpContourInput.Text, ' '));
                 }
 
                 _state.OverpressureContours = overpContours.ToArray();
@@ -409,7 +404,7 @@ namespace SandiaNationalLaboratories.Hyram
                 Regex.Replace(contourText, @"\s+", "");  // trim whitespace
                 if (contourText != "")
                 {
-                    impulseContours = new List<double>(ExtractFloatArrayFromDelimitedString(ImpulseContourInput.Text, ','));
+                    impulseContours = new List<double>(ExtractFloatArrayFromDelimitedString(ImpulseContourInput.Text, ' '));
                 }
 
                 _state.ImpulseContours = impulseContours.ToArray();

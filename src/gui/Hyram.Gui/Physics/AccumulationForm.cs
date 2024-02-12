@@ -1,5 +1,5 @@
 ﻿/*
-Copyright 2015-2023 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S.Government retains certain
 rights in this software.
 
@@ -75,6 +75,12 @@ namespace SandiaNationalLaboratories.Hyram
             TrajectoryPlot.ContextMenuStrip = picMenu;
             MassFlowPlot.ContextMenuStrip = picMenu;
             LayerPlot.ContextMenuStrip = picMenu;
+
+            var toolTip1 = new ToolTip
+            {
+                AutoPopDelay = 5000, InitialDelay = 1000, ReshowDelay = 500, ShowAlways = true
+            };
+            toolTip1.SetToolTip(PlotTimesLabel, "Separate values with spaces");
 
             RefreshForm();
         }
@@ -485,7 +491,7 @@ namespace SandiaNationalLaboratories.Hyram
         }
         private static double[] ExtractArrayFromTextbox(TextBox tb)
         {
-            var sResult = tb.Text.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+            var sResult = tb.Text.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
             var result = new double[sResult.Length];
             for (var index = 0; index < result.Length; index++)
             {
