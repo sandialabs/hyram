@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<installer-gui-script minSpecVersion="1">
+    <title>APPNAME</title>
+    <welcome file="welcome.html"/>
+    <conclusion file="conclusion.html"/>
+    <background alignment="bottomleft" file="osx_installer_logo.png"/>
+    <domains enable_localSystem="true"/>
+
+    <pkg-ref id="com.SandiaNationalLaboratories.APPNAME"/>
+    <options customize="never" require-scripts="false" hostArchitectures="x86_64,arm64" rootVolumeOnly="true"/>
+    <license file="license.html" />
+
+    <choices-outline>
+        <line choice="default">
+            <line choice="com.SandiaNationalLaboratories.APPNAME"/>
+        </line>
+    </choices-outline>
+
+    <choice id="default"/>
+    <choice id="com.SandiaNationalLaboratories.APPNAME" visible="false">
+        <pkg-ref id="com.SandiaNationalLaboratories.APPNAME"/>
+    </choice>
+    <pkg-ref id="com.SandiaNationalLaboratories.APPNAME" version="v1.1.0" onConclusion="none">build-APPNAME.pkg</pkg-ref>
+
+
+</installer-gui-script>

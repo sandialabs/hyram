@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -14,13 +14,9 @@ import numpy as np
 from scipy.constants import milli, kilo, liter, bar, pi, minute
 
 from hyram.phys import Fluid, Orifice, Jet
-from hyram.utilities import misc_utils
 
 from . import utils
 
-"""
-NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
-"""
 
 # Flags to enable command line output, pyplots, and text file output
 VERBOSE = False
@@ -29,9 +25,8 @@ CREATE_OUTPUT = False
 
 # Absolute paths to input/output data
 DATA_LOC = os.path.join(os.path.dirname(__file__), 'data')
-OUTPUT_LOC = os.path.join(misc_utils.get_temp_folder(), 'validation-jetplume')
-OUTPUT_FILE = os.path.join(OUTPUT_LOC, 'Validation.txt')
 LIMITS_FILE = os.path.join(DATA_LOC, 'Limits-jetplume.json')
+OUTPUT_LOC = os.path.join('out', 'validation-jetplume')
 
 
 class Test_Molkov_2012(unittest.TestCase):
@@ -100,7 +95,7 @@ class Test_Molkov_2012(unittest.TestCase):
                                     error_limits=error_limits,
                                     units='',
                                     msg=title,
-                                    output_filename=OUTPUT_FILE,
+                                    output_dir=OUTPUT_LOC,
                                     create_output=CREATE_OUTPUT,
                                     verbose=VERBOSE)
 
@@ -188,7 +183,7 @@ class Test_HoufSchefer_2008_fig5(unittest.TestCase):
                                     error_limits=error_limits,
                                     units='',
                                     msg=title,
-                                    output_filename=OUTPUT_FILE,
+                                    output_dir=OUTPUT_LOC,
                                     create_output=CREATE_OUTPUT,
                                     verbose=VERBOSE)
 
@@ -260,7 +255,7 @@ class Test_HoufSchefer_2008_fig8(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -337,7 +332,7 @@ class Test_HoufSchefer_2008_fig9(unittest.TestCase):
                                     error_limits=error_limits,
                                     units='',
                                     msg=title,
-                                    output_filename=OUTPUT_FILE,
+                                    output_dir=OUTPUT_LOC,
                                     create_output=CREATE_OUTPUT,
                                     verbose=VERBOSE)
 
@@ -415,7 +410,7 @@ class Test_RugglesEkoto_2012(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -451,7 +446,7 @@ class Test_RugglesEkoto_2012(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='mm',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -537,7 +532,7 @@ class Test_Han_2013_fig3(unittest.TestCase):
                                         error_limits=error_limits,
                                         units='',
                                         msg=title,
-                                        output_filename=OUTPUT_FILE,
+                                        output_dir=OUTPUT_LOC,
                                         create_output=CREATE_OUTPUT,
                                         verbose=VERBOSE)
 
@@ -628,7 +623,7 @@ class Test_Han_2013_fig6(unittest.TestCase):
                                         error_limits=error_limits,
                                         units='m',
                                         msg=title,
-                                        output_filename=OUTPUT_FILE,
+                                        output_dir=OUTPUT_LOC,
                                         create_output=CREATE_OUTPUT,
                                         verbose=VERBOSE)
 
@@ -704,7 +699,7 @@ class Test_Han_2013_fig7(unittest.TestCase):
                                     error_limits=error_limits,
                                     units='',
                                     msg=title,
-                                    output_filename=OUTPUT_FILE,
+                                    output_dir=OUTPUT_LOC,
                                     create_output=CREATE_OUTPUT,
                                     verbose=VERBOSE)
 
@@ -784,7 +779,7 @@ class Test_Han_2013_fig8(unittest.TestCase):
                                     error_limits=error_limits,
                                     units='',
                                     msg=title,
-                                    output_filename=OUTPUT_FILE,
+                                    output_dir=OUTPUT_LOC,
                                     create_output=CREATE_OUTPUT,
                                     verbose=VERBOSE)
 

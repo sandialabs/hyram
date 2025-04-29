@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -20,7 +20,7 @@ def calc_pipe_inner_diameter(pipe_outer_diameter, pipe_wall_thickness):
 
     pipe_wall_thickness : float
         Wall thickness of pipe
-    
+
     Returns
     -------
     pipe_inner_diameter : float
@@ -38,7 +38,7 @@ def calc_pipe_flow_area(pipe_inner_diameter):
     ----------
     pipe_inner_diameter : float
         Inner diameter of pipe
-    
+
     Returns
     -------
     pipe_flow_area : float

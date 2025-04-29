@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -56,6 +56,14 @@ class TestJetObject(unittest.TestCase):
     def test_get_xy_distances_to_multiple_molefracs(self):
         mole_fractions = [0.04, 0.1]
         distances = self.jet_obj.get_xy_distances_to_mole_fractions(mole_fractions)
-        self.assertGreater(list(distances.keys())[1], list(distances.keys())[0])
-        self.assertGreater(distances[mole_fractions[0]][0][1],
-                           distances[mole_fractions[1]][0][1])
+        for mole_frac in mole_fractions:
+            self.assertIn(mole_frac, distances)
+        sorted_mole_fracs = sorted(mole_fractions)
+        self.assertLessEqual(distances[sorted_mole_fracs[0]][0][0],
+                             distances[sorted_mole_fracs[1]][0][0])
+        self.assertGreater(distances[sorted_mole_fracs[0]][0][1],
+                           distances[sorted_mole_fracs[1]][0][1])
+        self.assertLess(distances[sorted_mole_fracs[0]][1][0],
+                        distances[sorted_mole_fracs[1]][1][0])
+        self.assertGreater(distances[sorted_mole_fracs[0]][1][1],
+                           distances[sorted_mole_fracs[1]][1][1])

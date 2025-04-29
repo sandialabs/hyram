@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -13,9 +13,10 @@ from math import isnan
 import numpy as np
 
 from hyram.phys import api, Fluid
-from hyram.utilities import misc_utils
+
 
 VERBOSE = False
+OUTPUT_DIR = 'out'
 
 
 class EtkTpdTestCase(unittest.TestCase):
@@ -221,16 +222,16 @@ class PlumeDispersionTestCase(unittest.TestCase):
         self.ymax = 10  # m
         self.plot_title = "Mole Fraction of Leak"
         self.filename = None  # use default
-        self.output_dir = None  # use default
+        self.output_dir = OUTPUT_DIR
         self.verbose = False
 
     def test_valid_input(self):
-        result = api.analyze_jet_plume(self.amb_fluid, self.rel_fluid, self.orif_diam)
+        result = api.analyze_jet_plume(self.amb_fluid, self.rel_fluid, self.orif_diam, output_dir=self.output_dir)
         self.assertTrue(result is not None)
 
     def test_blend(self):
         self.rel_fluid = Fluid({'h2': 0.05, 'ch4': 0.95}, T=298, P=1e6)
-        result = api.analyze_jet_plume(self.amb_fluid, self.rel_fluid, self.orif_diam)
+        result = api.analyze_jet_plume(self.amb_fluid, self.rel_fluid, self.orif_diam, output_dir=self.output_dir)
         self.assertTrue(result is not None)
 
     def test_reject_mole_frac_0(self):
@@ -311,7 +312,6 @@ class AccumulationTestCase(unittest.TestCase):
     """
     def setUp(self):
         # Default inputs
-        output_dir = misc_utils.get_temp_folder()
         amb_fluid = Fluid(species='air', T=288, P=101325)
         rel_fluid = Fluid(species='hydrogen', T=287.8, P=35e6)
 
@@ -342,7 +342,7 @@ class AccumulationTestCase(unittest.TestCase):
             'tmax': 30,
             'create_plots': True,
 
-            'output_dir': output_dir,
+            'output_dir': OUTPUT_DIR,
             'verbose': VERBOSE
         }
 
@@ -402,59 +402,157 @@ class JetFlameAnalysisTestCase(unittest.TestCase):
     """
     Test jet flame analysis physics API interface
     """
+    def setUp(self):
+        # Common inputs
+        self.amb_fluid = api.create_fluid(species='air', temp=298, pres=101325)
+        self.rel_fluid = api.create_fluid(species='h2', temp=298, pres=35e6)
+        self.orif_diam = 3.56 / 1000  # m
+        self.dis_coeff = 1
+        self.rel_angle = 0
+        self.input_mass_flow = None
+        self.nozzle_key = 'yuce'
+        self.rel_humid = 0.89
+        self.create_temp_plot = True
+        self.temp_plot_filename = None
+        self.temp_contours = None
+        self.txmin = 0
+        self.txmax = 10
+        self.tymin = -3.5
+        self.tymax = 3.5
+
+        self.analyze_flux = True
+        self.create_flux_plot = True
+        self.heatflux_plot_filename = None
+        self.flux_coordinates = [(0.01, 1, 0.01),
+                                 (0.5, 1, 0.5),
+                                 (1, 1, 0.5),
+                                 (2, 1, 1),
+                                 (2.5, 1, 1),
+                                 (5, 2, 1),
+                                 (10, 2, 0.5),
+                                 (15, 2, 0.5),
+                                 (25, 2, 1),
+                                 (40, 2, 2)]
+        self.flux_contours = None
+        self.fxmin = -5
+        self.fxmax = 15
+        self.fymin = -10
+        self.fymax = 10
+        self.fzmin = -10
+        self.fzmax = 10
+
     def test_default_jet_flame_analysis(self):
-        amb_fluid = api.create_fluid(species='air', temp=298, pres=101325)
-        rel_fluid = api.create_fluid(species='h2', temp=298, pres=35e6)
-        orif_diam = 3.56 / 1000  # m
-        dis_coeff = 1
-        rel_angle = 0
-        mass_flow = None
-        nozzle_key = 'yuce'
-        rel_humid = 0.89
-        create_temp_plot = True
-        temp_plot_filename = None
-        txmin = 0
-        txmax = 10
-        tymin = -3.5
-        tymax = 3.5
-
-        analyze_flux = True
-        heatflux_plot_filename = None
-        flux_coordinates = [(0.01, 1, 0.01),
-                            (0.5, 1, 0.5),
-                            (1, 1, 0.5),
-                            (2, 1, 1),
-                            (2.5, 1, 1),
-                            (5, 2, 1),
-                            (10, 2, 0.5),
-                            (15, 2, 0.5),
-                            (25, 2, 1),
-                            (40, 2, 2)]
-        fxmin = -5
-        fxmax = 15
-        fymin = -10
-        fymax = 10
-        fzmin = -10
-        fzmax = 10
-
-        output_dir = misc_utils.get_temp_folder()
-        verbose = False
-
         (temp_plot_filepath, heatflux_filepath,
          pos_flux, mass_flow, srad, visible_length, radiant_frac
-         ) = api.jet_flame_analysis(amb_fluid, rel_fluid, orif_diam, mass_flow=None, dis_coeff=dis_coeff,
-                                    rel_angle=rel_angle, nozzle_key=nozzle_key, rel_humid=rel_humid,
-                                    create_temp_plot=create_temp_plot, temp_plot_filename=temp_plot_filename,
-                                    temp_contours=None,
-                                    temp_xlims=(txmin, txmax), temp_ylims=(tymin, tymax),
-
-                                    analyze_flux=analyze_flux, flux_plot_filename=heatflux_plot_filename,
-                                    flux_coordinates=flux_coordinates, flux_contours=None,
-                                    flux_xlims=(fxmin, fxmax), flux_ylims=(fymin, fymax), flux_zlims=(fzmin, fzmax),
-
-                                    output_dir=output_dir, verbose=verbose)
+         ) = api.jet_flame_analysis(self.amb_fluid, self.rel_fluid,
+                                    self.orif_diam, mass_flow=self.input_mass_flow,
+                                    dis_coeff=self.dis_coeff, rel_angle=self.rel_angle,
+                                    nozzle_key=self.nozzle_key, rel_humid=self.rel_humid,
+                                    create_temp_plot=self.create_temp_plot,
+                                    temp_plot_filename=self.temp_plot_filename,
+                                    temp_contours=self.temp_contours,
+                                    temp_xlims=(self.txmin, self.txmax),
+                                    temp_ylims=(self.tymin, self.tymax),
+                                    analyze_flux=self.analyze_flux,
+                                    create_flux_plot=self.create_flux_plot,
+                                    flux_plot_filename=self.heatflux_plot_filename,
+                                    flux_coordinates=self.flux_coordinates,
+                                    flux_contours=self.flux_contours,
+                                    flux_xlims=(self.fxmin, self.fxmax),
+                                    flux_ylims=(self.fymin, self.fymax),
+                                    flux_zlims=(self.fzmin, self.fzmax),
+                                    output_dir=OUTPUT_DIR, verbose=VERBOSE)
         self.assertTrue(os.path.exists(temp_plot_filepath))
         self.assertTrue(os.path.exists(heatflux_filepath))
+        for flux_value in pos_flux:
+            self.assertGreater(flux_value, 0)
+        self.assertGreater(mass_flow, 0)
+        self.assertGreater(srad, 0)
+        self.assertGreater(visible_length, 0)
+        self.assertGreater(radiant_frac, 0)
+
+    def test_skip_heatflux_analysis(self):
+        (temp_plot_filepath, heatflux_filepath,
+         pos_flux, mass_flow, srad, visible_length, radiant_frac
+         ) = api.jet_flame_analysis(self.amb_fluid, self.rel_fluid,
+                                    self.orif_diam, mass_flow=self.input_mass_flow,
+                                    dis_coeff=self.dis_coeff, rel_angle=self.rel_angle,
+                                    nozzle_key=self.nozzle_key, rel_humid=self.rel_humid,
+                                    create_temp_plot=self.create_temp_plot,
+                                    temp_plot_filename=self.temp_plot_filename,
+                                    temp_contours=self.temp_contours,
+                                    temp_xlims=(self.txmin, self.txmax),
+                                    temp_ylims=(self.tymin, self.tymax),
+                                    analyze_flux=False,
+                                    create_flux_plot=self.create_flux_plot,
+                                    flux_plot_filename=self.heatflux_plot_filename,
+                                    flux_coordinates=self.flux_coordinates,
+                                    flux_contours=self.flux_contours,
+                                    flux_xlims=(self.fxmin, self.fxmax),
+                                    flux_ylims=(self.fymin, self.fymax),
+                                    flux_zlims=(self.fzmin, self.fzmax),
+                                    output_dir=OUTPUT_DIR, verbose=VERBOSE)
+        self.assertTrue(os.path.exists(temp_plot_filepath))
+        self.assertEqual(heatflux_filepath, None)
+        self.assertEqual(pos_flux, None)
+        self.assertGreater(mass_flow, 0)
+        self.assertGreater(srad, 0)
+        self.assertGreater(visible_length, 0)
+        self.assertGreater(radiant_frac, 0)
+
+    def test_skip_temp_plot(self):
+        (temp_plot_filepath, heatflux_filepath,
+         pos_flux, mass_flow, srad, visible_length, radiant_frac
+         ) = api.jet_flame_analysis(self.amb_fluid, self.rel_fluid,
+                                    self.orif_diam, mass_flow=self.input_mass_flow,
+                                    dis_coeff=self.dis_coeff, rel_angle=self.rel_angle,
+                                    nozzle_key=self.nozzle_key, rel_humid=self.rel_humid,
+                                    create_temp_plot=False,
+                                    temp_plot_filename=self.temp_plot_filename,
+                                    temp_contours=self.temp_contours,
+                                    temp_xlims=(self.txmin, self.txmax),
+                                    temp_ylims=(self.tymin, self.tymax),
+                                    analyze_flux=self.analyze_flux,
+                                    create_flux_plot=self.create_flux_plot,
+                                    flux_plot_filename=self.heatflux_plot_filename,
+                                    flux_coordinates=self.flux_coordinates,
+                                    flux_contours=self.flux_contours,
+                                    flux_xlims=(self.fxmin, self.fxmax),
+                                    flux_ylims=(self.fymin, self.fymax),
+                                    flux_zlims=(self.fzmin, self.fzmax),
+                                    output_dir=OUTPUT_DIR, verbose=VERBOSE)
+        self.assertEqual(temp_plot_filepath, None)
+        self.assertTrue(os.path.exists(heatflux_filepath))
+        for flux_value in pos_flux:
+            self.assertGreater(flux_value, 0)
+        self.assertGreater(mass_flow, 0)
+        self.assertGreater(srad, 0)
+        self.assertGreater(visible_length, 0)
+        self.assertGreater(radiant_frac, 0)
+
+    def test_skip_flux_plot(self):
+        (temp_plot_filepath, heatflux_filepath,
+         pos_flux, mass_flow, srad, visible_length, radiant_frac
+         ) = api.jet_flame_analysis(self.amb_fluid, self.rel_fluid,
+                                    self.orif_diam, mass_flow=self.input_mass_flow,
+                                    dis_coeff=self.dis_coeff, rel_angle=self.rel_angle,
+                                    nozzle_key=self.nozzle_key, rel_humid=self.rel_humid,
+                                    create_temp_plot=self.create_temp_plot,
+                                    temp_plot_filename=self.temp_plot_filename,
+                                    temp_contours=self.temp_contours,
+                                    temp_xlims=(self.txmin, self.txmax),
+                                    temp_ylims=(self.tymin, self.tymax),
+                                    analyze_flux=self.analyze_flux,
+                                    create_flux_plot=False,
+                                    flux_plot_filename=self.heatflux_plot_filename,
+                                    flux_coordinates=self.flux_coordinates,
+                                    flux_contours=self.flux_contours,
+                                    flux_xlims=(self.fxmin, self.fxmax),
+                                    flux_ylims=(self.fymin, self.fymax),
+                                    flux_zlims=(self.fzmin, self.fzmax),
+                                    output_dir=OUTPUT_DIR, verbose=VERBOSE)
+        self.assertTrue(os.path.exists(temp_plot_filepath))
+        self.assertEqual(heatflux_filepath, None)
         for flux_value in pos_flux:
             self.assertGreater(flux_value, 0)
         self.assertGreater(mass_flow, 0)
@@ -468,7 +566,7 @@ class OverpressureTestCase(unittest.TestCase):
     Test overpressure calculation
     """
     def setUp(self):
-        self.output_dir = misc_utils.get_temp_folder()
+        self.output_dir = OUTPUT_DIR
 
         # Default values
         self.locations = [(1, 1, 0)]  # distance is sqrt(2) m

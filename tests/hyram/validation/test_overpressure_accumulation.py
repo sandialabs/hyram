@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -14,14 +14,10 @@ import numpy as np
 from scipy.constants import milli
 from scipy.optimize import fsolve
 
-from hyram.phys import Fluid, Orifice, Source, Vent, Enclosure, IndoorRelease
-from hyram.utilities import misc_utils
+from hyram.phys import Fluid, Orifice, Source, Vent, Enclosure, IndoorRelease, NozzleFlow
 
 from . import utils
 
-"""
-NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
-"""
 
 # Flags to enable command line output, pyplots, and text file output
 VERBOSE = False
@@ -30,9 +26,8 @@ CREATE_OUTPUT = False
 
 # Absolute paths to input/output data
 DATA_LOC = os.path.join(os.path.dirname(__file__), 'data')
-OUTPUT_LOC = os.path.join(misc_utils.get_temp_folder(), 'validation-overpressure_accumulation')
-OUTPUT_FILE = os.path.join(OUTPUT_LOC, 'Validation.txt')
 LIMITS_FILE = os.path.join(DATA_LOC, 'Limits-overpressure_accumulation.json')
+OUTPUT_LOC = os.path.join('out', 'validation-overpressure_accumulation')
 
 
 class Test_Ekoto_2012(unittest.TestCase):
@@ -118,7 +113,7 @@ class Test_Ekoto_2012(unittest.TestCase):
                                     error_limits=error_limits,
                                     units='Mole Fraction',
                                     msg=title,
-                                    output_filename=OUTPUT_FILE,
+                                    output_dir=OUTPUT_LOC,
                                     create_output=CREATE_OUTPUT,
                                     verbose=VERBOSE)
 
@@ -165,7 +160,7 @@ class Test_Ekoto_2012(unittest.TestCase):
                                     error_limits=error_limits,
                                     units='Mole Fraction',
                                     msg=title,
-                                    output_filename=OUTPUT_FILE,
+                                    output_dir=OUTPUT_LOC,
                                     create_output=CREATE_OUTPUT,
                                     verbose=VERBOSE)
 
@@ -242,7 +237,7 @@ class Test_Ekoto_2012(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='kPa',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -271,7 +266,7 @@ class Test_Ekoto_2012(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='kPa',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -301,7 +296,7 @@ class Test_Ekoto_2012(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='kPa',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -378,7 +373,7 @@ class Test_Giannissi_2015(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='vol %',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -422,7 +417,7 @@ class Test_Giannissi_2015(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='vol %',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -466,7 +461,7 @@ class Test_Giannissi_2015(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='vol %',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -537,7 +532,7 @@ class Test_Merilo(unittest.TestCase):
 
             def err(P):
                 g = Fluid(species=self.rel_species, P=P, T=self.rel_temp)
-                return (test['rel_rate'] / 3600) - orifice.mdot(orifice.flow(g, self.amb_pressure))
+                return (test['rel_rate'] / 3600) - NozzleFlow(g, orifice, self.amb_pressure).mdot
             pressure = fsolve(err, 10*self.amb_pressure)[0]
 
             fluid = Fluid(species=self.rel_species, P=pressure, T=self.rel_temp)
@@ -573,7 +568,7 @@ class Test_Merilo(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='vol %',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -615,7 +610,7 @@ class Test_Merilo(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='vol %',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -657,7 +652,7 @@ class Test_Merilo(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='vol %',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -699,7 +694,7 @@ class Test_Merilo(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='vol %',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -774,8 +769,8 @@ class Test_BMHA_Fig7(unittest.TestCase):
         for Q in Qs2m3:
             def err_hy3(P):
                 g = Fluid(species=rel_species, P=P, T=rel_temp)
-                throat = orifice.flow(g, amb_pressure)
-                return Q - orifice.mdot(throat)/rho_H2_STP
+                throat = NozzleFlow(g, orifice, amb_pressure)
+                return Q - throat.mdot/rho_H2_STP
 
             pressures.append(fsolve(err_hy3, 10*amb_pressure)[0])
 
@@ -818,7 +813,7 @@ class Test_BMHA_Fig7(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='vol %',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -855,7 +850,7 @@ class Test_BMHA_Fig7(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='vol %',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -927,8 +922,8 @@ class Test_BMHA_Fig9(unittest.TestCase):
         for Q in Qs1m3:
             def err_hy3(P):
                 g = Fluid(species=rel_species, P=P, T=rel_temp)
-                throat = orifice.flow(g, amb_pressure)
-                return Q - orifice.mdot(throat)/rho_H2_STP
+                throat = NozzleFlow(g, orifice, amb_pressure)
+                return Q - throat.mdot/rho_H2_STP
 
             pressures.append(fsolve(err_hy3, 10*amb_pressure)[0])
 
@@ -970,7 +965,7 @@ class Test_BMHA_Fig9(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='vol %',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1007,7 +1002,7 @@ class Test_BMHA_Fig9(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='vol %',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 

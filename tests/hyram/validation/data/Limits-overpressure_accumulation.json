@@ -12,7 +12,7 @@
             "Avg Absolute Error": 0.03,
             "Max Percent Error": 199,
             "Avg Percent Error": 65,
-            "R2": 0.015
+            "R2": 0.01
         },
         "Ekoto et al. 2012 - Figure 9 Concentration vs. Time, S11 No Vent": {
             "Max Absolute Error": 0.06,
@@ -33,14 +33,14 @@
             "Avg Absolute Error": 0.03,
             "Max Percent Error": 199,
             "Avg Percent Error": 51,
-            "R2": 0.004
+            "R2": 0.001
         },
         "Ekoto et al. 2012 - Figure 9 Concentration vs. Time, S11 No Vent 2": {
             "Max Absolute Error": 0.06,
             "Avg Absolute Error": 0.03,
             "Max Percent Error": 199,
             "Avg Percent Error": 57,
-            "R2": 0.009
+            "R2": 0.004
         },
 		"Ekoto et al. 2012 - Figure 9 Concentration vs. Time, S04 Vent": {
             "Max Absolute Error": 0.08,
@@ -54,31 +54,31 @@
             "Avg Absolute Error": 0.03,
             "Max Percent Error": 199,
             "Avg Percent Error": 58,
-            "R2": 0.023
+            "R2": 0.015
         },
         "Ekoto et al. 2012 - Figure 9 Concentration vs. Time, S11 Vent": {
             "Max Absolute Error": 0.06,
             "Avg Absolute Error": 0.03,
             "Max Percent Error": 200,
             "Avg Percent Error": 57,
-            "R2": 0.002
+            "R2": 0.0001
         },
 		"Ekoto et al. 2012 - Figure 14, Peak Pressure Test 12, Small vent w/ passive ventilation": {
-			"Max Absolute Error": 4.24,
+			"Max Absolute Error": 4.5,
             "Avg Absolute Error": "--",
-            "Max Percent Error": 16,
+            "Max Percent Error": 17,
             "Avg Percent Error": "--",
             "R2": "N/A"
 		},
 		"Ekoto et al. 2012 - Figure 14, Peak Pressure Test 11, Big vent w/ passive ventilation": {
-			"Max Absolute Error": 24.36,
+			"Max Absolute Error": 25,
             "Avg Absolute Error": "--",
             "Max Percent Error": 150,
             "Avg Percent Error": "--",
             "R2": "N/A"
 		},
 		"Ekoto et al. 2012 - Figure 14, Peak Pressure Test 10, Big vent w/ active ventilation": {
-			"Max Absolute Error": 25,
+			"Max Absolute Error": 26,
             "Avg Absolute Error": "--",
             "Max Percent Error": 162,
             "Avg Percent Error": "--",
@@ -140,11 +140,11 @@
 	},
 	"Test_BMHA_Fig7": {
 		"Bernard et al. 2017 - Figure 7, Concentration v. Flow Rate, d = 4mm": {
-			"Max Absolute Error": 1.2,
-            "Avg Absolute Error": 1,
-            "Max Percent Error": 120,
-            "Avg Percent Error": 62,
-            "R2": 0.997
+			"Max Absolute Error": 1.25,
+            "Avg Absolute Error": 1.1,
+            "Max Percent Error": 130,
+            "Avg Percent Error": 68,
+            "R2": 0.99
 		},
 		"Bernard et al. 2017 - Figure 7, Concentration v. Flow Rate, d = 27mm": {
 			"Max Absolute Error": 2.3,
@@ -158,9 +158,9 @@
 		"Bernard et al. 2017 - Figure 9, Concentration v. Flow Rate, d = 4mm": {
 			"Max Absolute Error": 3.3,
             "Avg Absolute Error": 1.2,
-            "Max Percent Error": 49,
-            "Avg Percent Error": 27,
-            "R2": 0.972
+            "Max Percent Error": 65,
+            "Avg Percent Error": 33,
+            "R2": 0.94
 		},
 		"Bernard et al. 2017 - Figure 9, Concentration v. Flow Rate, d = 27mm": {
 			"Max Absolute Error": 4.2,

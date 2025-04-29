@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -15,14 +15,14 @@ from ._comps import Orifice
 
 
 class NotionalNozzle:
-    def __init__(self, fluid_orifice, orifice, low_P_fluid):
+    def __init__(self, nozzle, low_P_fluid):
         '''Notional nozzle class'''
-        self.fluid_orifice, self.orifice, self.low_P_fluid = fluid_orifice, orifice, low_P_fluid
-    
+        self.nozzle, self.low_P_fluid = nozzle, low_P_fluid
+
     def calculate(self, T = 'solve_energy', conserve_momentum = True):
         '''
         Calculates the properties after the notional nozzle using one of the following models:
-        
+
         Parameters
         ----------
         T: string ('solve_energy', or 'Tthroat' - if conserve_momentum is false) or value
@@ -35,25 +35,25 @@ class NotionalNozzle:
             Birch - conserve_momentum = False, T = T0
             Birch2 - conserve_momentum = True, T = T0
             Molkov - conserve_momentum = False, T = solve_energy
-        
+
         Returns
         -------
         tuple of (fluid object, orifice object), all at exit of notional nozzle
         '''
-        throat = self.fluid_orifice
+        throat = self.nozzle.fluid
         if conserve_momentum:
             #YuceilOtugen, Birch2
-            v = throat.v + (throat.P - self.low_P_fluid.P)/(throat.v*throat.rho*self.orifice.Cd)
+            v = throat.v + (throat.P - self.low_P_fluid.P)/(throat.v*throat.rho*self.nozzle.orifice.Cd)
             if T == 'solve_energy':
                 #YuceilOtugen
                 throat_enthalpy = throat.therm.get_property('H0', P=throat.P, D=throat.rho, v=throat.v)
-                rho = optimize.brentq(lambda rho: throat_enthalpy - throat.therm.get_property('H0', P=self.low_P_fluid.P, D=rho, v=v), 
+                rho = optimize.brentq(lambda rho: throat_enthalpy - throat.therm.get_property('H0', P=self.low_P_fluid.P, D=rho, v=v),
                                       throat.rho, throat.therm.get_property('D', T=self.low_P_fluid.T, P=self.low_P_fluid.P))
             elif np.isreal(T):
                 #Birch2 - T specified as T0
                 rho = throat.therm.get_property('D', T=T, P=self.low_P_fluid.P)
             else:
-                raise NotImplementedError('Notional nozzle model not defined properly, ' + 
+                raise NotImplementedError('Notional nozzle model not defined properly, ' +
                                           "nn_T must be specified temperature or 'solve_energy'.")
         else:
             #EwanMoodie, Birch, Molkov -- assume sonic at notional nozzle location
@@ -76,10 +76,10 @@ class NotionalNozzle:
                 T = throat.therm.get_property('T', P=self.low_P_fluid.P, D=rho)
                 v = throat.therm.get_property('A', T=T, P=self.low_P_fluid.P)
             else:
-                raise NotImplementedError('Notional nozzle model not defined properly, ' + 
+                raise NotImplementedError('Notional nozzle model not defined properly, ' +
                                           "nn_T must be specified temperature or 'solve_energy'")
         fluid = copy.copy(throat)
         fluid.update(rho=rho, P=self.low_P_fluid.P, v=v)
         # conserve mass to solve for effective diameter:
-        orifice = Orifice(np.sqrt(self.orifice.mdot(throat)/(fluid.rho*fluid.v)*4/np.pi))
-        return fluid, orifice    
+        orifice = Orifice(np.sqrt(self.nozzle.mdot/(fluid.rho*fluid.v)*4/np.pi))
+        return fluid, orifice

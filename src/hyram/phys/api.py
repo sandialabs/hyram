@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -12,7 +12,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-from . import Fluid, Orifice, Source, Vent, Enclosure, Flame, Jet
+from . import Fluid, Orifice, Source, Vent, Enclosure, Flame, Jet, NozzleFlow
 from . import IndoorRelease, FuelProperties, Bauwens_method, TNT_method, BST_method
 from ._plots import plot_contour
 from ..utilities import misc_utils
@@ -22,8 +22,7 @@ The API file provides external access to common analysis functions within the ph
 API functions prep logging, clean up parameters, and return results or error notifications.
 
 Notes:
-    * Queries from the C# GUI should call the c_api and not this file to ensure adequate pre-processing occurs
-    * Logging should be set up by the user, not the app. The only exception to this is the C API, which sets up logging
+    * Logging should be set up by the user, not the app. The only exception to this is the GUI, which sets up logging
     for the GUI requests.
 """
 
@@ -75,6 +74,27 @@ def create_fluid(species, temp=None, pres=None, density=None, phase=None):
     fluid = Fluid(species=species, T=temp, P=pres, rho=density, phase=phase)
     return fluid
 
+def is_choked(fluid, amb_pres=101325):
+    """
+    Determines whether a flow is choked as a fluid is released into a lower-pressure environment.
+    
+    Parameters
+    ----------
+    fluid : Fluid
+        Release fluid object
+
+    amb_pres : float, optional
+        Ambient fluid pressure (Pa).
+        
+    Returns
+    -------
+    is_choked : boolean
+        Whether flow is choked.
+    """
+    if fluid.P == amb_pres:
+        return False
+    else:
+        return NozzleFlow(fluid, Orifice(0.001), amb_pres).choked
 
 def compute_mass_flow(fluid, orif_diam, amb_pres=101325,
                       is_steady=True, tank_vol=None, dis_coeff=1, output_dir=None, create_plot=True):
@@ -101,8 +121,9 @@ def compute_mass_flow(fluid, orif_diam, amb_pres=101325,
     dis_coeff : float
         Discharge coefficient to account for non-plug flow (always <=1, assumed to be 1 for plug flow).
 
-    output_dir : str
+    output_dir : str or None
         Path to directory in which to place output file(s).
+        If unspecified, output will be saved to the current working directory.
 
     create_plot : bool
         Whether mass flow vs. time plot should be created
@@ -129,17 +150,16 @@ def compute_mass_flow(fluid, orif_diam, amb_pres=101325,
     orif = Orifice(orif_diam, Cd=dis_coeff)
 
     if is_steady:
-        result['rates'] = [orif.mdot(orif.flow(fluid, amb_pres))]
+        result['rates'] = [NozzleFlow(fluid, orif, amb_pres).mdot]
 
     else:
         source = Source(tank_vol, fluid)
         mdots, fluid_list, t, sol = source.empty(orif, amb_pres)
 
         if create_plot:
-            if output_dir is None:
-                output_dir = os.getcwd()
+            output_folder = misc_utils.get_output_folder(output_dir)
             filename = "time-to-empty-{}.png".format(misc_utils.get_now_str())
-            filepath = os.path.join(output_dir, filename)
+            filepath = os.path.join(output_folder, filename)
             fig = source.plot_time_to_empty()
             fig.savefig(filepath, bbox_inches='tight')
             plt.close(fig)
@@ -301,7 +321,7 @@ def compute_equivalent_tnt_mass(vapor_mass, percent_yield, species):
 
     percent_yield : float
         Explosive energy yield (0 to 100%)
-    
+
     species : str or dict
         Name of fluid or dict of blend mixture of format {fluid-name: mole-frac...}
 
@@ -389,6 +409,7 @@ def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam, mass_flow=None,
 
     output_dir : str or None
         Directory in which to place plot file.
+        If unspecified, output will be saved to the current working directory.
 
     verbose : bool, False
 
@@ -442,8 +463,7 @@ def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam, mass_flow=None,
 
     if create_plot:
         log.info("Creating mole fraction contour plot")
-        if output_dir is None:
-            output_dir = misc_utils.get_temp_folder()
+        output_folder = misc_utils.get_output_folder(output_dir)
 
         if filename is None:
             filename = "plume-mole-plot-{}.png".format(misc_utils.get_now_str())
@@ -467,7 +487,7 @@ def analyze_jet_plume(amb_fluid, rel_fluid, orif_diam, mass_flow=None,
         if vmax is None:
             vmax = 0.1
 
-        plot_filepath = os.path.join(output_dir, filename)
+        plot_filepath = os.path.join(output_folder, filename)
         plot_fig = plot_contour(data_type="mole", jet_or_flame=jet_obj,
                                 xlims=xlims, ylims=ylims, vlims=(vmin, vmax),
                                 plot_title=plot_title, contour_levels=contours,)
@@ -587,8 +607,9 @@ def analyze_accumulation(amb_fluid, rel_fluid,
     create_plots : bool
         Whether plots should be generated. If false, plot path params will contain ''.
 
-    output_dir : str, optional
-        Filepath of output directory in which to place plots. Will use cwd if not provided.
+    output_dir : str or None
+        Filepath of output directory in which to place plots.
+        If unspecified, output will be saved to the current working directory.
 
     verbose : bool
         Verbosity of logging and print statements.
@@ -644,15 +665,14 @@ def analyze_accumulation(amb_fluid, rel_fluid,
 
     # Generate plots
     if create_plots:
-        if output_dir is None:
-            output_dir = os.getcwd()
+        output_folder = misc_utils.get_output_folder(output_dir)
 
         now_str = misc_utils.get_now_str()
-        pres_plot_fpath = os.path.join(output_dir, 'pressure_plot_{}.png'.format(now_str))
-        layer_plot_fpath = os.path.join(output_dir, 'layer_plot_{}.png'.format(now_str))
-        traj_plot_fpath = os.path.join(output_dir, 'trajectory_plot_{}.png'.format(now_str))
-        mass_plot_fpath = os.path.join(output_dir, 'flam_mass_plot_{}.png'.format(now_str))
-        mass_flow_plot_fpath = os.path.join(output_dir, 'time-to-empty_{}.png'.format(now_str))
+        pres_plot_fpath = os.path.join(output_folder, 'pressure_plot_{}.png'.format(now_str))
+        layer_plot_fpath = os.path.join(output_folder, 'layer_plot_{}.png'.format(now_str))
+        traj_plot_fpath = os.path.join(output_folder, 'trajectory_plot_{}.png'.format(now_str))
+        mass_plot_fpath = os.path.join(output_folder, 'flam_mass_plot_{}.png'.format(now_str))
+        mass_flow_plot_fpath = os.path.join(output_folder, 'time-to-empty_{}.png'.format(now_str))
 
         pfig = release_obj.plot_overpressure(temp_pres_points, pres_ticks)
         pfig.savefig(pres_plot_fpath, bbox_inches='tight')
@@ -712,7 +732,8 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam, mass_flow=None, dis_coef
                        create_temp_plot=True, temp_plot_filename=None, temp_plot_title="", temp_contours=None,
                        temp_xlims=None, temp_ylims=None,
                        # heat flux plot
-                       analyze_flux=True, flux_plot_filename=None, flux_coordinates=None, flux_contours=None,
+                       analyze_flux=True, create_flux_plot=True, flux_plot_filename=None,
+                       flux_coordinates=None, flux_contours=None,
                        flux_xlims=None, flux_ylims=None, flux_zlims=None,
                        output_dir=None, verbose=False):
     """
@@ -766,6 +787,9 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam, mass_flow=None, dis_coef
         Whether radiative heat flux analysis should be performed,
         including creating heat flux plots and generating flux data
 
+    create_flux_plot : bool, True
+        Whether heat flux plot should be created
+
     flux_plot_filename : str or None
         Filename of heat flux plot file
 
@@ -787,9 +811,9 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam, mass_flow=None, dis_coef
     flux_zlims : tuple/list or None, optional
         Heat flux plot z limits: (z_min, z_max). Default is None to use automatic limits.
 
-    output_dir : str
-        Filepath of output directory in which to place plots,
-        will use cwd if not provided
+    output_dir : str or None
+        Filepath of output directory in which to place plots.
+        If unspecified, output will be saved to the current working directory.
 
     verbose : bool
         Verbosity of logging and print statements
@@ -821,8 +845,6 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam, mass_flow=None, dis_coef
     log.info("Jet flame analysis requested")
     now_str = misc_utils.get_now_str()
 
-    if output_dir is None:
-        output_dir = os.getcwd()
     if flux_contours is None:
         flux_contours = [1.577, 4.732, 25.237]
 
@@ -841,10 +863,12 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam, mass_flow=None, dis_coef
     visible_length = flame_obj.get_visible_length()
 
     if create_temp_plot:
+        output_folder = misc_utils.get_output_folder(output_dir)
+
         log.info("Creating temp plot")
         if temp_plot_filename is None:
             temp_plot_filename = 'flame_temp_plot_{}.png'.format(now_str)
-        temp_plot_filepath = os.path.join(output_dir, temp_plot_filename)
+        temp_plot_filepath = os.path.join(output_folder, temp_plot_filename)
 
         fig = plot_contour(data_type="temperature", jet_or_flame=flame_obj, xlims=temp_xlims, ylims=temp_ylims, plot_title=temp_plot_title,
                            contour_levels=temp_contours)
@@ -855,16 +879,19 @@ def jet_flame_analysis(amb_fluid, rel_fluid, orif_diam, mass_flow=None, dis_coef
         temp_plot_filepath = None
 
     if analyze_flux:
-        log.info("Assessing flux and creating plots")
-        if flux_plot_filename is None:
-            flux_plot_filename = 'flame_heatflux_{}.png'.format(now_str)
-
-        heatflux_filepath = flame_obj.plot_heat_flux_sliced(filename=flux_plot_filename,
-                                                            directory=output_dir,
-                                                            RH=rel_humid, contours=flux_contours,
-                                                            xlims=flux_xlims, ylims=flux_ylims, zlims=flux_zlims,
-                                                            savefig=True)
+        log.info("Assessing flux")
         pos_flux = flame_obj.generate_positional_flux(flux_coordinates, rel_humid)
+        if create_flux_plot:
+            if flux_plot_filename is None:
+                flux_plot_filename = 'flame_heatflux_{}.png'.format(now_str)
+            heatflux_filepath = flame_obj.plot_heat_flux_sliced(filename=flux_plot_filename,
+                                                                directory=output_dir,
+                                                                RH=rel_humid, contours=flux_contours,
+                                                                xlims=flux_xlims, ylims=flux_ylims, zlims=flux_zlims,
+                                                                savefig=True)
+        else:
+            log.info("Skipping flux plot")
+            heatflux_filepath = None
     else:
         log.info("Skipping flux analysis")
         heatflux_filepath = None
@@ -899,7 +926,7 @@ def compute_overpressure(method: str, locations,
     ----------
     method : {'bst', 'tnt', 'bauwens'}
         Unconfined overpressure calculation method
-    
+
     locations : list
         List of locations at which to determine flux,
         each location is a tuple of 3 coordinates (m):
@@ -928,17 +955,17 @@ def compute_overpressure(method: str, locations,
 
     bst_flame_speed : float, optional, only needed for BST model
         available mach flame speeds 0.2, 0.35, 0.7, 1.0, 1.4, 2.0, 3.0, 4.0, 5.2
-        use 5.2 for detonation 
+        use 5.2 for detonation
 
     tnt_factor : float, optional, only needed for TNT model
         equivalence factor, float
         TNT equivalency, unitless
         based on HSE guidance in CCPS book https://ebookcentral.proquest.com/lib/sandia/detail.action?docID=624492
         equivalence_factor = 0.03
-    
+
     flammability_limits : tuple of (lower_flammability_limit, upper_flammability_limit), optional
         Default is None: use default LFL, UFL for selected fuel
-        
+
     origin_at_orifice : boolean, optional, default to False
         specify if the origin should be at the orifice or calculated
 
@@ -954,8 +981,9 @@ def compute_overpressure(method: str, locations,
     impulse_plot_filename : str or None
         name of impulse plot file
 
-    output_dir : str
-        Filepath of output directory in which to place plots. Will use cwd if not provided.
+    output_dir : str or None
+        Filepath of output directory in which to place plots.
+        If unspecified, output will be saved to the current working directory.
 
     overp_contours : array-like or None
         Overpressure values at which to plot contours
@@ -997,8 +1025,10 @@ def compute_overpressure(method: str, locations,
         mass_flow_rate : float
             Mass flow rate (kg/s) of release
         flam_or_det_mass : float
-            Mass of release related to overpressure calculation (kg). 
+            Mass of release related to overpressure calculation (kg).
             Outputs flammable mass for BST and TNT methods, detonable mass for Bauwens
+        tnt_mass : float or None
+            Equivalent mass of TNT [kg]; only generated for TNT method
 
     """
     log.info("Unconfined overpressure calculation requested")
@@ -1010,6 +1040,8 @@ def compute_overpressure(method: str, locations,
     log.info('Creating jet')
     jet_object = Jet(release_fluid, orifice, ambient_fluid, mdot=mass_flow, theta0=release_angle,
                      nn_conserve_momentum=nozzle_cons_momentum, nn_T=nozzle_t_param, verbose=verbose)
+
+    tnt_mass = None
 
     method = method.lower()
     if method == 'bst':
@@ -1026,6 +1058,7 @@ def compute_overpressure(method: str, locations,
                                          flammability_limits=flammability_limits,
                                          origin_at_orifice=origin_at_orifice)
         flam_or_det_mass = over_pressure_model.flammable_mass
+        tnt_mass = over_pressure_model.equiv_TNT_mass
     elif method == 'bauwens':
         log.info("Calculating overpressure with Bauwens method")
         over_pressure_model = Bauwens_method(jet_object=jet_object,
@@ -1033,14 +1066,12 @@ def compute_overpressure(method: str, locations,
         flam_or_det_mass = over_pressure_model.detonable_mass
     else:
         raise ValueError('Invalid method name in unconfined overpressure analysis')
-    
+
     overpressure = over_pressure_model.calc_overpressure(locations)
     impulse = over_pressure_model.calc_impulse(locations)
 
     if create_overpressure_plot:
         log.info("Creating overpressure plot")
-        if output_dir is None:
-            output_dir = os.getcwd()
         if overpressure_plot_filename is None:
             now_str = misc_utils.get_now_str()
             overpressure_plot_filename = 'overpressure_plot_{}.png'.format(now_str)
@@ -1058,8 +1089,6 @@ def compute_overpressure(method: str, locations,
 
     if create_impulse_plot and not np.isnan(impulse).any():
         log.info("Creating impulse plot")
-        if output_dir is None:
-            output_dir = os.getcwd()
         if impulse_plot_filename is None:
             now_str = misc_utils.get_now_str()
             impulse_plot_filename = 'impulse_plot_{}.png'.format(now_str)
@@ -1082,6 +1111,7 @@ def compute_overpressure(method: str, locations,
         'overp_plot_filepath': overpressure_plot_filepath,
         'impulse_plot_filepath': impulse_plot_filepath,
         'mass_flow_rate': jet_object.mass_flow_rate,
-        'flam_or_det_mass': flam_or_det_mass
+        'flam_or_det_mass': flam_or_det_mass,
+        'tnt_mass': tnt_mass
     }
     return results

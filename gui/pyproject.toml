@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hyramgui"
+authors = [
+    {name = "Cianan Sims"},
+]
+description = "Multiplatform GUI for the HyRAM+ scientific library"
+requires-python = ">=3.9"
+license = "GPL-3.0-only"
+
+version = "6.0.0"
+dependencies = [
+    "numpy",
+    "scipy",
+    "hyram",
+    "PySide6",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

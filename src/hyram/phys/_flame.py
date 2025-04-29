@@ -1,12 +1,11 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
 """
 
-import os
 import warnings
 
 import numpy as np
@@ -28,13 +27,13 @@ class Flame:
                  chem=None,
                  lamf=1.24, lamv=1.24, betaA=3.42e-2, alpha_buoy=5.75e-4,
                  T_establish_min=-1, verbose=False,
-                 Smax=np.inf, dS=None, tol=1e-6, 
-                 numB=5, n_pts_integral=100, 
+                 Smax=np.inf, dS=None, tol=1e-6,
+                 numB=5, n_pts_integral=100,
                  wind_speed = 0, developing_flow=None):
         '''
         class for calculating the characteristics of a 2-D flame, without wind
         see Ekoto et al. International Journal of Hydrogen Energy, 39, 2014 (20570-20577)
-        
+
         Parameters
         ----------
         fluid: Fluid object (hc_comps)
@@ -43,7 +42,7 @@ class Flame:
             orifice through which fluid is being released
         ambient: Fluid object (hc_comps)
             fluid into which release is occurring
-        mdot: float, optional 
+        mdot: float, optional
             should only be specified for subsonic release, mass flow rate (kg/s)
         theta0 : float, optional
             angle of release (rad) default value of 0 is horizontal
@@ -55,7 +54,7 @@ class Flame:
             whether notional nozzle model should conserve mass and momentum, or mass only,
             together with nn_T determines which notional nozzle model to use (see below)
         nn_T: string, optional
-            either 'solve_energy', 'Tthroat' or specified temperature (stagnation temperature) 
+            either 'solve_energy', 'Tthroat' or specified temperature (stagnation temperature)
             with nn_conserve_momentum leads to one of the following notional nozzle models:
             YuceilOtugen - conserve_momentum = True, T = 'solve_energy'
             EwanMoodie - conserve_momentum = False, T = 'Tthroat'
@@ -71,7 +70,7 @@ class Flame:
         betaA : float
             momentum entrainment coefficient
         alpha_buoy : float
-            buoyancy entrainment coefficient    
+            buoyancy entrainment coefficient
         T_establish_min: float, optional
             minimum temperature for start of integral model
         verbose : bool, optional
@@ -103,7 +102,7 @@ class Flame:
                                                   verbose=verbose)
         else:
             self.developing_flow = developing_flow
-            
+
         self.initial_node = self.developing_flow.initial_node
         self.mass_flow_rate = self.developing_flow.mass_flow_rate
         expanded_plug_node = self.developing_flow.expanded_plug_node
@@ -116,14 +115,14 @@ class Flame:
         self.verbose = verbose
         self.wind_speed = wind_speed
         self.solve(Smax, dS, tol, numB, n_pts_integral)
-        
+
     @classmethod
     def from_developed_flow(cls, developing_flow,
-                            chem=None, 
+                            chem=None,
                             lamf=1.24, lamv=1.24, betaA=3.42e-2, alpha_buoy=5.75e-4,
                             verbose=False,
-                            Smax=np.inf, dS=None, tol=1e-6, 
-                            numB=5, n_pts_integral=100, 
+                            Smax=np.inf, dS=None, tol=1e-6,
+                            numB=5, n_pts_integral=100,
                             wind_speed = 0):
         '''
         Initialization of a Flame when the DevelopingFlow calculations have already been made.
@@ -135,22 +134,22 @@ class Flame:
             developing_flow.lam = lamf
         if developing_flow.betaA != betaA:
             developing_flow.betaA = betaA
-        return cls(developing_flow.fluid, developing_flow.orifice, developing_flow.ambient, 
-                   mdot=None, 
-                   theta0=0, x0=0, y0=0, 
-                   nn_conserve_momentum=True, nn_T='solve_energy', 
+        return cls(developing_flow.fluid, developing_flow.orifice, developing_flow.ambient,
+                   mdot=None,
+                   theta0=0, x0=0, y0=0,
+                   nn_conserve_momentum=True, nn_T='solve_energy',
                    chem=chem,
-                   lamf=lamf, lamv=lamv, betaA=betaA, alpha_buoy=alpha_buoy, 
-                   T_establish_min=-1, 
+                   lamf=lamf, lamv=lamv, betaA=betaA, alpha_buoy=alpha_buoy,
+                   T_establish_min=-1,
                    verbose=verbose,
-                   Smax=Smax, dS=dS, tol=tol, 
-                   numB=numB, n_pts_integral=n_pts_integral, 
+                   Smax=Smax, dS=dS, tol=tol,
+                   numB=numB, n_pts_integral=n_pts_integral,
                    wind_speed = wind_speed, developing_flow = developing_flow)
 
     def _govEqns(self, S, ind_vars, numB=5, n_pts_integral=100):
         '''
         Governing equations for a flame, written in terms of d/dS of (V_cl, B, theta, f_cl, x, and y).
-        
+
         A matrix soluition to the continuity, x-momentum, y-mometum and mixture fraction equations
         solves for d/dS of the dependent variables V_cl, B, theta, and f_cl.  Numerically integrated
         to infinity = numB * B(S) using numpts discrete points.
@@ -166,7 +165,7 @@ class Flame:
         f = f_cl * np.exp(-(r / (self.lamf * B)) ** 2)
         V = V_cl * np.exp(-(r / (self.lamv * B)) ** 2)
 
-        # density isn't a nice Gaussian, due to combustion 
+        # density isn't a nice Gaussian, due to combustion
         try:
             rho = self.chem.rho_prod(f)
             drhodf = self.chem.drhodf(f)
@@ -176,7 +175,7 @@ class Flame:
             rho = self.chem.rho_prod(f)
             drhodf = self.chem.drhodf(f)
 
-        rho_int = integrate.trapz(self.ambient.rho - rho, r)
+        rho_int = integrate.trapezoid(self.ambient.rho - rho, r)
 
         Ebuoy = Ebuoy = (2 * np.pi * self.alpha_buoy * np.sin(theta) * const.g * rho_int /
                          (B * V_cl * self.developing_flow.fluid_exp.rho))  # m**2/s
@@ -185,7 +184,7 @@ class Flame:
         # right-hand side of governing equations:
         RHS = np.array([self.ambient.rho * E / (2 * const.pi),  # continuity
                         self.wind_speed * self.ambient.rho * E / (2 * const.pi),  # x-momentum
-                        integrate.trapz((self.ambient.rho - rho) * const.g * r, r),  # y-momentum
+                        integrate.trapezoid((self.ambient.rho - rho) * const.g * r, r),  # y-momentum
                         0])  # mixture fraction
 
         zero = np.zeros_like(r)
@@ -201,8 +200,8 @@ class Flame:
                         drhodS * V ** 2 * np.sin(theta) * r + 2 * rho * V * dVdS * np.sin(
                             theta) * r + rho * V ** 2 * np.cos(theta) * dthetadS * r,  # y-momentum
                         drhodS * V * f * r + rho * dVdS * f * r + rho * V * dfdS * r])  # mixture fraction
-        LHS = integrate.trapz(LHS, r)
-        
+        LHS = integrate.trapezoid(LHS, r)
+
         dz = np.append(np.linalg.solve(LHS, RHS), np.array([np.cos(theta), np.sin(theta)]), axis=0)
         return dz
 
@@ -210,18 +209,18 @@ class Flame:
               numB=5, n_pts_integral=100):
         '''
         Solves for a flame. Returns a dictionary of flame results.  Also updates the Flame class with those results.
-        
+
         Parameters
         ----------
         Smax : float, optional
             endopoint along curved flame for integration (m) default will calculate visible length of flame
-        
+
         Returns
         -------
         res : dict
             dictionary of flame results
         '''
-        #ESH note: self.developing_flow.fluid_exp is at a much lower temperature than ambient and gives funky heat flux numbers if used in the Combustion object, hence initilization at ambient T and P - could be improved. 
+        #ESH note: self.developing_flow.fluid_exp is at a much lower temperature than ambient and gives funky heat flux numbers if used in the Combustion object, hence initilization at ambient T and P - could be improved.
         try:
             if self.chem.Treac != self.ambient.T or abs(self.chem.P / self.ambient.P - 1) > 1e-10:
                 self.chem.reinitilize(Fluid(species = self.fluid.species, T = self.ambient.T, P = self.ambient.P))
@@ -242,14 +241,13 @@ class Flame:
         else:
             max_step = dS
             first_step = dS
-        sol = integrate.solve_ivp(self._govEqns, [self.initial_node.S, Smax], 
-                                  np.array([self.initial_node.v_cl, self.initial_node.B, self.initial_node.theta, f_cl0, 
+        sol = integrate.solve_ivp(self._govEqns, [self.initial_node.S, Smax],
+                                  np.array([self.initial_node.v_cl, self.initial_node.B, self.initial_node.theta, f_cl0,
                                             self.initial_node.x, self.initial_node.y]),
                                   max_step = max_step, first_step = first_step,
                                   args = (numB, n_pts_integral),
                                   atol=tol, rtol=tol,
-                                  method = 'LSODA'
-                                  )
+                                  method = 'LSODA')
 
         result = dict(zip(['V_cl', 'B', 'theta', 'f_cl', 'x', 'y'], sol.y))
         result['S'] = sol.t
@@ -263,12 +261,12 @@ class Flame:
         '''
         These correlations come from Schefer et al. IJHE 31 (2006): 1332-1340
         and Molina et al PCI 31 (2007): 2565-2572
-        
+
         returns the visible flame length
-        also updates the flame class with 
-        
-        .Lvis (flame length), 
-        .Wf (flame width), 
+        also updates the flame class with
+
+        .Lvis (flame length),
+        .Wf (flame width),
         .tauf (flame residence time)
         .Xrad (radiant fraction)
         '''
@@ -280,26 +278,26 @@ class Flame:
         fs, Tad = self.chem.fstoich, self.chem.T_prod(self.chem.fstoich)
         Tamb = self.ambient.T
         rhoair, rhof = self.ambient.rho, self.chem.rho_prod(self.chem.fstoich)
-        orifice1, gas1 = self.developing_flow.orifice_exp, self.developing_flow.fluid_exp
-        Deff, rhoeff = orifice1.d, gas1.rho
+        mdot = self.developing_flow.orifice_flow.mdot
+        Deff = self.developing_flow.orifice_exp.d 
+        rhoeff = self.developing_flow.fluid_exp.__dict__['rho']
+        veff = self.developing_flow.fluid_exp.__dict__['v']
 
         # Compute the flame Froude number
-        Frf = (gas1.v * fs ** 1.5) / (((rhoeff / rhoair) ** 0.25) * np.sqrt(((Tad - Tamb) / Tamb) * const.g * Deff))
-        self.Frf = Frf
+        Fr_f = (veff * fs ** 1.5) / (((rhoeff / rhoair) ** 0.25) * np.sqrt(((Tad - Tamb) / Tamb) * const.g * Deff))
+        self.Fr_f = Fr_f
 
         # Compute visible flame length
-        Lstar = ((13.5 * Frf ** 0.4) / (1 + 0.07 * Frf ** 2) ** 0.2) * (Frf < 5) + 23 * (Frf >= 5)
+        Lstar = ((13.5 * Fr_f ** 0.4) / (1 + 0.07 * Fr_f ** 2) ** 0.2) * (Fr_f < 5) + 23 * (Fr_f >= 5)
 
         dstar = Deff * (rhoeff / rhoair) ** 0.5
         self.dstar = dstar
 
         self.Lvis = Lstar * dstar / fs  # visible flame length [m]
-        self.Wf = 0.17 * self.Lvis
-        # flame residence time [ms]
+        self.Wf = 0.17 * self.Lvis  # flame residence time [ms]
 
-        self.tauf = (const.pi / 12) * (rhof * (self.Wf ** 2) * self.Lvis * fs) / (orifice1.mdot(gas1)) * 1000
+        self.tauf = (const.pi / 12) * (rhof * (self.Wf ** 2) * self.Lvis * fs) / mdot * 1000
         self.Xrad = 9.45e-9 * (self.tauf * self.chem.absorption_coeff * Tad ** 4) ** 0.47  # see Panda, Hecht, IJHE 2016
-        mdot = self.developing_flow.orifice_exp.mdot(self.developing_flow.fluid_exp)  # mass flow rate [kg/s]
         self.Srad = self.Xrad * mdot * self.chem.DHc
 
         return self.Lvis
@@ -307,7 +305,7 @@ class Flame:
     def Qrad_multi(self, x, y, z, RH, WaistLoc=0.75, N=50):
         '''
         MultiSource radiation model
-        follows Hankinson & Lowesmith, CNF 159, 2012: 1165-1177       
+        follows Hankinson & Lowesmith, CNF 159, 2012: 1165-1177
         '''
         obsOrg = np.array([x, y, z]).T
 
@@ -390,10 +388,10 @@ class Flame:
                      contour_levels=contour_levels, add_colorbar=addColorBar, plot_color=plot_color,
                      plot_title=plot_title, x_label=x_label, y_label=y_label,
                      fig_params=fig_params, plot_params=plot_params, subplot_params=subplot_params, fig=fig, ax=ax)
-        
+
     def plot_heat_flux_sliced(self, title=None,
                               filename='HeatFluxSliced.png',
-                              directory=os.getcwd(),
+                              directory=None,
                               RH=0.89,
                               contours=None,
                               nx=50, ny=50, nz=50,
@@ -410,7 +408,7 @@ class Flame:
         filename : string, optional
             file name to write
         directory : string, optional
-            directory in which to save file
+            directory in which to save file, defaults to cwd
         RH : float
             relative humidity
         contours : ndarray or list (optional)
@@ -422,7 +420,7 @@ class Flame:
         nx, ny, nz: float (optional)
             number of points to solve for the heat flux in the x, y, and z directions
         xlims, ylims, zlims : tuple (optional)
-            plot limits of (min, max) in each dimension 
+            plot limits of (min, max) in each dimension
         WaistLoc : float (optoinal)
             value between 0 and 1 along flame length at which to make xz slice
         savefig : boolean (optional)
@@ -474,7 +472,7 @@ class Flame:
         flux : ndarray
             flux values at specified positions (W/m^2)
         """
-        
+
         x_values = [flux_coordinate[0] for flux_coordinate in flux_coordinates]
         y_values = [flux_coordinate[1] for flux_coordinate in flux_coordinates]
         z_values = [flux_coordinate[2] for flux_coordinate in flux_coordinates]
@@ -494,11 +492,11 @@ class Flame:
             Visible flame length (m)
         """
         return self.Lvis
-    
-    @property    
+
+    @property
     def birds_eye_flame_length(self):
         '''
-        returns : float 
+        returns : float
             flame length from above
         '''
         return np.interp(self.Lvis, self.S, self.x)
@@ -519,7 +517,7 @@ class Flame:
             (default is 'x')
         RH : float
             relative humidity
-        WaistLoc : float  
+        WaistLoc : float
             fractional distance along flame at which to look for the distance
         max_distance : float (optional)
             maximum distance to look for heat flux level
@@ -576,11 +574,11 @@ def calc_transmissivity(path_length, ambient_temperature, relative_humidity, atm
     atmospheric_CO2_ppm : float
         Atmospheric CO2 concentration (ppm),
         default is 335 ppm
-    
+
     Returns
     -------
     transmissivity : float
-        Atmospheric transmissivity 
+        Atmospheric transmissivity
     '''
     sat_water_vap_pressure_mmHg = np.exp(20.386 - 5132 / ambient_temperature)  # mmHg, saturated vapor pressure from Wikipedia
     XH2O = relative_humidity * path_length * sat_water_vap_pressure_mmHg * 2.88651e2 / ambient_temperature

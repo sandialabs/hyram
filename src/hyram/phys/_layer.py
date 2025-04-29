@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -14,9 +14,6 @@ import scipy.constants as const
 
 from ._jet import Jet
 
-########################################################################
-# TODO: untested for alternate fuels
-########################################################################
 
 class LayeringJet(Jet):
     def layer_accumulation(self, t, Vol_conc0, enclosure, tol = 1e-4):
@@ -36,9 +33,9 @@ class LayeringJet(Jet):
 
         - note: just outputting final value - could change to output full array if desired
         '''
-        
+
         r = integrate.ode(self._gov_eqns).set_integrator('dopri5', atol = tol, rtol = tol)
-        
+
         r.set_f_params(enclosure)
         r.set_initial_value(Vol_conc0, t[0])
 
@@ -100,7 +97,7 @@ class LayeringJet(Jet):
             QB = 0
             Qin = np.sqrt(QB**2 + Qw**2)
             dVdt = max(0, Qj - (Qin + Qs)) # dVdt >= 0
-        
+
         if c >= 1:
             dcdt = min(0, (Qs - c*Qj) / Vol)
         elif c <= 0:

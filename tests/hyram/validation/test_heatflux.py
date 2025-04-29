@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -15,14 +15,10 @@ from scipy.constants import milli, kilo, liter, bar, pi
 from scipy import optimize
 from scipy import interpolate
 
-from hyram.phys import Source, Fluid, Orifice, Flame
-from hyram.utilities import misc_utils
+from hyram.phys import Source, Fluid, Orifice, Flame, NozzleFlow
 
 from . import utils
 
-"""
-NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
-"""
 
 # Flags to enable command line output, pyplots, and text file output
 VERBOSE = False
@@ -31,9 +27,8 @@ CREATE_OUTPUT = False
 
 # Absolute paths to input/output data
 DATA_LOC = os.path.join(os.path.dirname(__file__), 'data')
-OUTPUT_LOC = os.path.join(misc_utils.get_temp_folder(), 'validation-heatflux')
-OUTPUT_FILE = os.path.join(OUTPUT_LOC, 'Validation.txt')
 LIMITS_FILE = os.path.join(DATA_LOC, 'Limits-heatflux.json')
+OUTPUT_LOC = os.path.join('out', 'validation-heatflux')
 
 
 class Test_Ekoto_2014(unittest.TestCase):
@@ -78,7 +73,7 @@ class Test_Ekoto_2014(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='m',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -106,7 +101,7 @@ class Test_Ekoto_2014(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='W/m^2',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -148,7 +143,7 @@ class Test_Schefer_2006_2007(unittest.TestCase):
             else: # choked - solve for stagnation density
                 def err_mdot(rho0):
                     gases[t] = Fluid(species='H2', T=temp, rho=rho0[0])
-                    return orifice.mdot(orifice.flow(gases[t], amb_pressure)) - init_flowrates[t] / kilo
+                    return NozzleFlow(gases[t], orifice, amb_pressure).mdot - init_flowrates[t] / kilo
                 rho0 = optimize.root(err_mdot, densities[t])['x'][0]
                 gases[t] = Fluid(species='H2', T=temp, rho=rho0)
                 flowrates[t] = None
@@ -187,7 +182,7 @@ class Test_Schefer_2006_2007(unittest.TestCase):
                                     error_limits=error_limits,
                                     units='W/m^2',
                                     msg=title,
-                                    output_filename=OUTPUT_FILE,
+                                    output_dir=OUTPUT_LOC,
                                     create_output=CREATE_OUTPUT,
                                     verbose=VERBOSE)
 
@@ -236,7 +231,7 @@ class Test_Schefer_2006_2007(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='W/m^2',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -287,7 +282,7 @@ class Test_Schefer_2006_2007(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='m',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -373,7 +368,7 @@ class Test_Imamura_2008(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='kg/s',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -416,7 +411,7 @@ class Test_Imamura_2008(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='kg/s',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -459,7 +454,7 @@ class Test_Imamura_2008(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='kg/s',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -503,7 +498,7 @@ class Test_Imamura_2008(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='kg/s',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -547,7 +542,7 @@ class Test_Imamura_2008(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='m',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -590,7 +585,7 @@ class Test_Imamura_2008(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='m',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -633,7 +628,7 @@ class Test_Imamura_2008(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='m',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -676,7 +671,7 @@ class Test_Imamura_2008(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='m',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -747,7 +742,7 @@ class Test_Mogi_2005(unittest.TestCase):
             flame = self.mogi_flames['Flames'][i]
 
             flame_length = np.linspace(0, flame.length())
-            calc_flowrate.append(flame.developing_flow.orifice.mdot(flame.developing_flow.fluid_orifice))
+            calc_flowrate.append(flame.developing_flow.orifice_flow.mdot)
             calc_flux.append(max(flame.Qrad_multi(flame_length, np.ones_like(flame_length)*1, np.ones_like(flame_length)*L, .9)))
 
         # Sort by flowrate (X)
@@ -777,7 +772,7 @@ class Test_Mogi_2005(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='W/m^2',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -817,7 +812,7 @@ class Test_Mogi_2005(unittest.TestCase):
             flame = self.mogi_flames['Flames'][i]
 
             l = np.linspace(0, flame.length())
-            calc_flowrate.append(flame.developing_flow.orifice.mdot(flame.developing_flow.fluid_orifice))
+            calc_flowrate.append(flame.developing_flow.orifice_flow.mdot)
             calc_flux.append(max(flame.Qrad_multi(l, np.ones_like(l)*1, np.ones_like(l)*L, .9)))
 
         # Sort by flowrate (X)
@@ -846,7 +841,7 @@ class Test_Mogi_2005(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='W/m^2',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -887,7 +882,7 @@ class Test_Mogi_2005(unittest.TestCase):
             flame = self.mogi_flames['Flames'][i]
 
             l = np.linspace(0, flame.length())
-            calc_flowrate.append(flame.developing_flow.orifice.mdot(flame.developing_flow.fluid_orifice))
+            calc_flowrate.append(flame.developing_flow.orifice_flow.mdot)
             calc_flux.append(max(flame.Qrad_multi(l, np.ones_like(l)*1, np.ones_like(l)*L, .9)))
 
         # Sort by flowrate (X)
@@ -916,7 +911,7 @@ class Test_Mogi_2005(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='W/m^2',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1006,7 +1001,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='bar',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1055,7 +1050,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='C',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1103,7 +1098,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='C',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1151,7 +1146,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='C',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1200,7 +1195,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='kg/m^2',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1248,7 +1243,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='kg/m^2',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1297,7 +1292,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='kg/m^2',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1355,7 +1350,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='m',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1412,7 +1407,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='m',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1469,7 +1464,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='m',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1532,7 +1527,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='W/m^2',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1594,7 +1589,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='W/m^2',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1656,7 +1651,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='W/m^2',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1719,7 +1714,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='W/m^2',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -1782,7 +1777,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='W/m^2',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 

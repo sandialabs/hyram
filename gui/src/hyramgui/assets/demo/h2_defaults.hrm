@@ -1,0 +1,2206 @@
+{
+    "analysis_name": {
+        "label": "Analysis name",
+        "slug": "analysis_name",
+        "value": ""
+    },
+    "seed": {
+        "label": "Random seed",
+        "slug": "seed",
+        "value": 4093077,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "fuel": {
+        "label": "Fuel",
+        "slug": "fuel",
+        "value": "h2"
+    },
+    "h2": {
+        "label": "Hydrogen",
+        "slug": "h2",
+        "value": 1.0,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "frac",
+        "unit": "%"
+    },
+    "ch4": {
+        "label": "Methane",
+        "slug": "ch4",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "frac",
+        "unit": "%"
+    },
+    "c3h8": {
+        "label": "Propane",
+        "slug": "c3h8",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "frac",
+        "unit": "%"
+    },
+    "n2": {
+        "label": "Nitrogen",
+        "slug": "n2",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "frac",
+        "unit": "%"
+    },
+    "co2": {
+        "label": "Carbon Dioxide",
+        "slug": "co2",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "frac",
+        "unit": "%"
+    },
+    "c2h6": {
+        "label": "Ethane",
+        "slug": "c2h6",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "frac",
+        "unit": "%"
+    },
+    "n-c4h10": {
+        "label": "Butane",
+        "slug": "n-c4h10",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "frac",
+        "unit": "%"
+    },
+    "hc(ch3)3": {
+        "label": "Isobutane",
+        "slug": "hc(ch3)3",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "frac",
+        "unit": "%"
+    },
+    "n-c5h12": {
+        "label": "Pentane",
+        "slug": "n-c5h12",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "frac",
+        "unit": "%"
+    },
+    "ch(ch3)2(c2h5)": {
+        "label": "Isopentane",
+        "slug": "ch(ch3)2(c2h5)",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "frac",
+        "unit": "%"
+    },
+    "n-c6h14": {
+        "label": "Hexane",
+        "slug": "n-c6h14",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "frac",
+        "unit": "%"
+    },
+    "nozzle": {
+        "label": "Notional nozzle model",
+        "slug": "nozzle",
+        "value": "yuce"
+    },
+    "fluid_phase": {
+        "label": "Fluid phase",
+        "slug": "fluid_phase",
+        "value": "fluid"
+    },
+    "fluid_pressure_is_absolute": {
+        "label": "Fluid pressure is absolute",
+        "slug": "fluid_pressure_is_absolute",
+        "value": true
+    },
+    "rel_t": {
+        "label": "Tank fluid temperature",
+        "slug": "rel_t",
+        "value": 288,
+        "min_value": "-infinity",
+        "max_value": "+infinity",
+        "unit_type": "temp",
+        "unit": "k"
+    },
+    "rel_p": {
+        "label": "Tank fluid pressure",
+        "slug": "rel_p",
+        "value": 35000000.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "pres",
+        "unit": "mpa"
+    },
+    "amb_p": {
+        "label": "Ambient pressure",
+        "slug": "amb_p",
+        "value": 101325.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "pres",
+        "unit": "mpa"
+    },
+    "amb_t": {
+        "label": "Ambient temperature",
+        "slug": "amb_t",
+        "value": 288,
+        "min_value": "-infinity",
+        "max_value": "+infinity",
+        "unit_type": "temp",
+        "unit": "k"
+    },
+    "discharge": {
+        "label": "Discharge coefficient",
+        "slug": "discharge",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "leak_d": {
+        "label": "Leak diameter",
+        "slug": "leak_d",
+        "value": 0.0035600000000000002,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "mm"
+    },
+    "rel_angle": {
+        "label": "Release angle",
+        "slug": "rel_angle",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "angle",
+        "unit": "deg"
+    },
+    "plume_plot_title": {
+        "label": "Plot title",
+        "slug": "plume_plot_title",
+        "value": "Mole Fraction of Leak"
+    },
+    "mole_contours": {
+        "label": "Mole fraction contours",
+        "slug": "mole_contours",
+        "value": [
+            0.04
+        ],
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "plume_mass_flow": {
+        "label": "Fluid mass flow rate (unchoked)",
+        "slug": "plume_mass_flow",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "massflow",
+        "unit": "kgs"
+    },
+    "plume_auto_limits": {
+        "label": "Automatically set plot limits",
+        "slug": "plume_auto_limits",
+        "value": true
+    },
+    "plume_xmin": {
+        "label": "Minimum X value",
+        "slug": "plume_xmin",
+        "value": -2.5,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "plume_xmax": {
+        "label": "Maximum X value",
+        "slug": "plume_xmax",
+        "value": 2.5,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "plume_ymin": {
+        "label": "Minimum Y value",
+        "slug": "plume_ymin",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "plume_ymax": {
+        "label": "Maximum Y value",
+        "slug": "plume_ymax",
+        "value": 10.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "plume_mole_min": {
+        "label": "Mole fraction minimum",
+        "slug": "plume_mole_min",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "frac",
+        "unit": "fr"
+    },
+    "plume_mole_max": {
+        "label": "Mole fraction maximum",
+        "slug": "plume_mole_max",
+        "value": 0.1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "frac",
+        "unit": "fr"
+    },
+    "is_blowdown": {
+        "label": "Release type",
+        "slug": "is_blowdown",
+        "value": true
+    },
+    "rel_h": {
+        "label": "Release height",
+        "slug": "rel_h",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "enclosure_h": {
+        "label": "Enclosure height",
+        "slug": "enclosure_h",
+        "value": 2.72,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "floor_ceil_a": {
+        "label": "Floor/ceiling area",
+        "slug": "floor_ceil_a",
+        "value": 16.72216,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "area",
+        "unit": "m2"
+    },
+    "rel_wall_dist": {
+        "label": "Distance from release to wall",
+        "slug": "rel_wall_dist",
+        "value": 2.1255,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "ceil_xarea": {
+        "label": "Vent 1 (ceiling ) cross-sectional area",
+        "slug": "ceil_xarea",
+        "value": 0.090792,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "area",
+        "unit": "m2"
+    },
+    "ceil_h": {
+        "label": "Vent 1 (ceiling) height from floor",
+        "slug": "ceil_h",
+        "value": 2.42,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "floor_xarea": {
+        "label": "Vent 2 (floor) cross-sectional area",
+        "slug": "floor_xarea",
+        "value": 0.00762,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "area",
+        "unit": "m2"
+    },
+    "floor_h": {
+        "label": "Vent 2 (floor) height from floor",
+        "slug": "floor_h",
+        "value": 0.044,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "tank_v": {
+        "label": "Tank volume",
+        "slug": "tank_v",
+        "value": 0.00363,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "volume",
+        "unit": "m3"
+    },
+    "vent_flow": {
+        "label": "Vent volumetric flow rate",
+        "slug": "vent_flow",
+        "value": 0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "out_ts": {
+        "label": "Output pressures at these times",
+        "slug": "out_ts",
+        "value": [
+            1.0,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0,
+            7.0,
+            8.0,
+            9.0,
+            10.0,
+            11.0,
+            12.0,
+            13.0,
+            14.0,
+            15.0,
+            16.0,
+            17.0,
+            18.0,
+            19.0,
+            20.0,
+            21.0,
+            22.0,
+            23.0,
+            24.0,
+            25.0,
+            26.0,
+            27.0,
+            28.0,
+            29.0,
+            29.5
+        ],
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "time",
+        "unit": "sec"
+    },
+    "t_max": {
+        "label": "Maximum time",
+        "slug": "t_max",
+        "value": 30.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "time",
+        "unit": "sec"
+    },
+    "do_p_lines": {
+        "label": "Draw horizontal lines at specified pressures",
+        "slug": "do_p_lines",
+        "value": false
+    },
+    "line_ps": {
+        "label": "Pressures to mark",
+        "slug": "line_ps",
+        "value": [
+            13800.0,
+            15000.0,
+            55200.0
+        ],
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "pres",
+        "unit": "kpa"
+    },
+    "do_p_ts": {
+        "label": "Mark specified pressure/time intersections",
+        "slug": "do_p_ts",
+        "value": false
+    },
+    "pair_ts": {
+        "label": "Times",
+        "slug": "pair_ts",
+        "value": [
+            1.0,
+            15.0,
+            20.0
+        ],
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "time",
+        "unit": "sec"
+    },
+    "pair_ps": {
+        "label": "Pressures",
+        "slug": "pair_ps",
+        "value": [
+            13800.0,
+            15000.0,
+            55200.0
+        ],
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "pres",
+        "unit": "kpa"
+    },
+    "flame_contours": {
+        "label": "Contour levels (kW/m<sup>2</sup>)",
+        "slug": "flame_contours",
+        "value": [
+            1.577,
+            4.732,
+            25.237
+        ],
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "flame_auto_limits": {
+        "label": "Automatically set plot limits",
+        "slug": "flame_auto_limits",
+        "value": true
+    },
+    "heat_xmin": {
+        "label": "Heat flux X min",
+        "slug": "heat_xmin",
+        "value": -5.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "heat_xmax": {
+        "label": "Heat flux X max",
+        "slug": "heat_xmax",
+        "value": 15.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "heat_ymin": {
+        "label": "Heat flux Y min",
+        "slug": "heat_ymin",
+        "value": -10.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "heat_ymax": {
+        "label": "Heat flux Y max",
+        "slug": "heat_ymax",
+        "value": 10.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "heat_zmin": {
+        "label": "Heat flux Z min",
+        "slug": "heat_zmin",
+        "value": -10.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "heat_zmax": {
+        "label": "Heat flux Z max",
+        "slug": "heat_zmax",
+        "value": 10.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "temp_xmin": {
+        "label": "Temperature X min",
+        "slug": "temp_xmin",
+        "value": -5.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "temp_xmax": {
+        "label": "Temperature X max",
+        "slug": "temp_xmax",
+        "value": 15.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "temp_ymin": {
+        "label": "Temperature Y min",
+        "slug": "temp_ymin",
+        "value": -10.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "temp_ymax": {
+        "label": "Temperature Y max",
+        "slug": "temp_ymax",
+        "value": 10.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "uo_overp_contours": {
+        "label": "Overpressure contours",
+        "slug": "uo_overp_contours",
+        "value": [
+            7,
+            13.7,
+            20.7
+        ],
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "uo_impulse_contours": {
+        "label": "Impulse contours",
+        "slug": "uo_impulse_contours",
+        "value": [
+            0.13,
+            0.18,
+            0.27
+        ],
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "uo_auto_limits": {
+        "label": "Automatically set plot limits",
+        "slug": "uo_auto_limits",
+        "value": true
+    },
+    "uo_overp_xmin": {
+        "label": "Overpressure X min",
+        "slug": "uo_overp_xmin",
+        "value": -35.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "uo_overp_xmax": {
+        "label": "Overpressure X max",
+        "slug": "uo_overp_xmax",
+        "value": 35.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "uo_overp_ymin": {
+        "label": "Overpressure Y min",
+        "slug": "uo_overp_ymin",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "uo_overp_ymax": {
+        "label": "Overpressure Y max",
+        "slug": "uo_overp_ymax",
+        "value": 35.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "uo_overp_zmin": {
+        "label": "Overpressure Z min",
+        "slug": "uo_overp_zmin",
+        "value": -35.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "uo_overp_zmax": {
+        "label": "Overpressure Z max",
+        "slug": "uo_overp_zmax",
+        "value": 35.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "uo_impulse_xmin": {
+        "label": "Impulse X min",
+        "slug": "uo_impulse_xmin",
+        "value": -2.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "uo_impulse_xmax": {
+        "label": "Impulse X max",
+        "slug": "uo_impulse_xmax",
+        "value": 4.5,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "uo_impulse_ymin": {
+        "label": "Impulse Y min",
+        "slug": "uo_impulse_ymin",
+        "value": 0.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "uo_impulse_ymax": {
+        "label": "Impulse Y max",
+        "slug": "uo_impulse_ymax",
+        "value": 3.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "uo_impulse_zmin": {
+        "label": "Impulse Z min",
+        "slug": "uo_impulse_zmin",
+        "value": -3.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "uo_impulse_zmax": {
+        "label": "Impulse Z max",
+        "slug": "uo_impulse_zmax",
+        "value": 3.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "etk_t": {
+        "label": "Temperature",
+        "slug": "etk_t",
+        "value": 298,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "temp",
+        "unit": "k"
+    },
+    "etk_p": {
+        "label": "Pressure (absolute)",
+        "slug": "etk_p",
+        "value": 110000.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "pres",
+        "unit": "pa"
+    },
+    "etk_d": {
+        "label": "Density",
+        "slug": "etk_d",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "density",
+        "unit": "kgpm3"
+    },
+    "etk_v": {
+        "label": "Volume",
+        "slug": "etk_v",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "volume",
+        "unit": "l"
+    },
+    "etk_m": {
+        "label": "Mass",
+        "slug": "etk_m",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "mass",
+        "unit": "kg"
+    },
+    "etk_p_amb": {
+        "label": "Ambient pressure",
+        "slug": "etk_p_amb",
+        "value": 101325.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "pres",
+        "unit": "pa"
+    },
+    "etk_orif_d": {
+        "label": "Orifice diameter",
+        "slug": "etk_orif_d",
+        "value": 0.01,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "mm"
+    },
+    "etk_discharge": {
+        "label": "Discharge coefficient",
+        "slug": "etk_discharge",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "etk_is_blowdown": {
+        "label": "Release type",
+        "slug": "etk_is_blowdown",
+        "value": true
+    },
+    "etk_flow": {
+        "label": "Mass flow rate (kg/s)",
+        "slug": "etk_flow",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "massflow",
+        "unit": "kgs"
+    },
+    "etk_t_empty": {
+        "label": "Time to empty (s)",
+        "slug": "etk_t_empty",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "time",
+        "unit": "sec"
+    },
+    "n_compressors": {
+        "label": "# Compressors",
+        "slug": "n_compressors",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_vessels": {
+        "label": "# Vessels",
+        "slug": "n_vessels",
+        "value": 2,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_valves": {
+        "label": "# Valves",
+        "slug": "n_valves",
+        "value": 7,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_instruments": {
+        "label": "# Instruments",
+        "slug": "n_instruments",
+        "value": 5,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_joints": {
+        "label": "# Joints",
+        "slug": "n_joints",
+        "value": 43,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_hoses": {
+        "label": "# Hoses",
+        "slug": "n_hoses",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_filters": {
+        "label": "# Filters",
+        "slug": "n_filters",
+        "value": 3,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_flanges": {
+        "label": "# Flanges",
+        "slug": "n_flanges",
+        "value": 0,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_exchangers": {
+        "label": "# Heat exchangers",
+        "slug": "n_exchangers",
+        "value": 0,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_vaporizers": {
+        "label": "# Vaporizers",
+        "slug": "n_vaporizers",
+        "value": 0,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_arms": {
+        "label": "# Loading arms",
+        "slug": "n_arms",
+        "value": 0,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_extra1": {
+        "label": "# Extra component 1",
+        "slug": "n_extra1",
+        "value": 0,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_extra2": {
+        "label": "# Extra component 2",
+        "slug": "n_extra2",
+        "value": 0,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "pipe_l": {
+        "label": "Pipes (length)",
+        "slug": "pipe_l",
+        "value": 30.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "pipe_d": {
+        "label": "Pipe inner diameter",
+        "slug": "pipe_d",
+        "value": 0.006222999999999999,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "in"
+    },
+    "pipe_od": {
+        "label": "Pipe outer diameter",
+        "slug": "pipe_od",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "in"
+    },
+    "pipe_thick": {
+        "label": "Pipe wall thickness",
+        "slug": "pipe_thick",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "in"
+    },
+    "humid": {
+        "label": "Relative humidity",
+        "slug": "humid",
+        "value": 0.89,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_vehicles": {
+        "label": "Number of vehicles",
+        "slug": "n_vehicles",
+        "value": 20,
+        "min_value": "0",
+        "max_value": "2e+09",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_fuelings": {
+        "label": "Number of fuelings / vehicle / day",
+        "slug": "n_fuelings",
+        "value": 2,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "n_vehicle_days": {
+        "label": "Number of vehicle operating days",
+        "slug": "n_vehicle_days",
+        "value": 250,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "mass_flow_leak": {
+        "label": "Leak size",
+        "slug": "mass_flow_leak",
+        "value": "ld01"
+    },
+    "mass_flow": {
+        "label": "Release mass flow rate",
+        "slug": "mass_flow",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "massflow",
+        "unit": "kgs"
+    },
+    "facility_l": {
+        "label": "Facility length (x)",
+        "slug": "facility_l",
+        "value": 20.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "facility_w": {
+        "label": "Facility width (z)",
+        "slug": "facility_w",
+        "value": 12.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "exclusion": {
+        "label": "Exclusion radius",
+        "slug": "exclusion",
+        "value": 0.01,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "dist_sm",
+        "unit": "m"
+    },
+    "override_d01": {
+        "label": "0.01% release annual frequency",
+        "slug": "override_d01",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "override_d1": {
+        "label": "0.10% release annual frequency",
+        "slug": "override_d1",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "override_1": {
+        "label": "1% release annual frequency",
+        "slug": "override_1",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "override_10": {
+        "label": "10% release annual frequency",
+        "slug": "override_10",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "override_100": {
+        "label": "100% release annual frequency",
+        "slug": "override_100",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "override_fail": {
+        "label": "100% release annual frequency (accidents and shutdown failures)",
+        "slug": "override_fail",
+        "value": null,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "detection": {
+        "label": "Gas detection credit",
+        "slug": "detection",
+        "value": 0.9,
+        "min_value": "0",
+        "max_value": "1.0",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "compressor_d01": {
+        "label": "0.01%",
+        "slug": "compressor_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -2.3053,
+        "sigma": 0.3018,
+        "median": 0.09972887750211971
+    },
+    "compressor_d1": {
+        "label": "0.1%",
+        "slug": "compressor_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -4.0761,
+        "sigma": 0.5249,
+        "median": 0.016973533517345877
+    },
+    "compressor_1": {
+        "label": "1%",
+        "slug": "compressor_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -5.3881,
+        "sigma": 0.8212,
+        "median": 0.004570649324652437
+    },
+    "compressor_10": {
+        "label": "10%",
+        "slug": "compressor_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -8.7929,
+        "sigma": 0.7263,
+        "median": 0.00015180708816329923
+    },
+    "compressor_100": {
+        "label": "100%",
+        "slug": "compressor_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -11.1359,
+        "sigma": 1.2067,
+        "median": 1.4579414353337646e-05
+    },
+    "vessel_d01": {
+        "label": "0.01%",
+        "slug": "vessel_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -13.477,
+        "sigma": 0.7347,
+        "median": 1.4028565601850563e-06
+    },
+    "vessel_d1": {
+        "label": "0.1%",
+        "slug": "vessel_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -13.641,
+        "sigma": 0.6387,
+        "median": 1.1906633132993771e-06
+    },
+    "vessel_1": {
+        "label": "1%",
+        "slug": "vessel_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -14.0512,
+        "sigma": 0.6203,
+        "median": 7.900259847007573e-07
+    },
+    "vessel_10": {
+        "label": "10%",
+        "slug": "vessel_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -14.6144,
+        "sigma": 0.6041,
+        "median": 4.498282471669693e-07
+    },
+    "vessel_100": {
+        "label": "100%",
+        "slug": "vessel_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -15.2732,
+        "sigma": 0.6156,
+        "median": 2.3277349049901447e-07
+    },
+    "filter_d01": {
+        "label": "0.01%",
+        "slug": "filter_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -5.99,
+        "sigma": 0.606,
+        "median": 0.0025036640502021
+    },
+    "filter_d1": {
+        "label": "0.1%",
+        "slug": "filter_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -6.98,
+        "sigma": 0.585,
+        "median": 0.000930303203204949
+    },
+    "filter_1": {
+        "label": "1%",
+        "slug": "filter_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -7.96,
+        "sigma": 0.626,
+        "median": 0.0003491531174598264
+    },
+    "filter_10": {
+        "label": "10%",
+        "slug": "filter_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -8.95,
+        "sigma": 0.718,
+        "median": 0.00012973716004575404
+    },
+    "filter_100": {
+        "label": "100%",
+        "slug": "filter_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -9.94,
+        "sigma": 0.674,
+        "median": 4.820730463239883e-05
+    },
+    "flange_d01": {
+        "label": "0.01%",
+        "slug": "flange_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -3.9125,
+        "sigma": 1.492,
+        "median": 0.01999046238343942
+    },
+    "flange_d1": {
+        "label": "0.1%",
+        "slug": "flange_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -6.1191,
+        "sigma": 1.1345,
+        "median": 0.0022004354640511063
+    },
+    "flange_1": {
+        "label": "1%",
+        "slug": "flange_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -8.3252,
+        "sigma": 2.0541,
+        "median": 0.0002423324534465554
+    },
+    "flange_10": {
+        "label": "10%",
+        "slug": "flange_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -10.5327,
+        "sigma": 0.7208,
+        "median": 2.6650570512048557e-05
+    },
+    "flange_100": {
+        "label": "100%",
+        "slug": "flange_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -12.7385,
+        "sigma": 1.6925,
+        "median": 2.9358897470846113e-06
+    },
+    "hose_d01": {
+        "label": "0.01%",
+        "slug": "hose_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -7.4534,
+        "sigma": 0.3863,
+        "median": 0.0005794680676392204
+    },
+    "hose_d1": {
+        "label": "0.1%",
+        "slug": "hose_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -8.5011,
+        "sigma": 0.605,
+        "median": 0.00020324467685797223
+    },
+    "hose_1": {
+        "label": "1%",
+        "slug": "hose_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -8.7103,
+        "sigma": 0.6106,
+        "median": 0.0001648787834179641
+    },
+    "hose_10": {
+        "label": "10%",
+        "slug": "hose_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -8.8001,
+        "sigma": 0.5901,
+        "median": 0.00015071800254160724
+    },
+    "hose_100": {
+        "label": "100%",
+        "slug": "hose_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -9.6934,
+        "sigma": 0.9836,
+        "median": 6.16893038164071e-05
+    },
+    "joint_d01": {
+        "label": "0.01%",
+        "slug": "joint_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -10.2591,
+        "sigma": 0.2423,
+        "median": 3.5037207139347053e-05
+    },
+    "joint_d1": {
+        "label": "0.1%",
+        "slug": "joint_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -12.2703,
+        "sigma": 0.8727,
+        "median": 4.68895882071147e-06
+    },
+    "joint_1": {
+        "label": "1%",
+        "slug": "joint_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -11.7538,
+        "sigma": 0.5333,
+        "median": 7.8594022817001e-06
+    },
+    "joint_10": {
+        "label": "10%",
+        "slug": "joint_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -11.7961,
+        "sigma": 0.6073,
+        "median": 7.533882837374821e-06
+    },
+    "joint_100": {
+        "label": "100%",
+        "slug": "joint_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -11.959,
+        "sigma": 0.66,
+        "median": 6.401360577233544e-06
+    },
+    "pipe_d01": {
+        "label": "0.01%",
+        "slug": "pipe_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -11.7331,
+        "sigma": 0.7162,
+        "median": 8.023787425428275e-06
+    },
+    "pipe_d1": {
+        "label": "0.1%",
+        "slug": "pipe_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -12.5079,
+        "sigma": 0.707,
+        "median": 3.6973285966044462e-06
+    },
+    "pipe_1": {
+        "label": "1%",
+        "slug": "pipe_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -13.8601,
+        "sigma": 1.2515,
+        "median": 9.56390054794557e-07
+    },
+    "pipe_10": {
+        "label": "10%",
+        "slug": "pipe_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -14.5893,
+        "sigma": 1.1933,
+        "median": 4.612618273357951e-07
+    },
+    "pipe_100": {
+        "label": "100%",
+        "slug": "pipe_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -15.7354,
+        "sigma": 1.8486,
+        "median": 1.4662317159365777e-07
+    },
+    "valve_d01": {
+        "label": "0.01%",
+        "slug": "valve_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -5.8546,
+        "sigma": 0.25,
+        "median": 0.002866682044628164
+    },
+    "valve_d1": {
+        "label": "0.1%",
+        "slug": "valve_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -7.4425,
+        "sigma": 0.4344,
+        "median": 0.0005858188182899353
+    },
+    "valve_1": {
+        "label": "1%",
+        "slug": "valve_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -9.819,
+        "sigma": 1.1434,
+        "median": 5.440796496620691e-05
+    },
+    "valve_10": {
+        "label": "10%",
+        "slug": "valve_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -10.6079,
+        "sigma": 0.627,
+        "median": 2.471994871531784e-05
+    },
+    "valve_100": {
+        "label": "100%",
+        "slug": "valve_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -12.2436,
+        "sigma": 1.369,
+        "median": 4.815840352042724e-06
+    },
+    "instrument_d01": {
+        "label": "0.01%",
+        "slug": "instrument_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -7.38,
+        "sigma": 0.71,
+        "median": 0.0006236008859994445
+    },
+    "instrument_d1": {
+        "label": "0.1%",
+        "slug": "instrument_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -8.54,
+        "sigma": 0.85,
+        "median": 0.0001954902601469749
+    },
+    "instrument_1": {
+        "label": "1%",
+        "slug": "instrument_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -9.1,
+        "sigma": 0.92,
+        "median": 0.00011166580849011478
+    },
+    "instrument_10": {
+        "label": "10%",
+        "slug": "instrument_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -9.21,
+        "sigma": 1.09,
+        "median": 0.00010003404299092957
+    },
+    "instrument_100": {
+        "label": "100%",
+        "slug": "instrument_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": -10.21,
+        "sigma": 1.49,
+        "median": 3.680046783362321e-05
+    },
+    "exchanger_d01": {
+        "label": "0.01%",
+        "slug": "exchanger_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "exchanger_d1": {
+        "label": "0.1%",
+        "slug": "exchanger_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "exchanger_1": {
+        "label": "1%",
+        "slug": "exchanger_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "exchanger_10": {
+        "label": "10%",
+        "slug": "exchanger_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "exchanger_100": {
+        "label": "100%",
+        "slug": "exchanger_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "vaporizer_d01": {
+        "label": "0.01%",
+        "slug": "vaporizer_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "vaporizer_d1": {
+        "label": "0.1%",
+        "slug": "vaporizer_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "vaporizer_1": {
+        "label": "1%",
+        "slug": "vaporizer_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "vaporizer_10": {
+        "label": "10%",
+        "slug": "vaporizer_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "vaporizer_100": {
+        "label": "100%",
+        "slug": "vaporizer_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "arm_d01": {
+        "label": "0.01%",
+        "slug": "arm_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "arm_d1": {
+        "label": "0.1%",
+        "slug": "arm_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "arm_1": {
+        "label": "1%",
+        "slug": "arm_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "arm_10": {
+        "label": "10%",
+        "slug": "arm_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "arm_100": {
+        "label": "100%",
+        "slug": "arm_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "extra1_d01": {
+        "label": "0.01%",
+        "slug": "extra1_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "extra1_d1": {
+        "label": "0.1%",
+        "slug": "extra1_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "extra1_1": {
+        "label": "1%",
+        "slug": "extra1_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "extra1_10": {
+        "label": "10%",
+        "slug": "extra1_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "extra1_100": {
+        "label": "100%",
+        "slug": "extra1_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "extra2_d01": {
+        "label": "0.01%",
+        "slug": "extra2_d01",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "extra2_d1": {
+        "label": "0.1%",
+        "slug": "extra2_d1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "extra2_1": {
+        "label": "1%",
+        "slug": "extra2_1",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "extra2_10": {
+        "label": "10%",
+        "slug": "extra2_10",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "extra2_100": {
+        "label": "100%",
+        "slug": "extra2_100",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "mu": 999.0,
+        "sigma": 999.0,
+        "median": 999
+    },
+    "nozzle_po": {
+        "label": "Nozzle (pop-off)",
+        "slug": "nozzle_po",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "descrip": "Pop-off",
+        "distr": "beta",
+        "pa": 0.5,
+        "pb": 610415.5
+    },
+    "nozzle_ftc": {
+        "label": "Nozzle (failure to close)",
+        "slug": "nozzle_ftc",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "descrip": "Failure to close",
+        "distr": "ev",
+        "pa": 0.002,
+        "pb": 0
+    },
+    "mvalve_ftc": {
+        "label": "Manual valve (failure to close)",
+        "slug": "mvalve_ftc",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "descrip": "Failure to close",
+        "distr": "ev",
+        "pa": 0.001,
+        "pb": 0
+    },
+    "svalve_ftc": {
+        "label": "Solenoid valve (failure to close)",
+        "slug": "svalve_ftc",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "descrip": "Failure to close",
+        "distr": "ev",
+        "pa": 0.002,
+        "pb": 0
+    },
+    "svalve_ccf": {
+        "label": "Solenoid valve (common-cause failure)",
+        "slug": "svalve_ccf",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "descrip": "Common-cause failure",
+        "distr": "ev",
+        "pa": 0.000128,
+        "pb": 0
+    },
+    "pvalve_fto": {
+        "label": "Pressure relief valve (failure to open)",
+        "slug": "pvalve_fto",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "descrip": "Failure to open",
+        "distr": "ln",
+        "pa": -11.74,
+        "pb": 0.67
+    },
+    "coupling_ftc": {
+        "label": "Breakaway coupling (failure to close)",
+        "slug": "coupling_ftc",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "descrip": "Failure to close",
+        "distr": "beta",
+        "pa": 0.5,
+        "pb": 5031
+    },
+    "acc_fuel_overp": {
+        "label": "Overpressure during fueling",
+        "slug": "acc_fuel_overp",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "descrip": "",
+        "distr": "beta",
+        "pa": 3.5,
+        "pb": 310289.5
+    },
+    "acc_driveoff": {
+        "label": "Driveoff",
+        "slug": "acc_driveoff",
+        "value": 1,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null,
+        "descrip": "",
+        "distr": "beta",
+        "pa": 31.5,
+        "pb": 610384.5
+    },
+    "overp_method": {
+        "label": "Overpressure method",
+        "slug": "overp_method",
+        "value": "bst"
+    },
+    "mach_speed": {
+        "label": "Mach flame speed",
+        "slug": "mach_speed",
+        "value": "s0.35"
+    },
+    "tnt_factor": {
+        "label": "TNT equivalence factor",
+        "slug": "tnt_factor",
+        "value": 0.03,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "unitless",
+        "unit": null
+    },
+    "thermal_probit": {
+        "label": "Thermal probit model",
+        "slug": "thermal_probit",
+        "value": "eise"
+    },
+    "exposure_t": {
+        "label": "Thermal exposure time",
+        "slug": "exposure_t",
+        "value": 30.0,
+        "min_value": "0",
+        "max_value": "+infinity",
+        "unit_type": "time",
+        "unit": "sec"
+    },
+    "overp_probit": {
+        "label": "Overpressure probit model",
+        "slug": "overp_probit",
+        "value": "head"
+    },
+    "jet_flame_points": [
+        [
+            0.01,
+            1,
+            0.01
+        ],
+        [
+            0.5,
+            1,
+            0.5
+        ],
+        [
+            1,
+            1,
+            0.5
+        ],
+        [
+            2,
+            2,
+            1
+        ],
+        [
+            2.5,
+            1,
+            1
+        ],
+        [
+            5,
+            2,
+            1
+        ],
+        [
+            10,
+            2,
+            0.5
+        ],
+        [
+            15,
+            2,
+            0.5
+        ],
+        [
+            25,
+            2,
+            1
+        ],
+        [
+            40,
+            2,
+            2
+        ]
+    ],
+    "uo_points": [
+        [
+            1,
+            0,
+            1
+        ],
+        [
+            2,
+            0,
+            2
+        ]
+    ],
+    "occupant_data": [
+        {
+            "occupants": 9,
+            "descrip": "Station workers",
+            "hours": 2000,
+            "units": 0,
+            "xd": 1,
+            "xa": 1,
+            "xb": 20,
+            "yd": 2,
+            "ya": 0,
+            "yb": 0,
+            "zd": 1,
+            "za": 1,
+            "zb": 12
+        }
+    ],
+    "ignition_data": [
+        {
+            "min": null,
+            "max": 0.125,
+            "immed": 0.008,
+            "delay": 0.004
+        },
+        {
+            "min": 0.125,
+            "max": 6.25,
+            "immed": 0.053,
+            "delay": 0.027
+        },
+        {
+            "min": 6.25,
+            "max": null,
+            "immed": 0.23,
+            "delay": 0.12
+        }
+    ]
+}

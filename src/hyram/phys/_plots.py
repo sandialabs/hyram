@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -16,6 +16,7 @@ from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.axes_grid1 import ImageGrid
 
 from ._fuel_props import FuelProperties
+from ..utilities import misc_utils
 
 
 def plot_sliced_contour(contours, xlims, ylims, zlims, nx, ny, nz,
@@ -24,7 +25,7 @@ def plot_sliced_contour(contours, xlims, ylims, zlims, nx, ny, nz,
                         origin_lines=None,
                         title=None,
                         savefig=False,
-                        directory=os.getcwd(),
+                        directory=None,
                         filename='sliced_contour_plot.png',
                         *args, **kwargs):
     '''
@@ -73,6 +74,7 @@ def plot_sliced_contour(contours, xlims, ylims, zlims, nx, ny, nz,
         determines if figure file is saved
     directory : string (optional)
         directory in which to save file
+        defaults to current working directory
     filename : string (optional)
         file name to write
     *args : positional arguments (optional)
@@ -201,7 +203,8 @@ def plot_sliced_contour(contours, xlims, ylims, zlims, nx, ny, nz,
         fig.suptitle(title)
 
     if savefig:
-        filepath = os.path.join(directory, filename)
+        output_folder = misc_utils.get_output_folder(directory)
+        filepath = os.path.join(output_folder, filename)
         fig.savefig(filepath, bbox_inches='tight')
         plt.close(fig)
         return filepath
@@ -253,7 +256,7 @@ def plot_contour(data_type, jet_or_flame, mcolors='w',
     fig: matplotlib Figure, optional
         Figure on which to make the plot, used if figure already exists before this function is called
     ax: matplotlib Axes, optional
-        Axes on which to make the plot, used if figure already exists 
+        Axes on which to make the plot, used if figure already exists
 
     Returns
     -------
@@ -283,7 +286,7 @@ def plot_contour(data_type, jet_or_flame, mcolors='w',
     if xlims is not None:
         ax.set_xlim(*xlims)
     if ylims is not None:
-        ax.set_ylim(*ylims)        
+        ax.set_ylim(*ylims)
     if plot_title is not None:
         ax.set_title(plot_title)
 
@@ -303,7 +306,7 @@ def plot_contour(data_type, jet_or_flame, mcolors='w',
         cb_label = 'Temperature (K)'
         if not plot_color:
             plot_color = 'plasma'
-        
+
     elif data_type == "mole":
         x, y, v, __, __, __ = jet_or_flame._contourdata
         cb_label = 'Mole Fraction'
@@ -315,10 +318,10 @@ def plot_contour(data_type, jet_or_flame, mcolors='w',
         cb_label = 'Mass Fraction'
         if not plot_color:
             plot_color = 'viridis'
-        
+
     elif data_type == "velocity":
         x, y, __, __, v, __ = jet_or_flame._contourdata
-        cb_label = 'Velocity (m/s)'    
+        cb_label = 'Velocity (m/s)'
         if not plot_color:
             plot_color = 'viridis'
 
@@ -330,25 +333,25 @@ def plot_contour(data_type, jet_or_flame, mcolors='w',
         vmin = vlims[0]
         vmax = vlims[1]
         if vmin is None and vmax is not None:
-            if np.amax(v) > vmax: 
+            if np.amax(v) > vmax:
                 extend = 'max'
-            else: 
+            else:
                 extend = 'neither'
             vmin = np.amin(v)
         elif vmax is None and vmin is not None:
-            if np.amin(v) < vmin: 
+            if np.amin(v) < vmin:
                 extend = 'min'
-            else: 
+            else:
                 extend = 'neither'
             vmax = np.amax(v)
         else:
-            if np.amax(v) > vmax and np.amin(v) < vmin: 
+            if np.amax(v) > vmax and np.amin(v) < vmin:
                 extend = 'both'
-            elif np.amax(v) > vmax and np.amin(v) >= vmin: 
+            elif np.amax(v) > vmax and np.amin(v) >= vmin:
                 extend = 'max'
-            elif np.amax(v) <= vmax and np.amin(v) < vmin: 
+            elif np.amax(v) <= vmax and np.amin(v) < vmin:
                 extend = 'min'
-            else: 
+            else:
                 extend = 'neither'
     else:
         vmin = np.amin(v)
@@ -366,7 +369,7 @@ def plot_contour(data_type, jet_or_flame, mcolors='w',
 
     filled_contour = ax.contourf(x, y, v, levels=filled_levels, vmin=vmin, vmax=vmax, extend=extend, **plot_params)
 
-    # Add specific line contours 
+    # Add specific line contours
     if contour_levels is not None:
         contour_levels = [contour_levels] if type(contour_levels) in [int, float] else contour_levels
 
@@ -385,8 +388,8 @@ def plot_contour(data_type, jet_or_flame, mcolors='w',
 
         # Draw contour line labels
         if xlims is not None and ylims is not None:
-            manual = [np.interp(m, jet_or_flame.X_cl[::-1], 
-                                jet_or_flame.S[::-1]) * np.array([np.cos(jet_or_flame.theta[0]), 
+            manual = [np.interp(m, jet_or_flame.X_cl[::-1],
+                                jet_or_flame.S[::-1]) * np.array([np.cos(jet_or_flame.theta[0]),
                                                                     np.sin(jet_or_flame.theta[0])])*.7 for m in contour_levels]
         else:
             manual = False
@@ -423,7 +426,7 @@ def plot_contour(data_type, jet_or_flame, mcolors='w',
             colorbar = plt.colorbar(filled_contour, **cb_kwargs)
 
         colorbar.set_label(cb_label, **cb_label_kwargs)
-    
+
     ax.set_aspect(1)
     fig.tight_layout()
 

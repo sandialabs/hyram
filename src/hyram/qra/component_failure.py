@@ -1,229 +1,17 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
 """
+from dataclasses import dataclass
+from typing import Iterable, Optional
 
 import numpy as np
 
-from . import distributions
 
-
-
-class ComponentFailureSet:
-    """
-
-    Parameters
-    ----------
-    f_failure_override : float or None
-        Manual frequency value for accidents/shutdown failure.
-        Other parameters will be ignored if this is not None.
-
-    num_vehicles : int
-        Number of vehicles in use.
-
-    daily_fuelings : int
-        Number of fuelings per day for each vehicle
-
-    vehicle_days : int
-        Annual days of operations
-
-    noz_po_dist : str
-        ID of distribution for pop-off failure mode.
-
-    noz_po_a : float
-        Failure distribution parameter A
-
-    noz_po_b : float or None
-        Failure distribution parameter B. None if using Expected Value
-
-    noz_ftc_dist : str
-        ID of distribution for nozzle failure-to-close failure mode.
-
-    noz_ftc_a : float
-        Failure distribution parameter A
-
-    noz_ftc_b : float or None
-        Failure distribution parameter B. None if using Expected Value
-
-    mvalve_ftc_dist : str
-        ID of distribution for manual valve FTC failure mode.
-
-    mvalve_ftc_a : float
-        Failure distribution parameter A
-
-    mvalve_ftc_b : float or None
-        Failure distribution parameter B. None if using Expected Value
-
-    svalve_ftc_dist : str
-        ID of distribution for solenoid valve FTC failure mode.
-
-    svalve_ftc_a : float
-        Failure distribution parameter A
-
-    svalve_ftc_b : float or None
-        Failure distribution parameter B. None if using Expected Value
-
-    svalve_ccf_dist : str
-        ID of distribution for solenoid valve common-cause failure mode.
-
-    svalve_ccf_a : float
-        Failure distribution parameter A
-
-    svalve_ccf_b : float or None
-        Failure distribution parameter B. None if using Expected Value
-
-    overp_dist : str
-        ID of distribution for overpressure failure mode.
-
-    overp_a : float
-        Failure distribution parameter A
-
-    overp_b : float or None
-        Failure distribution parameter B. None if using Expected Value
-
-    pvalve_fto_dist : str
-        ID of distribution for pressure-relief valve failure-to-open failure mode.
-
-    pvalve_fto_a : float
-        Failure distribution parameter A
-
-    pvalve_fto_b : float or None
-        Failure distribution parameter B. None if using Expected Value
-
-    driveoff_dist : str
-        ID of distribution for driveoff failure mode.
-
-    driveoff_a : float
-        Failure distribution parameter A
-
-    driveoff_b : float or None
-        Failure distribution parameter B. None if using Expected Value
-
-    coupling_ftc_dist : str
-        ID of distribution for coupling failure-to-close failure mode.
-
-    coupling_ftc_a : float
-        Failure distribution parameter A
-
-    coupling_ftc_b : float or None
-        Failure distribution parameter B. None if using Expected Value
-
-    """
-    use_override = False
-    f_failure = None
-    noz_po = None
-    noz_ftc = None
-    mvalve_ftc = None
-    svalve_ftc = None
-    svalve_ccf = None
-    overp = None
-    pvalve_fto = None
-    driveoff = None
-    coupling_ftc = None
-
-    p_overp_rupture = None
-    f_overp_rupture = None
-    p_driveoff = None
-    f_driveoff = None
-    p_nozzle_release = None
-    f_nozzle_release = None
-    p_sol_valves_ftc = None
-    f_sol_valves_ftc = None
-    p_mvalve_ftc = None
-    f_mvalve_ftc = None
-
-    def __init__(self, f_failure_override=None,
-                 num_vehicles=20, daily_fuelings=2, vehicle_days=250,
-                 noz_po_dist='beta', noz_po_a=0.5, noz_po_b=610415.5,
-                 noz_ftc_dist='expv', noz_ftc_a=0.002, noz_ftc_b=None,
-                 mvalve_ftc_dist='expv', mvalve_ftc_a=0.001, mvalve_ftc_b=None,
-                 svalve_ftc_dist='expv', svalve_ftc_a=0.002, svalve_ftc_b=None,
-                 svalve_ccf_dist='expv', svalve_ccf_a=0.000127659574468085, svalve_ccf_b=None,
-                 overp_dist='beta', overp_a=3.5, overp_b=310289.5,
-                 pvalve_fto_dist='logn', pvalve_fto_a=-11.7359368859313, pvalve_fto_b=0.667849415603714,
-                 driveoff_dist='beta', driveoff_a=31.5, driveoff_b=610384.5,
-                 coupling_ftc_dist='beta', coupling_ftc_a=0.5, coupling_ftc_b=5031, verbose=False):
-
-        if f_failure_override is not None:
-            # User provided vehicle fueling failure frequency directly so ignore individual events
-            self.use_override = True
-            self.f_failure = float(f_failure_override)
-
-        else:
-            # calculate events; will be applied to 100% release for now
-            self.use_override = False
-            self.noz_po = ComponentFailure('Nozzle', 'Pop-off', noz_po_dist, noz_po_a, noz_po_b)
-            self.noz_ftc = ComponentFailure('Nozzle', 'Failure to close', noz_ftc_dist, noz_ftc_a, noz_ftc_b)
-            self.mvalve_ftc = ComponentFailure('Manual valve', 'Failure to close',
-                                               mvalve_ftc_dist, mvalve_ftc_a, mvalve_ftc_b)
-            self.svalve_ftc = ComponentFailure('Solenoid valves', 'Failure to close',
-                                               svalve_ftc_dist, svalve_ftc_a, svalve_ftc_b)
-            self.svalve_ccf = ComponentFailure('Solenoid valves', 'Common-cause failure',
-                                               svalve_ccf_dist, svalve_ccf_a, svalve_ccf_b)
-
-            self.overp = ComponentFailure('Overpressure during fueling', 'Accident', overp_dist, overp_a, overp_b)
-            self.pvalve_fto = ComponentFailure('Pressure-relief valve', 'Failure to open',
-                                               pvalve_fto_dist, pvalve_fto_a, pvalve_fto_b)
-            self.driveoff = ComponentFailure('Driveoff', 'Accident', driveoff_dist, driveoff_a, driveoff_b)
-            self.coupling_ftc = ComponentFailure('Breakaway coupling', 'Failure to close',
-                                                 coupling_ftc_dist, coupling_ftc_a, coupling_ftc_b)
-
-            num_fuelings = num_vehicles * daily_fuelings * vehicle_days
-            self.p_driveoff = np.around(self.driveoff.mean * self.coupling_ftc.mean, 20)
-            self.f_driveoff = np.around(num_fuelings * self.p_driveoff, 20)
-
-            self.p_overp_rupture = np.around(self.overp.mean * self.pvalve_fto.mean, 20)
-            self.f_overp_rupture = np.around(num_fuelings * self.p_overp_rupture, 20)
-            f_accidents = self.f_overp_rupture + self.f_driveoff
-
-            self.p_nozzle_release = np.around(self.noz_po.mean + self.noz_ftc.mean, 20)
-            self.f_nozzle_release = np.around(num_fuelings * self.p_nozzle_release, 20)
-
-            self.p_sol_valves_ftc = np.around(self.svalve_ftc.mean ** 3. + self.svalve_ccf.mean, 20)
-            self.f_sol_valves_ftc = np.around(num_fuelings * self.p_sol_valves_ftc, 20)
-
-            self.p_mvalve_ftc = np.around(self.mvalve_ftc.mean, 20)
-            self.f_mvalve_ftc = np.around(num_fuelings * self.p_mvalve_ftc, 20)
-
-            # Combined
-            p_shutdown_fail = self.p_sol_valves_ftc * self.mvalve_ftc.mean * self.p_nozzle_release
-            f_shutdown_fail = num_fuelings * p_shutdown_fail
-            self.f_failure = np.around(float(f_accidents + f_shutdown_fail), 20)
-
-            if verbose:
-                print("COMPONENT FAILURE DATA")
-                print(f'{num_fuelings} fuelings ({num_vehicles} vehicles, {daily_fuelings} fuel/d, {vehicle_days} days)')
-                print("Nozzle popoff {}, {}, {}".format(noz_po_dist, noz_po_a, noz_po_b))
-                print("Nozzle FTC {}, {}, {}".format(noz_ftc_dist, noz_ftc_a, noz_ftc_b))
-                print("MValve FTC {}, {}, {}".format(mvalve_ftc_dist, mvalve_ftc_a, mvalve_ftc_b))
-                print("SValve FTC {}, {}, {}".format(svalve_ftc_dist, svalve_ftc_a, svalve_ftc_b))
-                print("SValve CCF {}, {}, {}".format(svalve_ccf_dist, svalve_ccf_a, svalve_ccf_b))
-                print("PR Valve FTO {}, {}, {}".format(pvalve_fto_dist, pvalve_fto_a, pvalve_fto_b))
-                print("BreakCoup FTC {}, {}, {}".format(coupling_ftc_dist, coupling_ftc_a, coupling_ftc_b))
-                print("Fueling overp {}, {}, {}".format(overp_dist, overp_a, overp_b))
-                print("Driveoff {}, {}, {}".format(driveoff_dist, driveoff_a, driveoff_b))
-
-                print("Driveoff P {:.3g}, F {:.3g}".format(self.p_driveoff, self.f_driveoff))
-                print("Overpressure rupture P {:.3g}, F {:.3g}".format(self.p_overp_rupture, self.f_overp_rupture))
-                print("Nozzle release P {:.3g}, F {:.3g}".format(self.p_nozzle_release, self.f_nozzle_release))
-                print("Sol valve FTC P {:.3g}, F {:.3g}".format(self.p_sol_valves_ftc, self.f_sol_valves_ftc))
-                print("Shutdown fail P {:.3g}, F {:.3g}".format(p_shutdown_fail, f_shutdown_fail))
-
-        if verbose:
-            print("Frequency of other failures: {:.3g}".format(self.f_failure))
-
-    def __str__(self):
-        if self.use_override:
-            # User provided vehicle fueling failure frequency directly so ignore individual events
-            return f"Fuel failure OVERRIDE: {self.f_failure}"
-
-        else:
-            return f"Fuel failure: {self.f_failure}"
-
-
+@dataclass(frozen=True)
 class ComponentFailure:
     """
 
@@ -235,35 +23,216 @@ class ComponentFailure:
     mode : str
         Description of failure mode
 
-    distr_type : str
-        Name referencing distribution type. lognormal, beta, ev, normal, uniform
-
-    a : float
-        First parameter describing distribution. Depends on type.
-        e.g. if lognormal, assume this is sigma
-
-    b : float
-        Second parameter describing distribution. Depends on type.
-        e.g. if lognorm, assume this is mu
+    value : float
+        probability of component failure
     """
-
-    def __init__(self, component, mode, distr_type, a, b=None):
-        if not distributions.has_distribution(distr_type):
-            msg = "Component failure distribution key {} not recognized".format(distr_type)
-            raise ValueError(msg)
-        if a is None and b is None:
-            msg = "Distribution parameters cannot both be None"
-            raise ValueError(msg)
-
-        self.component = component
-        self.mode = self.failure_mode = mode
-        self.distr_type = distr_type
-        self.a = a
-        self.b = b
-
-        distr_class = distributions.get_distribution_class(self.distr_type)
-        self.distr = distr_class(a, b)
-        self.mean = self.p = self.distr.mean
+    component:str
+    mode:str
+    value:float
 
     def __str__(self):
-        return "Component failure: {} {} | {}, mean {:.3g}".format(self.component, self.mode, self.distr, self.mean)
+        return (f'Component failure: {self.component} {self.mode} ' +
+                f'| {(self.value * 100):.3g}%')
+
+
+class ComponentFailureSet:
+    """
+    Probabilities and failure type/mode information for
+    fueling failures associated with the dispenser.
+
+    Parameters
+    ----------
+    num_vehicles : int
+        Number of vehicles at the facility.
+
+    daily_fuelings : int
+        Average number of fuelings per vehicle per day.
+
+    vehicle_days : float
+        Number of operating days in a year.
+
+    failures : [ComponentFailure]
+        List of failure types/modes for the dispenser.
+
+    verbose : bool, optional
+        Returns verbose logging information when `True`.
+    """
+
+    def __init__ (self,
+                  num_vehicles:int,
+                  daily_fuelings:int,
+                  vehicle_days:float,
+                  failures:Iterable[ComponentFailure],
+                  verbose:Optional[bool]=False):
+
+        self.failures = failures
+        num_fuelings = num_vehicles * daily_fuelings * vehicle_days
+        self.prob_nozzle_release = np.round(sum(
+            f.value for f in failures if f.component == 'Nozzle'), 20)
+        self.prob_mvalve_ftc = np.round(sum(
+            f.value for f in failures if f.component == 'Manual valve'), 20)
+        self.prob_svalves_ftc = self.calc_prob_svalves_ftc(failures)
+        self.prob_driveoff = self.calc_prob_driveoff(failures)
+        self.freq_overp_rupture = self.calc_freq_overp_rupture(
+            failures, num_fuelings)
+
+        self.freq_driveoff = np.round(
+            num_fuelings * self.prob_driveoff, 20)
+        freq_accidents = self.freq_overp_rupture + self.freq_driveoff
+
+        self.freq_nozzle_release = np.round(
+            num_fuelings * self.prob_nozzle_release, 20)
+
+        self.freq_svalves_ftc = np.round(
+            num_fuelings * self.prob_svalves_ftc, 20)
+
+        self.freq_mvalve_ftc = np.round(
+            num_fuelings * self.prob_mvalve_ftc, 20)
+
+        # Combined
+        prob_shutdown_fail = (self.prob_svalves_ftc
+                            * self.prob_mvalve_ftc
+                            * self.prob_nozzle_release)
+        freq_shutdown_fail = num_fuelings * prob_shutdown_fail
+        self.freq_failure = np.round(float(
+            freq_accidents + freq_shutdown_fail), 20)
+
+        if verbose:
+            print('COMPONENT FAILURE DATA' +
+                  '======================' +
+                 f'{num_fuelings} fuelings ({num_vehicles} vehicles, ' +
+                 f'{daily_fuelings} fuel/d, {vehicle_days} days)\n' +
+                  '----------------------')
+            print(*failures, sep='\n')
+            print('----------------------\n' +
+                 f'Driveoff P {self.prob_driveoff:.3g}, ' +
+                          f'F {self.freq_driveoff:.3g}\n' +
+                 f'Overpressure rupture F {self.freq_overp_rupture:.3g}\n' +
+                 f'Nozzle release P {self.prob_nozzle_release:.3g}, ' +
+                                f'F {self.freq_nozzle_release:.3g}\n' +
+                 f'Sol valve FTC P {self.prob_svalves_ftc:.3g}, ' +
+                               f'F {self.freq_svalves_ftc:.3g}\n' +
+                 f'Shutdown fail P {prob_shutdown_fail:.3g}, ' +
+                               f'F {freq_shutdown_fail:.3g}')
+
+    def to_dict(self):
+        return {k:v for k, v in self.__dict__.items()
+                if not (k.startswith('__') or k.startswith('failures'))
+                and not callable(v)}
+
+    def calc_prob_svalves_ftc(self, failures):
+        prob_svalves_ftc = 0
+        for f in failures:
+            if f.component == 'Solenoid valves':
+                if f.mode == 'Failure to close':
+                    prob_svalves_ftc += f.value**3
+                elif f.mode == 'Common-cause failure':
+                    prob_svalves_ftc += f.value
+        return np.round(prob_svalves_ftc, 20)
+
+    def calc_prob_driveoff(self, failures):
+        prob_driveoff = 1
+        for f in failures:
+            if f.component == 'Breakaway coupling':
+                prob_driveoff *= f.value
+            elif f.mode == 'Driveoff':
+                prob_driveoff *= f.value
+        return np.round(prob_driveoff, 20)
+
+    def calc_freq_overp_rupture(self, failures, num_fuelings):
+        freq_overp_rupture = 1
+        for f in failures:
+            if f.component == 'Pressure-relief valve':
+                freq_overp_rupture *= f.value
+            elif f.mode == 'Overpressure during fueling':
+                freq_overp_rupture *= f.value
+        return num_fuelings * np.round(freq_overp_rupture, 20)
+
+    def __str__(self):
+        return f"Fuel failure: {self.freq_failure}"
+
+    def __repr__(self):
+        str1 = 'Component Failure Set - '
+        str2 = ''.join(f'{failure} - ' for failure in self.failures)
+        str3 = f'Fuel failure: {(self.freq_failure*100):.3g}%'
+        return str1 + str2 + str3
+
+
+def create_failure_set(num_vehicles:int,
+                       daily_fuelings:int,
+                       vehicle_days:float,
+                       prob_noz_popoff:Optional[float]=8.191135225813216e-07,
+                       prob_noz_ftc:Optional[float]=0.002,
+                       prob_mvalve_ftc:Optional[float]=0.001,
+                       prob_svalve_ftc:Optional[float]=0.002,
+                       prob_svalve_ccf:Optional[float]=0.000127659574468085,
+                       prob_prvalve_fto:Optional[float]=np.exp(-11.7359368859313),
+                       prob_coupl_ftc:Optional[float]=9.937394415184339e-05,
+                       prob_overp:Optional[float]=1.1279661481245145e-05,
+                       prob_driveoff:Optional[float]=5.160415192262326e-05):
+    """
+    Returns the `ComponentFailureSet` object for the given dispenser failure
+    probabilities.
+
+    If any probabilities are not specified, they are assumed to be
+    default values.
+
+    Parameters
+    ----------
+    num_vehicles : int
+        Number of vehicles at the facility.
+
+    daily_fuelings : int
+        Average number of fuelings per vehicle per day.
+
+    vehicle_days : float
+        Number of operating days in a year.
+
+    prob_noz_popoff : float, optional
+        Probability of dispenser failure by nozzle pop-off.
+
+    prob_noz_ftc : float, optional
+        Probability of dispenser failure by the nozzle failing to close.
+
+    prob_mvalve_ftc : float, optional
+        Probability of dispenser failure by the manual valve failing to close.
+
+    prob_svalve_ftc : float, optional
+        Probability of dispenser failure by a solenoid valve failing to close.
+
+    prob_svalve_ccf : float, optional
+        Probability of dispenser failure by a cause making all solenoid valves
+        fail to close (e.g., loss of connection to sensors).
+
+    prob_prvalve_fto : float, optional
+        Probability of dispenser failure by the pressure relief valve failing
+        to open on demand.
+
+    prob_coupl_ftc : float, optional
+        Probability of dispenser failure by the breakaway coupling
+        failing to close.
+
+    prob_overp : float, optional
+        Probability of dispenser failure by an overpressure accidentally
+        occurring during fueling.
+
+    prob_driveoff : float, optional
+        Probability of dispenser failure by a vehicle driving off while
+        still attached to the dispenser.
+    """
+    return ComponentFailureSet(
+        num_vehicles=num_vehicles,
+        daily_fuelings=daily_fuelings,
+        vehicle_days=vehicle_days,
+        failures=[
+            ComponentFailure('Nozzle', 'Pop-off', prob_noz_popoff),
+            ComponentFailure('Nozzle', 'Failure to close', prob_noz_ftc),
+            ComponentFailure('Manual valve', 'Failure to close', prob_mvalve_ftc),
+            ComponentFailure('Solenoid valves', 'Failure to close', prob_svalve_ftc),
+            ComponentFailure('Solenoid valves', 'Common-cause failure', prob_svalve_ccf),
+            ComponentFailure('Pressure-relief valve', 'Failure to open', prob_prvalve_fto),
+            ComponentFailure('Breakaway coupling', 'Failure to close', prob_coupl_ftc),
+            ComponentFailure('Accident', 'Overpressure during fueling', prob_overp),
+            ComponentFailure('Accident', 'Driveoff', prob_driveoff)
+        ]
+    )

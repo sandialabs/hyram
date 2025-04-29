@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -22,18 +22,18 @@ class CoolPropWrapper:
     def __init__(self, species):
         '''
         Class that uses CoolProp for equation of state calculations.
-        
+
         phase: 'gas' or 'liquid' for fluid at saturated vapor pressure
         '''
         self._cp = CoolProp
         self.spec = species
-        self.MW = self._cp.PropsSI(self.spec, 'molemass')        
-    
+        self.MW = self._cp.PropsSI(self.spec, 'molemass')
+
     def _init_fluid_params(self, params):
         '''
         Initializes Fluid properties.
         Calculates 2 remaining properties given 2 of rho, pressure, temperature, or phase
-        
+
         Parameters
         ----------
         params : dict
@@ -55,6 +55,14 @@ class CoolPropWrapper:
         # Put keys and values in seperate tuples
         input_params, input_values = zip(*input_dict.items())
 
+        # Extract single values from ndarray inputs
+        input_values = list(input_values)
+        if type(input_values[0]) == np.ndarray:
+            input_values[0] = input_values[0][0]
+
+        if type(input_values[1]) == np.ndarray:
+            input_values[1] = input_values[1][0]
+
         if 'phase' in input_params:
             self.phase = input_dict.get('phase')
             # Convert phase string to Q value
@@ -68,10 +76,9 @@ class CoolPropWrapper:
 
             # Handle special case for calculating density at saturation
             if 'D' in output and 'Q' in output:
-                try: 
+                try:
                     props = self.PropsSI(output, **input_dict)
                 except ValueError:
-                    print('exception')
                     warnings.warn('Assuming gas phase to calculate density.', category=PhysicsWarning)
                     self.phase = 'gas'
                     rho = self._cp.PropsSI('D', input_params[0]+self.phase, input_values[0], input_params[1], input_values[1], self.spec)
@@ -80,8 +87,9 @@ class CoolPropWrapper:
                 props = self.PropsSI(output, **input_dict)
 
             try:
-                if '&' in self.spec: 
+                if '&' in self.spec:
                     raise ValueError
+
                 self.phase = self._cp.PhaseSI(input_params[0], input_values[0], input_params[1], input_values[1], self.spec)
             except ValueError:
                 Q = props[idx]
@@ -101,7 +109,7 @@ class CoolPropWrapper:
         # Overwrite phase info with string
         params['phase'] = self.phase
         return params
-    
+
     def get_property(self, output, **kwargs):
         '''
         General method for calculating one or more fluid properties
@@ -153,12 +161,12 @@ class CoolPropWrapper:
     def PropsSI(self, output, **kwargs):
         '''
         Wrapper on CoolProps PropsSI
-        
-        Parameters 
+
+        Parameters
         ----------
         output : list of strings
             Same parameters accepted by CoolProp.PropsSI (e.g., T, P, S, D)
-        
+
         Returns
         -------
         Outputs from CoolProp listed within output (could be single value or list)
@@ -166,19 +174,43 @@ class CoolPropWrapper:
         if 'phase' in kwargs:
             phase =  '|' + kwargs.pop('phase')
         else:
-            phase = ''        
+            phase = ''
         try:
+            if 'interp' in self.__dict__:
+                try:
+                    if 'P' in kwargs.keys():
+                        if len(output) == 1:
+                            return float(self.interp[output](kwargs['P']))
+                        else:
+                            return [float(self.interp[k](kwargs['P'])) for k in output]
+                    else:
+                        (k1, v1), (k2, v2) = kwargs.items()
+                        try:
+                            P0 = self.interp[k1].x[0]
+                            def err_v1(P):
+                                return self.interp[k1](P) - v1
+                            P = optimize.root(err_v1, P0)['x'][0]
+                        except:
+                            def err_v2(P):
+                                return self.interp[k2](P) - v2
+                            P = optimize.root(err_v2, P0)['x'][0]
+                        if len(output) == 1:
+                            return float(self.interp[output](P))
+                        else:
+                            return [float(self.interp[k](P)) for k in output]
+                except:
+                    pass
             if '&' in self.spec:
                 raise ValueError
 
             (k1, v1), (k2, v2) = kwargs.items()
             k1 += phase
-            if type(v1) == list or type(v1) == np.ndarray: 
+            if type(v1) == list or type(v1) == np.ndarray:
                 if len(v1) == 1:
-                    v1 = float(v1)
+                    v1 = v1[0]
             if type(v2) == list or type(v2) == np.ndarray:
                 if len(v2) == 1:
-                    v2 = float(v2)
+                    v2 = v2[0]
 
             try:
                 out = self._cp.PropsSI(output, k1, v1, k2, v2, self.spec)
@@ -202,7 +234,7 @@ class CoolPropWrapper:
                         high = result_high[idx]
                         low = result_low[idx]
                         out.append((high + low) / 2)
-                    
+
             return out
 
         except ValueError:  # likely blend
@@ -221,7 +253,7 @@ class CoolPropWrapper:
                 elif k == 'H': return eos.hmass()
                 elif k == 'U': return eos.umass()
             if ('P' in kwargs) and ('T' in kwargs):
-                P = kwargs['P']; T = kwargs['T']
+                P = kwargs.pop('P'); T = kwargs.pop('T')
                 try:
                     eos.update(self._cp.PT_INPUTS, P, T)
                 except:
@@ -236,6 +268,7 @@ class CoolPropWrapper:
                 T = kwargs.pop('T')
                 k, v = list(kwargs.items())[0]
                 def err(P):
+                    P = P[0]
                     try:
                         eos.update(self._cp.PT_INPUTS, P, T)
                     except:
@@ -262,12 +295,11 @@ class CoolPropWrapper:
                                 break
                             except:
                                 pass
-
                     return v - out(k)
                 T = optimize.brentq(err, eos.Tmin(), eos.Tmax()) # not the most efficient here, but works
             else:
                 (k1, v1), (k2, v2) = list(kwargs.items())
-                warnings.warn('Only PT_inputs allowed for blends (this may not work) trying to solve for %s, %s inputs' % (k1, k2), 
+                warnings.warn('Only PT_inputs allowed for blends (this may not work) trying to solve for %s, %s inputs' % (k1, k2),
                               category=PhysicsWarning)
                 def err(TP):
                     T, P = TP
@@ -282,7 +314,7 @@ class CoolPropWrapper:
                             except:
                                 pass
                     return [v1 - out(k1), v2 - out(k2)]
-                T, P = optimize.root(err, [(eos.Tmin() + eos.Tmax())/2, 101325])['x']              
+                T, P = optimize.root(err, [(eos.Tmin() + eos.Tmax())/2, 101325])['x']
 
             def map_outputs(key_or_keys, eos):
                 def out(k):
@@ -303,7 +335,36 @@ class CoolPropWrapper:
                     return out(key_or_keys)
             return map_outputs(output, eos)
         except:
-            raise warnings.warn('system not properly defined')
+            raise ValueError
+    def make_isentropic_interpolating_functions(self, fluid, P_min, P_max, npts_interp = 200, remove_points = True, rel_err = 1e-4):
+        '''
+        Generates dictionary of interpolating functions for other state parameters as functions of pressure for a given entropy
+
+        Parameters
+        ----------
+        P_min - starting pressure for data points used to generate interpolations (Pa)
+        P_max - ending pressure for data points used to generate interpolations (Pa)
+        npts_interp - number of data points used to generate interpolating functions
+        remove_points - Boolean for whether "bad" points should be removed, should be true
+                        for non-consecutive "bad" data points.  If false, savgol filter is used
+                        for "bad" points
+        Returns
+        -------
+        interp - dictionary of interpolations (H in J/kg and D in kg/m^3), along with the entropy at which those funcitons were calculated
+        '''
+        S = self.get_property('S', P = fluid.P, D = fluid.rho)
+        Ps = np.linspace(P_min, P_max, num=npts_interp)
+        H, D, U, T, Q, S_check = np.transpose([self.PropsSI(['H', 'D', 'U', 'T', 'Q', 'S'], P=P, S=S) for P in Ps])
+        good_pts = abs(S-S_check)/S < rel_err
+        if remove_points and np.count_nonzero(good_pts) > 2:
+            Ps, H, D, U, T, Q = [v[good_pts] for v in [Ps, H, D, U, T, Q]]
+        else:
+            if np.any(~good_pts):
+                H, D, U, T, Q = [signal.savgol_filter(v, min(20, npts_interp), 5) for v in [H, D, U, T, Q]]
+        interp = {k:interpolate.interp1d(Ps, v, kind="cubic", fill_value="extrapolate")
+                  for k, v in zip(['H', 'D', 'U', 'T', 'Q', 'S'], [H, D, U, T, Q, S*np.ones_like(T)])}
+        self.interp = interp
+
 
 
 class Combustion:
@@ -312,9 +373,9 @@ class Combustion:
         '''
         Class that performs combustion chemistry calculations.
         Stoichiometry: C_nH_(2n) + eta/2 (O_2 + 3.76N_2) -> max(0, 1-eta) C_nH_(2n) + min(1, eta) H_2O + min(n*eta, n)CO_2 + max(0, (eta-1)/2) O2 + 3.76 eta/2 N2
-        
+
         Initilizes some interpolating functions for T_prod, MW_prod, rho_prod, and drhodf
-        
+
         Parameters
         ----------
         fluid : hyram.phys.Fluid object
@@ -322,17 +383,17 @@ class Combustion:
         ambient: hyram.phys.Fluid object with ambient air
             air with with the fluid is being combusted
         numpoints : int
-            number of points to solve for temperature to create 
+            number of points to solve for temperature to create
             interpolating functions, default value is 100
         verbose: boolean
             whether to include some print statements
-            
+
         Contents
         --------
         self.T_prod(f): array_like
             temperature of products (K) at a mixture fraction, f
         self.MW_prod:
-            mixture averaged molecular weight of products (g/mol) at a mixture fraction, f 
+            mixture averaged molecular weight of products (g/mol) at a mixture fraction, f
         '''
         fuel_props = FuelProperties(fluid.species)
         self.xO2stoich = fuel_props.nC + fuel_props.nH/4 - fuel_props.nO/2
@@ -350,7 +411,7 @@ class Combustion:
         self.MW = {spec:therm.MW for spec, therm in self.therm.items()}
         self.fstoich = self.MW[self.reac]/(self.MW[self.reac] + self.xO2stoich * (self.MW['O2'] + self.MW['N2']*3.76))
         ifstoich = int(max(numpoints*self.fstoich, 5))
-        fvals = np.append(np.linspace(0, self.fstoich, int(max(numpoints*self.fstoich, 5))), 
+        fvals = np.append(np.linspace(0, self.fstoich, int(max(numpoints*self.fstoich, 5))),
                           np.linspace(self.fstoich, 1, int(max(numpoints*(1-self.fstoich), 5))))
         T = self._T_combustion(self.Treac, fvals)
         MWvals = self._MWmix(self._Yprod(fvals))
@@ -361,7 +422,7 @@ class Combustion:
         self.rho_prod = lambda f: self.Preac*self.MW_prod(f)/(const.R*self.T_prod(f))
         self.drhodf = interpolate.interp1d(fvals,
                                            self.Preac/(const.R*T)*(np.append(np.gradient(MWvals[:ifstoich], fvals[:ifstoich]),
-                                                                   np.gradient(MWvals[ifstoich:], fvals[ifstoich:])) - 
+                                                                   np.gradient(MWvals[ifstoich:], fvals[ifstoich:])) -
                                                                    np.append(np.gradient(T[:ifstoich], fvals[:ifstoich]),
                                                                    np.gradient(T[ifstoich:], fvals[ifstoich:]))/T*MWvals))
         self.absorption_coeff = self._plank_mean_absorption_coefficient_stoich()
@@ -381,13 +442,13 @@ class Combustion:
             MWmix += Yval/self.MW[spec]
         MWmix = 1/MWmix
         return MWmix
-   
+
     def _eta(self, f):
         '''returns eta, given a mixture fraction'''
         MW = self.MW
         eta = 1/self.xO2stoich*(MW[self.reac]/(1.e-99*np.ones_like(f) +f) - MW[self.reac])/(MW['O2'] + 3.76*MW['N2'])
         return eta
-    
+
     def _Yprod(self, f):
         '''
         the mass fractions of combustion products as a function of the mixture fraction
@@ -412,13 +473,13 @@ class Combustion:
         for k in Y.keys():
             Y[k] /= s
         return Y
-    
+
     def _Yreac(self, f):
         '''
         the mass fractions of combustion reactants as a function of the mixture fraction
         (assumes that there is no H2O or CO2 as a reactant)
         '''
-        Y = {self.reac: self.MW[self.reac], 
+        Y = {self.reac: self.MW[self.reac],
              'CO2':     0,
              'H2O':     0,
              'O2':      self._eta(f)*self.xO2stoich*self.MW['O2'],
@@ -427,24 +488,24 @@ class Combustion:
         for k in Y.keys():
             Y[k] /= s
         return Y
-    
+
     def _H(self, T, Y, Hdict):
         '''enthalpy of a mixture at a given temperature and pressure'''
         H = np.zeros_like(list(Y.values())[0])
         for species, Yval in Y.items():
             H += Hdict[species](T)*Yval
         return H
-        
+
     def _Hdict(self, Tmin, Tmax = 6000, npoints = 500):
         '''returns dictionary of interpolating enthalpy functions from Tmin to Tmax'''
         Hdict = {}
         for spec in self.therm.keys():
             T = np.linspace(np.max([Tmin, self.therm[spec]._cp.PropsSI('T_min', spec)+0.1]), Tmax, npoints)
             try:
-                Hdict[spec] = interpolate.interp1d(T, self.therm[spec].get_property('H', T = T, P = self.Preac), 
+                Hdict[spec] = interpolate.interp1d(T, self.therm[spec].get_property('H', T = T, P = self.Preac),
                                                    fill_value = 'extrapolate')
             except:
-                Hdict[spec] = interpolate.interp1d(T, [self.therm[spec].get_property('H', T = Tval, P = self.Preac) for Tval in T], 
+                Hdict[spec] = interpolate.interp1d(T, [self.therm[spec].get_property('H', T = Tval, P = self.Preac) for Tval in T],
                                                    fill_value = 'extrapolate')
         return Hdict
 
@@ -457,7 +518,7 @@ class Combustion:
         H = H0 + DHc
         T = optimize.root(lambda T: self._H(T, self._Yprod(f), Hdict) - H, T_reac*np.ones_like(np.array(f)))['x']
         return T
-        
+
     def _mean_absorption_coefficient(self, species, temperature, pressure=const.atm):
         '''
         Calculates mean absorption coefficient m^-1 for a species at a temperature and pressure
@@ -475,9 +536,9 @@ class Combustion:
         -------
         mean_absorption_coefficient: float
             mean absorption coefficient (m)^-1
-            
-        Note: Formulas and data from Chmielewski and Gieras, "Planck Mean Absorption Coefficients of H2O, CO2, CO and NO 
-        for radiation numerical modeling in combusting flows," Journal of Power Technogies 95 (2) 2015: 97-104. 
+
+        Note: Formulas and data from Chmielewski and Gieras, "Planck Mean Absorption Coefficients of H2O, CO2, CO and NO
+        for radiation numerical modeling in combusting flows," Journal of Power Technogies 95 (2) 2015: 97-104.
         Calculations agree with https://doi.org/10.1016/S0022-4073(01)00178-9
         '''
         data = {'H2O':[[63.87, 149.5, 174.3],
@@ -488,12 +549,12 @@ class Combustion:
                        [1.22, 930.2, 184.9],
                        [-22.32, 323.9, 217.9],
                        [17.14, 92.98, 1657]]}
-        
+
         coeffs = data[species]
         ap_mean = sum([coeff[0] * np.exp(-((temperature - coeff[1]) / coeff[2]) ** 2)
                        for coeff in coeffs])
         return ap_mean * pressure / const.bar
-        
+
     def _plank_mean_absorption_coefficient(self, temperature, x_H2O, x_CO2, pressure=const.atm):
         '''
         Calculates Plank mean absorption coefficient m^-1 for a mixture of water vapor and CO2
@@ -514,13 +575,13 @@ class Combustion:
         plank_mean_absorption_coefficient: float
             Plank mean absorption coefficient (m)^-1
         '''
-        return sum([x * self._mean_absorption_coefficient(spec, temperature, pressure) 
+        return sum([x * self._mean_absorption_coefficient(spec, temperature, pressure)
                     for x, spec in zip([x_H2O, x_CO2], ['H2O', 'CO2'])])
-                    
+
     def _plank_mean_absorption_coefficient_stoich(self):
         '''
         Calculates Plank mean absorption coefficient at stiochiometric combustion conditions - used in radiation calculations
-        
+
         Returns
         -------
         plank_mean_absorption_coefficient: float
@@ -531,14 +592,14 @@ class Combustion:
         x_CO2 = Y['CO2'] / self.MW['CO2'] * self._MWmix(Y)
         T = self.T_prod(self.fstoich)
         return self._plank_mean_absorption_coefficient(T, x_H2O, x_CO2, self.Preac)
-        
+
     def dP_expansion(self, enclosure, mass):
         '''
         Pressure due to the expansion of gas from combustion in an enclosure
-        
+
         Parameters
         ----------
-        enclosure: object 
+        enclosure: object
             object that contains information about the enclosure including the volume
         mass : float
            mass of combustible gas in enclosure
@@ -550,7 +611,7 @@ class Combustion:
         '''
         Vol_total = enclosure.V
         Vol_gas   = mass/self.rho_reac
-        
+
         X_reac_stoich = self._Yreac(self.fstoich)[self.reac]*self._MWmix(self._Yreac(self.fstoich))/self.MW[self.reac]
         sigma = ((self._MWmix(self._Yreac(self.fstoich))/self.Treac) /
                  (self._MWmix(self._Yprod(self.fstoich))/self.T_prod(self.fstoich)))
@@ -559,7 +620,7 @@ class Combustion:
             gamma = cp/cv
         except:
             gamma = np.nan
-        
+
         VolStoich = Vol_gas/X_reac_stoich
 
         deltaP  = self.Preac*((((Vol_total+Vol_gas)/Vol_total)*((Vol_total+VolStoich*(sigma-1))/Vol_total))**gamma-1)

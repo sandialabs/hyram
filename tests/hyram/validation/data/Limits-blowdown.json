@@ -3,42 +3,42 @@
         "Ekoto et al. 2012 - Figure 3, Flow Rate v. Time": {
             "Max Absolute Error": 0.02,
             "Avg Absolute Error": 0.01,
-            "Max Percent Error": 197,
-            "Avg Percent Error": 74,
+            "Max Percent Error": 195,
+            "Avg Percent Error": 36,
             "R2": 0.998
         }
 	},
 	"Test_Schefer_2007": {
         "Schefer et al. 2007 - Figure 4, Pressure v. Time": {
-            "Max Absolute Error": 1402,
-            "Avg Absolute Error": 247,
-            "Max Percent Error": 120,
-            "Avg Percent Error": 82,
+            "Max Absolute Error": 1404,
+            "Avg Absolute Error": 391,
+            "Max Percent Error": 119,
+            "Avg Percent Error": 61,
             "R2": 0.966
         }
 	},
 	"Test_Proust_2011": {
         "Proust et al. 2011 - Figure 4, Pressure v. Time": {
-            "Max Absolute Error": 301.3,
-            "Avg Absolute Error": 83.1,
-            "Max Percent Error": 141,
-            "Avg Percent Error": 93,
-            "R2": 0.947
+            "Max Absolute Error": 315.4,
+            "Avg Absolute Error": 93.2,
+            "Max Percent Error": 139,
+            "Avg Percent Error": 78,
+            "R2": 0.948
         },
 		"Proust et al. 2011 - Figure 4, Temperature v. Time": {
-            "Max Absolute Error": 196.8,
-            "Avg Absolute Error": 117.5,
+            "Max Absolute Error": 195.3,
+            "Avg Absolute Error": 95.9,
             "Max Percent Error": 200,
-            "Avg Percent Error": 134,
-            "R2": 0.928
+            "Avg Percent Error": 122,
+            "R2": 0.942
         }
 	},
 	"Test_Schefer_2006": {
         "Schefer et al. 2006 - Figure 3b, Flow Rate v. Time": {
             "Max Absolute Error": 9.7,
-            "Avg Absolute Error": 2.3,
+            "Avg Absolute Error": 3.8,
             "Max Percent Error": 182,
-            "Avg Percent Error": 51,
+            "Avg Percent Error": 29,
             "R2": 0.991
         }
 	}

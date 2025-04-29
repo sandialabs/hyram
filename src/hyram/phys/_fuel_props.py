@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -17,7 +17,7 @@ class FuelProperties:
 
     Requires any fuel with CoolProp chemical formula or 'other_fluid' in the _data dictionary below
 
-    Currently Available fluids: 
+    Currently Available fluids:
         H2, CH4, C3H8, N2, CO2, CO, C2H6, C4H10, C5H12, C6H16
 
     Required Fields:
@@ -60,17 +60,17 @@ class FuelProperties:
                       'UFL': .124,
                       'dHc': 4.75e7,
                       'other_name': 'ethane'
-                      }, 
+                      },
              'n-Butane': {'LFL': 0.018,
                           'UFL': .084,
                           'dHc': 4.57e7,
                           'other_name': 'n-butane'
-                          }, 
+                          },
              'IsoButane': {'LFL': 0.018,
                            'UFL': .084,
                            'dHc': 4.57e7,
                            'other_name': 'isobutane'
-                           }, 
+                           },
              'n-Pentane': {'LFL': 0.014,
                            'UFL': .078,
                            'dHc': 4.51e7,
@@ -116,7 +116,7 @@ class FuelProperties:
                         raise ValueError('unknown properties for %s' % species)
                     else:
                         species = [k for k, v in self._data.items() if v['other_name'].lower() == species.lower()][0]
-                else: 
+                else:
                     species = [k for k in self._data.keys() if k.lower() == species.lower()][0]
                 self.dHc += self._data[species]['dHc']*Y
                 count = FuelProperties._count_atoms(species)
@@ -128,7 +128,7 @@ class FuelProperties:
                     invUFL += X/self._data[species]['UFL']
                     XtotUFL += X
             self.LFL, self.UFL = XtotLFL/invLFL, XtotUFL/invUFL
-                
+
     @staticmethod
     def _count_atoms(species):
         if   'hydrogen' in species.lower() or species == 'H2': nC, nH, nO = 0, 2, 0
@@ -142,9 +142,9 @@ class FuelProperties:
         elif 'carbonmonoxide' in species.lower(): nC, nH, nO = 1, 0, 1
         elif 'nitrogen' in species.lower() or species == 'N2': nC, nH, nO = 0, 0, 0
         return nC, nH, nO
-    
+
     def __str__(self):
         return f'{self.species}\n------------\nLFL: {self.LFL}\nUFL: {self.UFL}\nheat of combustion: {self.dHc*1e-6:.1f} MJ/kg'
-        
+
     def __repr__(self):
         return self.__str__()

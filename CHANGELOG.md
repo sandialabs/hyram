@@ -1,8 +1,65 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [6.0] - 2025-04-29
+
+### Added
+- Added new cross-platform GUI and build scripts for Windows and macOS
+- Added unconfined overpressure tests to the validation test suite
+- Added ability to skip heatflux plot in Physics API module
+- Added uncertainty quantification framework, currently assesses leak frequency, dispenser failure, and occupant location distributions
+- Added default component counts and helper default creation functions from the HyRAM+ user manual
+- Added testing suites for the `qra/component` and `qra/uncertainty` modules
+- Added CONTRIBUTORS file
+
+### Changed
+- Fixed deprecation warnings for some SciPy and Matplotlib calls
+- Changed Python minimum version requirement to 3.9, removed maximum version requirement
+- Changed QRA function call in standalone Python package to use pipe ID rather than OD and pipe thickness
+- Changed default save location for files generated from Python package from sub-directory to current working directory
+- Changed ignition probabilities to a combined dictionary input rather than three seperate list inputs for the Python QRA analysis function
+- Changed ignition probabilities to an optional input to the Python QRA analysis function; if not specified, default values are used based on whether or not hydrogen is part of the fluid
+- Optimized code structure for QRA analysis and effects calculation
+- Renamed `ComponentSet` class to `Component` in QRA
+- Revamped QRA `Leak`, `Component`, and `ComponentFailure` classes to fit into UQ framework more cleanly
+- Renamed QRA event result keys for improved clarity
+- Changed event probability calculations in `conduct_analysis` to use NumPy arrays to improve clarity and efficiency
+- QRA `ComponentFailureSet` now uses `failures` as an input, containing a list of `ComponentFailure` objects, rather than the individual distribution parameters
+- QRA `ComponentFailure` is now a frozen dataclass for easier repr reading (and will save substantial memory once HyRAM+ is Python >=3.10)
+- Sped up QRA analysis by skipping unneeded consequence calculations for 0 risk conditions
+- Modified isentropic blowdown calculation to use interpolating functions, which improves calculation speed by limiting calls to CoolProp
+- Simplified QRA analysis function in backend (python package) to use list of locations rather than occupant distributions
+- Changed QRA calculation input for release angle to be radians instead of degrees for consistancy
+- Updated default filter leak frequencies for gaseous hydrogen, gaseous methane, and propane to match SAND2024-06491
+- Updated default overpressure contour levels to match SAND2023-12548
+- Updated integrator for blowdown function from scipy.integrate.ode to scipy.integrate.solve_ivp to improve time-step handling and improve calculation speed
+- Updated blowdown validation test limits for new integrator; some error metric worsened slightly due to different time-steps, but overall fit metrics generally improved
+- Changed fluid phase (`rel_phase`) input to QRA `conduct_analysis` function to be optional; by default, the value is `None` and a user must specify the fluid temperature and pressure
+- Added default values of 0.03 (3%) for the TNT equivalence factor and 0.35 for the BST Mach flame speed for the QRA `conduct_analysis` function to better align with the GUI and physics mode
+- Updated calculation of x, y distance to mole fraction contour to use contourpy instead of generating a contour plot
+- Changed physics backend from Orifice.flow function to a NozzleFlow class to make Pythonic syntax and calcuation of flows more intuitive
+- Updated calculation of zone of flow establishment length based on the Froude number so that low Froude number releases have length of 0
+- Changed output dictionary keys for x-/y-distances to mole fractions to unignited plume, no longer NumPy objects
+- Renamed QRA `data` sub-directory to `defaults` and moved many of the default values there
+- Moved calculation of total and conditional ignition probability to `ignition_probs.py` for clarity
+- The fault tree override (`f_release_overrides`) input to the QRA `conduct_analysis.py` function has been renamed `ft_overrides` and now uses values of `None` rather than -1 to show when an override should not be used.
+- Updated Python version dependency to exclude 3.13
+
+### Removed
+- Removed C#-based Windows GUI and `cs_api` integration library
+- Removed facility length and width for QRA plots (was previously unused in calcualtions)
+- Removed `LeakSizeResult` and `ComponentSet`, with functionality moved to Component and Leak classes/modules and `generate_event_results` function
+- Removed `positions.py` module and associated `PositionGenerator` class, position generation now in `uncertainty.py`
+- Removed `get_component_leak_parameters` function in `component_leak_frequencies.py`
+
+### Fixed
+- Corrected call to QRA overpressure effects to pass a release angle in radians rather than degrees
+- Corrected flammable mass calculation in Jet class, was previously being undercalculated by missing some flammable mass near fuel-rich region
+- Updated call to scipy.integrate.ode that was causing errors on MacOS (see changed)
+
 
 ## [5.1.1] - 2024-02-08
 
@@ -47,7 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added flammable mass (detonable mass for Bauwens model) as an output to the Physics API overpressure calculation
 - Removed logging from physics and QRA modules and updated output to command line
 - Refine CoolPropWrapper PropsSI calls to general get_property function in phys/_therm.py
-- Calculation of Planck mean absorption coefficient (used in radiant fraction calculation) is now automatic based on the fuel 
+- Calculation of Planck mean absorption coefficient (used in radiant fraction calculation) is now automatic based on the fuel
 - Changed default propane leak frequency distribution values based on results from SAND2023-05818 report
 - Changed default component counts for all fuels, previously had zero (0) for all component types for all non-hydrogen fuels
 
@@ -188,7 +245,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Name change to HyRAM+, along with new logo and icons
 - Default leak frequencies for gaseous hydrogen updated based on more recent Bayesian analysis
 - Overpressure physics model renamed to accumulation to differentiate from unconfined overpressure model
-- Occupant location calculation in QRA mode 
+- Occupant location calculation in QRA mode
 - TNT equivalent model in ETK looks up heat of combustion
 - Fuel properties data table converted to pythonic dictionary
 - Plot labels specific to hydrogen were changed to 'fuel'

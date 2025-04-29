@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -16,13 +16,9 @@ from scipy.constants import liter, bar, psi
 from scipy import interpolate
 
 from hyram.phys import Source, Fluid, Orifice
-from hyram.utilities import misc_utils
 
 from . import utils
 
-"""
-NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
-"""
 
 # Flags to enable command line output, pyplots, and text file output
 VERBOSE = False
@@ -31,9 +27,8 @@ CREATE_OUTPUT = False
 
 # Absolute paths to input/output data
 DATA_LOC = os.path.join(os.path.dirname(__file__), 'data')
-OUTPUT_LOC = os.path.join(misc_utils.get_temp_folder(), 'validation-blowdown')
-OUTPUT_FILE = os.path.join(OUTPUT_LOC, 'Validation.txt')
 LIMITS_FILE = os.path.join(DATA_LOC, 'Limits-blowdown.json')
+OUTPUT_LOC = os.path.join('out', 'validation-blowdown')
 
 
 class Test_Ekoto_2012(unittest.TestCase):
@@ -77,7 +72,7 @@ class Test_Ekoto_2012(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='kg/s',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -157,7 +152,7 @@ class Test_Schefer_2007(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='PSIG',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -236,7 +231,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='bar',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -271,7 +266,7 @@ class Test_Proust_2011(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='C',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 
@@ -339,7 +334,7 @@ class Test_Schefer_2006(unittest.TestCase):
                                 error_limits=error_limits,
                                 units='g/s',
                                 msg=title,
-                                output_filename=OUTPUT_FILE,
+                                output_dir=OUTPUT_LOC,
                                 create_output=CREATE_OUTPUT,
                                 verbose=VERBOSE)
 

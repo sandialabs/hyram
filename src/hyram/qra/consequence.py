@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -22,7 +22,7 @@ def thermal_consequence(physical_responses,
         Dictionary holding all physical responses associated with event
 
         qrads : array (item in physical_responses dict)
-            Heat flux data (W/m2) for all positions and leak sizes
+            Heat flux (W/m2) for all positions and leak sizes
             1-D array, all leak sizes for location 1,
             then all leak sizes location 2, etc.
 
@@ -35,13 +35,13 @@ def thermal_consequence(physical_responses,
 
         exposure_time : float (item in consequence_modeling_decisions dict)
             Exposure time (seconds) for use in thermal probit
-            
+
     Returns
     -------
     thermal_fatality_probs : array
         Probability of fatality from thermal effects
     """
-    thermal_fatality_probs = [] 
+    thermal_fatality_probs = []
     for qrad in physical_responses['qrads']:
         p_therm_fatal = probits.compute_thermal_fatality_prob(consequence_modeling_decisions['probit_thermal_id'],
                                                               qrad,
@@ -142,7 +142,7 @@ def calculate_event_consequence(consequence_type,
 
     consequence_modeling_decisions : dict
         Dictionary holding modeling decisions/specifications used to enacted the desired consequence model
-    
+
     verbose : bool, optional
         Toogle extra output to command line
 
@@ -152,7 +152,7 @@ def calculate_event_consequence(consequence_type,
         Probability of specified consequence type per leak size
         (considering all occupants for each leak size)
     """
-    if consequence_type == None:
+    if consequence_type == None or total_occupants == 0:
         return np.array([0.0]*num_leak_sizes)
     elif consequence_type == 'thermal':
         consequence_model =  thermal_consequence
@@ -172,5 +172,51 @@ def calculate_event_consequence(consequence_type,
                                                                        num_leak_sizes,
                                                                        total_occupants)
     if verbose:
-        print(f"Probit {consequence_type} data:\n{consequence_probs_per_leak}\n")
+        print(f"Probit {consequence_type} results:")
+        print(consequence_probs_per_leak)
     return consequence_probs_per_leak
+
+
+def generate_event_results(event_names: dict,
+                           event_keys: dict,
+                           prob_end_states: list,
+                           prob_event_occurrence: list,
+                           pll_contrib: list):
+
+    """
+    Creates a list of dictionaries for output purposes, with each
+    dictionary detailing a particular consequence, its likelihood, and
+    its PLL contributions.
+
+    Parameters
+    ----------
+    event_names : dict
+        Names of the potential events
+    event_keys : dict
+        Dictionary mapping the event names to the key
+        for different consequences
+    prob_end_states : list
+        Probability of each end state in `event_names`.
+        Should add up to 1.
+    prob_event_occurrence : list
+        Overall probability of each consequence in `event_keys`
+    pll_contrib : list
+        Contributions of each consequence to the overall potential
+        loss of life (PLL).
+    """
+
+    result_dicts = []
+    for i, name in enumerate(event_names):
+        rdict = {'label': name,
+                    'key': event_keys[name],
+                    'prob': prob_end_states[i],
+                    'events': prob_event_occurrence[i],
+                    'pll': pll_contrib[i]}
+        result_dicts.append(rdict)
+
+    total_dict = {'label': 'TOTAL', 'key': 'tot',
+                    'prob': sum(prob_end_states),
+                    'events': sum(prob_event_occurrence),
+                    'pll': sum(pll_contrib)}
+    result_dicts.append(total_dict)
+    return result_dicts

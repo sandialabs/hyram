@@ -1,339 +1,290 @@
 # Contributing to HyRAM+
 This document describes the Hydrogen Plus Other Alternative Fuesl Risk Assessment Models ("HyRAM+") application development.
-The application comprises a frontend GUI written in C# and a backend module written in Python.
-Step-by-step instructions are included for setting up a C# development environment using MS Visual Studio 2017 ("MSVS").
-Similar setup instructions are provided for backend python development.
+The application comprises a Qt-based GUI and a backend module written in Python.
+Step-by-step instructions are included for setting up a development environment for both the GUI and scientific library.
 
 # Changelog
-For any significant changes made to the source code, it is expected that the change will be summarized in the [CHANGELOG](./CHANGELOG.md) document. Guidance and suggestions for how to best enter these changes in the changelog are [here](https://keepachangelog.com/en/1.0.0/). New changes should be added to the `[Unreleased]` section at the top of the file; these will be removed to a release section during the next public release.
+For any significant changes made to the source code, it is expected that the change will be summarized in the [CHANGELOG](./CHANGELOG.md) document. Guidance and suggestions for how to best enter these changes in the changelog are [here](https://keepachangelog.com/en/1.1.0/). New changes should be added to the `[Unreleased]` section at the top of the file; these will be removed to a release section during the next public release.
 
 
-&nbsp;
 # Table of Contents
 [A. Repository Layout](#repo-layout)<br>
 
-[B. C# GUI Development](#c-gui)<br>
-&nbsp;&nbsp;[B.1 C# Project Descriptions](#c-projects)<br>
-&nbsp;&nbsp;[B.2 Setting Up Python Interpreter](#c-setup-py)<br>
-&nbsp;&nbsp;[B.3 Setting Up Solution in MSVS](#c-setup-msvs)<br>
-&nbsp;&nbsp;[B.4 Configuring the Hyram.Setup Projects](#c-setup-installer)<br>
-&nbsp;&nbsp;[B.5 Misc. Notes](#c-notes)<br>
+[B. GUI Development](#gui)<br>
 
-[C. Python HyRAM+ Module Development](#py-dev)<br>
+&nbsp;&nbsp; [B.1. Development Environment Setup](#gui-dev)
+
+&nbsp;&nbsp; [B.2. Building the HyRAM+ Application for Distribution](#gui-distr)
+
+[C. HyRAM+ Module Development](#py-dev)<br>
+
 &nbsp;&nbsp;[C.1 Package Layout](#py-layout)<br>
+
 &nbsp;&nbsp;[C.2 Installation](#py-install)<br>
 
-[D. Python HyRAM+ Usage](#py-usage)<br>
-&nbsp;&nbsp;[D.1 As C# Backend](#py-usage-c)<br>
-&nbsp;&nbsp;[D.2 As standalone Python module](#py-usage-py)<br>
-&nbsp;&nbsp;[D.3 Changelog](#py-changelog)<br>
+[D. HyRAM+ Usage](#py-usage)<br>
 
 
 
 <a name="repo-layout">&nbsp;</a>
 # A. Repository Layout
-Development of HyRAM+ includes both the C# frontend GUI and the backend Python module.
+Development of HyRAM+ includes both the Qt GUI and the backend scientific Python module.
 Source code is organized as follows:
 
 ```
 $
-├───build
-├───src
-│   ├───cs_api
-│   ├───gui
-│   │   ├───Hyram.gui
-│   │   ├───Hyram.PythonApi
-│   │   ├───Hyram.PythonDirectory
-│   │   │   └───python interpreter
-│   │   ├───Hyram.State
-│   │   ├───Hyram.Units
-│   │   ├───Hyram.Utilities
-│   │   ├───Hyram.Setup
-│   │   └───Hyram.SetupBootstrapper
-│   └───hyram
-│       ├───phys
-│       ├───qra
-│       └───utilities
+├─── gui
+│   ├─── build
+│   │   ├─── windows
+│   │   └─── mac
+│   ├─── src
+|   │   ├─── hyramgui
+|   │   │   ├─── assets
+|   │   │   ├─── forms
+|   │   │   ├─── models
+|   │   │   ├─── ui
+|   │   │   └─── hygu
+├─── src
+│   └─── hyram
+│       ├─── phys
+│       ├─── qra
+│       └─── utilities
 └───tests
-    ├───cs_api
-    └───hyram
-        ├───phys
-        ├───qra
-        └───validation
+    ├─── gui
+    └─── hyram
+        ├─── phys
+        ├─── qra
+        └─── validation
 ```
 
-* `src` - Project source code under version control, including C# GUI and python package.
-* `src/cs_api` - python functions providing C# access to HyRAM+ python code via the python.NET library.
-* `src/gui` - Front-end C# user interface, including MSVS Solution and C# projects.
-    * The python interpreter is installed in `gui/Hyram.PythonDirectory` and should *not* be added to version control.
-* `src/hyram` - Python module of HyRAM+ tools including physics, quantitative risk assessment, and miscellaneous utilities.
-* `build` - located alongside the source directory to contain C# build files excluded from version control.
-* `tests` - automated tests both both C# API (`cs_api`) and HyRAM+ (`hyram`) packages.
+* `src` - HyRAM+ scientific library Python package.
+* `src/hyram` - HyRAM+ scientific library source code, including physics and quantitative risk assessment tools.
+* `gui` - Qt-based multi-platform GUI Python package.
+* `gui/build` - Scripts for building GUI installers for Windows, intel-based macOS, and Apple Silicon macOS.
+* `gui/src` - GUI source code.
+* `tests` - automated tests for both the GUI and HyRAM+ (`hyram`) packages.
 
 
-<a name="c-gui">&nbsp;</a>
-# B. C# GUI Development
-This section describes how to set up a C# development environment for the HyRAM+ graphical user interface.
-The following steps are written for MS Visual Studio 2017 and an x64 solution configuration.
+<a name="gui">&nbsp;</a>
+# B. GUI Development
+This section describes how to set up a cross-platform development environment for the HyRAM+ GUI.
+It includes instructions for both developing and distributing the GUI application to users of Windows and macOS systems.
 
+The GUI uses the Qt framework and PySide wrapper to implement the UI and to interface with the backend python HyRAM+ library.
+This document assumes familiarity with Python 3.9, the Qt framework, and basic JavaScript, which is used in Qt UI .qml files.
 
-&nbsp;
-<a name="c-projects">&nbsp;</a>
-## B.1 C# Project Descriptions
+**NOTE: The Qt framework has a complex licensing situation.
+The HyRAM+ team must always verify that no incompatible modules are included in any release.**
 
-**`Hyram.Gui`**<br>
-Content panels, forms, and logic for user-interaction.
-Also includes the engineering toolkit.
+### Nomenclature
 
-**`Hyram.PythonApi`**<br>
-Interface classes for requesting and consuming python function calls via Python.NET.
-Includes separate classes for physics and QRA.
+The following terms and labels are used in this document:
 
-**`Hyram.PythonDirectory`**<br>
-Dummy project containing the Python interpreter.
-Conditional build events copy the python interpreter, modules, and python.net runtime during build.
+    GUI         - The HyRAM+ Graphical User Interface
+    backend     - analysis code found in the HyRAM+ module
+    repo/       - path to the HyRAM+ repository on your machine; e.g. P:/projects/hyram/repo
+    build/      - path to the GUI installers directory, (repo/gui/build/)
 
-**`Hyram.State`**<br>
-Class handling internal state and storage of parameters during UI interaction.
+<a name="gui-dev"></a>
+## B.1. Development Environment Setup
 
-**`Hyram.Units`**<br>
-Classes, functions, and tests for handling units and their conversions for display.
+### Step 1. Clone the Repository
+The GUI and backend code reside within the HyRAM+ repository.
+Clone it via the gitlab instructions. Make sure to initialize any submodules as well.
 
-**`Hyram.Utilities`**<br>
-Misc. utility classes and functions.
+### Step 2. Set Up a Python Development Environment
+HyRAM+ and the GUI require a standard Python 3.9 virtual environment.
+See Python documentation for installing Python 3.9 and creating a new virtual environment.
 
-**`Hyram.Setup`**<br>
-WiX project to configure the HyRAM+ MSI installer.
+For development, the following requirements file contains all required python modules.
+Activate your virtualenv before installing these:
 
-**`Hyram.SetupBootstrapper`**<br>
-WiX bootstrapper to configure the HyRAM+ .exe bundle installer, including the program MSI created by Hyram.Setup.
+    python pip install -r repo/gui/requirements-dev.txt
 
+**Warning**: the dev modules must NOT be bundled into a HyRAM+ distribution.
+Many of these modules have incompatible licenses for distribution and are used for development only.
+For example, *jupyter* must not be included in the distribution.
+The bundling scripts include an import check which halts the process if certain modules are found.
 
+After installing the requirements, navigate to the `gui` directory and install it as an editable module:
 
-<a name="c-setup-py">&nbsp;</a>
-## B.2 Setting Up Python Interpreter
-Development requires an embedded Python 3.9 installation which is ignored by git and must be set up manually.
+    cd gui
+    pip install -e .
 
-#### 1. Install Python 3.9
-The HyRAM+ C# build process requires the Python 3.9 directory to be located at:
 
-    repo/src/gui/Hyram.PythonDirectory/python/
+### Step 3. Set Up a Separate Distribution Virtual Environment
+A separate virtual environment must be created for building release-ready HyRAM+ distributions.
+This env contains only those modules necessary for the distribution and excludes development-only modules like *jupyter*.
 
-To install Python, navigate to the [Python webpage](https://www.python.org/downloads/windows/)
-and download the Python 3.9 x86-64 executable installer ([direct link](https://www.python.org/ftp/python/3.9.2/python-3.9.2-amd64.exe)).
-Follow the installation instructions:
+    python pip install -r repo/gui/requirements.txt
 
- * *Optional Features*: enable `pip` and `tcl/tk` options only. Disable all other options.
- * *Advanced Options*: check `precompile standard library` only. Uncheck all other options.
- * Set the custom install location to `<location_of_repo>\src\gui\Hyram.PythonDirectory\python\`
- * After installation completes, verify that the `python` directory exists.
+Next, install the GUI as an editable module into the release env as above.
 
-#### 2. Verify pip
-Open a command-line prompt and navigate to the `python` directory.
-Verify that the python pip tool is accessible by executing the following command:
 
-    python -m pip --version
+### Step 4. Install Qt 6.6
+*(Note: this step requires a free Qt account)*
 
-This should print the location of the pip command.
-The location should be within the `python` directory; for example:
+Download the Qt online installer for Open Source Qt [here](https://www.qt.io/download-open-source).
+Open the installer and select "Custom Installation". Modify the components as follows:
 
-    C:repositories/hyram/src/gui/Hyram.PythonDirectory/python/lib/site-packages/pip
+* Disable Qt Design studio
+* Enable Qt 6.6
+* Under Qt 6.6, enable only the following options:
+    * (Windows) MSVC 64-bit
+    * (Windows) MinGW 64-bit
+    * (macOS) macOS option
+* Under Qt 6.6 > Additional libraries, enable only the following:
+    * Qt Image Formats
+    * Qt WebEngine
+    * Qt WebView
 
-If a different location is displayed, such as within `program files`, ensure that you correctly navigated to the `python` directory and that `python.exe` is present.
+Wait for the installer to finish.
 
-#### 3. Install Required Python Modules
-The python backend requires the following modules:
+*...an eternity later...*
 
-```
-scipy==1.6.1
-numpy==1.24.1
-coolprop==6.4.1
 
-matplotlib==3.6.3
-Pillow==9.4.0
-python-dateutil==2.8.2
-cycler==0.11.0
-kiwisolver==1.3.1
-pyparsing==3.0.9
-six==1.16.0
+### Step 5. Set Up Project in QtCreator
+The QtCreator IDE is recommended for developing the UI .QML files and running the application during development.
+After opening the `gui` directory in QtCreator, modify the project settings as follows:
+1. Select the Projects tab (on the left) > Run
+2. Add a new Python interpreter
+3. In the interpreter settings, navigate to the python exe or symlink in your env.
+4. Make sure the specified virtualenv is now selected for the project
 
-// for GUI
-pythonnet==2.5.2
-pycparser==2.20
-```
+**Careful**: QtCreator on macOS will try to follow the symlinked python when it is selected during the above steps.
+If this occurs, the path will be set to `env/bin/python3.9` instead of to your virtualenv.
+Revise this path to make sure the interpreter location points to the symlink file in the virtualenv, and NOT the systemwide parent bin/python.
 
-These modules can be installed with pip.
-Note that CoolProp may fail to install with pip. If this occurs, it should be installed as a wheel:
+It should be something like:
 
-```
-cd <path/to/python/dir>
-./python.exe -m pip install Cython
-git clone https://github.com/CoolProp/CoolProp --recursive coolprop
-cd coolprop
-git checkout tags/v6.4.1
-cd wrappers/Python
-../../../python.exe setup.py install
+    /Users/cianan/projects/hyram/envs/py3.9r/bin/python3.9
 
-cd <path/to/python/dir>
-./python.exe -m pip uninstall Cython
-```
+And not:
 
-After the wheel installs, remove the cloned coolprop repository from the python directory.
+    /Library/Frameworks/Python.Framework/Versions/3.9/Python
 
-Finally, verify the installed modules with `python.exe -m pip freeze`
+Once the project is set up, click the "Run" button to launch the Qt application.
+Open the .qml files in `gui/ui` to edit the interface, or use your favorite IDE with *.qml functionality.
 
+<a name="gui-distr"></a>
+## B.2. Building the HyRAM+ Application for Distribution
 
-<a name="c-setup-msvs">&nbsp;</a>
-## B.3 Setting Up Solution in MSVS
-Before loading the solution, install the [Wix Installer Toolset v3.11.2](https://wixtoolset.org/releases/)
+Building HyRAM+ is a two-step process. First, the GUI components and python files are bundled via pyInstaller.
+Next, the bundled files are incorporated into a platform-specific installer package.
+These steps must be conducted on the platform for which a distribution is being created.
+For example, the Intel-based macOS distribution must be built on an Intel-based macOS system.
 
-Open the HyRAM+ solution in MSVS by selecting the following file:
+Note that the .sh scripts used below include filters for excluding license-incompatible modules according to
+the [Qt Docs](https://doc.qt.io/qt-6/qtmodules.html#gpl-licensed-addons).
 
-    /src/gui/Hyram.sln
+<a name="distr-win"></a>
+### HyRAM+ for Windows
 
-This will load the solution and its various projects.
-The GUI requires the MathNet.Numerics and NewtonSoft.Json packages, which should be installed via the NuGet manager (`Tools -> NuGet Package Manager`).
+#### Requirements
 
+The following tools are required to build HyRAM+ on Windows:
+* Inno Setup Compiler (https://jrsoftware.org/isdl.php)
 
-### 1. Solution Settings
-Verify the following configuration settings and properties after loading the solution in MSVS.
+#### Step 0. Update Version and Configuration
+Update the HyRAM+ versioning in the .spec file and within the application code.
+Also check that the build configuration is set to `DEBUG=False` in the `app_settings.py` file.
 
-**Solution Properties**
-* Common Properties -> Startup Project -> Simple Startup project -> Hyram.Gui
-* Configuration Properties: all projects except the Setup projects should be set to build.
+#### Step 1. Create the HyRAM+ bundle
+Update the version number in the .spec file before running pyinstaller.
 
-**Hyram.Gui project settings**
-* Application -> Startup object should be `Hyram.Gui.Program`
-* Under Build, set `Platform target` to `x64`.
+    cd gui\build\windows\
+    pyinstaller .\build_win.spec --noconfirm
 
-**Hyram.PythonApi project settings**
-* Under Build, set `Platform target` to `x64`.
+To test the bundle executable:
 
-**Output paths**:
-* Set project output paths (project settings -> Build) to `..\..\..\build\bin\<Configuration>\` (Release or Debug).
+    cd gui\build\windows\
+    .\dist\hyram\HyRAM.exe
 
+#### Step 2. Build the distribution setup file
+1. Open Inno Setup compiler
+2. Select the  `build_win_pkg.iss` script file
+3. Click "compile"
 
-### 2. Build Events
-Build events are located in the `Hyram.PythonDirectory` project (`properties -> Build Events`).
-Pre- and Post-build events provide the following functionality:
-   * ensure the python interpreter, Python.Net runtime, and HyRAM+ module are copied to the compiled application.
-   * delete any test image files and .pyc files
-   * delete development-specific directories (test, .idea) in the build dir
+This creates the HyRAM+ installer .exe file (named "mysetup.exe") in the `build/windows/installer` directory.
+This file can be renamed and distributed to end-users.
 
-The python interpreter build event only needs to be executed during the first build or when the python interpreter
-or required packages are changed.
-The events can be disabled by modifying the conditional statement to ensure it is false; for example:
 
-    if "$(ConfigurationName)" == "AlwaysFalse"
+<a name="distr-mac"></a>
+### HyRAM+ for macOS
+Mac-based distributions of HyRAM+ follow the same basic build process;
+however, there are some slight differences if building for Intel-based Mac vs. Apple-silicon Macs.
+These differences are described below.
 
-To enable the event, make sure the conditional matches the Configuration (DEBUG or RELEASE):
+#### Requirements
+Before attempting to build HyRAM+, verify that the following prerequisites are present:
+* Xcode (https://developer.apple.com)
+* Xcode command-lines tools (see below)
+* An active Apple Developer account
+* create an app-specific password for code-signing [here](https://www.qt.io/download-open-source)
 
-    if "$(ConfigurationName)" == "DEBUG"
+It is important to **never accidentally include credentials in a git commit**.
+Use this command to store your credentials on your machine:
 
+    xcrun notarytool store-credentials "<keychain profile>"
+                   --apple-id "AC_USERNAME"
+                   --team-id <WWDRTeamID>
+                   --password <secret_2FA_password>
 
-### 3. Python.NET Runtime
-The Python.NET runtime DLL must be added as a reference for any projects which rely on it (e.g. Hyram.PythonApi).
-View the project references to verify that Python.NET is listed.
+Xcode command-line tools can be installed via the Terminal:
 
-To add it to a new project, in the Solution Explorer right-click the project name and select `Add -> Reference`.
-Under the `Browse` tab select the `Python.Runtime.DLL` at:
+    xcode-select --install
 
-    src/gui/Hyram.PythonDirectory/python/Python.Runtime.DLL
+#### Step 0. Update Version and Configuration
+Update the HyRAM+ version fields in the *.spec, distribution.xml, and *.sh files, and within the GUI.
+Also check that the build configuration is set to `DEBUG=False` in the `app_settings.py` file.
 
+#### Step 1. Create the HyRAM+ app bundle
+Create the bundle via the .spec script in the `build/mac/dist` directory.
 
-<a name="c-setup-installer">&nbsp;</a>
-## B.4 Configuring the Hyram.Setup projects
-This section describes the steps required to build a debug or release-ready HyRAM+ installer package bundle.
-It also describes the current setup configuration.
-This process uses the WiX installer tools to bundle the python interpreter and files alongside the GUI components into a single installer.
-Two C# projects comprise the installer setup:
-* Hyram.Setup - builds the HyRAM+ application installer
-* Hyram.SetupBootstrapper - builds the final installation bundle which will be delivered to users. This can later be augmented with additional installers as needed (e.g. the .NET runtime installer).
+    cd build/mac/
+    pyinstaller build_mac.spec --noconfirm
 
-Note: installed files require a unique GUID. In some cases WiX can create this automatically.
-When it cannot be auto-generated, a custom GUID can be generated in MSVS via the Tools -> Create GUID... feature.
+To verify the code-signed .app:
 
-### Hyram.Setup Project
-The Hyram.Setup project builds the HyRAM+ installer which installs the GUI, python interpreter,
-and python HyRAM+ module.
+    codesign -v -vvv --deep --strict dist/HyRAM.app
 
-The application setup is described in the **`Product.wxs`** XML configuration file.
-It defines the product properties, included C# projects and files,
-and the integrated python interpreter.
-Note that WiX uses a specific directory layout and file configuration method.
-The WiX website has various guides for understanding this approach.
+To test the bundle:
 
-The integrated python interpreter and python module are configured in the **`Hyram.Setup.wixproj`** file.
-Due to the large number of files in the python interpreter, the WiX Heat tool (included in the WiX MSVS toolset)
-is used to automatically gather and include these files during project build.
-The `wixproj` file should only be modified by first unloading the Hyram.Setup project,
-then opening the `Hyram.Setup.wixproj` file in a separate file editor,
-then reloading the project once editing is complete.
+    cd build/mac/
+    dist/hyram/HyRAM
 
-Note: The **`PythonInstallFiles.wxs`** and **`PythonLibsFiles.wxs`** files are automatically generated by Heat
-and should not be manually modified.
 
+#### Step 2. Build Mac package installer
+Execute the script to build a .pkg installer from the HyRAM.app file.
+This script will also submit the pkg to Apple for notarization.
 
-**Important Configuration Properties:**
-- ProductCode - specified by the Product ID.
-- UpgradeCode - A6256A13-D1FE-4D2E-9BB8-DEE9FF314047
-- Version: *Set as needed*
+Note that this will copy the HyRAM.app to a child dist/app/ directory.
+This is done so that the bundle process can correctly identify it as a component.
 
-The UpgradeCode describes an application with multiple versions.
-The ProductCode describes a release of one of those versions.
-The HyRAM+ UpgradeCode should never change unless a different application is desired,
-such as another fuel analysis program that should be installed separately from HyRAM+.
-The ProductCode should be changed with each new release.
+Pass your codesign identity as the first argument and credential profile as the second.
+Remember to surround entries with quotes "" if there are spaces.
 
-Windows uses the installation context (i.e. "all users" or "just me" options),
-UpgradeCode and ProductCode when determining if a previous version of an application resides on a user's system.
+    ./build_mac_pkg.sh "<Installer ID>" "<Profile>"
 
+Notarization may take a long time to complete. To check on the status or poll for updates:
 
-### Hyram.SetupBootstrapper Project
-The `Hyram.SetupBootstrapper` project builds the final installation bundle.
-It can include multiple application installers (e.g. HyRAM+ and a .NET runtime installer).
-It also describes the installation GUI used by the user when installing HyRAM+.
+    xcrun notarytool info HyRAM.app.zip --keychain-profile "<Profile>"
+    xcrun notarytool wait HyRAM.app.zip --keychain-profile "<Profile>"
 
-- **`Bundle.wxs`** - configuration file specifying the included package(s) and installer GUI theme files.
-- **`theme.xml`** - configures the GUI of the installer.
 
+### References
 
-### 7. Building the Installer
-Building a HyRAM+ installer is now a straightforward process.
-The setup projects no longer need to be recreated when the python interpreter files changes.
-To build a new installer, simply build the Hyram.Setup and Hyram.SetupBootstrapper projects.
-Make sure the platform and configuration properties are set correctly for each included project.
+Qt QML Documentation <br>
+https://doc.qt.io/qt-6/qmltypes.html
 
-The resulting Hyram.Setup.exe file can be tested internally and distributed as needed.
+PyInstaller on signing macOS bundles<br>
+https://pyinstaller.org/en/stable/feature-notes.html?highlight=identity#app-bundles
 
-Note that the SetupBootstrapper currently outputs a .exe file bundle.
-The .msi file created by the Hyram.Setup project is included in this bundle.
-The .msi file should not be distributed.
+The Apple notarization process<br>
+https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution
+https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution/customizing_the_notarization_workflow
+https://www.unix.com/man-page/osx/1/productbuild/
 
-
-
-<a name="c-notes">&nbsp;</a>
-## B.5 Miscellaneous Notes
-
-#### Issue: form fails to display in MSVS designer
-**Winforms Forms containing custom controls cannot be displayed by the MSVS GUI designer when the project is built in x64.**
-
-This is a known issue with the designer, which can only handle 32-bit controls. If a form fails to load due to a custom control, rebuild the `Hyram.Gui` and `Hyram.Units` projects in `Any CPU` configuration mode.
-MSVS may also need to be restarted.
-Be sure to reset the configurations to `x64` after editing with the designer.
-
-When adding custom controls to a form, ensure that the custom control is not set as a public property of the form.
-Automated tools, such as various ReSharper tools, may also erroneously apply this property.
-When this occurs, ensure that the control is set as a private property in the designer.cs file.
-
-**Winforms forms deriving from a custom form class fail to display in the GUI designer.**
-
-Similar to above, this is a known issue that apparently has not been fixed as of 2022.
-To display these forms in the designer, you must set the platform target of the solution and of *every* project to x86. Clean and rebuild. You may need to restart MSVS as well.
-
-This may cause compilation to fail due to a python.NET incompatibility.
-If this occurs, edit the form in the designer as needed and then restore the platform target settings.
-In some cases you can set the target to Any CPU after doing the above, and the designer will still load until the next clean.
 
 
 <a name="py-dev">&nbsp;</a>
@@ -355,58 +306,27 @@ HyRAM+ primarily consists of two sub-modules: physics and qra.
         ├───qra
         └───utilities
 
-C# access to these modules is provided by the sibling `cs_api` directory and code.
 The physics sub-module includes a `api.py` file for interacting with the main function calls programmatically.
 The quantitative risk analysis algorithm can be found in `qra/analysis.py`.
 
 <a name="py-install">&nbsp;</a>
 ## C.2 Installation
 
-It is recommended to install the HyRAM+ source code to your Python environment as a symbolic link for modifications/development.
-This way, when local modifications are made, there is no need to reinstall the Python package.
-This is especially useful with the `%load_ext autoreload` and `%autorelaod 2` commands in iPython/Jupyter Notebooks.
-
-To install as a symbolic link, use this command in the repository root directory (where the `pyproject.toml` file is located):
-
+Install the HyRAM+ module via the `editable` flag (symbolic link) to enable modifications without re-installation.
+Navigate to the repository root directory containing the `pyproject.toml` file, and run:
 ~~~~ 
 pip install -e .
 ~~~~
+
+This is especially useful with the `%load_ext autoreload` and `%autorelaod 2` commands in iPython/Jupyter Notebooks.
+
+
 
 
 
 <a name="py-usage">&nbsp;</a>
 # D. Python HyRAM+ Usage
-HyRAM+ can be utilized as a C# backend with Python.NET, or independently via Python as a standalone module.
-C# calls via python.NET utilize the `phys` and `qra` wrapper code found in the `cs_api` directory.
-
-
-<a name="py-usage-c">&nbsp;</a>
-## D.1 HyRAM+ as C# Backend
-The Python HyRAM+ package is integrated into the C# HyRAM+ application via a Python.NET interface.
-C# caller functions in the `Hyram.PythonApi` project use the `cs_api` wrapper code to conduct HyRAM+ analyses.
-The cs_api files load custom Python.NET modules which are only available while the Python.runtime.dll is loaded.
-These functions are not currently compatible with a normal Python session.
-
-**Adding a new API function call to the C# GUI**
-
-Add a new function to the PhysicsInterface or QraInterface files in the `Hyram.PythonApi` project.
-The function should gather the appropriate inputs in a non-nullable format and activate the Python.NET lock space
-before calling the desired python function in the `qra.py` or `phys.py` wrapper files.
-Refer to existing functions for reference.
-
-**Adding a new API python function call to the python HyRAM+ module**
-
-A corresponding python function must be created in the `cs_api/qra.py` or `cs_api/phys.py` files.
-This function can be called by C# functions as needed.
-
-The function should parse and convert incoming data; arrays can be handled with available utility functions.
-Note that functions called by C# should not have keyword or optional arguments.
-After parsing incoming data, the function can then execute HyRAM+ python code and then return a wrapped object to C#.
-Refer to existing functions for reference.
-
-
-<a name="py-usage-py">&nbsp;</a>
-## D.2 Using HyRAM+ as a Python module
 QRA analysis can be executed via command-line through the `qra/analysis.py` file.
 Physics analyses can be conducted via the `phys/api.py` file.
-See the analysis function docstring for details and guidance.
+Docstrings are provided for details and guidance.
+For more information about Python usage, see the [README](./src/hyram/README.md) file in the `src/hyram` directory.

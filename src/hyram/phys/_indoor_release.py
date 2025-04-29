@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -16,17 +16,13 @@ from matplotlib.collections import LineCollection
 from scipy import interpolate
 
 from ._fuel_props import FuelProperties
-from ._comps import Fluid, Orifice
+from ._comps import Fluid, Orifice, NozzleFlow
 from ._layer import LayeringJet
 from ._therm import Combustion
 from ..utilities import misc_utils
 from ..utilities.custom_warnings import PhysicsWarning
 
 
-
-########################################################################
-# TODO: untested for alternate fuels
-########################################################################
 class IndoorRelease:
     '''
     Class used to calculate physics of an indoor release
@@ -40,7 +36,7 @@ class IndoorRelease:
                  verbose=False):
         '''
         Initialization for an indoor release
-        
+
         Parameters
         ----------
         source : class
@@ -101,14 +97,14 @@ class IndoorRelease:
             print("=== BEGINNING INDOOR RELEASE ===")
             print("PARAMETERS")
             print(misc_utils.params_as_str(params))
-        
+
         # Calculate time steps and mass flow history
         if steady:
             # Single jet/plume for steady release, so single time step
             if tmax is None:
                 tmax = 30 # this is an arbitrary number - should be long enough to ensure steady-state has been reached
-            ts = np.linspace(0, tmax, nsteady) 
-            steady_mdot = orifice.mdot(orifice.flow(source.fluid, ambient.P))
+            ts = np.linspace(0, tmax, nsteady)
+            steady_mdot = NozzleFlow(source.fluid, orifice, ambient.P).mdot
             mdots = np.ones(len(ts)) * steady_mdot
             gas_list = [source.fluid for i in range(len(ts))]
         else:
@@ -130,7 +126,7 @@ class IndoorRelease:
         gas = Fluid(species = source.fluid.species, T = ambient.T, P = ambient.P)
         self.comb = Combustion(gas)
         self.enclosure = enclosure
-        
+
         if release_area is not None:
             if release_area > orifice.A:
                 # switch gas to ambient pressure and change orifice size for release
@@ -160,7 +156,7 @@ class IndoorRelease:
         # Initialize solutions
         x_layer, H_layer, m_jet, m_layer, dP_layer, dP_tot = 6*[np.array([0])]
         Vol_layer, t_layer = 2*[np.array([0])]
-        
+
         jet_mass_last = jets[0].m_flammable(X_lean = X_lean, X_rich = X_rich, Hmax = enclosure.H)
         # Run layer model at each time step for each plume
         for i in range(0, len(jets)-1):
@@ -171,13 +167,13 @@ class IndoorRelease:
             if np.any(vol_layer > enclosure.V): raise ValueError('Layer volume has exceeded enclosure volume')
             if np.any(c < 0): raise ValueError('Layer concentration has returned a negative value')
             if np.any(c > 1): raise ValueError('Layer concentration has exceeded 100%')
-            
+
             # Calculate flammable mass in layer
             MW_layer = c*gas.therm.MW + (1 - c)*ambient.therm.MW
             rho_layer = ambient.P/(ambient.T*const.R/MW_layer)
             Y_layer = c * gas.therm.MW / MW_layer
             layer_mass = vol_layer*rho_layer*Y_layer*(c >= X_lean)*(c <= X_rich)
-            
+
             # Calculate height of layer
             layer_height = vol_layer / enclosure.A
 
@@ -204,7 +200,7 @@ class IndoorRelease:
 
             # Update initial volume and concentration for layer model
             Vol_conc0 = np.array([vol_layer[-1], c[-1]])
-        
+
         if verbose:
             print('done')
 
@@ -236,7 +232,7 @@ class IndoorRelease:
         ax.set_xlabel('Time [s]')
         ax.set_ylabel('Fuel Mass Flow Rate [kg/s]')
         return fig
-    
+
     def plot_layer(self):
         fig, ax = plt.subplots(2, 1, sharex = True)
         l1 = ax[0].plot(self.t_layer, np.array(self.x_layer)*100,
@@ -284,12 +280,12 @@ class IndoorRelease:
     def pressure(self, t):
         '''
         Returns pressure at time t (or times ts)
-        
+
         Parameters
         -----------
         t : ndarray
            time(s) at which to return the pressure (s)
-        
+
         Returns
         -------
         dP : ndarray
@@ -301,12 +297,12 @@ class IndoorRelease:
     def layer_depth(self, t):
         '''
         Returns depth of layer at time t (or times ts)
-        
+
         Parameters
         -----------
         t : ndarray
            time(s) at which to return the depth (s)
-        
+
         Returns
         -------
         ld : ndarray
@@ -318,12 +314,12 @@ class IndoorRelease:
     def concentration(self, t):
         '''
         Returns layer concentration at time t (or times ts)
-        
+
         Parameters
         -----------
         t : ndarray
            time(s) at which to return the concentration(s)
-        
+
         Returns
         -------
         lc : ndarray
@@ -335,7 +331,7 @@ class IndoorRelease:
     def max_p_t(self):
         '''
         Returns the maximum overpressure and time at it occurs
-        
+
         Returns
         -------
         p_t : tuple

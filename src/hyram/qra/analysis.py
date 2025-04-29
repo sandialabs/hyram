@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -8,51 +8,60 @@ If not, see https://www.gnu.org/licenses/.
 
 import numpy as np
 
-from . import effects, ignition_probs, pipe_size, risk, event_tree, consequence, leak_size_results
-from . import component_set
-from . import positions as qra_positions
-from ..phys import api as phys_api
+from . import consequence, defaults, effects, event_tree, ignition_probs
+from . import pipe_size, risk
+from .component import (get_leak_frequencies_at_size_for_set,
+                        create_default_component_set)
 from ..phys import _comps, _jet, _therm
 from ..utilities import misc_utils
 
 
-def conduct_analysis(pipe_outer_diam, pipe_thickness,
+def get_total_leak_frequency_at_size(random_leak_frequency_set,
+                                     failure_set,
+                                     leak_size):
+    """
+    Returns the total leak frequency, including 100% leaks from fueling
+    failures, for the given set of components and fueling failures.
+    """
+    # TODO: this function is related to the fault tree math
+    #       so could be moved to another module
+    total_random_leak_freq = sum(random_leak_frequency_set.values())
+    if (leak_size == 100) and (failure_set is not None):
+        other_leak_freqs = failure_set.freq_failure
+    else:
+        other_leak_freqs = 0
+    return total_random_leak_freq + other_leak_freqs
+
+
+def conduct_analysis(pipe_inner_diam,
                      amb_temp, amb_pres,
-                     rel_temp, rel_pres, rel_phase,
-                     facil_length, facil_width,
-                     immed_ign_probs,
-                     delayed_ign_probs,
-                     ign_thresholds,
-                     occupant_input_list,
-                     component_sets,
-                     component_failure_set,
-                     rel_species,
-                     leak_sizes=None,
-                     discharge_coeff=1, detection_credit=0.9,
+                     rel_temp, rel_pres, rel_species,
+                     locations,
+                     rel_phase=None,
+                     component_set=None,
+                     failure_set=None,
+                     occupant_hours=None,
+                     ft_overrides=None,
+                     ign_probs=None,
+                     discharge_coeff=1,
+                     mass_flow_rates=None,
+                     detection_credit=0.9,
                      overp_method='bst',
-                     tnt_factor=None,
-                     bst_flame_speed=None,
+                     tnt_factor=0.03,
+                     bst_flame_speed=0.35,
                      probit_thermal_id='eise', exposure_time=30, probit_overp_id='head',
                      nozzle_model='yuce',
                      rel_angle=0, rel_humid=0.89,
-                     rand_seed=None, excl_radius=0.01,
-                     mass_flow=None, mass_flow_leak_size=None,
-                     f_release_overrides=None,
                      verbose=False,
                      output_dir=None,
                      create_plots=True):
     """
     Quantitative risk assessment including scenario calculations and harm modeling
 
-    Default values for optional overrides (to not use override) is -1 due to type restrictions from C# calls
-
     Parameters
     ----------
-    pipe_outer_diam : float
-        [m] Outer diameter of pipe
-
-    pipe_thickness : float
-        [m] Thickness of pipe wall (single side)
+    pipe_inner_diam : float
+        [m] Inner diameter of system pipe
 
     amb_temp : float
         [K] Ambient temperature
@@ -66,53 +75,64 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
     rel_pres : float
         [Pa] Fluid pressure (absolute)
 
-    rel_phase : {'gas', 'liquid', None}
-        Fluid phase; gas implies saturated vapor, liquid implies saturated liquid.
-        None corresponds to default 'gas' in GUI.
-
-    facil_length : float
-        [m] Length of facility
-
-    facil_width : float
-        [m] Width of facility
-
-    immed_ign_probs : list of floats
-        List of immediate ignition probabilities based on the mass flow rate thresholds 
-
-    delayed_ign_probs : list of floats
-        List of delayed ignition probabilities based on the mass flow rate thresholds
-
-    ign_thresholds : list of floats
-        Sorted list of mass flow rates [kg/s] that separate the list of ignition probabilities
-
-    occupant_input_list : list of dicts
-        Each dict defines group of occupants/workers near radiative source.
-        Format: {count, descrip, xdistr, xa, xb, ydistr, ya, yb, zdistr, za, zb, hours}
-        Where distributions can be uniform, deterministic or normal, {'unif', 'dete', 'norm'}.
-        Example:
-            {
-                'count': 9,
-                'descrip': 'workers',
-                'xdistr': 'uniform', 'xa': 1, 'xb': 20,
-                'ydistr': 'dete', 'ya': 1, 'yb': None,
-                'zdistr': 'unif', 'za': 1, 'zb': 12,
-                'hours': 2000,
-            }
-
-    component_sets : [ComponentSet]
-        List of components (e.g. compressors)
-
-    component_failure_set : ComponentFailureSet
-        Object representing component failure properties and parameters.
-
     rel_species : string or dict
         Release fluid species (e.g., 'h2', 'ch4') or dict of species and concentrations
 
-    leak_sizes : [floats] or None
-        List of percentages representing % leak
+    locations : list of lists
+        List of Cartesian coordinates in the form [x, y, z] for each location
+
+    rel_phase : {'gas', 'liquid', None}
+        Fluid phase; "gas" is saturated vapor, "liquid" is saturated liquid.
+        For fluid phase of `None`, the fluid temperature (`rel_temp`)
+        and pressure (`rel_pres`) must be specified.
+        Default is `None`.
+        Note: None corresponds to default 'Fluid' in GUI.
+
+    component_set : [Component] or None
+        List of components (e.g. compressors). If `None`, the default component
+        set for the given state is used. Default is `None`.
+
+    failure_set : ComponentFailureSet or None
+        Object representing dispenser component failure properties
+        and parameters. If `None`, the default failure set is used.
+        Default is `None`.
+
+    occupant_hours : [floats] or None
+        List of hours present for each occupant,
+        length of list should be equal to length of locations input.
+        If not given, then default of 2000 hours per occupant is used.
+
+    ft_overrides : [floats] or None
+        Intended as a way to override the fault tree calculations.
+        If specified, should be list of annual leak frequencies [leaks/year],
+        one for each of the different leak sizes.
+        If None, then annual leak frequencies will be calculated
+        using the implemented fault trees.
+        Default is None.
+
+    ign_probs : dict or None
+        If None, then default values will be used.
+        Otherwise, dictionary of ignition probaiblities of the form:
+        ```
+        self.ignition_probs = {
+            # Sorted list of flow rates [kg/s] that separate the ignition probabilities
+            'flow_thresholds': flow_thresholds,
+            # List of immediate ignition probabilities based on the mass flow rate thresholds
+            'immed_ign_probs': immed_ign_probs,
+            # List of delayed ignition probabilities based on the mass flow rate thresholds
+            'delayed_ign_probs': delayed_ign_probs
+        }
+        ```
 
     discharge_coeff : float
         [-] Discharge coefficient to account for non-plug flow (always <=1, assumed to be 1 for plug flow)
+
+    mass_flow_rates: [floats] or None
+        Intended for use only for unchoked flow.
+        If specified, should be list of mass flow rates [kg/s],
+        one for each of the different leak sizes.
+        If None, then mass flow rate will be calculated for choked flow.
+        Default is None.
 
     detection_credit : float
         Probability of detecting flame/release, as fraction
@@ -122,12 +142,14 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
 
     tnt_factor : float
         TNT mass equivalence factor for use with TNT unconfined overpressure model
-        (unused if TNT overpressure model is not used)
+        (unused if TNT overpressure model is not used).
+        Default is 0.03 (3%).
 
     bst_flame_speed : float
-        One of {0.2, 0.35, 0.7, 1.0, 1.4, 2.0, 3.0, 4.0, 5.2}
+        One of {0.2, 0.35, 0.7, 1.0, 1.4, 2.0, 3.0, 4.0, 5.2}.
         Mach flame speed for use with BST unconfined overpressure model
-        (unused if BST overpressure model is not used)
+        (unused if BST overpressure model is not used).
+        Default is 0.35.
 
     probit_thermal_id : {'eise', 'tsao', 'tno', 'lees'}
         ID of thermal probit model to use
@@ -142,28 +164,10 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
         4-char key referencing notional nozzle model to use for high-pressure release
 
     rel_angle : float
-        [deg] Leak release angle for use in qrad flame calculation
+        [rad] Leak release angle, 0 is horizontal, pi/2 is vertical
 
     rel_humid : float
         Relative humidity between 0.0 and 1.0
-
-    rand_seed : int or None
-        Random seed value for random number position generator.
-        If None, will generate new random seed each call.
-
-    mass_flow : float, optional
-        [kg/s] Mass flow rate for specified leak size, if unchoked
-
-    mass_flow_leak_size : {1, 10, 100, 1000, 10000}, optional
-        Represents leak size (as hundredth of percent) of specified mass flow rate, assuming unchoked flow.
-
-    excl_radius : float
-        [m] Exclusion radius, for use in qrad flame calculation
-
-    f_release_overrides : list of floats or None
-        Manual override values for release frequency at each leak size.
-        Not used if == -1 or None
-        If None, vals will be set to -1 (i.e. ignored).
 
     verbose : bool
         If True, extra output will be printed (default False)
@@ -179,35 +183,52 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
     -------
     results : dict
         Compilation of analysis results containing:
+
             air : float
                 Average Individual Risk is expected # of fatalities per exposed individual
+
             far : float
                 Fatal Accident Rate is expected # of fatalities per 100 million exposed hours
+
             total_pll : float
                 Potential Loss of Life is expected # of fatalities per system year
+
             qrad_plot_files : list of strings
                 File locations of QRAD plots for each leak size, in order
+
             overp_plot_files : list of strings
                 File locations of overpressure plots for each leak size, in order
+
             impulse_plot_files : list of strings
                 File locations of impulse plots for each leak size, in order
-            leak_results : list of LeakResult objects
+
+            leak_results : list of dicts
                 Each contains PLL contribution, expected probabilities for scenarios,
                 and component leak probabilities
+
             positions : 2d array
                 (x,y,z) coordinates of occupants
+
             position_qrads : 2d array
-                flux data [W/m2] per leak per position
+                heat flux [W/m2] per leak per position
                 e.g. for 9 positions with 5 leak sizes, 9x5 array
+
             position_overps : 2d array
-                peak overpressure data [Pa] per leak per position
+                peak overpressure [Pa] per leak per position
                 e.g. for 9 positions with 5 leak sizes, 9x5 array
+
             position_impulses : 2d array
-                impulse data [Pa s] per leak per position,
+                impulse [Pa s] per leak per position,
                 e.g. for 9 positions with 5 leak sizes, 9x5 array
     """
+    if component_set is None:
+        component_set = create_default_component_set(rel_species, rel_phase)
+
+    if failure_set is None:
+        failure_set = defaults.default_failure_set
+
     if probit_overp_id in ['head', 'coll'] and overp_method == 'bauwens':
-        impulse_probit_error_msg = ('Overpressure method "bauwens"'
+        impulse_probit_error_msg = ('Overpressure method "Bauwens"'
                                     + ' does not produce impulse values,'
                                     + ' and so cannot be used with'
                                     + f' overpressure probit "{probit_overp_id}"')
@@ -217,230 +238,288 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
     sorted_params = sorted(params)
 
     if verbose:
-        print("\n=== BEGINNING ANALYSIS ===")
+        print("=== BEGINNING ANALYSIS ===")
         print("Parameters:")
         for param_name in sorted_params:
-            param_val = params[param_name]
-            if isinstance(param_val, list) and isinstance(param_val[0], component_set.ComponentSet):
-                print("Component Sets:")
-                for comp_set in param_val:
-                    print(f"{comp_set}")
+            if param_name == 'component_set':
+                print('component_set:')
+                for comp in component_set:
+                    print(comp)
             else:
-                print("{}: {}".format(param_name, str(param_val)))
-        print("\n")
+                param_val = params[param_name]
+                print(f'{param_name}: {str(param_val)}')
+        print('')
 
-    amb_fluid = phys_api.create_fluid('AIR', amb_temp, amb_pres)
-    rel_fluid = phys_api.create_fluid(rel_species, rel_temp, rel_pres, phase=rel_phase)
+    amb_fluid = _comps.Fluid(species='AIR', T=amb_temp, P=amb_pres)
+    rel_fluid = _comps.Fluid(species=rel_species, T=rel_temp, P=rel_pres, phase=rel_phase)
     if rel_temp is None:
         rel_temp = rel_fluid.T
     if amb_temp is None:
         amb_temp = amb_fluid.T
 
-    # Each occupant row in GUI is represented as group and stored as dict inside list
-    # Massage into required format for phys module [count, (xdistr, xa, xb), (ydistr...]
-    loc_distributions = []
-    total_occupants = 0
-    total_occupant_hours = 0
-    for group_dict in occupant_input_list:
-        num_occupants = int(group_dict['count'])
-        loc_distribution = [num_occupants,
-                            (group_dict['xdistr'], group_dict['xa'], group_dict['xb']),
-                            (group_dict['ydistr'], group_dict['ya'], group_dict['yb']),
-                            (group_dict['zdistr'], group_dict['za'], group_dict['zb'])]
-        loc_distributions.append(loc_distribution)
-        total_occupants += num_occupants
-        total_occupant_hours += int(group_dict['hours'] * num_occupants)
-    if total_occupant_hours == 0:
-        occupant_avg_hours = 0
-    else:
-        occupant_avg_hours = total_occupant_hours / total_occupants
+    if ign_probs is None:
+        ign_probs = defaults.get_default_ignition_probs(rel_species)
 
-    if verbose:
-        component_set_log_msg = ""
-        for compset in component_sets:
-            if compset.num_components:
-                component_set_log_msg += "{}\n".format(str(compset))
-        print(component_set_log_msg)
-        print(f"Location distributions: {loc_distributions}")
-        print(f"{total_occupants} Occupants for {occupant_avg_hours} average hours\n")
+    leak_sizes = defaults.default_leak_sizes
+    num_leak_sizes = len(leak_sizes)
 
-    leak_results = leak_size_results.init_leak_results(leak_sizes, f_release_overrides, component_sets,
-                                                       mass_flow_leak_size=mass_flow_leak_size, mass_flow=mass_flow)
-    leak_result100 = leak_results[-1]
-    num_leak_sizes = len(leak_results)
+    if mass_flow_rates is None:
+        mass_flow_rates = [None] * num_leak_sizes
 
-    # Account for non-leak fueling failure contributors in 100% release only. Will use override value if provided.
-    leak_result100.set_failure_set(component_failure_set)
-    total_leak_freqs = np.array([leak_res.f_release for leak_res in leak_results])
+    if ft_overrides is None:
+        ft_overrides = [None] * num_leak_sizes
 
-    # Compute leak diameters and discharge rates, one per leak size
-    pipe_inner_diam = pipe_size.calc_pipe_inner_diameter(pipe_outer_diam, pipe_thickness)
     pipe_flow_area = pipe_size.calc_pipe_flow_area(pipe_inner_diam)
 
     if verbose:
-        print("RELEASE FREQUENCIES:")
-        for leak_result in leak_results:
-            print(f" {leak_result.leak_size:0.2f}% - {leak_result.f_release:.3g}")
         print(f"System pipe inner diameter {pipe_inner_diam:.3g} m, area {pipe_flow_area:.3g} m^2")
 
     orifices = []
     discharge_rates = []
-    developing_flows = []
-    cons_momentum, notional_noz_t = misc_utils.convert_nozzle_model_to_params(nozzle_model, rel_fluid)
-    # Calculate mass flows for leak sizes if given unchoked mass flow for single leak size
 
-    for leak_result in leak_results:
-        orifice_leak_diam = pipe_size.calc_orifice_diameter(pipe_flow_area, leak_result.leak_size/100)
-        orifice = _comps.Orifice(orifice_leak_diam, discharge_coeff)
-        orifices.append(orifice)
-        developing_flow = _jet.DevelopingFlow(rel_fluid, orifice, amb_fluid, theta0=rel_angle,
-                                              nn_conserve_momentum=cons_momentum, nn_T=notional_noz_t, verbose=verbose)
-        developing_flows.append(developing_flow)
-        # discharge_rate = orifice.mdot(developing_flow.fluid_orifice)
-        discharge_rate = orifice.mdot(orifice.flow(rel_fluid, mdot=leak_result.mass_flow_override))
-        discharge_rates.append(discharge_rate)
-        if verbose:
-            print(f"For {leak_result.leak_size}% leak size: orifice leak diameter: {orifice_leak_diam:.3g} m, "
-                     f"discharge rate: {discharge_rate:.3g} kg/s")
-
-    # Evaluate event tree
-    # Determine ignition probabilities for each leak size based on discharge rates and thresholds
-    end_state_probabilities_per_leak = []
     end_state_consequence_types = {'Shutdown': None,
                                    'No Ignition': None,
                                    'Jet Fire': 'thermal',
                                    'Explosion': 'overp'}
-    for rate in discharge_rates:
-        (immed_ign_prob, delayed_ign_prob) = ignition_probs.get_ignition_probability(rate,
-                                                                                     ign_thresholds,
-                                                                                     immed_ign_probs,
-                                                                                     delayed_ign_probs)
+    event_consequences = np.zeros([num_leak_sizes, len(end_state_consequence_types)], dtype=float)
+    scenario_freqs = np.zeros_like(event_consequences)
+    end_state_probabilities = np.zeros_like(event_consequences)
+
+    total_occupants = len(locations)
+    zero_occupants = (total_occupants == 0)
+
+    cons_momentum, notional_noz_t = misc_utils.convert_nozzle_model_to_params(nozzle_model, rel_fluid)
+
+    chem = _therm.Combustion(_comps.Fluid(species=rel_fluid.species, T=amb_temp, P=amb_pres))
+
+    leak_freqs_by_component = {}
+    total_leak_freqs = {}
+    all_qrads = np.zeros((num_leak_sizes, total_occupants))
+    all_overpressures = np.zeros((num_leak_sizes, total_occupants))
+    all_impulses = np.zeros((num_leak_sizes, total_occupants))
+    qrad_plot_files = []
+    overp_plot_files = []
+    impulse_plot_files = []
+
+    for idx, leak_size in enumerate(leak_sizes):
         if verbose:
-            print("Flow rate {:.3g} (kg/s) ignition probabilities: immed {}, delayed {}".format(rate, immed_ign_prob, delayed_ign_prob))
+            print(f'{leak_size}% LEAK SIZE')
+            print('----------------------------')
+            print("RELEASE FREQUENCIES:")
+        if ft_overrides[idx] is None:
+            leak_freqs_by_component[leak_size] = get_leak_frequencies_at_size_for_set(
+                component_set, leak_size)
+            total_leak_freqs[leak_size] = get_total_leak_frequency_at_size(
+                leak_freqs_by_component[leak_size], failure_set, leak_size)
+            if verbose:
+                print("component leak frequencies")
+                for component in leak_freqs_by_component[leak_size]:
+                    print(f"{component}: {leak_freqs_by_component[leak_size][component]}")
+        else:
+            if verbose:
+                print(f"fault tree override used: {ft_overrides[idx]}")
+            leak_freqs_by_component[leak_size] = None
+            total_leak_freqs[leak_size] = ft_overrides[idx]
+        if verbose:
+            print(f"total leak frequency: {total_leak_freqs[leak_size]}")
+            print('----------------------------')
 
-        # Calculate event tree end-state probabilities
-        total_ign_prob = immed_ign_prob + delayed_ign_prob
+        orifice_leak_diam = pipe_size.calc_orifice_diameter(pipe_flow_area, leak_size/100)
+        orifice = _comps.Orifice(orifice_leak_diam, discharge_coeff)
+        orifices.append(orifice)
+        developing_flow = _jet.DevelopingFlow(rel_fluid, orifice, amb_fluid,
+                                              mdot=mass_flow_rates[idx], theta0=rel_angle,
+                                              nn_conserve_momentum=cons_momentum, nn_T=notional_noz_t, verbose=verbose)
+
+        discharge_rate = _comps.NozzleFlow(rel_fluid, orifice, amb_fluid.P, mdot=mass_flow_rates[idx]).mdot
+        discharge_rates.append(discharge_rate)
+        if verbose:
+            print(f'({orifice_leak_diam:.3g} m leak diameter)')
+            print(f'discharge rate: {discharge_rate:.3g} kg/s')
+            print('----------------------------')
+
+        (immed_ign_prob, delayed_ign_prob) = (
+            ignition_probs.get_ignition_probability(discharge_rate, ign_probs))
+        total_ign_prob = ignition_probs.calc_total_ign_prob(immed_ign_prob, delayed_ign_prob)
         no_ign_prob = event_tree.calc_probability_not_occur(total_ign_prob)
-        conditional_immed_ign_prob = immed_ign_prob / total_ign_prob
-        event_probabilities = [detection_credit, no_ign_prob, conditional_immed_ign_prob]
-        end_state_probabilities = event_tree.calc_end_state_probabilities(event_probabilities)
-        end_state_probabilities_per_leak.append(end_state_probabilities)
+        cond_immed_ign_prob = ignition_probs.calc_cond_immed_ign_prob(immed_ign_prob, total_ign_prob)
 
-    # Generate positions
-    posgen = qra_positions.PositionGenerator(loc_distributions, excl_radius, rand_seed)
-    locations = posgen.locs
+        event_probabilities = [detection_credit, no_ign_prob, cond_immed_ign_prob]
+        end_state_probs_for_size = event_tree.calc_end_state_probabilities(event_probabilities)
+        end_state_probabilities[idx, :] = end_state_probs_for_size
+        end_state_freqs = event_tree.calc_end_state_frequencies(total_leak_freqs[leak_size],
+                                                                end_state_probs_for_size)
+        scenario_freqs[idx, :] = end_state_freqs
 
-    # Note - these are the same conditions for initializing the Combustion object as is in phys.Flame
-    chem = _therm.Combustion(_comps.Fluid(species = rel_fluid.species, T = amb_temp, P = amb_pres))
+        if verbose:
+            print('OUTCOME PROBABILITIES:')
+            print(f'detection/isolation: {detection_credit}')
+            print(f'no ignition: {no_ign_prob}')
+            print(f'immediate ignition: {immed_ign_prob}')
+            print(f'delayed ignition: {delayed_ign_prob}')
+            print('----------------------------')
 
-    # Calculate harm/hazard effects at each position for each leak size
-    rel_angle_rads = np.radians(rel_angle)
-    try:
-        flux_dict = effects.calc_thermal_effects(amb_fluid,
-                                                 rel_fluid,
-                                                 rel_angle=rel_angle_rads,
-                                                 site_length=facil_length,
-                                                 site_width=facil_width,
-                                                 orifices=orifices,
-                                                 rel_humid=rel_humid,
-                                                 not_nozzle_model=nozzle_model,
-                                                 locations=locations,
-                                                 developing_flows=developing_flows,
-                                                 chem = chem,
-                                                 create_plots=create_plots,
-                                                 output_dir=output_dir,
-                                                 verbose=verbose)
-    except ValueError as err:
-        if type(rel_species) == dict:
-            raise ValueError('Invalid blend provided')
+        jetflame_freq = end_state_freqs[2]
+        if jetflame_freq == 0 or zero_occupants:
+            calculate_thermal_effects = False
+        else:
+            calculate_thermal_effects = True
 
-    qrads = flux_dict['fluxes']
-    qrad_plot_files = flux_dict['all_pos_files']
-    overp_dict = effects.calc_overp_effects(orifices,
-                                            nozzle_model,
-                                            rel_fluid,
-                                            amb_fluid,
-                                            rel_angle,
-                                            locations,
-                                            facil_length,
-                                            facil_width,
-                                            overp_method,
-                                            bst_flame_speed,
-                                            tnt_factor,
-                                            developing_flows,
-                                            create_plots=create_plots,
-                                            output_dir=output_dir,
-                                            verbose=verbose)
-    overpressures = overp_dict['overpressures']
-    impulses = overp_dict['impulses']
-    overp_plot_files = overp_dict['all_pos_overp_files']
-    impulse_plot_files = overp_dict['all_pos_impulse_files']
+        if calculate_thermal_effects:
+            qrads, qrad_plot_file = effects.calc_thermal_effects(
+                ambient_fluid=amb_fluid,
+                release_fluid=rel_fluid,
+                release_angle=rel_angle,
+                orifice=orifice,
+                rel_humid=rel_humid,
+                notional_nozzle_model=nozzle_model,
+                locations=locations,
+                leak_idx=idx,
+                developing_flow=developing_flow,
+                chem=chem,
+                create_plots=create_plots,
+                output_dir=output_dir,
+                verbose=verbose)
+            all_qrads[idx, :] = qrads
+            qrad_plot_files.append(qrad_plot_file)
+        else:
+            all_qrads[idx, :] = np.zeros(total_occupants)
+            qrad_plot_files.append("")
+
+        overp_freq = end_state_freqs[3]
+        if overp_freq == 0 or zero_occupants:
+            calculate_overpressure_effects = False
+        else:
+            calculate_overpressure_effects = True
+
+        if calculate_overpressure_effects:
+            (overpressures, impulses,
+            overpressure_plot_filepath,
+            impulse_plot_filepath) = effects.calc_overp_effects(
+                orifice=orifice,
+                notional_nozzle_model=nozzle_model,
+                release_fluid=rel_fluid,
+                ambient_fluid=amb_fluid,
+                release_angle=rel_angle,
+                locations=locations,
+                overp_method=overp_method,
+                leak_idx=idx,
+                BST_mach_flame_speed=bst_flame_speed,
+                TNT_equivalence_factor=tnt_factor,
+                developing_flow=developing_flow,
+                create_plots=create_plots,
+                output_dir=output_dir,
+                verbose=verbose)
+            all_overpressures[idx, :] = overpressures
+            all_impulses[idx, :] = impulses
+            overp_plot_files.append(overpressure_plot_filepath)
+            impulse_plot_files.append(impulse_plot_filepath)
+        else:
+            all_overpressures[idx, :] = np.zeros(total_occupants)
+            all_impulses[idx, :] = np.zeros(total_occupants)
+            overp_plot_files.append("")
+            impulse_plot_files.append("")
+
+        if verbose:
+            print('============================')
+
+    # Flatten results (all leaksize loc1, then all leaksize loc2, etc)
+    # Corresponds to flattening by row which is C-style ordering
+    qrads = all_qrads.flatten(order='C')
+    overpressures = all_overpressures.flatten(order='C')
+    impulses = all_impulses.flatten(order='C')
 
     if verbose:
-        print(f"Heat flux data:\n{qrads}\n Overpressure data:\n{overpressures}\n Impulse data:\n{impulses}")
+        print("Heat flux results:")
+        print(qrads)
+        print("Overpressure results:")
+        print(overpressures)
+        print("Impulse results:")
+        print(impulses)
+        print('')
 
-    # Estimate fatality probabilities
+    if verbose:
+        print("Calculating end state for each scenario...")
+
+    # Calculate end state event consequences and fatalities
     physical_responses = {'qrads': qrads,
                           'overpressures': overpressures,
                           'impulses': impulses}
     consequence_modeling_decisions = {'probit_thermal_id': probit_thermal_id,
                                       'exposure_time': exposure_time,
                                       'probit_overp_id': probit_overp_id}
-    event_consequences = []
-    for end_state_name in end_state_consequence_types:
+    for j, end_state_name in enumerate(end_state_consequence_types):
         event_consequence = consequence.calculate_event_consequence(end_state_consequence_types[end_state_name],
                                                                     num_leak_sizes,
                                                                     total_occupants,
                                                                     physical_responses,
                                                                     consequence_modeling_decisions,
                                                                     verbose)
-        event_consequences.append(event_consequence)
+        event_consequences[:, j] = event_consequence
 
-    # //////////////////////
-    # CALCULATE RISK METRICS
-
-    # Risk for each scenario
-    if verbose:
-        print("Calculating frequencies and consequences for each scenario...")
-    scenario_freqs = []
-    scenario_fatalities = []
+    scenario_fatalities = np.zeros_like(event_consequences)
     for i in range(num_leak_sizes):
-        # Compute expected events per year for this leak size
-        for end_state_probability, consequence_outcome in zip(end_state_probabilities_per_leak[i], event_consequences):
-            scenario_freqs.append(end_state_probability * total_leak_freqs[i])
-            scenario_fatalities.append(consequence_outcome[i])
+        scenario_fatalities[i, :] = event_consequences[i]
 
-    # Overall risk metrics
     if verbose:
-        print("Calculating risk for each scenario...")
+        print('Calculating risk for each scenario...')
+
+    if total_occupants == 0:
+        occupant_avg_hours = 0
+    else:
+        if occupant_hours is None:
+            occupant_hours = [defaults.default_occupant_hours] * total_occupants
+        total_occupant_hours = np.sum(occupant_hours)
+        occupant_avg_hours = total_occupant_hours / total_occupants
+        if verbose:
+            print(f"Locations: {locations}")
+            print(f'{total_occupants} Occupants for ' +
+                  f'{occupant_avg_hours} average hours')
+            print('')
+
+    # Calculate risk statistics
+    if verbose:
+        print('Calculating overall risk metrics and risk contributions ' +
+              'for each scenario...')
     plls = risk.calc_all_plls(scenario_freqs, scenario_fatalities)
-    if verbose:
-        print("Calculating overall risk metrics and risk contributions for each scenario...")
     total_pll, pll_contributions = risk.calc_risk_contributions(plls)
     far = risk.calc_far(total_pll, total_occupants)
     air = risk.calc_air(far, occupant_avg_hours)
 
     # Collect results for each leak size
-    if verbose:
-        print("Results for each leak size:")
     end_state_keys = {'Shutdown': 'shut',
                       'No Ignition': 'noig',
                       'Jet Fire': 'jetf',
                       'Explosion': 'expl'}
-    for i, leak_result in enumerate(leak_results):
-        for j, end_state_name in enumerate(end_state_consequence_types):
-            leak_result.list_event_names.append(end_state_name)
-            leak_result.list_event_keys.append(end_state_keys[end_state_name])
-            leak_result.list_p_events.append(np.around(end_state_probabilities_per_leak[i][j], 20))
-            leak_result.list_avg_events.append(np.around(scenario_freqs[i*len(end_state_consequence_types)+j], 20))
-            leak_result.list_pll_contrib.append(np.around(pll_contributions[i*len(end_state_consequence_types)+j], 20))
-            # event data in dict format for easier GUI consumption
-            leak_result.event_dicts = leak_result.get_result_dicts()
-
-        leak_result.mass_flow_rate = discharge_rates[i]
-        leak_result.leak_diam = orifices[i].d
-        if verbose:
-            print(str(leak_result))
+    leak_results = []
+    for i in range(num_leak_sizes):
+        event_results = consequence.generate_event_results(
+            event_names=end_state_consequence_types,
+            event_keys=end_state_keys,
+            prob_end_states=end_state_probabilities[i, :],
+            prob_event_occurrence=scenario_freqs[i, :],
+            pll_contrib=pll_contributions[i, :]
+        )
+        if (leak_sizes[i] == 100) and (ft_overrides[i] is None):
+            leak_result = dict(
+                leak_size=leak_sizes[i],
+                discharge_rates=discharge_rates[i],
+                leak_diam=orifices[i].d,
+                frequency=total_leak_freqs[leak_sizes[i]],
+                result_dicts=event_results,
+                component_leaks=leak_freqs_by_component[leak_sizes[i]],
+                dispenser_failures=failure_set.to_dict()
+            )
+        else:
+            leak_result = dict(
+                leak_size=leak_sizes[i],
+                discharge_rates=discharge_rates[i],
+                leak_diam=orifices[i].d,
+                frequency=total_leak_freqs[leak_sizes[i]],
+                result_dicts=event_results,
+                component_leaks=leak_freqs_by_component[leak_sizes[i]]
+            )
+        leak_results.append(leak_result)
 
     # Re-shape harm values into position table
     position_qrads_reshape = (qrads.reshape((num_leak_sizes, total_occupants))).T
@@ -458,14 +537,15 @@ def conduct_analysis(pipe_outer_diam, pipe_thickness,
         'positions': np.array(locations).transpose(),
         'position_qrads': position_qrads_reshape,
         'position_overps': position_overps_reshape,
-        'position_impulses': position_impulses_reshape
-    }
+        'position_impulses': position_impulses_reshape}
 
     if verbose:
-        print(f"PLL: {total_pll:.5E}\nFAR: {far:.5E}\nAIR: {air:.5E}")
-
-        # Print one result key/val pair per line
-        print("\nANALYSIS RESULTS:\n{}".format("\n".join(["{}: {}".format(key, val) for key, val in results.items()])))
+        print(f"PLL: {total_pll:.5E}")
+        print(f"FAR: {far:.5E}")
+        print(f"AIR: {air:.5E}")
+        print("ANALYSIS RESULTS:")
+        for key, val in results.items():
+            print(f"{key}: {val}")
         print("=== ANALYSIS COMPLETE ===")
 
     return results

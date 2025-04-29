@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -16,8 +16,10 @@ import matplotlib.lines
 import matplotlib.pyplot as plt
 from scipy import interpolate
 
+from hyram.utilities import misc_utils
 
-def get_error(exp_vals, calc_vals, error_limits, units, msg, output_filename, create_output=True, verbose=True):
+
+def get_error(exp_vals, calc_vals, error_limits, units, msg, output_dir, create_output=True, verbose=True):
     """
     Get error statistics for unit tests and print output.
 
@@ -61,13 +63,18 @@ def get_error(exp_vals, calc_vals, error_limits, units, msg, output_filename, cr
 
         if not (exp == 0 and calc == 0):
             percent_errors.append(100 * abs((exp - calc) / ((abs(exp) + abs(calc)) / 2)))
-
     max_abs_error = max(errors)
     avg_abs_error = statistics.mean(errors)
 
     max_percent_error = max(percent_errors)
     avg_percent_error = statistics.mean(percent_errors)
-    rsq = np.corrcoef(calc_vals, exp_vals)[0][1] ** 2
+
+    num_corr_pts = np.min([len(np.unique(calc_vals)), len(np.unique(exp_vals))])
+    if num_corr_pts < 2:
+        rsq = 0
+    else:
+        raw_rsq = np.corrcoef(calc_vals, exp_vals)[0][1]**2 # may contain NaNs
+        rsq = np.nan_to_num(raw_rsq)
 
     # Handle output
     if verbose or create_output:
@@ -87,8 +94,8 @@ def get_error(exp_vals, calc_vals, error_limits, units, msg, output_filename, cr
             print(text)
 
         if create_output:
-            os.makedirs(os.path.dirname(output_filename), exist_ok=True)
-            with open(output_filename, 'a') as file:
+            validation_file = os.path.join(misc_utils.get_output_folder(output_dir), "Validation.txt")
+            with open(validation_file, 'a') as file:
                 file.write(text)
                 file.close
 
@@ -412,7 +419,8 @@ def create_plots(output_dir, x, exp_y, calc_y, max_error, avg_error, smape, titl
     # Replace '_' characters with '/' for titles displayed on the graph
     title = title.replace('_', '/')
 
-    filename = os.path.join(output_dir, 'Basic Plots', split_title[0], f'{split_title[1]}.pdf')
+    out = misc_utils.get_output_folder(output_dir)
+    filename = os.path.join(out, 'Basic Plots', split_title[0], f'{split_title[1]}.pdf')
     create_basic_plot(x=x,
                       exp_y=exp_y,
                       calc_y=calc_y,

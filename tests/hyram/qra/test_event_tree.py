@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -26,6 +26,9 @@ class TestEventTreeCalcs(unittest.TestCase):
         probability_not_occur = 0.3
         calculated_not_probability = event_tree.calc_probability_not_occur(probability)
         self.assertAlmostEqual(calculated_not_probability, probability_not_occur)
+
+    def test_prob_not_occur_reject_invalid_prob(self):
+        self.assertRaises(ValueError, event_tree.calc_probability_not_occur, 1.1)
 
     def test_calc_end_state_frequencies(self):
         initiating_event_frequency = 1e-5

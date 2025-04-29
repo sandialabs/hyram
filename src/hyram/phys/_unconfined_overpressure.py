@@ -1,12 +1,10 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
 If not, see https://www.gnu.org/licenses/.
 """
-
-import os
 
 import numpy as np
 import scipy as sp
@@ -232,7 +230,7 @@ class Generic_overpressure_method:
         return scaled_overpressure
 
     def get_scaled_distance_from_scaled_overpressure(self, scaled_overpressure, max_distance=500):
-        # May be re-written by sub-classes below to use single interpolation rather than solver; 
+        # May be re-written by sub-classes below to use single interpolation rather than solver;
         # currently calculates distance and scales it in order to match syntax of re-written methods below
         overpressure = self.calc_unscaled_overpressure(scaled_overpressure)
         distance = get_distance_to_effect(value=overpressure,
@@ -297,7 +295,7 @@ class Generic_overpressure_method:
 
     def plot_overpressure_sliced(self, title=None,
                                  plot_filename='overpressure_sliced_contour.png',
-                                 directory=os.getcwd(),
+                                 directory=None,
                                  contours=None,
                                  nx=50, ny=50, nz=50,
                                  xlims=None, ylims=None, zlims=None,
@@ -312,7 +310,7 @@ class Generic_overpressure_method:
         plot_filename: string, optional
             file name to write
         directory: string, optional
-            directory in which to save file
+            directory in which to save file, defaults to cwd
         contours: ndarray or list (optional)
             contour levels shown on plot (default values are from ICHS paper, safe setback distances)
             default levels correspond to glass breakage (5 kPa), people knocked over with some structural damage (16 kPa),
@@ -330,7 +328,7 @@ class Generic_overpressure_method:
         If savefig is false, returns fig object.
         '''
         if contours is None:
-            contours = [5, 16, 70]  # kPa
+            contours = [7, 13.7, 20.7]  # kPa
 
         colorbar_label = 'Overpressure [kPa]'
 
@@ -344,7 +342,7 @@ class Generic_overpressure_method:
 
     def plot_impulse_sliced(self, title=None,
                             plot_filename='impulse_sliced_contour.png',
-                            directory=os.getcwd(),
+                            directory=None,
                             contours=None,
                             nx=50, ny=50, nz=50,
                             xlims=None, ylims=None, zlims=None,
@@ -359,7 +357,7 @@ class Generic_overpressure_method:
         plot_filename: string, optional
             file name to write
         directory: string, optional
-            directory in which to save file
+            directory in which to save file, defaults to cwd
         contours: ndarray or list (optional)
             contour levels to be shown on plot
             (default values are mean to be examples only;
@@ -695,7 +693,7 @@ class Bauwens_method(Generic_overpressure_method):
 
     def calc_number_detonable_cells(self, moleFractionField, radial_coordinate_values, grad_cell_size,
                                     detonable_cell_size, max_cell_gradient):
-        number_detonable_cells_1D = sp.integrate.simpson(1/detonable_cell_size, radial_coordinate_values, axis = 1)
+        number_detonable_cells_1D = sp.integrate.simpson(y=1/detonable_cell_size, x=radial_coordinate_values, axis=1)
         number_detonable_cells = np.zeros_like(detonable_cell_size)
         number_detonable_cells[:] = number_detonable_cells_1D[:, None]
         # check if detonable cells have sufficient mole fraction for detonation and that gradient isn't too large
@@ -714,7 +712,7 @@ class Bauwens_method(Generic_overpressure_method):
         # determine plume locations where sufficient fuel for detonation or negative (integration only needs radius)
         massFractionField_det[(number_detonable_cells <= minimum_number_detonable_cell) | (radial_coordinate_values < 0)] = 0
         detonableFuelField = densityField*massFractionField_det*2*np.pi*radial_coordinate_values
-        detonable_mass = sp.integrate.simpson(sp.integrate.simpson(detonableFuelField, radial_coordinate_values), streamline_points)
+        detonable_mass = sp.integrate.simpson(y=sp.integrate.simpson(y=detonableFuelField, x=radial_coordinate_values), x=streamline_points)
         return detonable_mass
 
     def calc_scaled_distance(self, distance):

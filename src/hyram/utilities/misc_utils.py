@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -11,6 +11,23 @@ import datetime
 import re
 
 from CoolProp import CoolProp
+
+class suppress_warnings(object):
+    """
+    Suppresses all print statements to stderr.
+    Use by enclosing code/function calls with "with suppress_warnings():"
+
+    """
+    def __init__(self):
+        self.null_out = os.open(os.devnull, os.O_RDWR)
+        self.err_out = os.dup(2)
+
+    def __enter__(self):
+        os.dup2(self.null_out, 2)
+
+    def __exit__(self, *_):
+        os.dup2(self.err_out, 2)
+        os.close(self.null_out)
 
 
 def params_as_str(param_dict):
@@ -249,22 +266,26 @@ def parse_fluid_key(key: str) -> str:
     return result
 
 
-def get_temp_folder(dir_name='out'):
+def get_output_folder(dir_name=None):
     """
     Returns location of output folder
     and creates it if needed
 
     Parameters
     ----------
-    temp_dir_name : str, optional
-        Name of temporary folder (default is 'temp')
+    dir_name : str, optional
+        Name of temporary folder (default of None is cwd)
 
     Returns
     -------
-    temp_dir_path : str
-        absolute path to temporary folder
+    dir_path : str
+        absolute path to output location
     """
-    dir_path = os.path.join(os.getcwd(), dir_name)
-    if not os.path.isdir(dir_path):
-        os.mkdir(dir_path)
+    if dir_name is None:
+        dir_path = os.getcwd()
+    else:
+        dir_path = os.path.join(os.getcwd(), dir_name)
+        if not os.path.isdir(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
+
     return dir_path

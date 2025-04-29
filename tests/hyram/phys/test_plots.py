@@ -1,5 +1,5 @@
 """
-Copyright 2015-2024 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.
 
 You should have received a copy of the GNU General Public License along with HyRAM+.
@@ -16,10 +16,9 @@ from hyram.phys import Orifice, Fluid, Jet, Flame
 from hyram.phys._plots import plot_contour
 from hyram.utilities import misc_utils
 
-"""
-NOTE: if running from IDE like pycharm, make sure cwd is hyram/ and not hyram/tests.
-"""
+
 VERBOSE = False
+OUTPUT_DIR = 'out'
 
 
 class TestContourPlots(unittest.TestCase):
@@ -53,7 +52,7 @@ class TestContourPlots(unittest.TestCase):
         fig = plot_contour(data_type="mole", jet_or_flame=self.jet_object_horizontal, vlims=None)
         self.assertTrue(fig is not None)
 
-        filename = os.path.join(misc_utils.get_temp_folder(), 'test_auto_limits_h.png')
+        filename = os.path.join(OUTPUT_DIR, 'test_auto_limits_h.png')
         fig.savefig(filename)
         plt.close(fig)
 
@@ -61,7 +60,7 @@ class TestContourPlots(unittest.TestCase):
         fig = plot_contour(data_type="mole", jet_or_flame=self.jet_object_vertical, vlims=None)
         self.assertTrue(fig is not None)
 
-        filename = os.path.join(misc_utils.get_temp_folder(), 'test_auto_limits_v.png')
+        filename = os.path.join(OUTPUT_DIR, 'test_auto_limits_v.png')
         fig.savefig(filename)
         plt.close(fig)
 
@@ -69,7 +68,7 @@ class TestContourPlots(unittest.TestCase):
         fig = plot_contour(data_type="mole", jet_or_flame=self.jet_object_horizontal, xlims=(0, 20), ylims=(-2, 2), contour_levels=0.1)
         self.assertTrue(fig is not None)
 
-        filename = os.path.join(misc_utils.get_temp_folder(), 'test_set_limits_h.png')
+        filename = os.path.join(OUTPUT_DIR, 'test_set_limits_h.png')
         fig.savefig(filename)
         plt.close(fig)
 
@@ -77,7 +76,7 @@ class TestContourPlots(unittest.TestCase):
         fig = plot_contour(data_type="mole", jet_or_flame=self.jet_object_vertical, xlims=(-2, 2), ylims=(0, 20), contour_levels=0.1)
         self.assertTrue(fig is not None)
 
-        filename = os.path.join(misc_utils.get_temp_folder(), 'test_set_limits_v.png')
+        filename = os.path.join(OUTPUT_DIR, 'test_set_limits_v.png')
         fig.savefig(filename)
         plt.close(fig)
 
@@ -85,7 +84,7 @@ class TestContourPlots(unittest.TestCase):
         fig = plot_contour(data_type="temperature", jet_or_flame=self.flame_object, xlims=(0, 20), ylims=(-2.5, 5))
         self.assertTrue(fig is not None)
 
-        filename = os.path.join(misc_utils.get_temp_folder(), 'test_temp.png')
+        filename = os.path.join(OUTPUT_DIR, 'test_temp.png')
         fig.savefig(filename)
         plt.close(fig)
 
