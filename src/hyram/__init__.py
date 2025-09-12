@@ -6,5 +6,5 @@ You should have received a copy of the GNU General Public License along with HyR
 If not, see https://www.gnu.org/licenses/.
 """
 
-__version__ = '6.0'
+__version__ = '6.1'
 from . import phys, qra

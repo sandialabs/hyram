@@ -69,7 +69,7 @@ ResultPage
         Utils.showParam(amb_t, pyform.amb_t);
         Utils.showParam(amb_p, pyform.amb_p);
         Utils.showParam(rel_t, pyform.rel_t);
-        Utils.showParam(rel_p, pyform.rel_p);
+        Utils.showReleasePressureParam(rel_p, pyform.rel_p, pyform.rel_p_abs);
 
         pipe_d.visible = !pyform.pipe_d.is_null;
         pipe_od.visible = pyform.pipe_d.is_null;
@@ -720,11 +720,11 @@ ResultPage
 
                                 headers: [
                                     "Position", "X (m)", "Y (m)", "Z (m)",
-                                    "0.01% Leak Heat Flux (kW/m<sup>2</sup>)",
-                                    "0.1% Leak Heat Flux (kW/m<sup>2</sup>)",
-                                    "1% Leak Heat Flux (kW/m<sup>2</sup>)",
-                                    "10% Leak Heat Flux (kW/m<sup>2</sup>)",
-                                    "100% Leak Heat Flux (kW/m<sup>2</sup>)",
+                                    "0.01% Leak Heat Flux (W/m<sup>2</sup>)",
+                                    "0.1% Leak Heat Flux (W/m<sup>2</sup>)",
+                                    "1% Leak Heat Flux (W/m<sup>2</sup>)",
+                                    "10% Leak Heat Flux (W/m<sup>2</sup>)",
+                                    "100% Leak Heat Flux (W/m<sup>2</sup>)",
                                 ]
                                 keys: ['idx', 'x', 'y', 'z', 'r0d01', '0rd1', 'r1', 'r10', 'r100']
 
@@ -788,11 +788,11 @@ ResultPage
 
                                 headers: [
                                     "Position", "X (m)", "Y (m)", "Z (m)",
-                                    "0.01% Leak Overpressure (kPa)",
-                                    "0.1% Leak Overpressure (kPa)",
-                                    "1% Leak Overpressure (kPa)",
-                                    "10% Leak Overpressure (kPa)",
-                                    "100% Leak Overpressure (kPa)",
+                                    "0.01% Leak Overpressure (Pa)",
+                                    "0.1% Leak Overpressure (Pa)",
+                                    "1% Leak Overpressure (Pa)",
+                                    "10% Leak Overpressure (Pa)",
+                                    "100% Leak Overpressure (Pa)",
                                 ]
                                 keys: ['idx', 'x', 'y', 'z', 'r0d01', '0rd1', 'r1', 'r10', 'r100']
 
@@ -856,11 +856,11 @@ ResultPage
 
                                 headers: [
                                     "Position", "X (m)", "Y (m)", "Z (m)",
-                                    "0.01% Leak Impulse (kPa*s)",
-                                    "0.1% Leak Impulse (kPa*s)",
-                                    "1% Leak Impulse (kPa*s)",
-                                    "10% Leak Impulse (kPa*s)",
-                                    "100% Leak Impulse (kPa*s)",
+                                    "0.01% Leak Impulse (Pa*s)",
+                                    "0.1% Leak Impulse (Pa*s)",
+                                    "1% Leak Impulse (Pa*s)",
+                                    "10% Leak Impulse (Pa*s)",
+                                    "100% Leak Impulse (Pa*s)",
                                 ]
                                 keys: ['idx', 'x', 'y', 'z', 'r0d01', '0rd1', 'r1', 'r10', 'r100']
 

@@ -96,13 +96,13 @@ class AnalysisResultsForm(ResultsForm):
 
         super().finish_state_update()
 
-    # TODO: find way to dynamically create these? Can't do via property or setattr bc not stored in QtMetaObject
     seed = Property(IntFormField, fget=lambda self: self._seed)
     fuel_mix = Property(ChoiceFormField, fget=lambda self: self._fuel_mix)
 
     nozzle = Property(ChoiceFormField, fget=lambda self: self._nozzle)
     rel_phase = Property(ChoiceFormField, fget=lambda self: self._rel_phase)
     rel_p = Property(NumFormField, fget=lambda self: self._rel_p)
+    rel_p_abs = Property(BoolFormField, fget=lambda self: self._rel_p_abs)
     rel_t = Property(NumFormField, fget=lambda self: self._rel_t)
     amb_p = Property(NumFormField, fget=lambda self: self._amb_p)
     amb_t = Property(NumFormField, fget=lambda self: self._amb_t)
@@ -211,7 +211,18 @@ class AnalysisResultsForm(ResultsForm):
     def plume_contour_dicts(self):
         """Plume contour data. """
         lst = self.state.plume_contour_dicts if self.state is not None and self.state.plume_contour_dicts else []
-        lst_str = json.dumps(lst)
+
+        contour_dicts = []
+        for elem in lst:
+            contour_dicts.append({
+                'contour': elem['contour'],
+                'stream': round(elem['stream'], 2),
+                'hmin': round(elem['hmin'], 2),
+                'hmax': round(elem['hmax'], 2),
+                'vmin': round(elem['vmin'], 2),
+                'vmax': round(elem['vmax'], 2),
+            })
+        lst_str = json.dumps(contour_dicts)
         return lst_str
 
     # ACCUMULATION
@@ -247,25 +258,37 @@ class AnalysisResultsForm(ResultsForm):
 
     @Property(str, constant=True)
     def acc_data_dicts(self):
-        """Accumulation data. """
+        """Accumulation data in standard units. """
         lst = self.state.acc_data_dicts if self.state is not None and self.state.acc_data_dicts else []
         for elem in lst:
             try:
-                if 'conc' in elem and np.isnan(elem['conc']):
-                    elem['conc'] = "NaN"
-                if 'depth' in elem and np.isnan(elem['depth']):
-                    elem['depth'] = "NaN"
+                if 'conc' in elem:
+                    conc = elem['conc']
+                    elem['conc'] = "NaN" if np.isnan(conc) else np.format_float_scientific(conc, 3)
+
+                if 'depth' in elem:
+                    depth = elem['depth']
+                    elem['depth'] = "NaN" if np.isnan(depth) else np.format_float_scientific(depth, 3)
+
+                if 'pres' in elem:
+                    pres = elem['pres']
+                    elem['pres'] = "NaN" if np.isnan(pres) else np.format_float_scientific(pres, 3)
+
+                if 'flow' in elem:
+                    flow = elem['flow']
+                    elem['flow'] = "NaN" if np.isnan(flow) else np.format_float_scientific(flow, 3)
             except Exception:
                 pass
+
         lst_str = json.dumps(lst)
         return lst_str
 
     @Property(str, constant=True)
     def acc_max_overp(self):
-        """Accumulation maximum overpressure (kPa). """
+        """Accumulation maximum overpressure (Pa). """
         result = self.state.acc_max_overp if self.state is not None and self.state.acc_max_overp else ""
         if result is not None:
-            result = f"{result:.2f}"
+            result = f"{result:,.2f} Pa"
         return result
 
     @Property(str, constant=True)
@@ -273,7 +296,7 @@ class AnalysisResultsForm(ResultsForm):
         """Accumulation time at which overpressure occurred (s). """
         result = self.state.acc_overp_t if self.state is not None and self.state.acc_overp_t else ""
         if result is not None:
-            result = f"{result:.2f}"
+            result = f"{result:,.2f} s"
         return result
 
     @Property(str, constant=True)
@@ -311,7 +334,7 @@ class AnalysisResultsForm(ResultsForm):
         """Jet flame flux data dicts. """
         arr = self.state.jet_flux_data if self.state is not None and self.state.jet_flux_data else []
         for elem in arr:
-            elem['flux'] = f"{float(elem['flux']):.4f}"
+            elem['flux'] = np.format_float_scientific(elem['flux'], 3)
         result = json.dumps(arr)
         return result
 
@@ -362,8 +385,14 @@ class AnalysisResultsForm(ResultsForm):
         data = []
         for i in range(len(pts)):
             pt = pts[i]
-            dc = dict(x=pt[0], y=pt[1], z=pt[2], impulse=f"{impulses[i]:.3e}", overp=f"{overps[i]:.3e}")
-            data.append(dc)
+            row = {
+                'x': pt[0],
+                'y': pt[1],
+                'z': pt[2],
+                'impulse': np.format_float_scientific(impulses[i], 3),
+                'overp': np.format_float_scientific(overps[i], 3),
+            }
+            data.append(row)
         return json.dumps(data)
 
     # ===================
@@ -580,18 +609,18 @@ class AnalysisResultsForm(ResultsForm):
         locs = res['positions'].T
         qrads = res['position_qrads']
         for i in range(len(locs)):
-            dataset = qrads[i]
+            qrad_data = qrads[i]
             loc = locs[i]
             dc = {
                 'idx': int(i+1),
                 'x': f"{loc[0]:.1f}",
                 'y': f"{loc[1]:.1f}",
                 'z': f"{loc[2]:.1f}",
-                'r0d01': f"{dataset[0]:.3e}",
-                'r0d1': f"{dataset[1]:.3e}",
-                'r1': f"{dataset[2]:.3e}",
-                'r10': f"{dataset[3]:.3e}",
-                'r100': f"{dataset[4]:.3e}",
+                'r0d01': f"{qrad_data[0]:.3e}",
+                'r0d1': f"{qrad_data[1]:.3e}",
+                'r1': f"{qrad_data[2]:.3e}",
+                'r10': f"{qrad_data[3]:.3e}",
+                'r100': f"{qrad_data[4]:.3e}",
             }
             data.append(dc)
         result = json.dumps(data)
@@ -608,18 +637,18 @@ class AnalysisResultsForm(ResultsForm):
         locs = res['positions'].T
         overps = res['position_overps']
         for i in range(len(locs)):
-            dataset = overps[i]
+            overp_data = overps[i]
             loc = locs[i]
             dc = {
                 'idx': int(i+1),
                 'x': f"{loc[0]:.1f}",
                 'y': f"{loc[1]:.1f}",
                 'z': f"{loc[2]:.1f}",
-                'r0d01': f"{dataset[0]:.3e}",
-                'r0d1': f"{dataset[1]:.3e}",
-                'r1': f"{dataset[2]:.3e}",
-                'r10': f"{dataset[3]:.3e}",
-                'r100': f"{dataset[4]:.3e}",
+                'r0d01': f"{overp_data[0]:.3e}",
+                'r0d1': f"{overp_data[1]:.3e}",
+                'r1': f"{overp_data[2]:.3e}",
+                'r10': f"{overp_data[3]:.3e}",
+                'r100': f"{overp_data[4]:.3e}",
             }
             data.append(dc)
         result = json.dumps(data)
@@ -636,18 +665,18 @@ class AnalysisResultsForm(ResultsForm):
         locs = res['positions'].T
         impulses = res['position_impulses']
         for i in range(len(locs)):
-            dataset = impulses[i]
+            impulse_data = impulses[i]
             loc = locs[i]
             dc = {
                 'idx': int(i+1),
                 'x': f"{loc[0]:.1f}",
                 'y': f"{loc[1]:.1f}",
                 'z': f"{loc[2]:.1f}",
-                'r0d01': f"{dataset[0]:.3e}",
-                'r0d1': f"{dataset[1]:.3e}",
-                'r1': f"{dataset[2]:.3e}",
-                'r10': f"{dataset[3]:.3e}",
-                'r100': f"{dataset[4]:.3e}",
+                'r0d01': f"{impulse_data[0]:.3e}",
+                'r0d1': f"{impulse_data[1]:.3e}",
+                'r1': f"{impulse_data[2]:.3e}",
+                'r10': f"{impulse_data[3]:.3e}",
+                'r100': f"{impulse_data[4]:.3e}",
             }
             data.append(dc)
         result = json.dumps(data)

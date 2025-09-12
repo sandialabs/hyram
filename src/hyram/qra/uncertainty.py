@@ -410,7 +410,7 @@ def parse_components(uncertain_parameters):
         freqs_at_size = np.empty(len(leak_sizes[i]), dtype=object)
         for j, leak_size in enumerate(leak_sizes[i]):
             freqs_at_size[j] = np.sum(category_freqs[leak_size_idxs==j])
-        frequencies[category] = freqs_at_size
+        frequencies[category] = np.array(freqs_at_size, dtype=float)
     leak_sizes_by_category = np.array(
         [len(cat_leak_size) for cat_leak_size in leak_sizes])
     component_counts = np.array(component_counts_all_sizes / leak_sizes_by_category, dtype=int)
@@ -486,7 +486,11 @@ def set_components(uncertain_parameters:dict):
     components = create_component_set(
         categories=component_names,
         quantities=component_counts,
-        frequencies=[frequencies[component] for component in component_names])
+        # note: the string representation of the resulting Component
+        # objects will show the *average* leak frequency across all of
+        # the same component type TODO
+        frequencies=[frequencies[component]/count for component, count
+                     in zip(component_names, component_counts)])
     return components
 
 

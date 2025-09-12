@@ -47,7 +47,7 @@ PyInstaller version may have issues with most-recent setuptools/pip; this will t
 # Activates filtering to exclude incompatible Qt directories and files.
 do_filtering = True
 
-version_str = "6.0.0"
+version_str = "6.1.0"
 appname = "HyRAM"
 
 build_dir = Path(os.getcwd())

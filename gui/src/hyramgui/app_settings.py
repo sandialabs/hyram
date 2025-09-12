@@ -25,7 +25,7 @@ USE_LOGFILE = True
 
 APPNAME = "HyRAM+"
 APPNAME_LOWER = APPNAME.lower()
-VERSION = "6.0.0"
+VERSION = "6.1.0"
 
 BASE_DIR = Path(os.path.dirname(__file__))
 SESSION_DIR = None

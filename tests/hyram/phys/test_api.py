@@ -108,7 +108,7 @@ class TestETKTankMass(unittest.TestCase):
         self.pressure = 350e5  # Pa
         self.pressure_sat_vap = 1e6  # Pa, pressure for saturated phase
         self.volume = 1  # m3
-        self.mass = 1  # kg
+        self.mass = 25  # kg
         self.mass_sat_liq = 70.85  # kg
 
     def test_calc_temp_from_pres_vol_mass(self):

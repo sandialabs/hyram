@@ -140,10 +140,6 @@ ApplicationWindow {
         doShutdown();
     }
 
-    // onHeightChanged: {
-    //     console.log("window height: " + height + ", " + formContainer.height + ", " + activeForm.height);
-    // }
-
     Component.onCompleted: {
         refreshForm();
 
@@ -818,7 +814,6 @@ ApplicationWindow {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Layout.topMargin: 20
-                        // anchors.fill: parent
 
                         Loader {
                             id: formLoader
@@ -828,11 +823,6 @@ ApplicationWindow {
                 }
             }
         }
-
-        // Rectangle {
-            // Layout.preferredWidth: 4
-            // Layout.fillHeight: true
-        // }
 
         // ========================================
         // ==== RIGHT SECTION (ANALYSIS QUEUE) ====
@@ -874,7 +864,8 @@ ApplicationWindow {
                 width: 320
                 anchors.top: queueHeaderId.bottom
                 anchors.topMargin: 2
-                height: parent.height - queueHeaderImage.height - 4
+                height: parent.height - queueHeaderImage.height - queueHeaderId.height - 4
+                ScrollBar.vertical: ScrollBar { id: vbar; }
 
                 boundsBehavior: Flickable.StopAtBounds
                 boundsMovement: Flickable.FollowBoundsBehavior
@@ -882,7 +873,7 @@ ApplicationWindow {
                 clip: true
 
                 spacing: 4
-                model: queue  // py QueueDisplay
+                model: queue  // refer to displays.py
                 delegate:  QueueItem {
                     fm: model.item
                     qIndex: index

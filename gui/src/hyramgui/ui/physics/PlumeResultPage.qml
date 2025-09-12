@@ -60,13 +60,15 @@ ResultPage
         Utils.showParam(amb_p, pyform.amb_p);
 
         Utils.showParam(rel_t, pyform.rel_t);
-        Utils.showParam(rel_p, pyform.rel_p);
+        Utils.showReleasePressureParam(rel_p, pyform.rel_p, pyform.rel_p_abs);
         Utils.showChoiceParam(nozzle, pyform.nozzle);
         Utils.showParam(discharge, pyform.discharge);
 
         Utils.showParam(leak_d, pyform.leak_d);
         Utils.showParam(rel_angle, pyform.rel_angle);
         Utils.showParam(plume_mass_flow, pyform.plume_mass_flow);
+
+        Utils.showStrValue(massFlowRate, "Mass flow rate: ", pyform.plume_out_flow, "kg/s");
 
         paramSection.visible = true;
 
@@ -323,21 +325,7 @@ ResultPage
                     Row {
                         bottomPadding: 24
 
-                        Text {
-                            font.bold: true
-                            font.pointSize: labelFontSize + 1
-                            text: "Mass flow rate: "
-                        }
-                        Text {
-                            font.bold: false
-                            font.pointSize: labelFontSize + 1
-                            text: pyform.plume_out_flow
-                        }
-                        Text {
-                            font.bold: false
-                            font.pointSize: labelFontSize + 1
-                            text: " kg/s"
-                        }
+                        ResultParamText { id: massFlowRate; }
                     }
 
                     RowLayout {

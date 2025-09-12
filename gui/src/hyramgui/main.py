@@ -12,6 +12,7 @@ import sys
 
 from pathlib import Path
 
+from PySide6.QtCore import QLocale
 from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 
@@ -41,6 +42,8 @@ def main():
     log.info(f"data dir: {app_settings.DATA_DIR}")
     log.info(f"session dir: {app_settings.SESSION_DIR}")
     log.info(f'User set session dir? {app_settings.USER_SET_SESSION_DIR}')
+
+    QLocale.setDefault(QLocale.system())
 
     from hyramgui.hygu.displays import QueueDisplay
     from hyramgui.forms.app import HyramAppForm

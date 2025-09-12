@@ -242,9 +242,9 @@
 		"Ruggles and Ekoto 2012 - Figure 7, Jet Width over Axial Distance": {
 			"Max Absolute Error": 6.3,
             "Avg Absolute Error": 3.7,
-            "Max Percent Error": 31,
+            "Max Percent Error": 32.5,
             "Avg Percent Error": 27,
-            "R2": 0.997
+            "R2": 0.995
 		}
 	},
 	"Test_Han_2013_fig3": {

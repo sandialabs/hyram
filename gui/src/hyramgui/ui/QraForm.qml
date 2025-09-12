@@ -318,8 +318,8 @@ FormPage {
         FlickableForm
         {
             id: paramContainer
-            contentHeight: paramLayout1.height + paramLayout2.height + paramLayout3.height + 20 + 120
-            h: 540
+            contentHeight: paramLayout1.height + paramLayout2.height + paramLayout3.height + 120
+            h: 480
 
             // ==========================
             // ==== Parameter Inputs ====

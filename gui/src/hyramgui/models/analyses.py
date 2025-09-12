@@ -178,11 +178,10 @@ def do_physics_analysis(analysis_id, params: dict, global_status_dict: dict):
                                                          output_dir=output_dir,
                                                          verbose=verbose)
 
-                flux_data_kwm2 = [flux / 1000 for flux in flux_data] if flux_data is not None else None
 
                 results = {
                     'status': 1,
-                    'flux_data': flux_data_kwm2,
+                    'flux_data': flux_data,
                     'flux_plot_fpath': heatflux_filepath,
                     'temp_plot_fpath': temp_plot_filepath,
                     'mass_flow': mass_flow,
@@ -267,21 +266,6 @@ def do_physics_analysis(analysis_id, params: dict, global_status_dict: dict):
             pass
         return results
 
-    # check if analysis was canceled
-    # if api_settings.RUN_STATUS == api_settings.Status.STOPPED:
-    #     results = {
-    #         'status': 2,
-    #         'analysis_id': analysis_id,
-    #         'message': "Analysis canceled successfully"
-    #     }
-    #     try:
-    #         output_dir.rmdir()
-    #     except Exception:
-    #         pass
-    #     return results
-
-    # analysis.save_results(output_dir=output_dir)
-
     return results
 
 
@@ -302,11 +286,11 @@ def do_plume_analysis(analysis_id, params: dict, status_dict: dict):
             # keys must match QML
             contour_dicts.append({
                 'contour': contour,
-                'stream': round(streamline_dists[ci], 2),
-                'hmin': round(data[0][0], 2),
-                'hmax': round(data[0][1], 2),
-                'vmin': round(data[1][0], 2),
-                'vmax': round(data[1][1], 2),
+                'stream': streamline_dists[ci],
+                'hmin': data[0][0],
+                'hmax': data[0][1],
+                'vmin': data[1][0],
+                'vmax': data[1][1],
             })
             ci += 1
 
@@ -344,10 +328,10 @@ def do_accum_analysis(analysis_id, params: dict, status_dict: dict):
         for elem in arrs:
             data_dicts.append({
                 'time': elem[0],
-                'pres': np.format_float_scientific(elem[1], 3),
-                'depth': np.format_float_scientific(elem[2], 3),
-                'conc': np.around(elem[3], 2),
-                'flow': np.format_float_scientific(elem[4], 3),
+                'pres': float(elem[1]),
+                'depth': float(elem[2]),
+                'conc': float(elem[3]),
+                'flow': float(elem[4]),
             })
 
         results = {
@@ -359,7 +343,7 @@ def do_accum_analysis(analysis_id, params: dict, status_dict: dict):
             'acc_layer_plot': als_data['layer_plot_filepath'],
             'acc_traj_plot': als_data['trajectory_plot_filepath'],
             'acc_flow_plot': als_data['mass_flow_plot_filepath'],
-            'max_overp': als_data['overpressure'] / 1000,
+            'max_overp': als_data['overpressure'],
             'overp_t': als_data['time_of_overp'],
             'output_dir': als_data['output_dir'],
             'data_dicts': data_dicts

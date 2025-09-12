@@ -27,7 +27,7 @@ maintainers = [
 ]
 description = "Hydrogen Plus Other Alternative Fuels Risk Assessment Models Python Package"
 readme = "./src/hyram/README.md"
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.9"
 keywords = ["hydrogen", "methane", "propane", "flame", "plume", "jet", "overpressure", "quantitative risk assessment", "risk"]
 license = "GPL-3.0-only"
 classifiers = [

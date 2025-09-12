@@ -43,7 +43,7 @@ class NotionalNozzle:
         throat = self.nozzle.fluid
         if conserve_momentum:
             #YuceilOtugen, Birch2
-            v = throat.v + (throat.P - self.low_P_fluid.P)/(throat.v*throat.rho*self.nozzle.orifice.Cd)
+            v = throat.v*self.nozzle.orifice.Cd + (throat.P - self.low_P_fluid.P)/(throat.v*throat.rho*self.nozzle.orifice.Cd)
             if T == 'solve_energy':
                 #YuceilOtugen
                 throat_enthalpy = throat.therm.get_property('H0', P=throat.P, D=throat.rho, v=throat.v)

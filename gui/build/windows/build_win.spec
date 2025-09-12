@@ -44,7 +44,7 @@ pyinstaller .\build_win.spec --noconfirm
 
 # Specify included Qt directories and files to ensure incompatible (GPL) modules are excluded.
 do_filtering = True
-version_str = "6.0.0"
+version_str = "6.1.0"
 appname = "HyRAM"
 
 build_dir = Path(os.getcwd())

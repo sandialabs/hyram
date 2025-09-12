@@ -319,8 +319,6 @@ def do_qra_analysis(analysis_id, params: dict, global_status_dict: dict):
         results['status'] = 1
 
         analysis_dict['leak_results'] = [res for res in analysis_dict['leak_results']]
-        analysis_dict['position_qrads'] /= 1000.  # W/m2 -> kW/m2
-        analysis_dict['position_overps'] /= 1000.  # Pa -> kPa
         results['data'] = analysis_dict
 
     except ValueError as exc:

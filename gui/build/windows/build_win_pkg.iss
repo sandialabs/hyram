@@ -5,11 +5,12 @@
 WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64compatible
 AppName=HyRAM+
-AppVersion=6.0.0
+AppVersion=6.1.0
 AppCopyright=Copyright 2015-2025 National Technology & Engineering Solutions of Sandia, LLC (NTESS).\n
 AppPublisher=Sandia National Laboratories
 AppPublisherURL=https://hyram.sandia.gov/
 SignTool=Sectigo_250401 $f
+UninstallDisplayName=HyRAM+
 
 WizardSmallImageFile=icon55.bmp
 WizardImageFile=icon410x797.bmp

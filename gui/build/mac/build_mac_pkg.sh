@@ -22,7 +22,7 @@
 # https://stackoverflow.com/a/11487658
 
 appname="HyRAM"
-version="6.0.0"  # Make sure to update distribution file entry as well
+version="6.1.0"  # Make sure to update distribution file entry as well
 appId="com.SandiaNationalLaboratories.HyRAM"
 
 doDevBuild=false

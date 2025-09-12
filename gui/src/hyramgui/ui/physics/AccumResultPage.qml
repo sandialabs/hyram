@@ -58,7 +58,7 @@ ResultPage
         Utils.showChoiceParam(fuel_mix, pyform.fuel_mix);
         Utils.showChoiceParam(rel_phase, pyform.rel_phase);
         Utils.showParam(rel_t, pyform.rel_t);
-        Utils.showParam(rel_p, pyform.rel_p);
+        Utils.showReleasePressureParam(rel_p, pyform.rel_p, pyform.rel_p_abs);
         Utils.showParam(discharge, pyform.discharge);
         Utils.showChoiceParam(nozzle, pyform.nozzle);
 
@@ -80,9 +80,10 @@ ResultPage
         Utils.showParam(tank_v, pyform.tank_v);
         Utils.showBasicParam(seed, pyform.seed);
 
-        tank_v.visible = pyform.is_blowdown.value;
+        Utils.showStrValue(maxOverpressure, "Maximum overpressure: ", pyform.acc_max_overp, "");
+        Utils.showStrValue(overpressureTime, "Time this occurred: ", pyform.acc_overp_t, "");
 
-        maxOverpDisp.text = "" + pyform.acc_max_overp + " kPa at " + pyform.acc_overp_t + " s";
+        tank_v.visible = pyform.is_blowdown.value;
 
         paramSection.visible = true;
 
@@ -281,6 +282,7 @@ ResultPage
             }
 
             // Scrollable results display
+
             Flickable
             {
                 id: resultSection
@@ -336,8 +338,8 @@ ResultPage
                         id: paramRow
                         spacing: 35
                         Column {
-                            ResultParamText { id: fuel_mix; }
                             ResultParamText { id: rel_phase; }
+                            ResultParamText { id: fuel_mix; }
                             ResultParamText { id: rel_t; }
                             ResultParamText { id: rel_p; }
                             ResultParamText { id: discharge; }
@@ -389,34 +391,15 @@ ResultPage
 
                     Row {
                         bottomPadding: 10
-                        Text {
-                            text: "Maximum overpressure: "
-                            font.bold: true
-                            font.pointSize: labelFontSize
-                        }
-                        Text {
-                            id: maxOverpDisp
-                            font.pointSize: labelFontSize
-                        }
+                        ResultParamText { id: maxOverpressure;}
                     }
                     Row {
                         bottomPadding: 10
-                        Text {
-                            text: "Time this occurred (s): ";
-                            font.bold: true;
-                            font.pointSize: labelFontSize
-                        }
-                        Text {
-                            text: pyform.acc_overp_t;
-                            font.pointSize: labelFontSize
-                        }
+                        ResultParamText { id: overpressureTime;}
                     }
 
                     GridLayout {
-                        // height: plot1.height * 2 + dataTable.height + 20 + 30
                         columns: 2
-                        // rowSpacing: 20
-                        // colSpacing: 20
 
                         SimImage {id: plot1; Layout.preferredWidth: 500; }
                         SimImage {id: plot2; Layout.preferredWidth: 500; }
@@ -432,7 +415,7 @@ ResultPage
                             colW: 120;
                             tableModelRef: tableModel
                             headers: ["Time (s)",
-                                    "Combined Pressure (kPa)",
+                                    "Combined Overpressure (Pa)",
                                     "Depth (m)",
                                     "Concentration (%)",
                                     "Mass Flow Rate (kg/s)",]

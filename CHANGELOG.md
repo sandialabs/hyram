@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.1] - 2025-09-11
+
+### Changed
+- Fixed bug causing component leak frequencies to be counted twice when the QRA is piped using `qra/uncertainty` module functions
+- Fixed issue in Yuceil-Otugen and Birch2 notional nozzle models that was incorrectly handling nozzle discharge coefficient values other than 1 and was inconsistent with technical reference manual
+- Fixed bug in GUI displaying overpressure and impulse values in tables in Pa rather than kPa for Unconfined Overpressure and Accumulation results
+- The GUI analysis button now remains visible when the application window is shrunk
+- The GUI analysis queue now has a scrollbar and the 16th queue entry has stopped hiding
+- Data tables with overflowing rows now have scrollbars
+- Undo/redo and data importing no longer overwrite custom QRA component counts
+- The release pressure type (gauge or absolute) is now correctly used in analysis calls
+- Updated python version requirements to allow 3.13
+
+
 ## [6.0] - 2025-04-29
 
 ### Added

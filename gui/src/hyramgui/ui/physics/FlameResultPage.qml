@@ -54,7 +54,7 @@ ResultPage
         Utils.showParam(amb_p, pyform.amb_p);
 
         Utils.showParam(rel_t, pyform.rel_t);
-        Utils.showParam(rel_p, pyform.rel_p);
+        Utils.showReleasePressureParam(rel_p, pyform.rel_p, pyform.rel_p_abs);
         Utils.showChoiceParam(nozzle, pyform.nozzle);
         Utils.showParam(discharge, pyform.discharge);
 
@@ -374,7 +374,7 @@ ResultPage
                                 tableH: 400;
                                 nCols: 4;
                                 colW: 100;
-                                headers: [ "X (m)", "Y (m)", "Z (m)", "Flux (kW/m<sup>2</sup>)"]
+                                headers: [ "X (m)", "Y (m)", "Z (m)", "Flux (W/m<sup>2</sup>)"]
                                 keys: ['x', 'y', 'z', 'flux']
                                 tableModelRef: tableModel
                                 dataSourceCallback: function() { return pyform.jet_flux_data; };

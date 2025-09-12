@@ -370,11 +370,6 @@ class HyramAppForm(forms.AppForm):
 
             elif analysis_type == 'uo':
                 state_obj.uo_results = results['data']
-                # state_obj.uo_impulse_plot = results.get('impulse_plot_fpath', None)
-                # state_obj.uo_data = results.get('data', [])
-                # state_obj.uo_tnt_mass = results.get('tnt_mass', None)
-                # state_obj.uo_mass_flow = results.get('mass_flow', None)
-                # state_obj.uo_flam_mass = results.get('flam_mass', None)
 
             elif analysis_type == 'qra':
                 state_obj.qra_results = results['data']

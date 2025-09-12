@@ -58,7 +58,7 @@ ResultPage
         Utils.showParam(amb_p, pyform.amb_p);
 
         Utils.showParam(rel_t, pyform.rel_t);
-        Utils.showParam(rel_p, pyform.rel_p);
+        Utils.showReleasePressureParam(rel_p, pyform.rel_p, pyform.rel_p_abs);
         Utils.showChoiceParam(nozzle, pyform.nozzle);
         Utils.showParam(discharge, pyform.discharge);
 
@@ -69,6 +69,9 @@ ResultPage
         Utils.showChoiceParam(overp_method, pyform.overp_method);
         Utils.showParam(tnt_factor, pyform.tnt_factor);
         Utils.showChoiceParam(mach_speed, pyform.mach_speed);
+
+        Utils.showStrValue(massFlowRate, "Mass flow rate: ", pyform.uo_mass_flow, "kg/s");
+        Utils.showStrValue(flammableMass, "Flammable mass: ", pyform.uo_flam_mass, "kg");
 
         mach_speed.visible = false;
         tnt_factor.visible = false;
@@ -361,62 +364,14 @@ ResultPage
                     Row {
                         bottomPadding: 10
 
-                        Text {
-                            font.bold: true
-                            font.pointSize: labelFontSize
-                            text: "Mass flow rate: "
-
-                            MouseArea {
-                                id: ma
-                                anchors.fill: parent
-                                hoverEnabled: true
-                            }
-
-                            ToolTip {
-                                delay: 200
-                                timeout: 3000
-                                visible: ma.containsMouse
-                                text: "Steady-state mass flow rate of fuel from leak"
-                            }
-                        }
-                        Text {
-                            font.pointSize: labelFontSize
-                            text: pyform.uo_mass_flow
-                        }
-                        Text {
-                            font.pointSize: labelFontSize
-                            text: " kg/s"
+                        ResultParamText {
+                            id: massFlowRate;
+                            tipText: "Steady-state mass flow rate of fuel from leak"
                         }
                     }
                     Row {
                         bottomPadding: 10
-
-                        Text {
-                            font.bold: true
-                            font.pointSize: labelFontSize
-                            text: "Flammable mass: "
-
-                            MouseArea {
-                                id: ma2
-                                anchors.fill: parent
-                                hoverEnabled: true
-                            }
-
-                            ToolTip {
-                                delay: 200
-                                timeout: 3000
-                                visible: ma2.containsMouse
-                                text: "Flammable mass available from steady-state plume"
-                            }
-                        }
-                        Text {
-                            font.pointSize: labelFontSize
-                            text: pyform.uo_flam_mass
-                        }
-                        Text {
-                            font.pointSize: labelFontSize
-                            text: " kg"
-                        }
+                        ResultParamText { id: flammableMass;}
                     }
 
                     Row {
@@ -486,7 +441,7 @@ ResultPage
                         nCols: 5;
                         colW: 100;
                         tableModelRef: tableModel
-                        headers: [ "X (m)", "Y (m)", "Z (m)", "Overpressure (kPa)", "Impulse (kPa*s)"]
+                        headers: [ "X (m)", "Y (m)", "Z (m)", "Overpressure (Pa)", "Impulse (Pa*s)"]
                         keys: ['x', 'y', 'z', 'overp', 'impulse']
                         dataSourceCallback: function() { return pyform.uo_pos_data; };
 
@@ -498,6 +453,7 @@ ResultPage
                             TableModelColumn { display: "overp" }
                             TableModelColumn { display: "impulse" }
                         }
+
                     }
                     VSpacer { height: 60 }
                 }

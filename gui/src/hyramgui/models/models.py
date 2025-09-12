@@ -62,6 +62,9 @@ class State(ModelBase):
     # signal controller for conc_change update -> leak freq updates on field change
     _sync_conc_and_freqs: bool = True
 
+    # automatically update fuel-specific parameters when relevant fields change
+    _sync_fuel_params: bool = True
+
     etk_blowdown_plot: str = ""
 
     # plume results
@@ -128,7 +131,6 @@ class State(ModelBase):
 
         self.nozzle = ChoiceField('Notional nozzle model', slug='nozzle', choices=NozzleType, value=NozzleType.yuc)
         self.rel_phase = ChoiceField('Fluid phase', choices=PhaseType, value=PhaseType.fluid)
-        # TODO: change var to p_rel, t_amb, etc. for consistency
         self.rel_p_abs = BoolField('Fluid pressure is absolute', value=True)
         self.rel_t = NumField('Tank fluid temperature', slug='rel_t', unit=Temperature.k, value=288, min_value=-np.inf)
         self.rel_p = NumField('Tank fluid pressure', slug='rel_p', unit=Pressure.mpa, value=35)
@@ -474,7 +476,7 @@ class State(ModelBase):
                     continue
                 self.fields.append(value)
 
-        # Update fuelmix when user changes a concentration
+        # Update fuel mix when user changes a concentration
         for field in self.fuels:
             field.changed += lambda fld: self.handle_conc_change(fld)
 
@@ -483,6 +485,23 @@ class State(ModelBase):
 
         self.set_fuel_specific_parameters()
         super().post_init()
+
+    def _get_rel_pressure(self):
+        """ Get actual release pressure depending on whether gauge or absolute. """
+        rel_p = self.rel_p.value
+        rel_is_abs = self.rel_p_abs.value
+        if not rel_is_abs:
+            rel_p += self.amb_p.value
+        return rel_p
+
+    def _get_rel_pressure_raw(self):
+        """ Get actual raw release pressure depending on whether gauge or absolute. """
+        rel_p = self.rel_p.value_raw
+        rel_is_abs = self.rel_p_abs.value
+        if not rel_is_abs:
+            rel_p += self.amb_p.value_raw
+        return rel_p
+
 
     # ==============================
     # ==== PARAMETER VALIDATION ====
@@ -519,9 +538,11 @@ class State(ModelBase):
         if self.is_saturated:
             rel_p = self.rel_p.value_raw / 1e6
             amb_p = self.amb_p.value_raw / 1e6
+
             rel_is_abs = self.rel_p_abs.value
             if not rel_is_abs:
                 rel_p += amb_p
+
             if self.fuel_mix.value in [FuelMixType.h2, FuelMixType.c3h8, FuelMixType.ch4]:
                 p_crit = species_dict[self.fuel_mix.value].p_crit
             else:
@@ -704,7 +725,8 @@ class State(ModelBase):
                 choked_flow_ratio += (fuel.value / 100.) * species_data.choked_flow  # convert from percentage
 
         amb_p = self.amb_p.value_raw
-        rel_p = self.rel_p.value_raw
+        rel_p = self._get_rel_pressure_raw()
+
         return np.abs(choked_flow_ratio) > eps and rel_p < choked_flow_ratio * amb_p
 
     def handle_conc_change(self, _: NumField):
@@ -737,13 +759,17 @@ class State(ModelBase):
         else:
             self.fuel_mix.set_from_model(FuelMixType.man)
 
+        # NOTE: we may not want to automatically reset component counts here if user set custom values?
         self.set_fuel_specific_parameters()
 
     def set_fuel_specific_parameters(self):
-        """Updates component counts, leak frequencies, ignition data, probit to match selected fuel and phase.
+        """Resets component counts, leak frequencies, ignition data, probit to match selected fuel and phase.
         Refer to Component_Count_Defaults.pdf (from issue #209).
 
         """
+        if not self._sync_fuel_params:
+            return
+
         recording_state = self._record_changes
         # Do one state save at end, otherwise will fill up with leak freq calculation adjustments
         self._record_changes = False
@@ -797,7 +823,6 @@ class State(ModelBase):
 
 
         if species in [FuelMixType.ch4, FuelMixType.c3h8]:
-            # Per issue 106
             self.ignition_data = [{'min': None, 'max': 1, 'immed': 0.007, 'delay': 0.003,},
                                   {'min': 1, 'max': 50, 'immed': 0.047, 'delay': 0.023,},
                                   {'min': 50, 'max': None, 'immed': 0.20, 'delay': 0.10,}]
@@ -808,7 +833,7 @@ class State(ModelBase):
                                   {'min': 6.25, 'max': None, 'immed': 0.23, 'delay': 0.12,}]
 
 
-        # TODO: how to handle blends?
+        # NOTE: how to handle blends?
         if species in [FuelMixType.h2, FuelMixType.ch4, FuelMixType.c3h8]:
             leak_data = get_leak_frequency_set_for_species(species, phase)
             for data_list, field_list in zip(leak_data.values(), self.component_leak_sets):
@@ -1030,6 +1055,8 @@ class State(ModelBase):
             'ignition_data': deepcopy(self.ignition_data),
             'species_dict': self._get_prepped_conc_dict_for_backend(),
         }
+        # Account for whether gauge or absolute input
+        dct['rel_p'] = self._get_rel_pressure_raw()
 
         return dct
 
@@ -1054,8 +1081,11 @@ class State(ModelBase):
 
         """
         # Verify all parameters present. Must account for new/revised params.
-        old_sync_val = self._sync_conc_and_freqs
+        old_sync_conc_val = self._sync_conc_and_freqs
         self._sync_conc_and_freqs = False
+
+        old_sync_fuel_val = self._sync_fuel_params
+        self._sync_fuel_params = False
 
         if 'analysis_name' not in data:
             data['analysis_name'] = self.analysis_name.to_dict()
@@ -1068,8 +1098,11 @@ class State(ModelBase):
         super()._from_dict(data)
 
         # do the update manually
-        self._sync_conc_and_freqs = old_sync_val
+        self._sync_conc_and_freqs = old_sync_conc_val
         self.handle_conc_change(self.override_d01)
+
+        # Restore this AFTER the conc_change call, otherwise it will overwrite any custom component counts
+        self._sync_fuel_params = old_sync_fuel_val
 
     def _get_conc_dict(self) -> dict:
         """Dict of fluid full names with concentrations summing to 100."""

@@ -13,6 +13,7 @@ import scipy.constants as spc
 from hyram.qra.uq.sampling import RandomStudy
 from hyram.qra.uq.distributions import (LognormalDistribution,
                                               BetaDistribution)
+from hyram.qra.component import Component
 from hyram.qra.component_failure import ComponentFailure, ComponentFailureSet
 from hyram.qra import uncertainty
 
@@ -435,13 +436,15 @@ class HydrogenTestCase(unittest.TestCase):
         """
         parameters = {'Component: Compressor #1, 0.1% leak': 0.01,
                       'Component: Compressor #1, 1% leak': 0.02,
+                      'Component: Compressor #2, 0.1% leak': 0.03,
+                      'Component: Compressor #2, 1% leak': 0.04,
                       'Component: Pipe #1, 0.1% leak, MFR=0.4 kg/s': 0.03,
                       'Different Uncertain Parameter': 0.04}
         exp_categories = ['Compressor', 'Pipe']
-        exp_counts = [1, 1]
+        exp_counts = [2, 1]
         exp_leak_sizes = np.array([np.array([0.1, 1]),
                                    np.array([0.1])], dtype=object)
-        exp_frequencies = np.array([np.array([0.01, 0.02]),
+        exp_frequencies = np.array([np.array([0.04, 0.06]),
                                     np.array([0.03])], dtype=object)
         exp_mass_flow_rates = np.array([None,
                                         np.array([0.4])], dtype=object)
@@ -495,6 +498,44 @@ class HydrogenTestCase(unittest.TestCase):
 
         self.assertTrue(isinstance(test_study, RandomStudy))
         self.assertEqual(test_study.num_aleatory_samples, self.num_samples)
+
+    def test_set_components(self):
+        """Check to ensure uncertain components return the expected
+        component set with the correct average frequencies.
+        """
+        parameters = {'Component: Pipe #1, 0.01% leak': 0.05,
+                      'Component: Pipe #1, 0.1% leak': 0.04,
+                      'Component: Pipe #1, 1% leak': 0.03,
+                      'Component: Pipe #1, 10% leak': 0.02,
+                      'Component: Pipe #1, 100% leak': 0.01,
+                      'Component: Pipe #2, 0.01% leak': 0.15,
+                      'Component: Pipe #2, 0.1% leak': 0.14,
+                      'Component: Pipe #2, 1% leak': 0.13,
+                      'Component: Pipe #2, 10% leak': 0.12,
+                      'Component: Pipe #2, 100% leak': 0.11,
+                      'Component: Compressor #1, 0.01% leak, MFR=0.04 kg/s': 0.25,
+                      'Component: Compressor #1, 0.1% leak, MFR=0.04 kg/s': 0.24,
+                      'Component: Compressor #1, 1% leak, MFR=0.04 kg/s': 0.23,
+                      'Component: Compressor #1, 10% leak, MFR=0.04 kg/s': 0.22,
+                      'Component: Compressor #1, 100% leak, MFR=0.04 kg/s': 0.21}
+        test_component_set = uncertainty.set_components(parameters)
+        exp_component_set = [
+            Component(category='Compressor',
+                      quantity=1,
+                      leak_freqs=np.array([0.25, 0.24, 0.23, 0.22, 0.21])),
+            Component(category='Pipe',
+                      quantity=2,
+                      leak_freqs=np.array([0.1, 0.09, 0.08, 0.07, 0.06]))
+            ]
+
+        for (test_component, exp_component) in zip(
+            test_component_set, exp_component_set):
+            self.assertEqual(
+                test_component.category, exp_component.category)
+            self.assertEqual(
+                test_component.quantity, exp_component.quantity)
+            self.assertTrue(np.allclose(
+                test_component.leak_freqs, exp_component.leak_freqs))
 
     def test_evaluate_qra_uq(self):
         """Check to ensure sampling study runs successfully"""

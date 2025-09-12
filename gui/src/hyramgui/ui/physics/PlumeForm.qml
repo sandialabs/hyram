@@ -75,13 +75,13 @@ FormPage {
 
         FlickableForm
         {
-            contentHeight: paramCols.height + 20 + 120
+            contentHeight: paramCols.height + 120
 
             // ==========================
             // ==== Parameter Inputs ====
             Item {
                 id: paramColContainer
-                Layout.fillHeight: true
+                // Layout.fillHeight: true
                 height: paramCols.height
 
                 ColumnLayout {
@@ -143,9 +143,9 @@ FormPage {
                         tipText: "Plot mole fraction scale bounds. Fractions outside this range will appear as single color."
                     }
 
-                    Item {
-                        Layout.fillHeight: true
-                    }
+                    // Item {
+                    //     Layout.fillHeight: true
+                    // }
 
                 }
             }
