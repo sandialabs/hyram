@@ -1,0 +1,10 @@
+sphinx
+sphinx-design
+sphinx-rtd-theme
+sphinxcontrib-bibtex
+
+# Dependencies for hyram
+matplotlib
+numpy
+scipy
+coolprop
